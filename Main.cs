@@ -311,6 +311,13 @@ namespace winsw
                     if (s == null) ThrowNoSuchService();
                     s.StopService();
                 }
+                if (args[0] == "restart")
+                {
+                    if (s == null) ThrowNoSuchService();
+                    if(s.Started)
+                        s.StopService();
+                    s.StartService();
+                }
                 if (args[0] == "status")
                 {
                     if (s == null)
