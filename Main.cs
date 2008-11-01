@@ -177,8 +177,54 @@ namespace winsw
             o.Close();
         }
 
+        /// <summary>
+        /// Process the file copy instructions, so that we can replace files that are always in use while
+        /// the service runs.
+        /// </summary>
+        private void HandleFileCopies()
+        {
+            var file = descriptor.BasePath + ".copies";
+            if (!File.Exists(file))
+                return; // nothing to handle
+
+            try
+            {
+                using (var tr = new StreamReader(file,Encoding.UTF8))
+                {
+                    string line;
+                    while ((line = tr.ReadLine()) != null)
+                    {
+                        try
+                        {
+                            EventLog.WriteEntry("Handling copy: " + line);
+                            string[] tokens = line.Split('>');
+                            if (tokens.Length > 2)
+                            {
+                                EventLog.WriteEntry("Too many delimiters in " + line);
+                                continue;
+                            }
+
+                            File.Delete(tokens[1]);
+                            File.Move(tokens[0], tokens[1]);
+                        }
+                        catch(IOException e)
+                        {
+                            EventLog.WriteEntry("Failed to copy :"+line+" because "+e.Message);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                File.Delete(file);
+            }
+
+        }
+
         protected override void OnStart(string[] args)
         {
+            HandleFileCopies();
+
             EventLog.WriteEntry("Starting "+descriptor.Executable+' '+descriptor.Arguments);
             string baseName = descriptor.BasePath;
 
