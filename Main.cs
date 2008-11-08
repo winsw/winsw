@@ -146,6 +146,24 @@ namespace winsw
             }
         }
 
+        /// <summary>
+        /// Optionally specified depend services that must start before this service starts.
+        /// </summary>
+        public string[] ServiceDependencies
+        {
+            get
+            {
+                System.Collections.ArrayList serviceDependencies = new System.Collections.ArrayList();
+
+                foreach (XmlNode depend in dom.SelectNodes("//depend"))
+                {
+                    serviceDependencies.Add(depend.InnerText);
+                }
+
+                return (string[])serviceDependencies.ToArray(typeof(string));
+            }
+        }
+
         public string Id
         {
             get
@@ -422,7 +440,8 @@ namespace winsw
                         WMI.ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
                         StartMode.Automatic,
-                        d.Interactive);
+                        d.Interactive,
+                        d.ServiceDependencies);
                     // update the description
                     /* Somehow this doesn't work, even though it doesn't report an error
                     Win32Service s = svc.Select(d.Id);
