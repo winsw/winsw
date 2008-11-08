@@ -32,7 +32,7 @@ namespace winsw
                 // this returns the executable name as given by the calling process, so
                 // it needs to be absolutized.
                 string p = Environment.GetCommandLineArgs()[0];
-                return Path.Combine(Environment.CurrentDirectory, p);
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p);
 
             }
         }
