@@ -24,6 +24,7 @@ namespace winsw
         /// Where did we find the configuration file?
         /// </summary>
         public readonly string BasePath;
+        public readonly string BaseName;
 
         public static string ExecutablePath
         {
@@ -54,7 +55,8 @@ namespace winsw
             // register the base directory as environment variable so that future expansions can refer to this.
             Environment.SetEnvironmentVariable("BASE", p);
 
-            BasePath = Path.Combine(p, baseName);
+            BaseName = baseName;
+            BasePath = Path.Combine(p, BaseName);
 
             dom.Load(BasePath+".xml");
         }
@@ -103,6 +105,26 @@ namespace winsw
                 }
             }
         }
+
+        /// <summary>
+        /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
+        /// </summary>
+        public string LogDirectory
+        {
+            get
+            {
+                XmlNode loggingNode = dom.SelectSingleNode("//logpath");
+                string logDirectory = Path.GetDirectoryName(ExecutablePath);
+
+                if (loggingNode != null)
+                {
+                    logDirectory = loggingNode.InnerText;
+                }
+
+                return logDirectory;
+            }
+        }
+
 
         /// <summary>
         /// Logmode to 'reset', 'roll' once or 'append' [default] the out.log and err.log files.
@@ -271,9 +293,16 @@ namespace winsw
         /// </summary>
         private void HandleLogfiles()
         {
-            string baseName = descriptor.BasePath;
-            string errorLogfilename = baseName + ".err.log";
-            string outputLogfilename = baseName + ".out.log";
+            string logDirectory = descriptor.LogDirectory;
+
+            if (!Directory.Exists(logDirectory))
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
+
+            string baseName = descriptor.BaseName;
+            string errorLogfilename = Path.Combine(logDirectory, baseName + ".err.log");
+            string outputLogfilename = Path.Combine(logDirectory, baseName + ".out.log");
 
             System.IO.FileMode fileMode = FileMode.Append;
 
@@ -302,7 +331,6 @@ namespace winsw
             HandleFileCopies();
 
             EventLog.WriteEntry("Starting "+descriptor.Executable+' '+descriptor.Arguments);
-            string baseName = descriptor.BasePath;
 
             var ps = process.StartInfo;
             ps.FileName = descriptor.Executable;
