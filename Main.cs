@@ -133,7 +133,11 @@ namespace winsw
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 foreach (XmlNode n in dom.SelectNodes("//env"))
                 {
-                    map[n.Attributes["name"].Value] = Environment.ExpandEnvironmentVariables(n.Attributes["value"].Value);
+                    string key = n.Attributes["name"].Value;
+                    string value = Environment.ExpandEnvironmentVariables(n.Attributes["value"].Value);
+                    map[key] = value;
+
+                    Environment.SetEnvironmentVariable(key, value);
                 }
                 return map;
             }
@@ -223,6 +227,12 @@ namespace winsw
 
         protected override void OnStart(string[] args)
         {
+            var envs = descriptor.EnvironmentVariables;
+            foreach (string key in envs.Keys)
+            {
+                EventLog.WriteEntry("envar " + key + '=' + envs[key]);
+            }
+ 
             HandleFileCopies();
 
             EventLog.WriteEntry("Starting "+descriptor.Executable+' '+descriptor.Arguments);
@@ -237,7 +247,6 @@ namespace winsw
             ps.RedirectStandardOutput = true;
             ps.RedirectStandardError = true;
 
-            var envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
                 ps.EnvironmentVariables[key] = envs[key];
 
