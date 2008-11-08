@@ -78,13 +78,29 @@ namespace winsw
         }
 
         /// <summary>
-        /// Arguments
+        /// Arguments or multiple optional argument elements which overrule the arguments element.
         /// </summary>
         public string Arguments
         {
             get
             {
-                return SingleElement("arguments");
+                XmlNode argumentNode = dom.SelectSingleNode("//argument");
+
+                if (argumentNode == null)
+                {
+                    return SingleElement("arguments");
+                }
+                else
+                {
+                    string arguments = "";
+
+                    foreach (XmlNode argument in dom.SelectNodes("//argument"))
+                    {
+                        arguments += " " + argument.InnerText;
+                    }
+
+                    return Environment.ExpandEnvironmentVariables(arguments);
+                }
             }
         }
 
