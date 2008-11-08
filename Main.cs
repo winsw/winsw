@@ -104,6 +104,26 @@ namespace winsw
             }
         }
 
+        /// <summary>
+        /// Logmode to 'reset', 'roll' once or 'append' [default] the out.log and err.log files.
+        /// </summary>
+        public string Logmode
+        {
+            get
+            {
+                XmlNode logmodeNode = dom.SelectSingleNode("//logmode");
+
+                if (logmodeNode == null)
+                {
+                    return "append";
+                }
+                else
+                {
+                    return logmodeNode.InnerText;
+                }
+            }
+        }
+
         public string Id
         {
             get
@@ -214,23 +234,15 @@ namespace winsw
                     string line;
                     while ((line = tr.ReadLine()) != null)
                     {
-                        try
+                        EventLog.WriteEntry("Handling copy: " + line);
+                        string[] tokens = line.Split('>');
+                        if (tokens.Length > 2)
                         {
-                            EventLog.WriteEntry("Handling copy: " + line);
-                            string[] tokens = line.Split('>');
-                            if (tokens.Length > 2)
-                            {
-                                EventLog.WriteEntry("Too many delimiters in " + line);
-                                continue;
-                            }
+                            EventLog.WriteEntry("Too many delimiters in " + line);
+                            continue;
+                        }
 
-                            File.Delete(tokens[1]);
-                            File.Move(tokens[0], tokens[1]);
-                        }
-                        catch(IOException e)
-                        {
-                            EventLog.WriteEntry("Failed to copy :"+line+" because "+e.Message);
-                        }
+                        CopyFile(tokens[0], tokens[1]);
                     }
                 }
             }
@@ -239,6 +251,44 @@ namespace winsw
                 File.Delete(file);
             }
 
+        }
+
+        private void CopyFile(string sourceFileName, string destFileName)
+        {
+            try
+            {
+                File.Delete(destFileName);
+                File.Move(sourceFileName, destFileName);
+            }
+            catch (IOException e)
+            {
+                EventLog.WriteEntry("Failed to copy :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Handle the creation of the logfiles based on the optional logmode setting.
+        /// </summary>
+        private void HandleLogfiles()
+        {
+            string baseName = descriptor.BasePath;
+            string errorLogfilename = baseName + ".err.log";
+            string outputLogfilename = baseName + ".out.log";
+
+            System.IO.FileMode fileMode = FileMode.Append;
+
+            if (descriptor.Logmode == "reset")
+            {
+                fileMode = FileMode.Create;
+            }
+            else if (descriptor.Logmode == "roll")
+            {
+                CopyFile(outputLogfilename, outputLogfilename + ".old");
+                CopyFile(errorLogfilename, errorLogfilename + ".old");
+            }
+
+            new Thread(delegate() { CopyStream(process.StandardOutput, new StreamWriter(new FileStream(outputLogfilename, fileMode))); }).Start();
+            new Thread(delegate() { CopyStream(process.StandardError, new StreamWriter(new FileStream(errorLogfilename, fileMode))); }).Start();
         }
 
         protected override void OnStart(string[] args)
@@ -269,8 +319,7 @@ namespace winsw
             process.Start();
 
             // send stdout and stderr to its respective output file.
-            new Thread(delegate() { CopyStream(process.StandardOutput, new StreamWriter(new FileStream(baseName + ".out.log", FileMode.Append))); }).Start();
-            new Thread(delegate() { CopyStream(process.StandardError, new StreamWriter(new FileStream(baseName + ".err.log", FileMode.Append))); }).Start();
+            HandleLogfiles();
 
             // monitor the completion of the process
             new Thread(delegate()
