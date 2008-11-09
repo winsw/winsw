@@ -86,23 +86,74 @@ namespace winsw
         {
             get
             {
-                XmlNode argumentNode = dom.SelectSingleNode("//argument");
+                string arguments = AppendTags("argument");
 
-                if (argumentNode == null)
+                if (arguments == null)
                 {
-                    return SingleElement("arguments");
+                    var tagName = "arguments";
+                    var argumentsNode = dom.SelectSingleNode("//" + tagName);
+
+                    if (argumentsNode == null)
+                    {
+                        if (AppendTags("startargument") == null)
+                        {
+                            throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+                        }
+                        else
+                        {
+                            return "";
+                        }
+                    }
+
+                    return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
                 }
                 else
                 {
-                    string arguments = "";
-
-                    foreach (XmlNode argument in dom.SelectNodes("//argument"))
-                    {
-                        arguments += " " + argument.InnerText;
-                    }
-
-                    return Environment.ExpandEnvironmentVariables(arguments);
+                    return arguments;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Multiple optional startargument elements.
+        /// </summary>
+        public string Startarguments
+        {
+            get
+            {
+                return AppendTags("startargument");
+            }
+        }
+
+        /// <summary>
+        /// Multiple optional stopargument elements.
+        /// </summary>
+        public string Stoparguments
+        {
+            get
+            {
+                return AppendTags("stopargument");
+            }
+        }
+
+        private string AppendTags(string tagName)
+        {
+            XmlNode argumentNode = dom.SelectSingleNode("//" + tagName);
+
+            if (argumentNode == null)
+            {
+                return null;
+            }
+            else
+            {
+                string arguments = "";
+
+                foreach (XmlNode argument in dom.SelectNodes("//" + tagName))
+                {
+                    arguments += " " + argument.InnerText;
+                }
+
+                return Environment.ExpandEnvironmentVariables(arguments);
             }
         }
 
@@ -224,6 +275,7 @@ namespace winsw
     {
         private Process process = new Process();
         private ServiceDescriptor descriptor;
+        private Dictionary<string, string> envs;
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
@@ -340,7 +392,7 @@ namespace winsw
 
         protected override void OnStart(string[] args)
         {
-            var envs = descriptor.EnvironmentVariables;
+            envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
             {
                 EventLog.WriteEntry("envar " + key + '=' + envs[key]);
@@ -348,11 +400,57 @@ namespace winsw
  
             HandleFileCopies();
 
-            EventLog.WriteEntry("Starting "+descriptor.Executable+' '+descriptor.Arguments);
+            string startarguments = descriptor.Startarguments;
 
+            if (startarguments == null)
+            {
+                startarguments = descriptor.Arguments;
+            }
+            else
+            {
+                startarguments += " " + descriptor.Arguments;
+            }
+
+            EventLog.WriteEntry("Starting " + descriptor.Executable + ' ' + startarguments);
+
+            StartProcess(process, startarguments);
+
+            // send stdout and stderr to its respective output file.
+            HandleLogfiles();
+
+            process.StandardInput.Close(); // nothing for you to read!
+        }
+
+        protected override void OnStop()
+        {
+            string stoparguments = descriptor.Stoparguments;
+            EventLog.WriteEntry("Stopping " + descriptor.Id);
+            orderlyShutdown = true;
+
+            if (stoparguments == null)
+            {
+                try
+                {
+                    process.Kill();
+                }
+                catch (InvalidOperationException)
+                {
+                    // already terminated
+                }
+            }
+            else
+            {
+                stoparguments += " " + descriptor.Arguments;
+
+                StartProcess(new Process(), stoparguments);
+            }
+        }
+
+        private void StartProcess(Process process, string arguments)
+        {
             var ps = process.StartInfo;
             ps.FileName = descriptor.Executable;
-            ps.Arguments = descriptor.Arguments;
+            ps.Arguments = arguments;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
             ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
@@ -364,39 +462,39 @@ namespace winsw
 
             process.Start();
 
-            // send stdout and stderr to its respective output file.
-            HandleLogfiles();
-
             // monitor the completion of the process
             new Thread(delegate()
             {
+                string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
                 process.WaitForExit();
-                if (!orderlyShutdown)
+
+                try
                 {
-                    EventLog.WriteEntry("Child process terminated with " + process.ExitCode,EventLogEntryType.Warning);
-                    Environment.Exit(process.ExitCode);
+                    if (orderlyShutdown)
+                    {
+                        EventLog.WriteEntry("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
+                    }
+                    else
+                    {
+                        EventLog.WriteEntry("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Warning);
+                        Environment.Exit(process.ExitCode);
+                    }
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    EventLog.WriteEntry("WaitForExit " + ioe.Message);
+                }
+
+                try
+                {
+                    process.Dispose();
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    EventLog.WriteEntry("Dispose " + ioe.Message);
                 }
             }).Start();
-
-            process.StandardInput.Close(); // nothing for you to read!
         }
-
-        protected override void OnStop()
-        {
-            try
-            {
-                EventLog.WriteEntry("Stopping "+descriptor.Id);
-                orderlyShutdown = true;
-                process.Kill();
-            }
-            catch (InvalidOperationException)
-            {
-                // already terminated
-            }
-            process.Dispose();
-        }
-
-
 
         public static int Main(string[] args)
         {
