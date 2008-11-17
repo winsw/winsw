@@ -22,8 +22,15 @@ namespace winsw
 
         /// <summary>
         /// Where did we find the configuration file?
+        /// 
+        /// This string is "c:\abc\def\ghi" when the configuration XML is "c:\abc\def\ghi.xml"
         /// </summary>
         public readonly string BasePath;
+        /// <summary>
+        /// The file name portion of the configuration file.
+        /// 
+        /// In the above example, this would be "ghi".
+        /// </summary>
         public readonly string BaseName;
 
         public static string ExecutablePath
@@ -136,6 +143,10 @@ namespace winsw
             }
         }
 
+        /// <summary>
+        /// Combines the contents of all the elements of the given name,
+        /// or return null if no element exists.
+        /// </summary>
         private string AppendTags(string tagName)
         {
             XmlNode argumentNode = dom.SelectSingleNode("//" + tagName);
@@ -165,14 +176,15 @@ namespace winsw
             get
             {
                 XmlNode loggingNode = dom.SelectSingleNode("//logpath");
-                string logDirectory = Path.GetDirectoryName(ExecutablePath);
 
                 if (loggingNode != null)
                 {
-                    logDirectory = loggingNode.InnerText;
+                    return loggingNode.InnerText;
                 }
-
-                return logDirectory;
+                else
+                {
+                    return Path.GetDirectoryName(ExecutablePath);
+                }
             }
         }
 
