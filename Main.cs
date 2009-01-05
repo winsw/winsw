@@ -454,7 +454,9 @@ namespace winsw
             {
                 stoparguments += " " + descriptor.Arguments;
 
-                StartProcess(new Process(), stoparguments);
+                Process stopProcess = new Process();
+                StartProcess(stopProcess, stoparguments);
+                stopProcess.WaitForExit();
             }
         }
 
