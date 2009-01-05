@@ -470,7 +470,8 @@ namespace winsw
             ps.RedirectStandardError = true;
 
             foreach (string key in envs.Keys)
-                ps.EnvironmentVariables[key] = envs[key];
+                System.Environment.SetEnvironmentVariable(key, envs[key]);
+                // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
 
             process.Start();
 
