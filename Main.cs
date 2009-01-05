@@ -87,6 +87,17 @@ namespace winsw
         }
 
         /// <summary>
+        /// Optionally specify a different Path to an executable to shutdown the service.
+        /// </summary>
+        public string StopExecutable
+        {
+            get
+            {
+                return AppendTags("stopexecutable");
+            }
+        }
+
+        /// <summary>
         /// Arguments or multiple optional argument elements which overrule the arguments element.
         /// </summary>
         public string Arguments
@@ -425,7 +436,7 @@ namespace winsw
 
             EventLog.WriteEntry("Starting " + descriptor.Executable + ' ' + startarguments);
 
-            StartProcess(process, startarguments);
+            StartProcess(process, startarguments, descriptor.Executable);
 
             // send stdout and stderr to its respective output file.
             HandleLogfiles();
@@ -455,15 +466,22 @@ namespace winsw
                 stoparguments += " " + descriptor.Arguments;
 
                 Process stopProcess = new Process();
-                StartProcess(stopProcess, stoparguments);
+                String executable = descriptor.StopExecutable;
+
+                if (executable == null)
+                {
+                    executable = descriptor.Executable;
+                }
+
+                StartProcess(stopProcess, stoparguments, executable);
                 stopProcess.WaitForExit();
             }
         }
 
-        private void StartProcess(Process process, string arguments)
+        private void StartProcess(Process process, string arguments, String executable)
         {
             var ps = process.StartInfo;
-            ps.FileName = descriptor.Executable;
+            ps.FileName = executable;
             ps.Arguments = arguments;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
