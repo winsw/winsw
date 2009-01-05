@@ -5,7 +5,7 @@
   <groupId>com.sun.winsw</groupId>
   <artifactId>winsw</artifactId>
   <packaging>pom</packaging>
-  <version>1.4</version>
+  <version>1.5</version>
   <name>Windows service wrapper</name>
     
    <distributionManagement>
