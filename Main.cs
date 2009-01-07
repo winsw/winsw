@@ -474,7 +474,8 @@ namespace winsw
                 }
 
                 StartProcess(stopProcess, stoparguments, executable);
-                stopProcess.WaitForExit();
+//                stopProcess.WaitForExit();
+                process.WaitForExit();
             }
         }
 
@@ -611,9 +612,18 @@ namespace winsw
                 }
                 if (args[0] == "restart")
                 {
-                    if (s == null) ThrowNoSuchService();
+                    if (s == null) 
+                        ThrowNoSuchService();
+
                     if(s.Started)
                         s.StopService();
+
+                    while (s.Started)
+                    {
+                        Thread.Sleep(1000);
+                        s = svc.Select(d.Id);
+                    }
+
                     s.StartService();
                 }
                 if (args[0] == "status")
