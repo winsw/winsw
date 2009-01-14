@@ -305,14 +305,17 @@ namespace winsw
         /// so don't try to kill us when the child exits.
         /// </summary>
         private bool orderlyShutdown;
+        private bool systemShuttingdown;
 
         public WrapperService()
         {
             this.descriptor = new ServiceDescriptor();
             this.ServiceName = descriptor.Id;
+            this.CanShutdown = true;
             this.CanStop = true;
             this.CanPauseAndContinue = false;
             this.AutoLog = true;
+            this.systemShuttingdown = false;
         }
 
         /// <summary>
@@ -349,11 +352,11 @@ namespace winsw
                     string line;
                     while ((line = tr.ReadLine()) != null)
                     {
-                        EventLog.WriteEntry("Handling copy: " + line);
+                        LogEvent("Handling copy: " + line);
                         string[] tokens = line.Split('>');
                         if (tokens.Length > 2)
                         {
-                            EventLog.WriteEntry("Too many delimiters in " + line);
+                            LogEvent("Too many delimiters in " + line);
                             continue;
                         }
 
@@ -377,7 +380,7 @@ namespace winsw
             }
             catch (IOException e)
             {
-                EventLog.WriteEntry("Failed to copy :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+                LogEvent("Failed to copy :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
         }
 
@@ -413,12 +416,46 @@ namespace winsw
             new Thread(delegate() { CopyStream(process.StandardError, new StreamWriter(new FileStream(errorLogfilename, fileMode))); }).Start();
         }
 
+        private void LogEvent(String message)
+        {
+            if (systemShuttingdown)
+            {
+                /* NOP - cannot call EventLog because of shutdown. */
+            }
+            else
+            {
+                EventLog.WriteEntry(message);
+            }
+        }
+
+        private void LogEvent(String message, EventLogEntryType type)
+        {
+            if (systemShuttingdown)
+            {
+                /* NOP - cannot call EventLog because of shutdown. */
+            }
+            else
+            {
+                EventLog.WriteEntry(message, type);
+            }
+        }
+
+        private void WriteEvent(String message)
+        {
+            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".log");
+            StreamWriter log = new StreamWriter(logfilename, true);
+
+            log.WriteLine(message);
+            log.Flush();
+            log.Close();
+        }
+
         protected override void OnStart(string[] args)
         {
             envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
             {
-                EventLog.WriteEntry("envar " + key + '=' + envs[key]);
+                LogEvent("envar " + key + '=' + envs[key]);
             }
  
             HandleFileCopies();
@@ -434,7 +471,7 @@ namespace winsw
                 startarguments += " " + descriptor.Arguments;
             }
 
-            EventLog.WriteEntry("Starting " + descriptor.Executable + ' ' + startarguments);
+            LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
 
             StartProcess(process, startarguments, descriptor.Executable);
 
@@ -444,10 +481,28 @@ namespace winsw
             process.StandardInput.Close(); // nothing for you to read!
         }
 
+        protected override void OnShutdown()
+        {
+            try
+            {
+                this.systemShuttingdown = true;
+                StopIt();
+            }
+            catch (Exception ex)
+            {
+                WriteEvent("Shutdown exception:"+ex.Message);
+            }
+        }
+
         protected override void OnStop()
         {
+            StopIt();
+        }
+
+        private void StopIt()
+        {
             string stoparguments = descriptor.Stoparguments;
-            EventLog.WriteEntry("Stopping " + descriptor.Id);
+            LogEvent("Stopping " + descriptor.Id);
             orderlyShutdown = true;
 
             if (stoparguments == null)
@@ -506,17 +561,17 @@ namespace winsw
                 {
                     if (orderlyShutdown)
                     {
-                        EventLog.WriteEntry("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
+                        LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
                     }
                     else
                     {
-                        EventLog.WriteEntry("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Warning);
+                        LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Warning);
                         Environment.Exit(process.ExitCode);
                     }
                 }
                 catch (InvalidOperationException ioe)
                 {
-                    EventLog.WriteEntry("WaitForExit " + ioe.Message);
+                    LogEvent("WaitForExit " + ioe.Message);
                 }
 
                 try
@@ -525,7 +580,7 @@ namespace winsw
                 }
                 catch (InvalidOperationException ioe)
                 {
-                    EventLog.WriteEntry("Dispose " + ioe.Message);
+                    LogEvent("Dispose " + ioe.Message);
                 }
             }).Start();
         }

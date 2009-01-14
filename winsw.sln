@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C# Express 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winsw", "winsw.csproj", "{0DE77F55-ADE5-43C1-999A-0BC81153B039}"
 EndProject
 Global
@@ -15,8 +15,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.Build.0 = Release|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Release|Any CPU.Build.0 = Release|Any CPU
