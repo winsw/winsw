@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.IO;
@@ -13,6 +14,28 @@ using Microsoft.Win32;
 
 namespace winsw
 {
+    public struct SERVICE_STATUS
+    {
+        public int serviceType;
+        public int currentState;
+        public int controlsAccepted;
+        public int win32ExitCode;
+        public int serviceSpecificExitCode;
+        public int checkPoint;
+        public int waitHint;
+    }
+
+    public enum State
+    {
+        SERVICE_STOPPED = 0x00000001,
+        SERVICE_START_PENDING = 0x00000002,
+        SERVICE_STOP_PENDING = 0x00000003,
+        SERVICE_RUNNING = 0x00000004,
+        SERVICE_CONTINUE_PENDING = 0x00000005,
+        SERVICE_PAUSE_PENDING = 0x00000006,
+        SERVICE_PAUSED = 0x00000007,
+    }
+    
     /// <summary>
     /// In-memory representation of the configuration file.
     /// </summary>
@@ -296,6 +319,10 @@ namespace winsw
 
     public class WrapperService : ServiceBase
     {
+        [DllImport("ADVAPI32.DLL", EntryPoint = "SetServiceStatus")]
+        private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
+        private SERVICE_STATUS wrapperServiceStatus;
+
         private Process process = new Process();
         private ServiceDescriptor descriptor;
         private Dictionary<string, string> envs;
@@ -442,7 +469,7 @@ namespace winsw
 
         private void WriteEvent(String message)
         {
-            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".log");
+            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
             StreamWriter log = new StreamWriter(logfilename, true);
 
             log.WriteLine(message);
@@ -496,7 +523,14 @@ namespace winsw
 
         protected override void OnStop()
         {
-            StopIt();
+            try
+            {
+                StopIt();
+            }
+            catch (Exception ex)
+            {
+                WriteEvent("Stop exception:" + ex.Message);
+            }
         }
 
         private void StopIt()
@@ -529,9 +563,36 @@ namespace winsw
                 }
 
                 StartProcess(stopProcess, stoparguments, executable);
-//                stopProcess.WaitForExit();
-                process.WaitForExit();
+
+                WaitForProcessToExit(process);
+                WaitForProcessToExit(stopProcess);
+//                Console.Beep();
             }
+        }
+
+        private void WaitForProcessToExit(Process process)
+        {
+            SignalShutdownPending();
+
+            try
+            {
+                while (process.WaitForExit(3000))
+                {
+                    SignalShutdownPending();
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // already terminated
+            }
+        }
+
+        private void SignalShutdownPending()
+        {
+            IntPtr handle = this.ServiceHandle;
+            wrapperServiceStatus.checkPoint++;
+            wrapperServiceStatus.waitHint = 5000;
+            SetServiceStatus(handle, ref wrapperServiceStatus);
         }
 
         private void StartProcess(Process process, string arguments, String executable)
