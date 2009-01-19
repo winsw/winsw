@@ -467,6 +467,11 @@ namespace winsw
             }
         }
 
+        private void WriteEvent(String message, Exception exception)
+        {
+            WriteEvent(message + "\nMessage:" + exception.Message + "\nStacktrace:" + exception.StackTrace);
+        }
+
         private void WriteEvent(String message)
         {
             string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
@@ -517,7 +522,7 @@ namespace winsw
             }
             catch (Exception ex)
             {
-                WriteEvent("Shutdown exception:"+ex.Message);
+                WriteEvent("Shutdown exception", ex);
             }
         }
 
@@ -529,7 +534,7 @@ namespace winsw
             }
             catch (Exception ex)
             {
-                WriteEvent("Stop exception:" + ex.Message);
+                WriteEvent("Stop exception", ex);
             }
         }
 
