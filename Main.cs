@@ -571,7 +571,7 @@ namespace winsw
 
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
-//                Console.Beep();
+                Console.Beep();
             }
         }
 
@@ -581,22 +581,34 @@ namespace winsw
 
             try
             {
-                while (process.WaitForExit(3000))
+                while (process.WaitForExit(1000))
                 {
                     SignalShutdownPending();
                 }
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
+                WriteEvent("already terminated", ex);
                 // already terminated
             }
+
+            SignalShutdownComplete();
         }
 
         private void SignalShutdownPending()
         {
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
-            wrapperServiceStatus.waitHint = 5000;
+            wrapperServiceStatus.waitHint = 10000;
+            wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
+            SetServiceStatus(handle, ref wrapperServiceStatus);
+        }
+
+        private void SignalShutdownComplete()
+        {
+            IntPtr handle = this.ServiceHandle;
+            wrapperServiceStatus.checkPoint++;
+            wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
             SetServiceStatus(handle, ref wrapperServiceStatus);
         }
 
