@@ -477,7 +477,7 @@ namespace winsw
             string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
             StreamWriter log = new StreamWriter(logfilename, true);
 
-            log.WriteLine(message);
+            log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             log.Flush();
             log.Close();
         }
@@ -504,6 +504,7 @@ namespace winsw
             }
 
             LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
+            WriteEvent("Starting " + descriptor.Executable + ' ' + startarguments);
 
             StartProcess(process, startarguments, descriptor.Executable);
 
@@ -515,6 +516,8 @@ namespace winsw
 
         protected override void OnShutdown()
         {
+//            WriteEvent("OnShutdown");
+
             try
             {
                 this.systemShuttingdown = true;
@@ -528,6 +531,8 @@ namespace winsw
 
         protected override void OnStop()
         {
+//            WriteEvent("OnStop");
+
             try
             {
                 StopIt();
@@ -542,12 +547,14 @@ namespace winsw
         {
             string stoparguments = descriptor.Stoparguments;
             LogEvent("Stopping " + descriptor.Id);
+            WriteEvent("Stopping " + descriptor.Id);
             orderlyShutdown = true;
 
             if (stoparguments == null)
             {
                 try
                 {
+                    WriteEvent("ProcessKill " + process.Id);
                     process.Kill();
                 }
                 catch (InvalidOperationException)
@@ -569,10 +576,14 @@ namespace winsw
 
                 StartProcess(stopProcess, stoparguments, executable);
 
+                WriteEvent("WaitForProcessToExit "+process.Id+"+"+stopProcess.Id);
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
+                SignalShutdownComplete();
                 Console.Beep();
             }
+
+            WriteEvent("Finished " + descriptor.Id);
         }
 
         private void WaitForProcessToExit(Process process)
@@ -581,18 +592,20 @@ namespace winsw
 
             try
             {
-                while (process.WaitForExit(1000))
+//                WriteEvent("WaitForProcessToExit [start]");
+
+                while (!process.WaitForExit(1000))
                 {
                     SignalShutdownPending();
+//                    WriteEvent("WaitForProcessToExit [repeat]");
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
-                WriteEvent("already terminated", ex);
                 // already terminated
             }
 
-            SignalShutdownComplete();
+//            WriteEvent("WaitForProcessToExit [finished]");
         }
 
         private void SignalShutdownPending()
@@ -600,6 +613,7 @@ namespace winsw
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
             wrapperServiceStatus.waitHint = 10000;
+//            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
             SetServiceStatus(handle, ref wrapperServiceStatus);
         }
@@ -608,6 +622,7 @@ namespace winsw
         {
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
+//            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
             SetServiceStatus(handle, ref wrapperServiceStatus);
         }
@@ -628,6 +643,7 @@ namespace winsw
                 // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
 
             process.Start();
+            WriteEvent("Started " + process.Id);
 
             // monitor the completion of the process
             new Thread(delegate()
