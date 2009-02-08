@@ -286,6 +286,63 @@ namespace winsw
         }
 
         /// <summary>
+        /// True if the service should when finished on shutdown.
+        /// </summary>
+        public bool BeepOnShutdown
+        {
+            get
+            {
+                return dom.SelectSingleNode("//beeponshutdown") != null;
+            }
+        }
+
+
+        /// <summary>
+        /// The estimated time required for a pending stop operation, in milliseconds (default 15 secs).
+        /// Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function 
+        /// with either an incremented checkPoint value or a change in currentState. (see http://msdn.microsoft.com/en-us/library/ms685996.aspx)
+        /// </summary>
+        public int WaitHint
+        {
+            get
+            {
+                XmlNode waithintNode = dom.SelectSingleNode("//waithint");
+
+                if (waithintNode == null)
+                {
+                    return 15000;
+                }
+                else
+                {
+                    return int.Parse(waithintNode.InnerText);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// The time, in milliseconds (default 1 sec), before the service should make its next call to the SetServiceStatus function 
+        /// with an incremented checkPoint value.
+        /// Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
+        /// </summary>
+        public int SleepTime
+        {
+            get
+            {
+                XmlNode sleeptimeNode = dom.SelectSingleNode("//sleeptime");
+
+                if (sleeptimeNode == null)
+                {
+                    return 1000;
+                }
+                else
+                {
+                    return int.Parse(sleeptimeNode.InnerText);
+                }
+            }
+        }
+
+        /// <summary>
         /// True if the service can interact with the desktop.
         /// </summary>
         public bool Interactive
@@ -564,6 +621,8 @@ namespace winsw
             }
             else
             {
+                SignalShutdownPending();
+
                 stoparguments += " " + descriptor.Arguments;
 
                 Process stopProcess = new Process();
@@ -580,6 +639,10 @@ namespace winsw
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
+            }
+
+            if (systemShuttingdown && descriptor.BeepOnShutdown) 
+            {
                 Console.Beep();
             }
 
@@ -594,7 +657,7 @@ namespace winsw
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
-                while (!process.WaitForExit(1000))
+                while (!process.WaitForExit(descriptor.SleepTime))
                 {
                     SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
@@ -612,7 +675,7 @@ namespace winsw
         {
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
-            wrapperServiceStatus.waitHint = 10000;
+            wrapperServiceStatus.waitHint = descriptor.WaitHint;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
             SetServiceStatus(handle, ref wrapperServiceStatus);
