@@ -414,7 +414,8 @@ namespace winsw
             FileStream tmpstream = new FileStream(To+".tmp", FileMode.Create);
             CopyStream(rsp.GetResponseStream(), tmpstream);
             // only after we successfully downloaded a file, overwrite the existing one
-            File.Delete(To);
+            if(File.Exists(To))
+                File.Delete(To);
             File.Move(To + ".tmp", To);
         }
 
@@ -424,7 +425,7 @@ namespace winsw
             while (true)
             {
                 int len = i.Read(buf, 0, buf.Length);
-                if (len <= 0) return;
+                if (len <= 0) break;
                 o.Write(buf, 0, len);
             }
             i.Close();
@@ -617,7 +618,8 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Failed to download " + d.From, e);
+                    LogEvent("Failed to download " + d.From + " to " + d.To + "\n" + e.Message);
+                    WriteEvent("Failed to download " + d.From +" to "+d.To, e);
                     // but just keep going
                 }
             }
