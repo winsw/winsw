@@ -403,8 +403,8 @@ namespace winsw
 
         internal Download(XmlNode n)
         {
-            From = n.Attributes["from"].Value;
-            To = n.Attributes["to"].Value;
+            From = Environment.ExpandEnvironmentVariables(n.Attributes["from"].Value);
+            To = Environment.ExpandEnvironmentVariables(n.Attributes["to"].Value);
         }
 
         public void Perform()
@@ -617,7 +617,7 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    LogEvent("Failed to download " + d.From, EventLogEntryType.Warning);
+                    WriteEvent("Failed to download " + d.From, e);
                     // but just keep going
                 }
             }
