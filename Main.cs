@@ -479,6 +479,66 @@ namespace winsw
         }
 
         /// <summary>
+        /// Works like the CopyStream method but does a log rotation.
+        /// </summary>
+        private void CopyStreamWithRotation(FileStream i, string baseName, string ext)
+        {
+            int THRESHOLD = 10 * 1024 * 1024; // rotate every 10MB. should be made configurable.
+
+            byte[] buf = new byte[1024];
+            FileStream w = new FileStream(baseName + ext,FileMode.Append);
+            int sz = new FileInfo(baseName + ext).Length;
+
+            while (true)
+            {
+                int len = i.Read(buf,0,buf.Length);
+                if (len == 0) break;
+                if (sz + len < THRESHOLD)
+                {// typical case. write the whole thing into the current file
+                    w.Write(buf, 0, len);
+                }
+                else
+                {
+                    // rotate at the line boundary
+                    int s = 0;
+                    for (int i = 0; i < len; i++)
+                    {
+                        if (buf[i] != 0x0A) continue;
+                        if (sz + i < THRESHOLD) continue;
+
+                        // at the line boundary and exceeded the rotation unit.
+                        // time to rotate.
+                        w.Write(buf, s, i + 1);
+                        w.Close();
+                        s = i + 1;
+
+                        try
+                        {
+                            for (int j = 8; j >= 0; j--)
+                            {
+                                string d = baseName + "." + (j + 1) + ext;
+                                string s = baseName + "." + (j + 0) + ext;
+                                if (File.Exists(d))
+                                    File.Delete(d);
+                                File.Move(s, d);
+                            }
+                            File.Move(baseName + ext, baseName + ".0" + ext);
+                        }
+                        catch (IOException e)
+                        {
+                            LogEvent("Failed to rotate log: " + e.Message);
+                        }
+
+                        w = new FileStream(baseName + ext, FileMode.Append);
+                        sz = new FileInfo(baseName + ext).Length;
+                    }
+                }
+            }
+            i.Close();
+            w.Close();
+        }
+
+        /// <summary>
         /// Process the file copy instructions, so that we can replace files that are always in use while
         /// the service runs.
         /// </summary>
@@ -542,6 +602,14 @@ namespace winsw
             string baseName = descriptor.BaseName;
             string errorLogfilename = Path.Combine(logDirectory, baseName + ".err.log");
             string outputLogfilename = Path.Combine(logDirectory, baseName + ".out.log");
+
+            if (descriptor.Logmode == "rotate")
+            {
+                string logName = Path.Combine(logDirectory, baseName);
+                new Thread(delegate() { CopyStreamWithRotation(process.StandardOutput, logName, ".out.log"); }).Start();
+                new Thread(delegate() { CopyStreamWithRotation(process.StandardError, logName, ".err.log"); }).Start();
+                return;
+            }
 
             System.IO.FileMode fileMode = FileMode.Append;
 
