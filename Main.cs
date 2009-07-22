@@ -481,17 +481,17 @@ namespace winsw
         /// <summary>
         /// Works like the CopyStream method but does a log rotation.
         /// </summary>
-        private void CopyStreamWithRotation(FileStream i, string baseName, string ext)
+        private void CopyStreamWithRotation(Stream data, string baseName, string ext)
         {
             int THRESHOLD = 10 * 1024 * 1024; // rotate every 10MB. should be made configurable.
 
             byte[] buf = new byte[1024];
             FileStream w = new FileStream(baseName + ext,FileMode.Append);
-            int sz = new FileInfo(baseName + ext).Length;
+            long sz = new FileInfo(baseName + ext).Length;
 
             while (true)
             {
-                int len = i.Read(buf,0,buf.Length);
+                int len = data.Read(buf, 0, buf.Length);
                 if (len == 0) break;
                 if (sz + len < THRESHOLD)
                 {// typical case. write the whole thing into the current file
@@ -516,11 +516,11 @@ namespace winsw
                         {
                             for (int j = 8; j >= 0; j--)
                             {
-                                string d = baseName + "." + (j + 1) + ext;
-                                string s = baseName + "." + (j + 0) + ext;
-                                if (File.Exists(d))
-                                    File.Delete(d);
-                                File.Move(s, d);
+                                string dst = baseName + "." + (j + 1) + ext;
+                                string src = baseName + "." + (j + 0) + ext;
+                                if (File.Exists(dst))
+                                    File.Delete(dst);
+                                File.Move(src, dst);
                             }
                             File.Move(baseName + ext, baseName + ".0" + ext);
                         }
@@ -534,7 +534,7 @@ namespace winsw
                     }
                 }
             }
-            i.Close();
+            data.Close();
             w.Close();
         }
 
@@ -606,8 +606,8 @@ namespace winsw
             if (descriptor.Logmode == "rotate")
             {
                 string logName = Path.Combine(logDirectory, baseName);
-                new Thread(delegate() { CopyStreamWithRotation(process.StandardOutput, logName, ".out.log"); }).Start();
-                new Thread(delegate() { CopyStreamWithRotation(process.StandardError, logName, ".err.log"); }).Start();
+                new Thread(delegate() { CopyStreamWithRotation(process.StandardOutput.BaseStream, logName, ".out.log"); }).Start();
+                new Thread(delegate() { CopyStreamWithRotation(process.StandardError.BaseStream, logName, ".err.log"); }).Start();
                 return;
             }
 
