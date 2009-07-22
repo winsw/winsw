@@ -225,7 +225,7 @@ namespace winsw
 
 
         /// <summary>
-        /// Logmode to 'reset', 'roll' once or 'append' [default] the out.log and err.log files.
+        /// Logmode to 'reset', 'rotate' once or 'append' [default] the out.log and err.log files.
         /// </summary>
         public string Logmode
         {
@@ -464,9 +464,9 @@ namespace winsw
         /// <summary>
         /// Copy stuff from StreamReader to StreamWriter
         /// </summary>
-        private void CopyStream(StreamReader i, StreamWriter o)
+        private void CopyStream(Stream i, Stream o)
         {
-            char[] buf = new char[1024];
+            byte[] buf = new byte[1024];
             while (true)
             {
                 int sz = i.Read(buf, 0, buf.Length);
@@ -492,10 +492,11 @@ namespace winsw
             while (true)
             {
                 int len = data.Read(buf, 0, buf.Length);
-                if (len == 0) break;
+                if (len == 0) break;    // EOF
                 if (sz + len < THRESHOLD)
                 {// typical case. write the whole thing into the current file
                     w.Write(buf, 0, len);
+                    sz += len;
                 }
                 else
                 {
@@ -520,7 +521,8 @@ namespace winsw
                                 string src = baseName + "." + (j + 0) + ext;
                                 if (File.Exists(dst))
                                     File.Delete(dst);
-                                File.Move(src, dst);
+                                if (File.Exists(src))
+                                    File.Move(src, dst);
                             }
                             File.Move(baseName + ext, baseName + ".0" + ext);
                         }
@@ -529,10 +531,14 @@ namespace winsw
                             LogEvent("Failed to rotate log: " + e.Message);
                         }
 
-                        w = new FileStream(baseName + ext, FileMode.Append);
+                        // even if the log rotation fails, create a new one, or else
+                        // we'll infinitely try to rotate.
+                        w = new FileStream(baseName + ext, FileMode.Create);
                         sz = new FileInfo(baseName + ext).Length;
                     }
                 }
+
+                w.Flush();
             }
             data.Close();
             w.Close();
@@ -623,8 +629,8 @@ namespace winsw
                 CopyFile(errorLogfilename, errorLogfilename + ".old");
             }
 
-            new Thread(delegate() { CopyStream(process.StandardOutput, new StreamWriter(new FileStream(outputLogfilename, fileMode))); }).Start();
-            new Thread(delegate() { CopyStream(process.StandardError, new StreamWriter(new FileStream(errorLogfilename, fileMode))); }).Start();
+            new Thread(delegate() { CopyStream(process.StandardOutput.BaseStream, new FileStream(outputLogfilename, fileMode)); }).Start();
+            new Thread(delegate() { CopyStream(process.StandardError.BaseStream, new FileStream(errorLogfilename, fileMode)); }).Start();
         }
 
         private void LogEvent(String message)
