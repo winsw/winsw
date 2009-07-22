@@ -923,7 +923,7 @@ namespace winsw
                     svc.Create(
                         d.Id,
                         d.Caption,
-                        ServiceDescriptor.ExecutablePath,
+                        "\""+ServiceDescriptor.ExecutablePath+"\"",
                         WMI.ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
                         StartMode.Automatic,
