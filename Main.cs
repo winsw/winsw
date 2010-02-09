@@ -180,7 +180,7 @@ namespace winsw
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
-        /// or return null if no element exists.
+        /// or return null if no element exists. Handles whitespace quotation.
         /// </summary>
         private string AppendTags(string tagName)
         {
@@ -196,7 +196,21 @@ namespace winsw
 
                 foreach (XmlNode argument in dom.SelectNodes("//" + tagName))
                 {
-                    arguments += " " + argument.InnerText;
+                    string token = argument.InnerText;
+                    if (token.StartsWith("\"") && token.EndsWith("\""))
+                    {
+                        // for backward compatibility, if the argument is already quoted, leave it as is.
+                        // in earlier versions we didn't handle quotation, so the user might have worked
+                        // around it by themselves
+                    }
+                    else
+                    {
+                        if (token.Contains(" "))
+                        {
+                            token = '"' + token + '"';
+                        }
+                    }
+                    arguments += " " + token;
                 }
 
                 return Environment.ExpandEnvironmentVariables(arguments);
