@@ -196,7 +196,7 @@ namespace winsw
 
                 foreach (XmlNode argument in dom.SelectNodes("//" + tagName))
                 {
-                    string token = argument.InnerText;
+                    string token = Environment.ExpandEnvironmentVariables(argument.InnerText);
                     if (token.StartsWith("\"") && token.EndsWith("\""))
                     {
                         // for backward compatibility, if the argument is already quoted, leave it as is.
@@ -213,7 +213,7 @@ namespace winsw
                     arguments += " " + token;
                 }
 
-                return Environment.ExpandEnvironmentVariables(arguments);
+                return arguments;
             }
         }
 
