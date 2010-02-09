@@ -117,7 +117,7 @@ namespace winsw
         {
             get
             {
-                return AppendTags("stopexecutable");
+                return SingleElement("stopexecutable");
             }
         }
 
