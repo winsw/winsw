@@ -93,6 +93,9 @@ namespace WMI
         public WmiRoot(string machineName)
         {
             ConnectionOptions options = new ConnectionOptions();
+            options.EnablePrivileges = true;
+            options.Impersonation = ImpersonationLevel.Impersonate;
+            options.Authentication = AuthenticationLevel.PacketPrivacy;
 
             string path;
 
