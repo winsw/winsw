@@ -435,8 +435,12 @@ namespace winsw
 
     public class WrapperService : ServiceBase
     {
-        [DllImport("ADVAPI32.DLL", EntryPoint = "SetServiceStatus")]
+        [DllImport("ADVAPI32.DLL")]
         private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
+        
+        [DllImport("Kernel32.dll", SetLastError = true)]
+        public static extern int SetStdHandle(int device, IntPtr handle); 
+
         private SERVICE_STATUS wrapperServiceStatus;
 
         private Process process = new Process();
@@ -672,7 +676,7 @@ namespace winsw
             log.Close();
         }
 
-        protected override void OnStart(string[] args)
+        protected override void OnStart(string[] _)
         {
             envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
@@ -915,13 +919,37 @@ namespace winsw
             throw new WmiException(ReturnValue.NoSuchService);
         }
 
-        public static void Run(string[] args)
+        public static void Run(string[] _args)
         {
-            if (args.Length > 0)
+            if (_args.Length > 0)
             {
                 var d = new ServiceDescriptor();
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
                 Win32Service s = svc.Select(d.Id);
+
+                var args = new List<string>(Array.AsReadOnly(_args));
+                if (args[0] == "/redirect")
+                {
+                    // Redirect output
+                    // One might ask why we support this when the caller 
+                    // can redirect the output easily. The answer is for supporting UAC.
+                    // On UAC-enabled Windows such as Vista, SCM operation requires
+                    // elevated privileges, thus winsw.exe needs to be launched
+                    // accordingly. This in turn limits what the caller can do,
+                    // and among other things it makes it difficult for the caller
+                    // to read stdout/stderr. Thus redirection becomes handy.
+                    var f = new FileStream(args[1], FileMode.Create);
+                    var w = new StreamWriter(f);
+                    w.AutoFlush = true;
+                    Console.SetOut(w);
+                    Console.SetError(w);
+
+                    var handle = f.Handle;
+                    SetStdHandle(-11, handle); // set stdout
+                    SetStdHandle(-12, handle); // set stder
+
+                    args = args.GetRange(2, args.Count - 2);
+                }
 
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
@@ -999,7 +1027,7 @@ namespace winsw
                 if (args[0] == "test")
                 {
                     WrapperService wsvc = new WrapperService();
-                    wsvc.OnStart(args);
+                    wsvc.OnStart(args.ToArray());
                     Thread.Sleep(1000);
                     wsvc.OnStop();
                 }

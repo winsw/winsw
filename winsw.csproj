@@ -14,6 +14,10 @@
     <FileAlignment>512</FileAlignment>
     <StartupObject>
     </StartupObject>
+    <SignManifests>false</SignManifests>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,6 +55,7 @@
     <Compile Include="WmiSchema.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="manifest.xml" />
     <Content Include="winsw.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -61,4 +66,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\mt.exe" -manifest "$(ProjectDir)manifest.xml"  –outputresource:"$(TargetDir)$(TargetFileName)";#1
+
+"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\signtool.exe" sign /f c:\winsw-do-not-add-to-scm.pfx /p winsw /t http://timestamp.comodoca.com/authenticode $(TargetFileName)</PostBuildEvent>
+  </PropertyGroup>
 </Project>
