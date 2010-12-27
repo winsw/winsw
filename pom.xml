@@ -5,13 +5,13 @@
   <groupId>com.sun.winsw</groupId>
   <artifactId>winsw</artifactId>
   <packaging>pom</packaging>
-  <version>1.9</version>
+  <version>1.10</version>
   <name>Windows service wrapper</name>
     
    <distributionManagement>
     <repository>
       <id>java.net-m2-repository</id>
-      <url>java-net:/maven2-repository/trunk/repository/</url>
+      <url>http://maven.hudson-labs.org/content/repositories/releases/</url>
     </repository>
   </distributionManagement>
 
