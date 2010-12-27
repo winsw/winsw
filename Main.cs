@@ -94,7 +94,7 @@ namespace winsw
             int THRESHOLD = 10 * 1024 * 1024; // rotate every 10MB. should be made configurable.
 
             byte[] buf = new byte[1024];
-            FileStream w = new FileStream(baseName + ext,FileMode.Append);
+            FileStream w = new FileStream(baseName + ext, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
             long sz = new FileInfo(baseName + ext).Length;
 
             while (true)
@@ -141,7 +141,7 @@ namespace winsw
 
                         // even if the log rotation fails, create a new one, or else
                         // we'll infinitely try to rotate.
-                        w = new FileStream(baseName + ext, FileMode.Create);
+                        w = new FileStream(baseName + ext, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
                         sz = new FileInfo(baseName + ext).Length;
                     }
                 }
@@ -188,6 +188,9 @@ namespace winsw
 
         }
 
+        /// <summary>
+        /// File replacement.
+        /// </summary>
         private void CopyFile(string sourceFileName, string destFileName)
         {
             try
@@ -199,6 +202,25 @@ namespace winsw
             {
                 LogEvent("Failed to copy :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
+        }
+
+        /// <summary>
+        /// Starts a thread that protects the execution with a try/catch block.
+        /// It appears that in .NET, unhandled exception in any thread causes the app to terminate
+        /// http://msdn.microsoft.com/en-us/library/ms228965.aspx
+        /// </summary>
+        private void StartThread(ThreadStart main)
+        {
+            new Thread(delegate() {
+                try
+                {
+                    main();
+                }
+                catch (Exception e)
+                {
+                    WriteEvent("Thread failed unexpectedly",e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -220,12 +242,12 @@ namespace winsw
             if (descriptor.Logmode == "rotate")
             {
                 string logName = Path.Combine(logDirectory, baseName);
-                new Thread(delegate() { CopyStreamWithRotation(process.StandardOutput.BaseStream, logName, ".out.log"); }).Start();
-                new Thread(delegate() { CopyStreamWithRotation(process.StandardError.BaseStream, logName, ".err.log"); }).Start();
+                StartThread(delegate() { CopyStreamWithRotation(process.StandardOutput.BaseStream, logName, ".out.log"); });
+                StartThread(delegate() { CopyStreamWithRotation(process.StandardError.BaseStream, logName, ".err.log"); });
                 return;
             }
 
-            System.IO.FileMode fileMode = FileMode.Append;
+            FileMode fileMode = FileMode.Append;
 
             if (descriptor.Logmode == "reset")
             {
@@ -237,8 +259,8 @@ namespace winsw
                 CopyFile(errorLogfilename, errorLogfilename + ".old");
             }
 
-            new Thread(delegate() { CopyStream(process.StandardOutput.BaseStream, new FileStream(outputLogfilename, fileMode)); }).Start();
-            new Thread(delegate() { CopyStream(process.StandardError.BaseStream, new FileStream(errorLogfilename, fileMode)); }).Start();
+            StartThread(delegate() { CopyStream(process.StandardOutput.BaseStream, new FileStream(outputLogfilename, fileMode, FileAccess.Write, FileShare.ReadWrite)); });
+            StartThread(delegate() { CopyStream(process.StandardError.BaseStream, new FileStream(errorLogfilename, fileMode, FileAccess.Write, FileShare.ReadWrite)); });
         }
 
         private void LogEvent(String message)
@@ -263,6 +285,11 @@ namespace winsw
             {
                 EventLog.WriteEntry(message, type);
             }
+        }
+
+        private void WriteEvent(Exception exception)
+        {
+            WriteEvent(exception.Message + "\nStacktrace:" + exception.StackTrace);
         }
 
         private void WriteEvent(String message, Exception exception)
@@ -466,7 +493,7 @@ namespace winsw
             WriteEvent("Started " + process.Id);
 
             // monitor the completion of the process
-            new Thread(delegate()
+            StartThread(delegate()
             {
                 string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
                 process.WaitForExit();
@@ -496,7 +523,7 @@ namespace winsw
                 {
                     LogEvent("Dispose " + ioe.Message);
                 }
-            }).Start();
+            });
         }
 
         public static int Main(string[] args)
