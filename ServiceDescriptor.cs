@@ -191,7 +191,7 @@ namespace winsw
 
                 if (loggingNode != null)
                 {
-                    return loggingNode.InnerText;
+                    return Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
                 }
                 else
                 {
