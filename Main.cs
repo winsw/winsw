@@ -36,12 +36,12 @@ namespace winsw
         SERVICE_PAUSE_PENDING = 0x00000006,
         SERVICE_PAUSED = 0x00000007,
     }
-    
+
     public class WrapperService : ServiceBase
     {
-        [DllImport("ADVAPI32.DLL")]
+        [DllImport("ADVAPI32.DLL", EntryPoint = "SetServiceStatus")]
         private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
-        
+		
         [DllImport("Kernel32.dll", SetLastError = true)]
         public static extern int SetStdHandle(int device, IntPtr handle); 
 
@@ -86,13 +86,24 @@ namespace winsw
             o.Close();
         }
 
+        private void AgeFilename(string baseName, string ext, int count)
+        {
+            for (int j = count-1; j >= 0; j--)
+            {
+                string dst = baseName + "." + (j + 1) + ext;
+                string src = (j == 0 ? baseName + ext : baseName + "." + (j + 0) + ext);
+                if (File.Exists(dst))
+                    File.Delete(dst);
+                if (File.Exists(src))
+                    File.Move(src, dst);
+            }
+        }
+
         /// <summary>
         /// Works like the CopyStream method but does a log rotation.
         /// </summary>
-        private void CopyStreamWithRotation(Stream data, string baseName, string ext)
+        private void CopyStreamWithRotation(Stream data, string baseName, string ext, int threshold, int count)
         {
-            int THRESHOLD = 10 * 1024 * 1024; // rotate every 10MB. should be made configurable.
-
             byte[] buf = new byte[1024];
             FileStream w = new FileStream(baseName + ext, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
             long sz = new FileInfo(baseName + ext).Length;
@@ -101,7 +112,7 @@ namespace winsw
             {
                 int len = data.Read(buf, 0, buf.Length);
                 if (len == 0) break;    // EOF
-                if (sz + len < THRESHOLD)
+                if (sz + len < threshold)
                 {// typical case. write the whole thing into the current file
                     w.Write(buf, 0, len);
                     sz += len;
@@ -113,7 +124,7 @@ namespace winsw
                     for (int i = 0; i < len; i++)
                     {
                         if (buf[i] != 0x0A) continue;
-                        if (sz + i < THRESHOLD) continue;
+                        if (sz + i < threshold) continue;
 
                         // at the line boundary and exceeded the rotation unit.
                         // time to rotate.
@@ -123,16 +134,7 @@ namespace winsw
 
                         try
                         {
-                            for (int j = 8; j >= 0; j--)
-                            {
-                                string dst = baseName + "." + (j + 1) + ext;
-                                string src = baseName + "." + (j + 0) + ext;
-                                if (File.Exists(dst))
-                                    File.Delete(dst);
-                                if (File.Exists(src))
-                                    File.Move(src, dst);
-                            }
-                            File.Move(baseName + ext, baseName + ".0" + ext);
+                            AgeFilename(baseName, ext, count);
                         }
                         catch (IOException e)
                         {
@@ -177,7 +179,7 @@ namespace winsw
                             continue;
                         }
 
-                        CopyFile(tokens[0], tokens[1]);
+                        MoveFile(tokens[0], tokens[1]);
                     }
                 }
             }
@@ -188,10 +190,7 @@ namespace winsw
 
         }
 
-        /// <summary>
-        /// File replacement.
-        /// </summary>
-        private void CopyFile(string sourceFileName, string destFileName)
+        private void MoveFile(string sourceFileName, string destFileName)
         {
             try
             {
@@ -239,24 +238,51 @@ namespace winsw
             string errorLogfilename = Path.Combine(logDirectory, baseName + ".err.log");
             string outputLogfilename = Path.Combine(logDirectory, baseName + ".out.log");
 
-            if (descriptor.Logmode == "rotate")
+            LogMode logfileMode = descriptor.LogFileMode;
+
+
+            if (logfileMode.mode == LogBehavior.Rotate)
             {
                 string logName = Path.Combine(logDirectory, baseName);
-                StartThread(delegate() { CopyStreamWithRotation(process.StandardOutput.BaseStream, logName, ".out.log"); });
-                StartThread(delegate() { CopyStreamWithRotation(process.StandardError.BaseStream, logName, ".err.log"); });
+
+                WriteEvent("LogMode: Rotate when size reaches " + logfileMode.logSize + " bytes, and save " + logfileMode.numLogs + " files.");
+
+                StartThread(delegate() { CopyStreamWithRotation(process.StandardOutput.BaseStream, logName, ".out.log", logfileMode.logSize, logfileMode.numLogs); });
+                StartThread(delegate() { CopyStreamWithRotation(process.StandardError.BaseStream, logName, ".err.log", logfileMode.logSize, logfileMode.numLogs); });
                 return;
             }
 
-            FileMode fileMode = FileMode.Append;
+            System.IO.FileMode fileMode = FileMode.Append;
 
-            if (descriptor.Logmode == "reset")
+            if (logfileMode.mode == LogBehavior.Reset)
             {
+                WriteEvent("LogMode: Reset and overwrite existing log.");
+
                 fileMode = FileMode.Create;
             }
-            else if (descriptor.Logmode == "roll")
+            else if (logfileMode.mode == LogBehavior.Roll)
             {
-                CopyFile(outputLogfilename, outputLogfilename + ".old");
-                CopyFile(errorLogfilename, errorLogfilename + ".old");
+                WriteEvent("LogMode: Roll the logfile over from run to run and save " + logfileMode.numLogs + " files.");
+
+                try
+                {
+                    string logName = Path.Combine(logDirectory, baseName);
+
+                    AgeFilename(logName, ".out.log", logfileMode.numLogs);
+                    AgeFilename(logName, ".err.log", logfileMode.numLogs);
+                }
+                catch (IOException e)
+                {
+                    LogEvent("Failed to age log files: " + e.Message);
+                    WriteEvent("Failed to age log files: " + e.Message);
+
+                    // If log rollover fails, force the new logfiles to replace any that might exist.
+                    fileMode = FileMode.Create;
+                }
+            }
+            else
+            {
+                WriteEvent("LogMode: Append to existing log.");
             }
 
             StartThread(delegate() { CopyStream(process.StandardOutput.BaseStream, new FileStream(outputLogfilename, fileMode, FileAccess.Write, FileShare.ReadWrite)); });
@@ -307,28 +333,77 @@ namespace winsw
             log.Close();
         }
 
-        protected override void OnStart(string[] _)
+        public static string ReturnPassword(string username)
         {
+            Console.WriteLine("Enter password for domain account. [" + username + "]");
+
+            string password = "";
+            ConsoleKeyInfo info = Console.ReadKey(true);
+            while (info.Key != ConsoleKey.Enter)
+            {
+                if (info.Key != ConsoleKey.Backspace)
+                {
+                    password += info.KeyChar;
+                }
+                else if (!string.IsNullOrEmpty(password))
+                {
+                    password = password.Substring(0, password.Length - 1);
+                }
+
+                info = Console.ReadKey(true);
+            }
+            //for (int i = 0; i < password.Length; i++)
+            //    Console.Write("*");
+            return password;
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            string logDirectory = descriptor.LogDirectory;
+
+            if (!Directory.Exists(logDirectory))
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
+
             envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
             {
-                LogEvent("envar " + key + '=' + envs[key]);
+                WriteEvent("envar " + key + '=' + envs[key]);
             }
+
+            // handle mapping network drives
+            foreach (NetDrive d in descriptor.NetDrives)
+            {
+                WriteEvent("Mounting share " + d.shareName + " as local drive " + d.localDrive);
+                try
+                {
+                    d.MapDrive();
+                }
+                catch (Exception)
+                {
+                    WriteEvent("Failed to mount share " + d.shareName + " as local drive " + d.localDrive);
+                    // but just keep going
+                }
+            }
+
+            // Set the application's working directory.
+            System.IO.Directory.SetCurrentDirectory(descriptor.WorkingDirectory);
+            WriteEvent("Current directory: " + System.IO.Directory.GetCurrentDirectory());
 
             HandleFileCopies();
 
             // handle downloads
             foreach (Download d in descriptor.Downloads)
             {
-                LogEvent("Downloading: " + d.From+ " to "+d.To);
+                LogEvent("Downloading: " + d.From + " to " + d.To);
                 try
                 {
                     d.Perform();
                 }
                 catch (Exception e)
                 {
-                    LogEvent("Failed to download " + d.From + " to " + d.To + "\n" + e.Message);
-                    WriteEvent("Failed to download " + d.From +" to "+d.To, e);
+                    WriteEvent("Failed to download " + d.From + " to " + d.To, e);
                     // but just keep going
                 }
             }
@@ -341,12 +416,10 @@ namespace winsw
             }
             else
             {
-                startarguments += " " + descriptor.Arguments;
+                startarguments = descriptor.Arguments + " " + startarguments;
             }
 
-            LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
             WriteEvent("Starting " + descriptor.Executable + ' ' + startarguments);
-
             StartProcess(process, startarguments, descriptor.Executable);
 
             // send stdout and stderr to its respective output file.
@@ -357,12 +430,28 @@ namespace winsw
 
         protected override void OnShutdown()
         {
-//            WriteEvent("OnShutdown");
+            // WriteEvent("OnShutdown");
 
             try
             {
                 this.systemShuttingdown = true;
                 StopIt();
+
+                foreach (NetDrive d in descriptor.NetDrives)
+                {
+                    WriteEvent("Unmounting local drive " + d.localDrive);
+                    try
+                    {
+                        d.UnMapDrive();
+                    }
+                    catch (Exception e)
+                    {
+                        LogEvent("Failed to unmount local drive " + d.localDrive + "\n" + e.Message);
+                        WriteEvent("Failed to unmount local drive " + d.localDrive);
+                        // but just keep going
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -372,11 +461,30 @@ namespace winsw
 
         protected override void OnStop()
         {
-//            WriteEvent("OnStop");
+            // WriteEvent("OnStop");
 
             try
             {
                 StopIt();
+
+                // arbitrary sleep, unmap was failing from time to time.
+                Thread.Sleep(1000);
+
+                // unmap network drives
+                foreach (NetDrive d in descriptor.NetDrives)
+                {
+                    WriteEvent("Unmounting local drive " + d.localDrive);
+                    try
+                    {
+                        d.UnMapDrive();
+                    }
+                    catch (Exception e)
+                    {
+                        LogEvent("Failed to unmount local drive " + d.localDrive + "\n" + e.Message);
+                        WriteEvent("Failed to unmount local drive " + d.localDrive);
+                        // but just keep going
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -407,7 +515,7 @@ namespace winsw
             {
                 SignalShutdownPending();
 
-                stoparguments += " " + descriptor.Arguments;
+                stoparguments = descriptor.Arguments + " " + stoparguments;
 
                 Process stopProcess = new Process();
                 String executable = descriptor.StopExecutable;
@@ -417,9 +525,12 @@ namespace winsw
                     executable = descriptor.Executable;
                 }
 
+                LogEvent("Starting " + executable + ' ' + stoparguments);
+                WriteEvent("Starting " + executable + ' ' + stoparguments);
+
                 StartProcess(stopProcess, stoparguments, executable);
 
-                WriteEvent("WaitForProcessToExit "+process.Id+"+"+stopProcess.Id);
+                WriteEvent("WaitForProcessToExit " + process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
@@ -439,12 +550,12 @@ namespace winsw
 
             try
             {
-//                WriteEvent("WaitForProcessToExit [start]");
+                WriteEvent("WaitForProcessToExit [start]");
 
                 while (!process.WaitForExit(descriptor.SleepTime))
                 {
                     SignalShutdownPending();
-//                    WriteEvent("WaitForProcessToExit [repeat]");
+                    WriteEvent("WaitForProcessToExit [repeat]");
                 }
             }
             catch (InvalidOperationException)
@@ -452,7 +563,7 @@ namespace winsw
                 // already terminated
             }
 
-//            WriteEvent("WaitForProcessToExit [finished]");
+            WriteEvent("WaitForProcessToExit [finished]");
         }
 
         private void SignalShutdownPending()
@@ -460,7 +571,7 @@ namespace winsw
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
             wrapperServiceStatus.waitHint = descriptor.WaitHint;
-//            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
+            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
             SetServiceStatus(handle, ref wrapperServiceStatus);
         }
@@ -469,7 +580,7 @@ namespace winsw
         {
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
-//            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
+            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
             SetServiceStatus(handle, ref wrapperServiceStatus);
         }
@@ -585,14 +696,22 @@ namespace winsw
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
                 {
+                    if (s != null)
+                    {
+                        Console.WriteLine("The " + d.Id + " service already exists. (" + (s.Started ? "Running" : "Stopped") + ")");
+                        return;
+                    }
+
                     svc.Create(
                         d.Id,
                         d.Caption,
                         "\""+ServiceDescriptor.ExecutablePath+"\"",
                         WMI.ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
-                        StartMode.Automatic,
+                        d.StartMode,
                         d.Interactive,
+                        d.DomainUser, 
+                        ((d.DomainUser == null) ? null : ReturnPassword(d.DomainUser)),
                         d.ServiceDependencies);
                     // update the description
                     /* Somehow this doesn't work, even though it doesn't report an error
@@ -605,10 +724,20 @@ namespace winsw
                     Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
                         .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
                 }
-                if (args[0] == "uninstall")
+                else if (args[0] == "uninstall")
                 {
                     if (s == null)
+                    {
+                        Console.WriteLine("The " + d.Id + " service does not exist.");
                         return; // there's no such service, so consider it already uninstalled
+                    }
+
+                    if (s.Started)
+                    {
+                        Console.WriteLine("The " + d.Id + " service is still running.  It must be stopped before it can be uninstalled.");
+                        return;
+                    }
+
                     try
                     {
                         s.Delete();
@@ -616,26 +745,58 @@ namespace winsw
                     catch (WmiException e)
                     {
                         if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
+                        {
+                            Console.WriteLine("The " + d.Id + " service has been marked for deletion.");
                             return; // it's already uninstalled, so consider it a success
+                        }
                         throw e;
                     }
                 }
-                if (args[0] == "start")
+                else if (args[0] == "start")
                 {
-                    if (s == null) ThrowNoSuchService();
+                    if (s == null)
+                    {
+                        Console.WriteLine("The " + d.Id + " service does not exist.");
+                        return;
+                    }
+
+                    if (s.Started)
+                    {
+                        Console.WriteLine("The " + d.Id + " service is already Running.");
+                        return;
+                    }
+
+                    //if (s == null) ThrowNoSuchService();
                     s.StartService();
                 }
-                if (args[0] == "stop")
+                else if (args[0] == "stop")
                 {
-                    if (s == null) ThrowNoSuchService();
+                    if (s == null)
+                    {
+                        Console.WriteLine("The " + d.Id + " service does not exist.");
+                        return;
+                    }
+
+                    if (!s.Started)
+                    {
+                        Console.WriteLine("The " + d.Id + " service is already Stopped.");
+                        return;
+                    }
+
+                    //if (s == null) ThrowNoSuchService();
                     s.StopService();
                 }
-                if (args[0] == "restart")
+                else if (args[0] == "restart")
                 {
-                    if (s == null) 
-                        ThrowNoSuchService();
+                    if (s == null)
+                    {
+                        Console.WriteLine("The " + d.Id + " service does not exist.");
+                        return;
+                    }
+                    
+                    // if (s == null) ThrowNoSuchService();
 
-                    if(s.Started)
+                    if (s.Started)
                         s.StopService();
 
                     while (s.Started)
@@ -646,21 +807,25 @@ namespace winsw
 
                     s.StartService();
                 }
-                if (args[0] == "status")
+                else if (args[0] == "status")
                 {
                     if (s == null)
-                        Console.WriteLine("NonExistent");
+                        Console.WriteLine("The " + d.Id + " service does not exist.");
                     else if (s.Started)
-                        Console.WriteLine("Started");
+                        Console.WriteLine("The " + d.Id + " service is Running.");
                     else
-                        Console.WriteLine("Stopped");
+                        Console.WriteLine("The " + d.Id + " service is Stopped.");
                 }
-                if (args[0] == "test")
+                else if (args[0] == "test")
                 {
                     WrapperService wsvc = new WrapperService();
                     wsvc.OnStart(args.ToArray());
-                    Thread.Sleep(1000);
+                    Thread.Sleep(20000);
                     wsvc.OnStop();
+                }
+                else if ((args[0] == "help") || (args[0] == "?"))
+                {
+                    Console.WriteLine("Options include: start, restart, stop, status, install, uninstall, and test.");
                 }
                 return;
             }
