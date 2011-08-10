@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.ServiceProcess;
+using System.Linq;
 using System.Text;
 using System.IO;
-using System.Net;
-using WMI;
 using System.Xml;
-using System.Threading;
-using Microsoft.Win32;
+
+
 namespace winsw
 {
     /// <summary>
@@ -20,6 +14,7 @@ namespace winsw
     public class ServiceDescriptor
     {
         private readonly XmlDocument dom = new XmlDocument();
+
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -76,6 +71,7 @@ namespace winsw
             return Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
+
         /// <summary>
         /// Path to the executable.
         /// </summary>
@@ -94,7 +90,19 @@ namespace winsw
         {
             get
             {
-                return AppendTags("stopexecutable");
+                string stopExe = null;
+
+                try
+                {
+                    stopExe = SingleElement("stopexecutable");
+                }
+                catch (InvalidDataException)
+                {
+                    // ignore
+                    stopExe = null;
+                }
+
+                return stopExe;
             }
         }
 
@@ -105,31 +113,32 @@ namespace winsw
         {
             get
             {
+                // collect all of the "argument" tags
                 string arguments = AppendTags("argument");
 
-                if (arguments == null)
-                {
-                    var tagName = "arguments";
-                    var argumentsNode = dom.SelectSingleNode("//" + tagName);
-
-                    if (argumentsNode == null)
-                    {
-                        if (AppendTags("startargument") == null)
-                        {
-                            throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
-                        }
-                        else
-                        {
-                            return "";
-                        }
-                    }
-
-                    return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
-                }
-                else
+                if (arguments != null)
                 {
                     return arguments;
                 }
+
+                // no "argument" tags, so look for one "arguments" tag.
+                var tagName = "arguments";
+                var argumentsNode = dom.SelectSingleNode("//" + tagName);
+
+                if (argumentsNode == null)
+                {
+                    if ((AppendTags("startargument") == null) &&
+                        (AppendTags("startarguments") == null))
+                    {
+                        throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
+
+                return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
@@ -140,7 +149,24 @@ namespace winsw
         {
             get
             {
-                return AppendTags("startargument");
+                // collect all of the "startargument" tags
+                string arguments = AppendTags("startargument");
+
+                if (arguments != null)
+                {
+                    return arguments;
+                }
+
+                // no "startargument" tags, so look for one "startarguments" tag.
+                var tagName = "startarguments";
+                var argumentsNode = dom.SelectSingleNode("//" + tagName);
+
+                if (argumentsNode == null)
+                {
+                    return "";
+                }
+
+                return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
@@ -151,13 +177,30 @@ namespace winsw
         {
             get
             {
-                return AppendTags("stopargument");
+                // collect all of the "stopargument" tags
+                string arguments = AppendTags("stopargument");
+
+                if (arguments != null)
+                {
+                    return arguments;
+                }
+
+                // no "stopargument" tags, so look for one "stoparguments" tag.
+                var tagName = "stoparguments";
+                var argumentsNode = dom.SelectSingleNode("//" + tagName);
+
+                if (argumentsNode == null)
+                {
+                    return null;
+                }
+
+                return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
-        /// or return null if no element exists.
+        /// or return null if no element exists. Handles whitespace quotation.
         /// </summary>
         private string AppendTags(string tagName)
         {
@@ -173,10 +216,42 @@ namespace winsw
 
                 foreach (XmlNode argument in dom.SelectNodes("//" + tagName))
                 {
-                    arguments += " " + argument.InnerText;
+                    string token = Environment.ExpandEnvironmentVariables(argument.InnerText);
+                    if (token.StartsWith("\"") && token.EndsWith("\""))
+                    {
+                        // for backward compatibility, if the argument is already quoted, leave it as is.
+                        // in earlier versions we didn't handle quotation, so the user might have worked
+                        // around it by themselves
+                    }
+                    else
+                    {
+                        if (token.Contains(" "))
+                        {
+                            token = '"' + token + '"';
+                        }
+                    }
+                    arguments += " " + token;
                 }
 
-                return Environment.ExpandEnvironmentVariables(arguments);
+                return arguments;
+            }
+        }
+
+
+        public string WorkingDirectory
+        {
+            get
+            {
+                XmlNode workingDirNode = dom.SelectSingleNode("//workingdir");
+
+                if (workingDirNode != null)
+                {
+                    return Environment.ExpandEnvironmentVariables(workingDirNode.InnerText);
+                }
+                else
+                {
+                    return Path.GetDirectoryName(ExecutablePath);
+                }
             }
         }
 
@@ -187,7 +262,7 @@ namespace winsw
         {
             get
             {
-                XmlNode loggingNode = dom.SelectSingleNode("//logpath");
+                XmlNode loggingNode = dom.SelectSingleNode("//logdir");
 
                 if (loggingNode != null)
                 {
@@ -195,16 +270,25 @@ namespace winsw
                 }
                 else
                 {
-                    return Path.GetDirectoryName(ExecutablePath);
+                    loggingNode = dom.SelectSingleNode("//logpath");
+
+                    if (loggingNode != null)
+                    {
+                        return Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
+                    }
+                    else
+                    {
+                        return Path.GetDirectoryName(ExecutablePath);
+                    }
                 }
             }
         }
 
 
         /// <summary>
-        /// Logmode to 'reset', 'rotate' once or 'append' [default] the out.log and err.log files.
+        /// LogFilemode to 'reset' (overwrite), 'rotate' (based on a size limit), 'rool' (age) or 'append' [default] the out.log and err.log files.
         /// </summary>
-        public string Logmode
+        public LogMode LogFileMode
         {
             get
             {
@@ -212,11 +296,19 @@ namespace winsw
 
                 if (logmodeNode == null)
                 {
-                    return "append";
+                    return new LogMode(null, null, null);
                 }
-                else
+
+                string countString = getXmlNodeAttribute(logmodeNode, "count", false);
+                string sizeString = getXmlNodeAttribute(logmodeNode, "size", false);
+
+                try
                 {
-                    return logmodeNode.InnerText;
+                    return new LogMode(logmodeNode.InnerText, countString, sizeString);
+                }
+                catch
+                {
+                    return new LogMode(null, null, null);
                 }
             }
         }
@@ -263,8 +355,28 @@ namespace winsw
             }
         }
 
+        public string DomainUser
+        {
+            get
+            {
+                string user = null;
+
+                try
+                {
+                    user = SingleElement("domainuser");
+                }
+                catch (InvalidDataException)
+                {
+                    // ignore
+                    user = null;
+                }
+
+                return user;
+            }
+        }
+
         /// <summary>
-        /// True if the service should when finished on shutdown.
+        /// True if the service should beep when finished on shutdown.
         /// </summary>
         public bool BeepOnShutdown
         {
@@ -321,6 +433,39 @@ namespace winsw
         }
 
         /// <summary>
+        /// Returns the Start Mode from the XML file.
+        /// </summary>
+        public WMI.StartMode StartMode
+        {
+            get
+            {
+                XmlNode startmodeNode = dom.SelectSingleNode("//startmode");
+
+                if (startmodeNode == null)
+                {
+                    return WMI.StartMode.Automatic;
+                }
+                else
+                {
+                    string lowerText = startmodeNode.InnerText.ToLower();
+                    if ((lowerText == "auto") ||
+                         (lowerText == "automatic"))
+                    {
+                        return WMI.StartMode.Automatic;
+                    }
+                    else if (lowerText == "manual")
+                    {
+                        return WMI.StartMode.Manual;
+                    }
+                    else
+                    {
+                        throw new InvalidDataException("<startmode> must be either Manual or Automatic.");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// True if the service can interact with the desktop.
         /// </summary>
         public bool Interactive
@@ -329,6 +474,29 @@ namespace winsw
             {
                 return dom.SelectSingleNode("//interactive") != null;
             }
+        }
+
+        private string getXmlNodeAttribute(XmlNode n, string attr, bool expandEnv)
+        {
+            string valueString = null;
+
+            try
+            {
+                if (expandEnv)
+                {
+                    valueString = Environment.ExpandEnvironmentVariables(n.Attributes[attr].Value);
+                }
+                else
+                {
+                    valueString = n.Attributes[attr].Value;
+                }
+            }
+            catch
+            {
+                valueString = null;
+            }
+
+            return valueString;
         }
 
         /// <summary>
@@ -341,10 +509,76 @@ namespace winsw
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 foreach (XmlNode n in dom.SelectNodes("//env"))
                 {
-                    string key = n.Attributes["name"].Value;
-                    string value = Environment.ExpandEnvironmentVariables(n.Attributes["value"].Value);
-                    map[key] = value;
+                    string key = getXmlNodeAttribute(n, "name", false);
+                    string value = getXmlNodeAttribute(n, "value", true);
+                    string op = getXmlNodeAttribute(n, "op", false);
+                    string separator = getXmlNodeAttribute(n, "sep", false);
+                    string origKey = getXmlNodeAttribute(n, "orig", false);
 
+                    if (op == null)
+                    {
+                        op = "replace";
+                    }
+
+                    if (separator == null)
+                    {
+                        separator = " ";
+                    }
+
+                    if ((op != "replace") &&
+                        (op != "append") &&
+                        (op != "prepend") &&
+                        (op != "ifempty"))
+                    {
+                        continue;
+                    }
+
+
+                    if ((op == "append") ||
+                        (op == "prepend") ||
+                        (op == "ifempty"))
+                    {
+                        string oldValue = null;
+
+                        if (origKey == null)
+                        {
+                            origKey = key;
+                        }
+
+                        try
+                        {
+                            oldValue = Environment.GetEnvironmentVariable(origKey);
+                        }
+                        catch
+                        {
+                            oldValue = null;
+                        }
+
+                        if (op == "append")
+                        {
+                            if (oldValue != null)
+                            {
+                                value = oldValue + separator + value;
+                            }
+                        }
+                        else if (op == "prepend")
+                        {
+                            if (oldValue != null)
+                            {
+                                value = value + separator + oldValue;
+                            }
+                        }
+                        else if (op == "ifempty")
+                        {
+                            // only use this new value if the old value is empty
+                            if ((oldValue != null) && (oldValue != ""))
+                            {
+                                value = oldValue;
+                            }
+                        }
+                    }
+
+                    map[key] = value;
                     Environment.SetEnvironmentVariable(key, value);
                 }
                 return map;
@@ -362,7 +596,30 @@ namespace winsw
                 List<Download> r = new List<Download>();
                 foreach (XmlNode n in dom.SelectNodes("//download"))
                 {
-                    r.Add(new Download(n));
+                    string from = getXmlNodeAttribute(n, "from", true);
+                    string to = getXmlNodeAttribute(n, "to", true);
+
+                    r.Add(new Download(from, to));
+                }
+                return r;
+            }
+        }
+
+        /// <summary>
+        /// List of network drives to be mounted by the wrapper before starting
+        /// a service.
+        /// </summary>
+        public List<NetDrive> NetDrives
+        {
+            get
+            {
+                List<NetDrive> r = new List<NetDrive>();
+                foreach (XmlNode n in dom.SelectNodes("//netdrive"))
+                {
+                    string d = getXmlNodeAttribute(n, "localdrive", true);
+                    string s = getXmlNodeAttribute(n, "sharename", true);
+
+                    r.Add(new NetDrive(d, s));
                 }
                 return r;
             }

@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.ServiceProcess;
+using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
-using WMI;
-using System.Xml;
-using System.Threading;
-using Microsoft.Win32;
+
 
 namespace winsw
 {
@@ -24,10 +17,20 @@ namespace winsw
         public readonly string From;
         public readonly string To;
 
-        internal Download(XmlNode n)
+        internal Download(string f, string t)
         {
-            From = Environment.ExpandEnvironmentVariables(n.Attributes["from"].Value);
-            To = Environment.ExpandEnvironmentVariables(n.Attributes["to"].Value);
+            From = f;
+            To = t;
+
+            if (From == null)
+            {
+                throw new ArgumentNullException("from", "Download creation requires a from location.");
+            }
+
+            if (To == null)
+            {
+                throw new ArgumentNullException("to", "Download creation requires a to location.");
+            }
         }
 
         public void Perform()
