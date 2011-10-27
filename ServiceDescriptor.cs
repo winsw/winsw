@@ -171,7 +171,7 @@ namespace winsw
             {
                 string arguments = "";
 
-                foreach (XmlNode argument in dom.SelectNodes("//" + tagName))
+                foreach (XmlElement argument in dom.SelectNodes("//" + tagName))
                 {
                     string token = Environment.ExpandEnvironmentVariables(argument.InnerText);
 
