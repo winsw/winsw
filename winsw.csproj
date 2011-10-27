@@ -72,7 +72,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\mt.exe" -manifest "$(ProjectDir)manifest.xml"  –outputresource:"$(TargetDir)$(TargetFileName)";#1
+    <PostBuildEvent>"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\mt.exe" -manifest "$(ProjectDir)manifest.xml"  -outputresource:"$(TargetDir)$(TargetFileName)";#1
 
 "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\signtool.exe" sign /f c:\winsw-do-not-add-to-scm.pfx /p winsw /t http://timestamp.comodoca.com/authenticode $(TargetFileName)</PostBuildEvent>
   </PropertyGroup>
