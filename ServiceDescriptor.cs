@@ -233,7 +233,7 @@ namespace winsw
         {
             get
             {
-                string mode;
+                string mode=null;
                 
                 // first, backward compatibility with older configuration
                 XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
@@ -242,8 +242,11 @@ namespace winsw
                 } else {
                     // this is more modern way, to support nested elements as configuration
                     e = (XmlElement)dom.SelectSingleNode("//log");
-                    mode = e.GetAttribute("mode");
+                    if (e!=null)
+                        mode = e.GetAttribute("mode");
                 }
+
+                if (mode == null) mode = "append";
 
                 switch (mode)
                 {
@@ -272,8 +275,10 @@ namespace winsw
                         return new SizeBasedRollingLogAppender(LogDirectory, BaseName, sizeThreshold, keepFiles);
 
                     case "append":
-                    default:
                         return new DefaultLogAppender(LogDirectory, BaseName);
+
+                    default:
+                        throw new InvalidDataException("Undefined logging mode: " + mode);
                 }
             }
 
