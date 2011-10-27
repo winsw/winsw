@@ -24,7 +24,7 @@ namespace winsw
         public void init()
         {
             this._periodicityType = determinePeriodicityType();
-            this._nextRoll = nextTriggeringTime(this._currentRoll);
+            this._nextRoll = nextTriggeringTime(this._currentRoll, this._period);
         }
 
         public enum PeriodicityType
@@ -46,7 +46,7 @@ namespace winsw
                 string r0 = epoch.ToString(_format);
                 periodicRollingCalendar.periodicityType = i;
 
-                DateTime next = periodicRollingCalendar.nextTriggeringTime(epoch);
+                DateTime next = periodicRollingCalendar.nextTriggeringTime(epoch, 1);
                 string r1 = next.ToString(_format);
 
                 if (r0 != null && r1 != null && !r0.Equals(r1))
@@ -57,30 +57,30 @@ namespace winsw
             return PeriodicityType.ERRONEOUS;
         }
 
-        private DateTime nextTriggeringTime(DateTime input)
+        private DateTime nextTriggeringTime(DateTime input, long increment)
         {
             DateTime output;
             switch (_periodicityType)
             {
                 case PeriodicityType.TOP_OF_MILLISECOND:
                     output = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second, input.Millisecond);
-                    output = output.AddMilliseconds(_period);
+                    output = output.AddMilliseconds(increment);
                     return output;
                 case PeriodicityType.TOP_OF_SECOND:
                     output = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second);
-                    output = output.AddSeconds(_period);
+                    output = output.AddSeconds(increment);
                     return output;
                 case PeriodicityType.TOP_OF_MINUTE:
                     output = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, 0);
-                    output = output.AddMinutes(_period);
+                    output = output.AddMinutes(increment);
                     return output;
                 case PeriodicityType.TOP_OF_HOUR:
                     output = new DateTime(input.Year, input.Month, input.Day, input.Hour, 0, 0);
-                    output = output.AddHours(_period);
+                    output = output.AddHours(increment);
                     return output;
                 case PeriodicityType.TOP_OF_DAY:
                     output = new DateTime(input.Year, input.Month, input.Day);
-                    output = output.AddDays(_period);
+                    output = output.AddDays(increment);
                     return output;
                 default:
                     throw new Exception("invalid periodicity type: " + _periodicityType);
@@ -103,7 +103,7 @@ namespace winsw
                 if (now > this._nextRoll)
                 {
                     this._currentRoll = now;
-                    this._nextRoll = nextTriggeringTime(now);
+                    this._nextRoll = nextTriggeringTime(now, this._period);
                     return true;
                 }
                 return false;
