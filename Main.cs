@@ -37,7 +37,7 @@ namespace winsw
         SERVICE_PAUSED = 0x00000007,
     }
     
-    public class WrapperService : ServiceBase
+    public class WrapperService : ServiceBase, EventLogger
     {
         [DllImport("ADVAPI32.DLL")]
         private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
@@ -67,89 +67,6 @@ namespace winsw
             this.CanPauseAndContinue = false;
             this.AutoLog = true;
             this.systemShuttingdown = false;
-        }
-
-        /// <summary>
-        /// Copy stuff from StreamReader to StreamWriter
-        /// </summary>
-        private void CopyStream(Stream i, Stream o)
-        {
-            byte[] buf = new byte[1024];
-            while (true)
-            {
-                int sz = i.Read(buf, 0, buf.Length);
-                if (sz == 0) break;
-                o.Write(buf, 0, sz);
-                o.Flush();
-            }
-            i.Close();
-            o.Close();
-        }
-
-        /// <summary>
-        /// Works like the CopyStream method but does a log rotation.
-        /// </summary>
-        private void CopyStreamWithRotation(Stream data, string baseName, string ext)
-        {
-            int THRESHOLD = 10 * 1024 * 1024; // rotate every 10MB. should be made configurable.
-
-            byte[] buf = new byte[1024];
-            FileStream w = new FileStream(baseName + ext, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            long sz = new FileInfo(baseName + ext).Length;
-
-            while (true)
-            {
-                int len = data.Read(buf, 0, buf.Length);
-                if (len == 0) break;    // EOF
-                if (sz + len < THRESHOLD)
-                {// typical case. write the whole thing into the current file
-                    w.Write(buf, 0, len);
-                    sz += len;
-                }
-                else
-                {
-                    // rotate at the line boundary
-                    int s = 0;
-                    for (int i = 0; i < len; i++)
-                    {
-                        if (buf[i] != 0x0A) continue;
-                        if (sz + i < THRESHOLD) continue;
-
-                        // at the line boundary and exceeded the rotation unit.
-                        // time to rotate.
-                        w.Write(buf, s, i + 1);
-                        w.Close();
-                        s = i + 1;
-
-                        try
-                        {
-                            for (int j = 8; j >= 0; j--)
-                            {
-                                string dst = baseName + "." + (j + 1) + ext;
-                                string src = baseName + "." + (j + 0) + ext;
-                                if (File.Exists(dst))
-                                    File.Delete(dst);
-                                if (File.Exists(src))
-                                    File.Move(src, dst);
-                            }
-                            File.Move(baseName + ext, baseName + ".0" + ext);
-                        }
-                        catch (IOException e)
-                        {
-                            LogEvent("Failed to rotate log: " + e.Message);
-                        }
-
-                        // even if the log rotation fails, create a new one, or else
-                        // we'll infinitely try to rotate.
-                        w = new FileStream(baseName + ext, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
-                        sz = new FileInfo(baseName + ext).Length;
-                    }
-                }
-
-                w.Flush();
-            }
-            data.Close();
-            w.Close();
         }
 
         /// <summary>
@@ -235,35 +152,12 @@ namespace winsw
                 Directory.CreateDirectory(logDirectory);
             }
 
-            string baseName = descriptor.BaseName;
-            string errorLogfilename = Path.Combine(logDirectory, baseName + ".err.log");
-            string outputLogfilename = Path.Combine(logDirectory, baseName + ".out.log");
-
-            if (descriptor.Logmode == "rotate")
-            {
-                string logName = Path.Combine(logDirectory, baseName);
-                StartThread(delegate() { CopyStreamWithRotation(process.StandardOutput.BaseStream, logName, ".out.log"); });
-                StartThread(delegate() { CopyStreamWithRotation(process.StandardError.BaseStream, logName, ".err.log"); });
-                return;
-            }
-
-            FileMode fileMode = FileMode.Append;
-
-            if (descriptor.Logmode == "reset")
-            {
-                fileMode = FileMode.Create;
-            }
-            else if (descriptor.Logmode == "roll")
-            {
-                CopyFile(outputLogfilename, outputLogfilename + ".old");
-                CopyFile(errorLogfilename, errorLogfilename + ".old");
-            }
-
-            StartThread(delegate() { CopyStream(process.StandardOutput.BaseStream, new FileStream(outputLogfilename, fileMode, FileAccess.Write, FileShare.ReadWrite)); });
-            StartThread(delegate() { CopyStream(process.StandardError.BaseStream, new FileStream(errorLogfilename, fileMode, FileAccess.Write, FileShare.ReadWrite)); });
+            LogHandler logAppender = descriptor.LogHandler;
+            logAppender.EventLogger = this;
+            logAppender.log(process.StandardOutput.BaseStream, process.StandardError.BaseStream);
         }
 
-        private void LogEvent(String message)
+        public void LogEvent(String message)
         {
             if (systemShuttingdown)
             {
@@ -275,7 +169,7 @@ namespace winsw
             }
         }
 
-        private void LogEvent(String message, EventLogEntryType type)
+        public void LogEvent(String message, EventLogEntryType type)
         {
             if (systemShuttingdown)
             {

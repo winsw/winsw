@@ -48,9 +48,11 @@
   <ItemGroup>
     <Compile Include="Download.cs" />
     <Compile Include="DynamicProxy.cs" />
+    <Compile Include="LogAppenders.cs" />
     <Compile Include="Main.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="PeriodicRollingCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceDescriptor.cs" />
     <Compile Include="Wmi.cs" />
@@ -58,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.xml" />
+    <Content Include="pom.xml" />
     <Content Include="winsw.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

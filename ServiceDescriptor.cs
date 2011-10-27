@@ -76,6 +76,20 @@ namespace winsw
             return Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
+        private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
+        {
+            var e = parent.SelectSingleNode(tagName);
+
+            if (e == null)
+            {
+                return defaultValue;
+            }
+            else
+            {
+                return int.Parse(e.InnerText);
+            }
+        }
+
         /// <summary>
         /// Path to the executable.
         /// </summary>
@@ -215,25 +229,54 @@ namespace winsw
             }
         }
 
-
-        /// <summary>
-        /// Logmode to 'reset', 'rotate' once or 'append' [default] the out.log and err.log files.
-        /// </summary>
-        public string Logmode
+        public LogHandler LogHandler
         {
             get
             {
-                XmlNode logmodeNode = dom.SelectSingleNode("//logmode");
-
-                if (logmodeNode == null)
-                {
-                    return "append";
+                string mode;
+                
+                // first, backward compatibility with older configuration
+                XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
+                if (e!=null) {
+                    mode = e.InnerText;
+                } else {
+                    // this is more modern way, to support nested elements as configuration
+                    e = (XmlElement)dom.SelectSingleNode("//log");
+                    mode = e.GetAttribute("mode");
                 }
-                else
+
+                switch (mode)
                 {
-                    return logmodeNode.InnerText;
+                    case "rotate":
+                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
+
+                    case "reset":
+                        return new ResetLogAppender(LogDirectory, BaseName);
+
+                    case "roll":
+                        return new RollingLogAppender(LogDirectory, BaseName);
+
+                    case "roll-by-time":
+                        XmlNode patternNode = e.SelectSingleNode("pattern");
+                        if (patternNode == null)
+                        {
+                            throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+                        }
+                        string pattern = patternNode.InnerText;
+                        int period = SingleIntElement(e,"period",1);
+                        return new TimeBasedRollingLogAppender(LogDirectory, BaseName, pattern, period);
+
+                    case "roll-by-size":
+                        int sizeThreshold = SingleIntElement(e,"sizeThreshold",10*1024)  * SizeBasedRollingLogAppender.BYTES_PER_KB;
+                        int keepFiles = SingleIntElement(e,"keepFiles",SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP);
+                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName, sizeThreshold, keepFiles);
+
+                    case "append":
+                    default:
+                        return new DefaultLogAppender(LogDirectory, BaseName);
                 }
             }
+
         }
 
         /// <summary>
@@ -299,16 +342,7 @@ namespace winsw
         {
             get
             {
-                XmlNode waithintNode = dom.SelectSingleNode("//waithint");
-
-                if (waithintNode == null)
-                {
-                    return 15000;
-                }
-                else
-                {
-                    return int.Parse(waithintNode.InnerText);
-                }
+                return SingleIntElement(dom, "waithint", 15000);
             }
         }
 
@@ -322,16 +356,7 @@ namespace winsw
         {
             get
             {
-                XmlNode sleeptimeNode = dom.SelectSingleNode("//sleeptime");
-
-                if (sleeptimeNode == null)
-                {
-                    return 1000;
-                }
-                else
-                {
-                    return int.Parse(sleeptimeNode.InnerText);
-                }
+                return SingleIntElement(dom, "sleeptime", 15000);
             }
         }
 
