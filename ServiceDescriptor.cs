@@ -173,7 +173,7 @@ namespace winsw
 
                 foreach (XmlNode argument in dom.SelectNodes("//" + tagName))
                 {
-                    string token = argument.InnerText;
+                    string token = Environment.ExpandEnvironmentVariables(argument.InnerText);
 
                     if (token.StartsWith("\"") && token.EndsWith("\""))
                     {
@@ -191,7 +191,7 @@ namespace winsw
                     arguments += " " + token;
                 }
 
-                return Environment.ExpandEnvironmentVariables(arguments);
+                return arguments;
             }
         }
 
