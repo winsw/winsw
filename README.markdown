@@ -7,6 +7,8 @@ Now, I think the first question that people would ask is, why another, when ther
 
 Functionality-wise, there's really not much that's worth noting; the problem of wrapping a process as a Windows service is so well defined that there aren't really any room for substantial innovation. You basically write a configuration file specifying how you'd like your process to be launched, and we provide programmatic means to install/uninstall/start/stop services. Another notable different is that winsw can host any executable, whereas Java Service Wrapper can only host Java apps. Whether you like this or not depends on your taste, so I wouldn't claim mine is better. It's just different.
 
+As the name implies, this is for Windows only. Unix systems have their own conventions for daemons, so a good behaving Unix daemon should just be using launchd/upstart/SMF/etc, instead of custom service wrapper.
+
 Usage
 -----
 You write the configuration file that defines your service. This is the one I use for Jenkins:
