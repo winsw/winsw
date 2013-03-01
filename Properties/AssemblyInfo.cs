@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("CloudBees, Inc.")]
 [assembly: AssemblyProduct("Windows Service Wrapper")]
-[assembly: AssemblyCopyright("Copyright 2008-2010 Sun Micorsystems, Inc., CloudBees, Inc.")]
+[assembly: AssemblyCopyright("Copyright 2008-2010 Sun Microsystems, Inc., CloudBees, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

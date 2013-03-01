@@ -171,7 +171,7 @@ namespace winsw
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
-        /// or return null if no element exists. Handles whitespace quotatoin.
+        /// or return null if no element exists. Handles whitespace quotation.
         /// </summary>
         private string AppendTags(string tagName)
         {
