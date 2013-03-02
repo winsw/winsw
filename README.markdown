@@ -28,3 +28,31 @@ You'll rename `winsw.exe` into something like `jenkins.exe`, then you put this X
     jenkins.exe install
 
 ... and you can use the exit code from these processes to determine whether the operation was successful. There are other commands to perform other operations, like `uninstall`, `start`, `stop`, and so on.
+
+Available commands
+------------------
+Your renamed `winsw.exe` accepts the following commands:
+
+* `install` to install the service to Windows Service Controller
+* `uninstall` to uninstall the service. The opposite operation of above.
+* `start` to start the service. The service must have already been installed.
+* `stop` to stop the service.
+* `restart` to restart the service. If the service is not currently running, this command acts like `start`.
+* `status` to check the current status of the service. This command prints one line to the console. `NonExistent` to indicate the service is not currently installed, `Started` to indicate the service is currently running, and `Stopped` to indicate that the service is installed but not currently running.
+
+
+Error reporting
+---------------
+Winsw uses WMI underneath, and as such it uses its error code as the exit code. See <a href="http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx">MSDN article</a> for the complete list of exit code.
+
+When winsw is running as a service, more detailed error information is reported to the Windows event log.
+
+Deferred file operations
+------------------------
+To support self updating services, winsw offers a mechanism to perform file operations before a service starts up. This is often necessary because Windows prevents files from overwritten while it's in use.
+
+To perform file operations, write a text file (in the UTF-8 encoding) at `myapp.copies` (that is, it's in the same directory as `myapp.xml` and `myapp.exe` but with a different file extension), and for each operation add one line:
+
+* To move a file, write "src>dst". If the 'dst' file already exists it will be overwritten.
+
+The success or failure of these operations will be recorded in the event log.
