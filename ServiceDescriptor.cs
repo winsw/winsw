@@ -328,6 +328,7 @@ namespace winsw
 
         /// <summary>
         /// True if the service should when finished on shutdown.
+        /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx
         /// </summary>
         public bool BeepOnShutdown
         {
