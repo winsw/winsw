@@ -98,6 +98,20 @@ This configuration must accompany a nested `<pattern>` element, which specifies 
 The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
 
 
+Offline Environment and Authenticode
+------------------------------------
+To work with UAC-enabled Windows, winsw ships with a digital signature. This causes Windows to automatically verify this digital signature when the application is launched (see [more discussions](http://msdn.microsoft.com/en-us/library/bb629393.aspx)). This adds some delay to the launch of the service, and more importantly, it prevents winsw from running in a server that has no internet connection. This is because a part of the signature verification involves checking certificate revocation list.
+
+To prevent this problem, create `myapp.exe.config` in the same directory as `myapp.exe` (renamed `winsw.exe`) and put the following in it:
+
+    <configuration>
+      <runtime>
+        <generatePublisherEvidence enabled="false"/> 
+      </runtime>
+    </configuration>
+
+See [KB 936707](http://support.microsoft.com/kb/936707) for more details.
+
 Configuration file syntax
 -------------------------
 The behaviour of the service is controlled by the XML configuration file. The root element of this XML file must be `<service>`, and it supports the following child element.
