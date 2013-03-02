@@ -61,6 +61,42 @@ The success or failure of these operations will be recorded in the event log.
 
 The `<download>` element in the configuration file also provides an useful building block for a self updating services.
 
+Logging
+-------
+Winsw supports several different ways to capture stdout and stderr from the process you launch.
+
+### Log directory
+The `<logpath>` element specifies the directory in which the log files are created. If this element is absent, it'll default to the same directory where the configuration file resides.
+
+### Append mode (default)
+In this mode, `myapp.out.log` nad `myapp.err.log` (where `myapp` is the base name of the executable and the configuration file) are created and outputs are simply appended to these files. Note that the file can get quite big.
+
+    <log mode="append"/>
+
+### Reset mode
+Works like the append mode, except that every time the service starts, the old log files are truncated.
+
+    <log mode="reset"/>
+
+### Rotate mode
+Works like the append mode, but in addition, if the log file gets bigger than a set size, it gets rotated to `myapp.1.out.log`, `myapp.2.out.log` and so on. The nested `<sizeThreshold>` element specifies the rotation threshold in KB (defaults to 10MB), and the nested `<keepFiles>` element specifies the number of rotated files to keep (defaults to 8.)
+
+    <log mode="roll-by-size">
+      <sizeThreshold>10240</sizeThreshold>
+      <keepFiles>8</keepFiles>
+    </log>
+
+### Rotate by time mode
+Works like the rotate mode, except that instead of using the size as a threshold, use the time period as the threshold.
+
+This configuration must accompany a nested `<pattern>` element, which specifies the timestamp pattern used as the log file name.
+
+    <log mode="roll-by-time">
+      <pattern>yyyyMMdd</pattern>
+    </log>
+
+The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
+
 
 Configuration file syntax
 -------------------------
@@ -134,5 +170,6 @@ This optional element can be specified multiple times to have the service wrappe
 
 This is another useful building block for developing a self-updating service.
 
-
+### log
+See the "Logging" section above for more details.
 
