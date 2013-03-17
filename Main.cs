@@ -373,6 +373,7 @@ namespace winsw
             var ps = process.StartInfo;
             ps.FileName = executable;
             ps.Arguments = arguments;
+            ps.WorkingDirectory = descriptor.WorkingDirectory;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
             ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
