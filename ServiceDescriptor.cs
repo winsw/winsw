@@ -373,7 +373,7 @@ namespace winsw
         {
             get
             {
-                return SingleIntElement(dom, "sleeptime", 15000);
+                return SingleIntElement(dom, "sleeptime", 1000);
             }
         }
 
