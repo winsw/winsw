@@ -15,37 +15,10 @@ using Microsoft.Win32;
 
 namespace winsw
 {
-    public struct SERVICE_STATUS
-    {
-        public int serviceType;
-        public int currentState;
-        public int controlsAccepted;
-        public int win32ExitCode;
-        public int serviceSpecificExitCode;
-        public int checkPoint;
-        public int waitHint;
-    }
-
-    public enum State
-    {
-        SERVICE_STOPPED = 0x00000001,
-        SERVICE_START_PENDING = 0x00000002,
-        SERVICE_STOP_PENDING = 0x00000003,
-        SERVICE_RUNNING = 0x00000004,
-        SERVICE_CONTINUE_PENDING = 0x00000005,
-        SERVICE_PAUSE_PENDING = 0x00000006,
-        SERVICE_PAUSED = 0x00000007,
-    }
-    
     public class WrapperService : ServiceBase, EventLogger
     {
-        [DllImport("ADVAPI32.DLL")]
-        private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
-        
         [DllImport("Kernel32.dll", SetLastError = true)]
         public static extern int SetStdHandle(int device, IntPtr handle); 
-
-        private SERVICE_STATUS wrapperServiceStatus;
 
         private Process process = new Process();
         private ServiceDescriptor descriptor;
@@ -290,6 +263,7 @@ namespace winsw
                 try
                 {
                     WriteEvent("ProcessKill " + process.Id);
+
                     process.Kill();
                 }
                 catch (InvalidOperationException)
@@ -299,8 +273,6 @@ namespace winsw
             }
             else
             {
-                SignalShutdownPending();
-
                 stoparguments += " " + descriptor.Arguments;
 
                 Process stopProcess = new Process();
@@ -313,10 +285,16 @@ namespace winsw
 
                 StartProcess(stopProcess, stoparguments, executable);
 
+                try {
+                    // give some extra time to the service to stop
+                    this.RequestAdditionalTime(descriptor.WaitHint);
+                    // but it does'nt seem to be effective on my system (the previous method neither)
+                }
+                catch (InvalidOperationException) { }
+
                 WriteEvent("WaitForProcessToExit "+process.Id+"+"+stopProcess.Id);
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
-                SignalShutdownComplete();
             }
 
             if (systemShuttingdown && descriptor.BeepOnShutdown) 
@@ -329,15 +307,12 @@ namespace winsw
 
         private void WaitForProcessToExit(Process process)
         {
-            SignalShutdownPending();
-
             try
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
                 while (!process.WaitForExit(descriptor.SleepTime))
                 {
-                    SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
                 }
             }
@@ -349,30 +324,12 @@ namespace winsw
 //            WriteEvent("WaitForProcessToExit [finished]");
         }
 
-        private void SignalShutdownPending()
-        {
-            IntPtr handle = this.ServiceHandle;
-            wrapperServiceStatus.checkPoint++;
-            wrapperServiceStatus.waitHint = descriptor.WaitHint;
-//            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
-            SetServiceStatus(handle, ref wrapperServiceStatus);
-        }
-
-        private void SignalShutdownComplete()
-        {
-            IntPtr handle = this.ServiceHandle;
-            wrapperServiceStatus.checkPoint++;
-//            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
-            SetServiceStatus(handle, ref wrapperServiceStatus);
-        }
-
         private void StartProcess(Process process, string arguments, String executable)
         {
             var ps = process.StartInfo;
             ps.FileName = executable;
             ps.Arguments = arguments;
+            ps.WorkingDirectory = descriptor.WorkingDirectory;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
             ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.

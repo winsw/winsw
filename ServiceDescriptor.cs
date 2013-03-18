@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
@@ -69,11 +70,11 @@ namespace winsw
             dom.Load(BasePath + ".xml");
         }
 
-        private string SingleElement(string tagName)
+        private string SingleElement(string tagName, bool optional = false)
         {
             var n = dom.SelectSingleNode("//" + tagName);
-            if (n == null) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
-            return Environment.ExpandEnvironmentVariables(n.InnerText);
+            if (n == null && !optional) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+            return n == null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
         private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
@@ -166,6 +167,16 @@ namespace winsw
             get
             {
                 return AppendTags("stopargument");
+            }
+        }
+
+        /// <summary>
+        /// Optional working directory.
+        /// </summary>
+        public string WorkingDirectory {
+            get {
+                var wd = SingleElement("workingdirectory", true);
+                return String.IsNullOrEmpty(wd) ? Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) : wd;
             }
         }
 
@@ -362,7 +373,7 @@ namespace winsw
         {
             get
             {
-                return SingleIntElement(dom, "sleeptime", 15000);
+                return SingleIntElement(dom, "sleeptime", 1000);
             }
         }
 
