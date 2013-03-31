@@ -70,7 +70,12 @@ namespace winsw
             dom.Load(BasePath + ".xml");
         }
 
-        private string SingleElement(string tagName, bool optional = false)
+        private string SingleElement(string tagName)
+        {
+            return SingleElement(tagName, false);
+        }
+
+        private string SingleElement(string tagName, Boolean optional)
         {
             var n = dom.SelectSingleNode("//" + tagName);
             if (n == null && !optional) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
