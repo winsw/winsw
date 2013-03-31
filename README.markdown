@@ -149,7 +149,7 @@ This element specifies the arguments to be passed to the executable. Winsw will 
 
 For backward compatibility, `<arguments>` element can be used instead to specify the whole command line in a single element.
 
-## stopargument/stopexecutable
+### stopargument/stopexecutable
 When the service is requested to stop, winsw simply calls <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx">TerminateProcess</a> API to kill the service instantly. However, if `<stopargument>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the `<stopargument>` arguments, and expects that to initiate the graceful shutdown of the service process.
 
 Winsw will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
@@ -187,3 +187,5 @@ This is another useful building block for developing a self-updating service.
 ### log
 See the "Logging" section above for more details.
 
+### workingdirectory
+This optional element sets the current directory of the process launched by winsw.
