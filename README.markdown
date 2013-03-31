@@ -112,7 +112,11 @@ To prevent this problem, create `myapp.exe.config` in the same directory as `mya
 
 See [KB 936707](http://support.microsoft.com/kb/936707) for more details.
 
-Configuration file syntax
+Environment Variable Expansion in Configuration File
+----------------------------------------------------
+Configuration XML files can include environment variable expansions of the form `%Name%`. Such occurences, if found, will be automatically replaced by the actual values of the variables. If an undefined environment variable is referenced, no substituion occurs.
+
+Configuration File Syntax
 -------------------------
 The behaviour of the service is controlled by the XML configuration file. The root element of this XML file must be `<service>`, and it supports the following child element.
 
@@ -189,3 +193,5 @@ See the "Logging" section above for more details.
 
 ### workingdirectory
 This optional element sets the current directory of the process launched by winsw.
+
+    <workingdirectory>%SystemDrive%\</workingdirectory>
