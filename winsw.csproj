@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Advapi32.cs" />
     <Compile Include="Download.cs" />
     <Compile Include="DynamicProxy.cs" />
     <Compile Include="LogAppenders.cs" />
