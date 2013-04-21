@@ -53,6 +53,7 @@
     <Compile Include="Main.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="NotGettingAnywhere.cs" />
     <Compile Include="PeriodicRollingCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceDescriptor.cs" />

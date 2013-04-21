@@ -53,9 +53,11 @@ namespace WMI
         Win32Service Select(string name);
     }
 
+    // http://msdn.microsoft.com/en-us/library/windows/desktop/aa394418(v=vs.85).aspx
     public interface Win32Service : IWmiObject
     {
         string Description { get; set; }
+        string Name { get; }
         bool Started { get; }
         void Delete();
         void StartService();

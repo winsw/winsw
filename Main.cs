@@ -421,7 +421,7 @@ namespace winsw
             });
         }
 
-        public static int Main(string[] args)
+        public static int _Main(string[] args)
         {
             try
             {
@@ -549,6 +549,16 @@ namespace winsw
                         Console.WriteLine("Started");
                     else
                         Console.WriteLine("Stopped");
+                }
+                if (args[0] == "autorestart")
+                {// debug only. to be removed.
+                    using (Advapi32.ServiceManager scm = new Advapi32.ServiceManager())
+                    {
+                        using (Advapi32.Service sc = scm.Open(d.Id))
+                        {
+                            sc.ChangeConfig(TimeSpan.FromHours(48));
+                        }
+                    }
                 }
                 if (args[0] == "test")
                 {
