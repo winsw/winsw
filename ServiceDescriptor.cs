@@ -108,15 +108,21 @@ namespace winsw
             }
             else
             {
-                string v = e.InnerText;
-                foreach (var s in SUFFIX) {
-                    if (v.EndsWith(s.Key))
-                    {
-                        return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0,v.Length-s.Key.Length).Trim())*s.Value);
-                    }
-                }
-                return TimeSpan.FromMilliseconds(int.Parse(v));
+                return ParseTimeSpan(e.InnerText);
             }
+        }
+
+        private TimeSpan ParseTimeSpan(string v)
+        {
+            v = v.Trim();
+            foreach (var s in SUFFIX)
+            {
+                if (v.EndsWith(s.Key))
+                {
+                    return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0, v.Length - s.Key.Length).Trim()) * s.Value);
+                }
+            }
+            return TimeSpan.FromMilliseconds(int.Parse(v));
         }
 
         private static readonly Dictionary<string,long> SUFFIX = new Dictionary<string,long> {
@@ -491,7 +497,7 @@ namespace winsw
                             throw new Exception("Invalid failure action: " + action);
                     }
                     XmlAttribute delay = n.Attributes["delay"];
-                    r.Add(new SC_ACTION(type, delay!=null ? uint.Parse(delay.Value) : 0));
+                    r.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
                 }
                 return r;
             }

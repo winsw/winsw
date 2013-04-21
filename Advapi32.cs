@@ -255,10 +255,10 @@ namespace Advapi32
         /// </summary>
         public uint Delay;
 
-        public SC_ACTION(SC_ACTION_TYPE type, uint delay)
+        public SC_ACTION(SC_ACTION_TYPE type, TimeSpan delay)
         {
             this.Type = type;
-            this.Delay = delay;
+            this.Delay = (uint)delay.TotalMilliseconds;
         }
     }
 
