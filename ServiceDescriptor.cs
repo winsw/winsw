@@ -13,6 +13,8 @@ using WMI;
 using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
+using Advapi32;
+
 namespace winsw
 {
     /// <summary>
@@ -95,6 +97,41 @@ namespace winsw
                 return int.Parse(e.InnerText);
             }
         }
+
+        private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
+        {
+            var e = parent.SelectSingleNode(tagName);
+
+            if (e == null)
+            {
+                return defaultValue;
+            }
+            else
+            {
+                string v = e.InnerText;
+                foreach (var s in SUFFIX) {
+                    if (v.EndsWith(s.Key))
+                    {
+                        return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0,v.Length-s.Key.Length).Trim())*s.Value);
+                    }
+                }
+                return TimeSpan.FromMilliseconds(int.Parse(v));
+            }
+        }
+
+        private static readonly Dictionary<string,long> SUFFIX = new Dictionary<string,long> {
+            { "ms",     1 }, 
+            { "sec",    1000L },
+            { "secs",   1000L },
+            { "min",    1000L*60L },
+            { "mins",   1000L*60L },
+            { "hr",     1000L*60L*60L },
+            { "hrs",    1000L*60L*60L },
+            { "hour",   1000L*60L*60L },
+            { "hours",  1000L*60L*60L },
+            { "day",    1000L*60L*60L*24L },
+            { "days",   1000L*60L*60L*24L }
+        };
 
         /// <summary>
         /// Path to the executable.
@@ -356,29 +393,29 @@ namespace winsw
 
 
         /// <summary>
-        /// The estimated time required for a pending stop operation, in milliseconds (default 15 secs).
+        /// The estimated time required for a pending stop operation (default 15 secs).
         /// Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function 
         /// with either an incremented checkPoint value or a change in currentState. (see http://msdn.microsoft.com/en-us/library/ms685996.aspx)
         /// </summary>
-        public int WaitHint
+        public TimeSpan WaitHint
         {
             get
             {
-                return SingleIntElement(dom, "waithint", 15000);
+                return SingleTimeSpanElement(dom, "waithint", TimeSpan.FromSeconds(15));
             }
         }
 
 
         /// <summary>
-        /// The time, in milliseconds (default 1 sec), before the service should make its next call to the SetServiceStatus function 
-        /// with an incremented checkPoint value.
+        /// The time before the service should make its next call to the SetServiceStatus function 
+        /// with an incremented checkPoint value (default 1 sec).
         /// Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
         /// </summary>
-        public int SleepTime
+        public TimeSpan SleepTime
         {
             get
             {
-                return SingleIntElement(dom, "sleeptime", 15000);
+                return SingleTimeSpanElement(dom, "sleeptime", TimeSpan.FromSeconds(1));
             }
         }
 
@@ -429,5 +466,44 @@ namespace winsw
                 return r;
             }
         }
+
+        public List<SC_ACTION> FailureActions
+        {
+            get
+            {
+                List<SC_ACTION> r = new List<SC_ACTION>();
+                foreach (XmlNode n in dom.SelectNodes("//onfailure"))
+                {
+                    SC_ACTION_TYPE type;
+                    string action = n.Attributes["action"].Value;
+                    switch (action)
+                    {
+                        case "restart":
+                            type = SC_ACTION_TYPE.SC_ACTION_RESTART;
+                            break;
+                        case "none":
+                            type = SC_ACTION_TYPE.SC_ACTION_NONE;
+                            break;
+                        case "reboot":
+                            type = SC_ACTION_TYPE.SC_ACTION_REBOOT;
+                            break;
+                        default:
+                            throw new Exception("Invalid failure action: " + action);
+                    }
+                    XmlAttribute delay = n.Attributes["delay"];
+                    r.Add(new SC_ACTION(type, delay!=null ? uint.Parse(delay.Value) : 0));
+                }
+                return r;
+            }
+        }
+
+        public TimeSpan ResetFailureAfter
+        {
+            get
+            {
+                return SingleTimeSpanElement(dom, "resetfailure", TimeSpan.Zero);
+            }
+        }
+
     }
 }

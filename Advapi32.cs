@@ -46,7 +46,7 @@ namespace Advapi32
             Handle = service;
         }
 
-        public void ChangeConfig(TimeSpan failureResetPeriod, SC_ACTION[] actions)
+        public void ChangeConfig(TimeSpan failureResetPeriod, List<SC_ACTION> actions)
         {
             SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS();
             sfa.dwResetPeriod = failureResetPeriod.Seconds;
@@ -55,11 +55,11 @@ namespace Advapi32
             
             int len = Marshal.SizeOf(typeof(SC_ACTION));
 
-            sfa.cActions = actions.Length;
-            sfa.lpsaActions = Marshal.AllocHGlobal(len * actions.Length);
+            sfa.cActions = actions.Count;
+            sfa.lpsaActions = Marshal.AllocHGlobal(len * actions.Count);
             try
             {
-                for (int i = 0; i < actions.Length; i++)
+                for (int i = 0; i < actions.Count; i++)
                 {
                     Marshal.StructureToPtr(actions[i], new IntPtr(sfa.lpsaActions.ToInt64() + i * len), false);
                 }

@@ -336,7 +336,7 @@ namespace winsw
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
-                while (!process.WaitForExit(descriptor.SleepTime))
+                while (!process.WaitForExit(descriptor.SleepTime.Milliseconds))
                 {
                     SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
@@ -354,7 +354,7 @@ namespace winsw
         {
             IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
-            wrapperServiceStatus.waitHint = descriptor.WaitHint;
+            wrapperServiceStatus.waitHint = descriptor.WaitHint.Milliseconds;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
             SetServiceStatus(handle, ref wrapperServiceStatus);
@@ -500,6 +500,18 @@ namespace winsw
                     // so using a classic method to set the description. Ugly.
                     Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
                         .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
+
+                    var actions = d.FailureActions;
+                    if (actions.Count > 0)
+                    {// set the failure actions
+                        using (Advapi32.ServiceManager scm = new Advapi32.ServiceManager())
+                        {
+                            using (Advapi32.Service sc = scm.Open(d.Id))
+                            {
+                                sc.ChangeConfig(d.ResetFailureAfter, actions);
+                            }
+                        }
+                    }
                 }
                 if (args[0] == "uninstall")
                 {
@@ -550,18 +562,6 @@ namespace winsw
                         Console.WriteLine("Started");
                     else
                         Console.WriteLine("Stopped");
-                }
-                if (args[0] == "autorestart")
-                {// debug only. to be removed.
-                    using (Advapi32.ServiceManager scm = new Advapi32.ServiceManager())
-                    {
-                        using (Advapi32.Service sc = scm.Open(d.Id))
-                        {
-                            SC_ACTION[] lpsaActions = new SC_ACTION[1];
-                            lpsaActions[0] = new SC_ACTION(SC_ACTION_TYPE.SC_ACTION_RESTART, 1000);
-                            sc.ChangeConfig(TimeSpan.FromHours(48),lpsaActions);
-                        }
-                    }
                 }
                 if (args[0] == "test")
                 {
