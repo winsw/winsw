@@ -9,6 +9,10 @@ Functionality-wise, there's really not much that's worth noting; the problem of 
 
 As the name implies, this is for Windows only. Unix systems have their own conventions for daemons, so a good behaving Unix daemon should just be using launchd/upstart/SMF/etc, instead of custom service wrapper.
 
+Download
+--------
+[Binaries are available here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/)
+
 Usage
 -----
 You write the configuration file that defines your service. This is the one I use for Jenkins:
