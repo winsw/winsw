@@ -12,6 +12,7 @@ using WMI;
 using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
+using Advapi32;
 
 namespace winsw
 {
@@ -421,7 +422,7 @@ namespace winsw
             });
         }
 
-        public static int _Main(string[] args)
+        public static int Main(string[] args)
         {
             try
             {
@@ -556,7 +557,9 @@ namespace winsw
                     {
                         using (Advapi32.Service sc = scm.Open(d.Id))
                         {
-                            sc.ChangeConfig(TimeSpan.FromHours(48));
+                            SC_ACTION[] lpsaActions = new SC_ACTION[1];
+                            lpsaActions[0] = new SC_ACTION(SC_ACTION_TYPE.SC_ACTION_RESTART, 1000);
+                            sc.ChangeConfig(TimeSpan.FromHours(48),lpsaActions);
                         }
                     }
                 }

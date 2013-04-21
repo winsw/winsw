@@ -26,7 +26,6 @@ namespace Advapi32
             {
                 throw new Exception(String.Format("Error opening service for modifying. Error returned was: 0x{0:X}", Marshal.GetLastWin32Error()));
             }
-            Console.WriteLine("Opened " + serviceName);
             return new Service(svcHandle);
         }
 
@@ -47,41 +46,30 @@ namespace Advapi32
             Handle = service;
         }
 
-        public void ChangeConfig(TimeSpan failureResetPeriod)
+        public void ChangeConfig(TimeSpan failureResetPeriod, SC_ACTION[] actions)
         {
             SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS();
             sfa.dwResetPeriod = failureResetPeriod.Seconds;
             sfa.lpRebootMsg = ""; // delete message
             sfa.lpCommand = "";   // delete the command to run
-            sfa.cActions = 0;
             
-            SC_ACTION[] lpsaActions = new SC_ACTION[2];
-            lpsaActions[0] = new SC_ACTION(SC_ACTION_TYPE.SC_ACTION_RESTART, 1000);
-            lpsaActions[1] = new SC_ACTION(SC_ACTION_TYPE.SC_ACTION_RESTART, 2000);
-            lpsaActions[1] = new SC_ACTION(SC_ACTION_TYPE.SC_ACTION_RESTART, 5000);
+            int len = Marshal.SizeOf(typeof(SC_ACTION));
 
-            sfa.lpsaActions = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(SC_ACTION)) * 2);
+            sfa.cActions = actions.Length;
+            sfa.lpsaActions = Marshal.AllocHGlobal(len * actions.Length);
             try
             {
-                for (int i = 0; i < lpsaActions.Length; i++)
+                for (int i = 0; i < actions.Length; i++)
                 {
-                    Marshal.StructureToPtr(lpsaActions[i], sfa.lpsaActions/* new IntPtr(sfa.lpsaActions.ToInt64() + i * Marshal.SizeOf(typeof(SC_ACTION)))*/, false);
+                    Marshal.StructureToPtr(actions[i], new IntPtr(sfa.lpsaActions.ToInt64() + i * len), false);
                 }
 
-                Console.WriteLine("Changing config to 2: sizeof(x)"+Marshal.SizeOf(typeof(SC_ACTION)));
-                int x = Marshal.GetLastWin32Error();
-
-                sfa.lpsaActions = IntPtr.Zero;
-
-                if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_FAILURE_ACTIONS, sfa))
+                if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_FAILURE_ACTIONS, ref sfa))
                     throw new Exception("Failed to change the failure actions", new Win32Exception());
-
-                throw new Exception("OK:" + x + "/" + Marshal.GetLastWin32Error(), new Win32Exception());
-
             }
             finally
             {
-                Marshal.FreeCoTaskMem(sfa.lpsaActions);
+                Marshal.FreeHGlobal(sfa.lpsaActions);
             }
         }
 
@@ -99,18 +87,18 @@ namespace Advapi32
     /// </summary>
     internal class Advapi32
     {
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, IntPtr lpInfo);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, SERVICE_FAILURE_ACTIONS sfa);
+        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_FAILURE_ACTIONS sfa);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenSCManager(string machineName, string databaseName, uint dwAccess);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);
         
         [DllImport("advapi32.dll", SetLastError = true)]
@@ -296,7 +284,7 @@ namespace Advapi32
     }
 
     // http://msdn.microsoft.com/en-us/library/windows/desktop/ms685939(v=vs.85).aspx
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
     public struct SERVICE_FAILURE_ACTIONS
     {
         /// <summary>
@@ -305,9 +293,9 @@ namespace Advapi32
         /// </summary>
         public int dwResetPeriod;
 
-        [MarshalAs(UnmanagedType.LPTStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string lpRebootMsg;
-        [MarshalAs(UnmanagedType.LPTStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string lpCommand;
         public int cActions;
         public IntPtr/*SC_ACTION[]*/ lpsaActions;
