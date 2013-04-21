@@ -501,7 +501,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "resetfailure", TimeSpan.Zero);
+                return SingleTimeSpanElement(dom, "resetfailure", TimeSpan.FromDays(1));
             }
         }
 
