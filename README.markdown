@@ -199,3 +199,29 @@ See the "Logging" section above for more details.
 This optional element sets the current directory of the process launched by winsw.
 
     <workingdirectory>%SystemDrive%\</workingdirectory>
+
+### onfailure
+This optional repeatable element controls the behaviour when the process launched by winsw fails (i.e., exits with non-zero exit code).
+
+    <onfailure action="restart" delay="10 sec"/>
+    <onfailure action="restart" delay="20 sec"/>
+    <onfailure action="reboot" />
+
+For example, the above configuration causes the service to restart in 10 seconds after the first failure, restart in 20 seconds after the second failure, then Windows will reboot if the service fails one more time.
+
+Each element contains a mandatory `action` attribute, which controls what Windows SCM will do, and optional `delay` attribute, which controls the delay until the action is taken. The legal values for action are:
+
+* `restart`: restart the service
+* `reboot`: reboot Windows
+* `none`: do nothing and leave the service stopped
+
+The possible suffix for the delay attribute is sec/secs/min/mins/hour/hours/day/days. If missing, the delay attribute defaults to 0.
+
+If the service keeps failing and it goes beyond the number of `<onfailure>` configured, the last action will be repeated. Therefore, if you just want to always restart the service automatically, simply specify one `<onfailure>` element like this:
+
+    <onfailure action="restart" />
+
+### resetfailure
+This optional element controls the timing in which Windows SCM resets the failure count. For example, if you specify `<resetfailure>1 hour</resetfailure>` and your service continues to run longer than one hour, then the failure count is reset to zero. This affects the behaviour of the failure actions (see `<onfailure>` above).
+
+In other words, this is the duration in which you consider the service has been running successfully. Defaults to 1 day.
