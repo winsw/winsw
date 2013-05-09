@@ -116,6 +116,20 @@ To prevent this problem, create `myapp.exe.config` in the same directory as `mya
 
 See [KB 936707](http://support.microsoft.com/kb/936707) for more details.
 
+.NET runtime 4.0+
+-----------------
+Newer versions of Windows (confirmed on Windows Server 2012, possibly with Windows 8, too) do not ship with .NET runtime 2.0, which is what `winsw.exe` is built against. This is because unlike Java, where a newer runtime can host apps developed against earlier runtime, .NET apps need version specific runtimes.
+
+One way to deal with this is to ensure that .NET 2.0 runtime is installed through your installer, but another way is to declare that `winsw.exe` can be hosted on .NET 4.0 runtime by creating an app config file `winsw.exe.config`.
+
+    <configuration>
+      <startup>
+        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0"/>
+      </startup>
+    </configuration>
+
+The way the runtime finds this file is by naming convention, so don't forget to rename a file based on your actual executable name. See [this post](http://www.davidmoore.info/2010/12/17/running-net-2-runtime-applications-under-the-net-4-runtime/) for more about this. To our knowledge, none of the other flags are needed.
+
 Environment Variable Expansion in Configuration File
 ----------------------------------------------------
 Configuration XML files can include environment variable expansions of the form `%Name%`. Such occurences, if found, will be automatically replaced by the actual values of the variables. If an undefined environment variable is referenced, no substituion occurs.
