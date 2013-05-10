@@ -124,7 +124,8 @@ One way to deal with this is to ensure that .NET 2.0 runtime is installed throug
 
     <configuration>
       <startup>
-        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0"/>
+        <supportedRuntime version="v2.0.50727" />
+        <supportedRuntime version="v4.0" />
       </startup>
     </configuration>
 
