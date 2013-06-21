@@ -13,6 +13,7 @@ using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
 using Advapi32;
+using System.Management;
 
 namespace winsw
 {
@@ -291,7 +292,7 @@ namespace winsw
                 try
                 {
                     WriteEvent("ProcessKill " + process.Id);
-                    process.Kill();
+                    StopProcessAndChildren(process.Id);
                 }
                 catch (InvalidOperationException)
                 {
@@ -326,6 +327,25 @@ namespace winsw
             }
 
             WriteEvent("Finished " + descriptor.Id);
+        }
+
+        private void StopProcessAndChildren(int pid)
+        {
+            var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+            foreach (var mo in searcher.Get())
+            {
+                StopProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
+            }
+
+            try
+            {
+                var proc = Process.GetProcessById(pid);
+                proc.Kill();
+            }
+            catch (ArgumentException)
+            {
+                // Process already exited.
+            }
         }
 
         private void WaitForProcessToExit(Process process)
