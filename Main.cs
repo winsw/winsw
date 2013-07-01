@@ -482,7 +482,6 @@ namespace winsw
                 if (args[0] == "install")
                 {
                     if (args.Count > 1 && args[1] == "/p") {
-                        bool cancel = false;
                         // we expected username/password on stdin
                         Console.Write("Username: ");
                         string username = Console.ReadLine ();
@@ -502,19 +501,17 @@ namespace winsw
                             }
                         }
 
-                        if (!cancel) {
-                            svc.Create (
-                                d.Id,
-                                d.Caption,
-                                "\"" + ServiceDescriptor.ExecutablePath + "\"",
-                                WMI.ServiceType.OwnProcess,
-                                ErrorControl.UserNotified,
-                                StartMode.Automatic,
-                                d.Interactive,
-                                username,
-                                password.ToString (),
-                                d.ServiceDependencies);
-                        }
+                        svc.Create (
+                            d.Id,
+                            d.Caption,
+                            "\"" + ServiceDescriptor.ExecutablePath + "\"",
+                            WMI.ServiceType.OwnProcess,
+                            ErrorControl.UserNotified,
+                            StartMode.Automatic,
+                            d.Interactive,
+                            username,
+                            password.ToString (),
+                            d.ServiceDependencies);
                     } else {
                         svc.Create (
                             d.Id,
