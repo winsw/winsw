@@ -49,6 +49,8 @@ namespace WMI
     {
         // ReturnValue Create(bool desktopInteract, string displayName, int errorControl, string loadOrderGroup, string loadOrderGroupDependencies, string name, string pathName, string serviceDependencies, string serviceType, string startMode, string startName, string startPassword);
         void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string[] serviceDependencies);
+        
+        void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string startName, string startPassword, string[] serviceDependencies);
 
         Win32Service Select(string name);
     }
