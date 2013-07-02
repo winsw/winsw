@@ -501,15 +501,48 @@ namespace winsw
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
                 {
-                    svc.Create(
-                        d.Id,
-                        d.Caption,
-                        "\""+ServiceDescriptor.ExecutablePath+"\"",
-                        WMI.ServiceType.OwnProcess,
-                        ErrorControl.UserNotified,
-                        StartMode.Automatic,
-                        d.Interactive,
-                        d.ServiceDependencies);
+                    if (args.Count > 1 && args[1] == "/p") {
+                        // we expected username/password on stdin
+                        Console.Write("Username: ");
+                        string username = Console.ReadLine ();
+                        Console.Write("Password: ");
+                        StringBuilder password = new StringBuilder ();
+                        ConsoleKeyInfo key;
+                        while (true) {
+                            key = Console.ReadKey (true);
+                            if (key.Key == ConsoleKey.Enter) {
+                                break;
+                            } else if(key.Key == ConsoleKey.Backspace) {
+                                password.Remove (password.Length - 1, 1);
+                                Console.Write ("\b \b");
+                            } else {
+                                Console.Write ('*');
+                                password.Append (key.KeyChar);
+                            }
+                        }
+
+                        svc.Create (
+                            d.Id,
+                            d.Caption,
+                            "\"" + ServiceDescriptor.ExecutablePath + "\"",
+                            WMI.ServiceType.OwnProcess,
+                            ErrorControl.UserNotified,
+                            StartMode.Automatic,
+                            d.Interactive,
+                            username,
+                            password.ToString (),
+                            d.ServiceDependencies);
+                    } else {
+                        svc.Create (
+                            d.Id,
+                            d.Caption,
+                            "\"" + ServiceDescriptor.ExecutablePath + "\"",
+                            WMI.ServiceType.OwnProcess,
+                            ErrorControl.UserNotified,
+                            StartMode.Automatic,
+                            d.Interactive,
+                            d.ServiceDependencies);
+                    }
                     // update the description
                     /* Somehow this doesn't work, even though it doesn't report an error
                     Win32Service s = svc.Select(d.Id);
