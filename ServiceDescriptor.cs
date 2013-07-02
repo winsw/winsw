@@ -157,7 +157,7 @@ namespace winsw
         {
             get
             {
-                return SingleElement("stopexecutable");
+                return SingleElement("stopexecutable",true);
             }
         }
 
