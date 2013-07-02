@@ -511,5 +511,51 @@ namespace winsw
             }
         }
 
+		private string GetServiceAccountPart(string attributeName)
+		{
+			var node = dom.SelectSingleNode("//serviceaccount");
+
+			if (node != null && node.Attributes[attributeName] != null)
+			{
+				return node.Attributes[attributeName].Value;
+			}
+
+			return null;
+
+		}
+
+		private string serviceAccountDomain
+		{
+			get{
+				return GetServiceAccountPart("domain");
+			}
+		}
+
+		private string serviceAccountName
+		{
+			get
+			{
+				return GetServiceAccountPart("user");
+			}
+		}
+
+		public string ServiceAccountPassword
+		{
+			get
+			{
+				return GetServiceAccountPart("password");
+			}
+		}
+
+		public string ServiceAccountUser
+		{
+			get { return (serviceAccountDomain ?? "NULL") + @"\" + (serviceAccountName ?? "NULL"); }
+		}
+
+		public bool HasServiceAccount()
+		{
+			return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
+		}
+
     }
 }

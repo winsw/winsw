@@ -44,14 +44,16 @@ namespace WMI
         Disabled,
     }
 
-    [WmiClassName("Win32_Service")]
-    public interface Win32Services : IWmiCollection
-    {
-        // ReturnValue Create(bool desktopInteract, string displayName, int errorControl, string loadOrderGroup, string loadOrderGroupDependencies, string name, string pathName, string serviceDependencies, string serviceType, string startMode, string startName, string startPassword);
-        void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string[] serviceDependencies);
+	[WmiClassName("Win32_Service")]
+	public interface Win32Services : IWmiCollection
+	{
+		// ReturnValue Create(bool desktopInteract, string displayName, int errorControl, string loadOrderGroup, string loadOrderGroupDependencies, string name, string pathName, string serviceDependencies, string serviceType, string startMode, string startName, string startPassword);
+		void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, string startName, string startPassword, bool desktopInteract, string[] serviceDependencies);
 
-        Win32Service Select(string name);
-    }
+		void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string[] serviceDependencies);
+
+		Win32Service Select(string name);
+	}
 
     // http://msdn.microsoft.com/en-us/library/windows/desktop/aa394418(v=vs.85).aspx
     public interface Win32Service : IWmiObject

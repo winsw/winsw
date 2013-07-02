@@ -381,6 +381,10 @@ namespace winsw
             ps.RedirectStandardOutput = true;
             ps.RedirectStandardError = true;
 
+			WriteEvent("About to start " + ps.FileName 
+				+ " with : Arguments => " + (ps.Arguments??"<NULL>")
+				+ " : WorkingDirectory => " + (ps.WorkingDirectory??"<NULL>"));
+
             foreach (string key in envs.Keys)
                 System.Environment.SetEnvironmentVariable(key, envs[key]);
                 // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
@@ -481,15 +485,34 @@ namespace winsw
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
                 {
-                    svc.Create(
-                        d.Id,
-                        d.Caption,
-                        "\""+ServiceDescriptor.ExecutablePath+"\"",
-                        WMI.ServiceType.OwnProcess,
-                        ErrorControl.UserNotified,
-                        StartMode.Automatic,
-                        d.Interactive,
-                        d.ServiceDependencies);
+
+					if (d.HasServiceAccount())
+					{
+						svc.Create(
+							d.Id,
+							d.Caption,
+							"\"" + ServiceDescriptor.ExecutablePath + "\"",
+							WMI.ServiceType.OwnProcess,
+							ErrorControl.UserNotified,
+							StartMode.Automatic,
+							d.ServiceAccountUser,
+							d.ServiceAccountPassword,
+							d.Interactive,
+							d.ServiceDependencies);
+					}
+					else
+					{
+						svc.Create(
+							d.Id,
+							d.Caption,
+							"\"" + ServiceDescriptor.ExecutablePath + "\"",
+							WMI.ServiceType.OwnProcess,
+							ErrorControl.UserNotified,
+							StartMode.Automatic,
+							d.Interactive,
+							d.ServiceDependencies);
+					}
+
                     // update the description
                     /* Somehow this doesn't work, even though it doesn't report an error
                     Win32Service s = svc.Select(d.Id);
