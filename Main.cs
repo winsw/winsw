@@ -491,7 +491,7 @@ namespace winsw
 						svc.Create(
 							d.Id,
 							d.Caption,
-							"\"" + ServiceDescriptor.ExecutablePath + "\"",
+							"\"" + d.ExecutablePath + "\"",
 							WMI.ServiceType.OwnProcess,
 							ErrorControl.UserNotified,
 							StartMode.Automatic,
@@ -505,7 +505,7 @@ namespace winsw
 						svc.Create(
 							d.Id,
 							d.Caption,
-							"\"" + ServiceDescriptor.ExecutablePath + "\"",
+							"\"" + d.ExecutablePath + "\"",
 							WMI.ServiceType.OwnProcess,
 							ErrorControl.UserNotified,
 							StartMode.Automatic,

@@ -22,7 +22,7 @@ namespace winsw
     /// </summary>
     public class ServiceDescriptor
     {
-        private readonly XmlDocument dom = new XmlDocument();
+        protected readonly XmlDocument dom = new XmlDocument();
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -37,39 +37,44 @@ namespace winsw
         /// </summary>
         public readonly string BaseName;
 
-        public static string ExecutablePath
+        public virtual string ExecutablePath
         {
             get
             {
+
+				System.Diagnostics.Debug.WriteLine("P: " + Environment.GetCommandLineArgs()[0]);
+
                 // this returns the executable name as given by the calling process, so
                 // it needs to be absolutized.
                 string p = Environment.GetCommandLineArgs()[0];
                 return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p);
-
             }
         }
 
         public ServiceDescriptor()
         {
-            // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
-            // as well as trimming off ".vshost" suffix (which is used during debugging)
-            string p = ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(p);
-            if (baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
-            while (true)
-            {
-                p = Path.GetDirectoryName(p);
-                if (File.Exists(Path.Combine(p, baseName + ".xml")))
-                    break;
-            }
+			// find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
+			// as well as trimming off ".vshost" suffix (which is used during debugging)
+			string p = ExecutablePath;
 
-            // register the base directory as environment variable so that future expansions can refer to this.
-            Environment.SetEnvironmentVariable("BASE", p);
+			System.Diagnostics.Debug.WriteLine(p);
 
-            BaseName = baseName;
-            BasePath = Path.Combine(p, BaseName);
+			string baseName = Path.GetFileNameWithoutExtension(p);
+			if (baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
+			while (true)
+			{
+				p = Path.GetDirectoryName(p);
+				if (File.Exists(Path.Combine(p, baseName + ".xml")))
+					break;
+			}
 
-            dom.Load(BasePath + ".xml");
+			// register the base directory as environment variable so that future expansions can refer to this.
+			Environment.SetEnvironmentVariable("BASE", p);
+
+			BaseName = baseName;
+			BasePath = Path.Combine(p, BaseName);
+
+			dom.Load(BasePath + ".xml");
         }
 
         private string SingleElement(string tagName)
@@ -511,7 +516,7 @@ namespace winsw
             }
         }
 
-		private string GetServiceAccountPart(string attributeName)
+		protected string GetServiceAccountPart(string attributeName)
 		{
 			var node = dom.SelectSingleNode("//serviceaccount");
 
@@ -524,14 +529,14 @@ namespace winsw
 
 		}
 
-		private string serviceAccountDomain
+		protected string serviceAccountDomain
 		{
 			get{
 				return GetServiceAccountPart("domain");
 			}
 		}
 
-		private string serviceAccountName
+		protected string serviceAccountName
 		{
 			get
 			{
