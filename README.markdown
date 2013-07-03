@@ -25,6 +25,8 @@ You write the configuration file that defines your service. This is the one I us
       <executable>java</executable>
       <arguments>-Xrs -Xmx256m -jar "%BASE%\jenkins.war" --httpPort=8080</arguments>
       <logmode>rotate</logmode>
+	  <serviceaccount domain="domain" user="accountname" password="acctpassword" />
+	  <workingdirectory>Q:\MyApp\RunFromHere</workingdirectory>
     </service>
 
 You'll rename `winsw.exe` into something like `jenkins.exe`, then you put this XML file as `jenkins.xml`. The executable locates the configuration file via this file name convention. You can then install the service like:
@@ -101,6 +103,13 @@ This configuration must accompany a nested `<pattern>` element, which specifies 
 
 The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
 
+Service Account
+---------------
+In order to allow to specify an account under which to run the new service, a "serviceaccount" node has been included in the configuration in which the domain, account and password can be supplied. See the example above.
+
+Working Directory
+-----------------
+In order do run some applications, a working directory needs to be specified. In order to handles this situation, a 'workingdirectory' node has been added to the configuration. See the example above.
 
 Offline Environment and Authenticode
 ------------------------------------
