@@ -84,7 +84,7 @@ namespace winsw
                     while ((line = tr.ReadLine()) != null)
                     {
                         LogEvent("Handling copy: " + line);
-                        string[] tokens = line.Split('>');
+                        var tokens = line.Split('>');
                         if (tokens.Length > 2)
                         {
                             LogEvent("Too many delimiters in " + line);
@@ -142,14 +142,14 @@ namespace winsw
         /// </summary>
         private void HandleLogfiles()
         {
-            string logDirectory = descriptor.LogDirectory;
+            var logDirectory = descriptor.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = descriptor.LogHandler;
+            var logAppender = descriptor.LogHandler;
             logAppender.EventLogger = this;
             logAppender.log(process.StandardOutput.BaseStream, process.StandardError.BaseStream);
         }
@@ -178,11 +178,6 @@ namespace winsw
             }
         }
 
-        private void WriteEvent(Exception exception)
-        {
-            WriteEvent(exception.Message + "\nStacktrace:" + exception.StackTrace);
-        }
-
         private void WriteEvent(String message, Exception exception)
         {
             WriteEvent(message + "\nMessage:" + exception.Message + "\nStacktrace:" + exception.StackTrace);
@@ -190,8 +185,8 @@ namespace winsw
 
         private void WriteEvent(String message)
         {
-            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
-            StreamWriter log = new StreamWriter(logfilename, true);
+            var logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
+            var log = new StreamWriter(logfilename, true);
 
             log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             log.Flush();
@@ -201,7 +196,7 @@ namespace winsw
         protected override void OnStart(string[] _)
         {
             envs = descriptor.EnvironmentVariables;
-            foreach (string key in envs.Keys)
+            foreach (var key in envs.Keys)
             {
                 LogEvent("envar " + key + '=' + envs[key]);
             }
@@ -209,7 +204,7 @@ namespace winsw
             HandleFileCopies();
 
             // handle downloads
-            foreach (Download d in descriptor.Downloads)
+            foreach (var d in descriptor.Downloads)
             {
                 LogEvent("Downloading: " + d.From+ " to "+d.To);
                 try
@@ -275,7 +270,7 @@ namespace winsw
 
         private void StopIt()
         {
-            string stoparguments = descriptor.Stoparguments;
+            var stoparguments = descriptor.Stoparguments;
             LogEvent("Stopping " + descriptor.Id);
             WriteEvent("Stopping " + descriptor.Id);
             orderlyShutdown = true;
@@ -360,7 +355,7 @@ namespace winsw
 
         private void SignalShutdownPending()
         {
-            IntPtr handle = ServiceHandle;
+            var handle = ServiceHandle;
             wrapperServiceStatus.checkPoint++;
             wrapperServiceStatus.waitHint = descriptor.WaitHint.Milliseconds;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
@@ -370,7 +365,7 @@ namespace winsw
 
         private void SignalShutdownComplete()
         {
-            IntPtr handle = ServiceHandle;
+            var handle = ServiceHandle;
             wrapperServiceStatus.checkPoint++;
 //            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
@@ -390,44 +385,49 @@ namespace winsw
             ps.RedirectStandardError = true;
 
             foreach (string key in envs.Keys)
-                System.Environment.SetEnvironmentVariable(key, envs[key]);
+                Environment.SetEnvironmentVariable(key, envs[key]);
                 // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
 
             process.Start();
             WriteEvent("Started " + process.Id);
 
             // monitor the completion of the process
-            StartThread(delegate()
-            {
-                string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
-                process.WaitForExit();
-
-                try
-                {
-                    if (orderlyShutdown)
+            StartThread(
+                () =>
                     {
-                        LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
-                    }
-                    else
-                    {
-                        LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Warning);
-                        Environment.Exit(process.ExitCode);
-                    }
-                }
-                catch (InvalidOperationException ioe)
-                {
-                    LogEvent("WaitForExit " + ioe.Message);
-                }
+                        var msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
+                        process.WaitForExit();
 
-                try
-                {
-                    process.Dispose();
-                }
-                catch (InvalidOperationException ioe)
-                {
-                    LogEvent("Dispose " + ioe.Message);
-                }
-            });
+                        try
+                        {
+                            if (orderlyShutdown)
+                            {
+                                LogEvent(
+                                    "Child process [" + msg + "] terminated with " + process.ExitCode,
+                                    EventLogEntryType.Information);
+                            }
+                            else
+                            {
+                                LogEvent(
+                                    "Child process [" + msg + "] terminated with " + process.ExitCode,
+                                    EventLogEntryType.Warning);
+                                Environment.Exit(process.ExitCode);
+                            }
+                        }
+                        catch (InvalidOperationException ioe)
+                        {
+                            LogEvent("WaitForExit " + ioe.Message);
+                        }
+
+                        try
+                        {
+                            process.Dispose();
+                        }
+                        catch (InvalidOperationException ioe)
+                        {
+                            LogEvent("Dispose " + ioe.Message);
+                        }
+                    });
         }
 
         public static int Main(string[] args)
