@@ -499,17 +499,19 @@ namespace winsw
             }
         }
 
-        private string GetServiceAccountPart(string attributeName)
+        private string GetServiceAccountPart(string subNodeName)
 		{
 			var node = Dom.SelectSingleNode("//serviceaccount");
 
-			if (node != null && (node.Attributes != null && (node.Attributes[attributeName] != null)))
+			if (node != null)
 			{
-				return node.Attributes[attributeName].Value;
+			    var subNode = node.SelectSingleNode(subNodeName);
+			    if (subNode != null)
+			    {
+			        return subNode.InnerText;
+			    }
 			}
-
-			return null;
-
+            return null;
 		}
 
         private string ServiceAccountDomain
