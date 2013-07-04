@@ -4,7 +4,7 @@ using System.Collections;
 using System.Reflection.Emit;
 using System.Threading;
 
-namespace DynamicProxy
+namespace winsw
 {
     /// <summary>
     /// Interface that a user defined proxy handler needs to implement.  This interface 
@@ -24,7 +24,7 @@ namespace DynamicProxy
     /// </summary>
     public class MetaDataFactory
     {
-        private static Hashtable typeMap = new Hashtable();
+        private static readonly Hashtable TypeMap = new Hashtable();
 
         /// <summary>
         /// Class constructor.  Private because this is a static class.
@@ -42,11 +42,11 @@ namespace DynamicProxy
         {
             if (interfaceType != null)
             {
-                lock (typeMap.SyncRoot)
+                lock (TypeMap.SyncRoot)
                 {
-                    if (!typeMap.ContainsKey(interfaceType.FullName))
+                    if (!TypeMap.ContainsKey(interfaceType.FullName))
                     {
-                        typeMap.Add(interfaceType.FullName, interfaceType);
+                        TypeMap.Add(interfaceType.FullName, interfaceType);
                     }
                 }
             }
@@ -60,10 +60,10 @@ namespace DynamicProxy
         ///<returns>MethodInfo</returns>
         public static MethodInfo GetMethod(string name, int i)
         {
-            Type type = null;
-            lock (typeMap.SyncRoot)
+            Type type;
+            lock (TypeMap.SyncRoot)
             {
-                type = (Type)typeMap[name];
+                type = (Type)TypeMap[name];
             }
 
             return type.GetMethods()[i];
@@ -71,10 +71,10 @@ namespace DynamicProxy
 
         public static PropertyInfo GetProperty(string name, int i)
         {
-            Type type = null;
-            lock (typeMap.SyncRoot)
+            Type type;
+            lock (TypeMap.SyncRoot)
             {
-                type = (Type)typeMap[name];
+                type = (Type)TypeMap[name];
             }
 
             return type.GetProperties()[i];
@@ -86,10 +86,10 @@ namespace DynamicProxy
     public class ProxyFactory
     {
         private static ProxyFactory instance;
-        private static Object lockObj = new Object();
+        private static readonly Object LockObj = new Object();
 
-        private Hashtable typeMap = Hashtable.Synchronized(new Hashtable());
-        private static readonly Hashtable opCodeTypeMapper = new Hashtable();
+        private readonly Hashtable typeMap = Hashtable.Synchronized(new Hashtable());
+        private static readonly Hashtable OpCodeTypeMapper = new Hashtable();
 
         private const string PROXY_SUFFIX = "Proxy";
         private const string ASSEMBLY_NAME = "ProxyAssembly";
@@ -100,14 +100,14 @@ namespace DynamicProxy
         // return types, used in the Emit process.
         static ProxyFactory()
         {
-            opCodeTypeMapper.Add(typeof(System.Boolean), OpCodes.Ldind_I1);
-            opCodeTypeMapper.Add(typeof(System.Int16), OpCodes.Ldind_I2);
-            opCodeTypeMapper.Add(typeof(System.Int32), OpCodes.Ldind_I4);
-            opCodeTypeMapper.Add(typeof(System.Int64), OpCodes.Ldind_I8);
-            opCodeTypeMapper.Add(typeof(System.Double), OpCodes.Ldind_R8);
-            opCodeTypeMapper.Add(typeof(System.Single), OpCodes.Ldind_R4);
-            opCodeTypeMapper.Add(typeof(System.UInt16), OpCodes.Ldind_U2);
-            opCodeTypeMapper.Add(typeof(System.UInt32), OpCodes.Ldind_U4);
+            OpCodeTypeMapper.Add(typeof(Boolean), OpCodes.Ldind_I1);
+            OpCodeTypeMapper.Add(typeof(Int16), OpCodes.Ldind_I2);
+            OpCodeTypeMapper.Add(typeof(Int32), OpCodes.Ldind_I4);
+            OpCodeTypeMapper.Add(typeof(Int64), OpCodes.Ldind_I8);
+            OpCodeTypeMapper.Add(typeof(Double), OpCodes.Ldind_R8);
+            OpCodeTypeMapper.Add(typeof(Single), OpCodes.Ldind_R4);
+            OpCodeTypeMapper.Add(typeof(UInt16), OpCodes.Ldind_U2);
+            OpCodeTypeMapper.Add(typeof(UInt32), OpCodes.Ldind_U4);
         }
 
         private ProxyFactory()
@@ -126,7 +126,7 @@ namespace DynamicProxy
 
         private static void CreateInstance()
         {
-            lock (lockObj)
+            lock (LockObj)
             {
                 if (instance == null)
                 {
@@ -146,7 +146,7 @@ namespace DynamicProxy
             {
                 if (isObjInterface)
                 {
-                    type = CreateType(handler, new Type[] { objType }, typeName);
+                    type = CreateType(handler, new[] { objType }, typeName);
                 }
                 else
                 {
@@ -171,44 +171,41 @@ namespace DynamicProxy
 
             if (handler != null && interfaces != null)
             {
-                Type objType = typeof(System.Object);
-                Type handlerType = typeof(IProxyInvocationHandler);
+                var objType = typeof(Object);
+                var handlerType = typeof(IProxyInvocationHandler);
 
-                AppDomain domain = Thread.GetDomain();
-                AssemblyName assemblyName = new AssemblyName();
-                assemblyName.Name = ASSEMBLY_NAME;
-                assemblyName.Version = new Version(1, 0, 0, 0);
+                var domain = Thread.GetDomain();
+                var assemblyName = new AssemblyName { Name = ASSEMBLY_NAME, Version = new Version(1, 0, 0, 0) };
 
                 // create a new assembly for this proxy, one that isn't presisted on the file system
-                AssemblyBuilder assemblyBuilder = domain.DefineDynamicAssembly(
+                var assemblyBuilder = domain.DefineDynamicAssembly(
                     assemblyName, AssemblyBuilderAccess.Run);
                     // assemblyName, AssemblyBuilderAccess.RunAndSave,".");  // to save it to the disk
 
                 // create a new module for this proxy
-                ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(MODULE_NAME);
+                var moduleBuilder = assemblyBuilder.DefineDynamicModule(MODULE_NAME);
 
                 // Set the class to be public and sealed
-                TypeAttributes typeAttributes =
-                    TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed;
+                const TypeAttributes TypeAttributes = TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.Sealed;
 
                 // Gather up the proxy information and create a new type builder.  One that
                 // inherits from Object and implements the interface passed in
-                TypeBuilder typeBuilder = moduleBuilder.DefineType(
-                    dynamicTypeName, typeAttributes, objType, interfaces);
+                var typeBuilder = moduleBuilder.DefineType(
+                    dynamicTypeName, TypeAttributes, objType, interfaces);
 
                 // Define a member variable to hold the delegate
-                FieldBuilder handlerField = typeBuilder.DefineField(
+                var handlerField = typeBuilder.DefineField(
                     HANDLER_NAME, handlerType, FieldAttributes.Private);
 
 
                 // build a constructor that takes the delegate object as the only argument
                 //ConstructorInfo defaultObjConstructor = objType.GetConstructor( new Type[0] );
-                ConstructorInfo superConstructor = objType.GetConstructor(new Type[0]);
-                ConstructorBuilder delegateConstructor = typeBuilder.DefineConstructor(
-                    MethodAttributes.Public, CallingConventions.Standard, new Type[] { handlerType });
+                var superConstructor = objType.GetConstructor(new Type[0]);
+                var delegateConstructor = typeBuilder.DefineConstructor(
+                    MethodAttributes.Public, CallingConventions.Standard, new[] { handlerType });
 
                 #region( "Constructor IL Code" )
-                ILGenerator constructorIL = delegateConstructor.GetILGenerator();
+                var constructorIL = delegateConstructor.GetILGenerator();
 
                 // Load "this"
                 constructorIL.Emit(OpCodes.Ldarg_0);
@@ -219,7 +216,10 @@ namespace DynamicProxy
                 // Load "this"
                 constructorIL.Emit(OpCodes.Ldarg_0);
                 // Call the super constructor
-                constructorIL.Emit(OpCodes.Call, superConstructor);
+                if (superConstructor != null)
+                {
+                    constructorIL.Emit(OpCodes.Call, superConstructor);
+                }
                 // Constructor return
                 constructorIL.Emit(OpCodes.Ret);
                 #endregion
@@ -242,34 +242,33 @@ namespace DynamicProxy
         private static readonly MethodInfo INVOKE_METHOD = typeof(IProxyInvocationHandler).GetMethod("Invoke");
         private static readonly MethodInfo GET_METHODINFO_METHOD = typeof(MetaDataFactory).GetMethod("GetMethod", new Type[] { typeof(string), typeof(int) });
 
-        private void GenerateMethod( Type interfaceType, FieldBuilder handlerField, TypeBuilder typeBuilder ) {
+        private static void GenerateMethod( Type interfaceType, FieldInfo handlerField, TypeBuilder typeBuilder ) {
             MetaDataFactory.Add( interfaceType );
-            MethodInfo[] interfaceMethods = interfaceType.GetMethods();
-            PropertyInfo[] props = interfaceType.GetProperties();
+            var interfaceMethods = interfaceType.GetMethods();
 
-            for ( int i = 0; i < interfaceMethods.Length; i++ ) {
-                MethodInfo methodInfo = interfaceMethods[i];
+            for ( var i = 0; i < interfaceMethods.Length; i++ ) {
+                var methodInfo = interfaceMethods[i];
 
                 // Get the method parameters since we need to create an array
                 // of parameter types
-                ParameterInfo[] methodParams = methodInfo.GetParameters();
-                int numOfParams = methodParams.Length;
-                Type[] methodParameters = new Type[ numOfParams ];
+                var methodParams = methodInfo.GetParameters();
+                var numOfParams = methodParams.Length;
+                var methodParameters = new Type[ numOfParams ];
 
                 // convert the ParameterInfo objects into Type
-                for ( int j = 0; j < numOfParams; j++ ) {
+                for ( var j = 0; j < numOfParams; j++ ) {
                     methodParameters[j] = methodParams[j].ParameterType;
                 }
 
                 // create a new builder for the method in the interface
-                MethodBuilder methodBuilder = typeBuilder.DefineMethod(
+                var methodBuilder = typeBuilder.DefineMethod(
                     methodInfo.Name, 
                     /*MethodAttributes.Public | MethodAttributes.Virtual | */ methodInfo.Attributes&~MethodAttributes.Abstract,
                     CallingConventions.Standard,
                     methodInfo.ReturnType, methodParameters );                                                   
 
                 #region( "Handler Method IL Code" )
-                ILGenerator methodIL = methodBuilder.GetILGenerator();
+                var methodIL = methodBuilder.GetILGenerator();
                         
                 // load "this"
                 methodIL.Emit( OpCodes.Ldarg_0 );
@@ -316,7 +315,7 @@ namespace DynamicProxy
                         } else if ( !methodInfo.ReturnType.IsPrimitive ) {
                             methodIL.Emit( OpCodes.Ldobj, methodInfo.ReturnType );
                         } else {
-                            methodIL.Emit( (OpCode) opCodeTypeMapper[ methodInfo.ReturnType ] );
+                            methodIL.Emit( (OpCode) OpCodeTypeMapper[ methodInfo.ReturnType ] );
                         }
                     }                                                                     
                 } else {
@@ -330,17 +329,8 @@ namespace DynamicProxy
                 #endregion
             }
 
-            //for (int i = 0; i < props.Length; i++)
-            //{
-            //    PropertyInfo p = props[i];
-
-            //    PropertyBuilder pb = typeBuilder.DefineProperty(p.Name, p.Attributes, p.PropertyType, new Type[] { p.PropertyType });
-            //    pb.SetGetMethod((MethodBuilder)methodTable[p.GetGetMethod()]);
-            //    pb.SetSetMethod((MethodBuilder)methodTable[p.GetSetMethod()]);
-            //}
-
             // Iterate through the parent interfaces and recursively call this method
-            foreach ( Type parentType in interfaceType.GetInterfaces() ) {
+            foreach ( var parentType in interfaceType.GetInterfaces() ) {
                 GenerateMethod( parentType, handlerField, typeBuilder );            
             }
         }

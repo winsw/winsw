@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using winsw;
 
 namespace winswTests
@@ -17,7 +14,7 @@ namespace winswTests
 
 		private void LoadTestXml(string xml)
 		{
-			dom.LoadXml(xml);
+			Dom.LoadXml(xml);
 		}
 	}
 
