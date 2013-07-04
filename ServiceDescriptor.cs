@@ -22,7 +22,7 @@ namespace winsw
     /// </summary>
     public class ServiceDescriptor
     {
-        private readonly XmlDocument dom = new XmlDocument();
+        protected readonly XmlDocument dom = new XmlDocument();
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -37,7 +37,7 @@ namespace winsw
         /// </summary>
         public readonly string BaseName;
 
-        public static string ExecutablePath
+        public virtual string ExecutablePath
         {
             get
             {
@@ -157,7 +157,7 @@ namespace winsw
         {
             get
             {
-                return SingleElement("stopexecutable",true);
+                return SingleElement("stopexecutable");
             }
         }
 
@@ -510,6 +510,52 @@ namespace winsw
                 return SingleTimeSpanElement(dom, "resetfailure", TimeSpan.FromDays(1));
             }
         }
+
+		protected string GetServiceAccountPart(string attributeName)
+		{
+			var node = dom.SelectSingleNode("//serviceaccount");
+
+			if (node != null && node.Attributes[attributeName] != null)
+			{
+				return node.Attributes[attributeName].Value;
+			}
+
+			return null;
+
+		}
+
+		protected string serviceAccountDomain
+		{
+			get{
+				return GetServiceAccountPart("domain");
+			}
+		}
+
+		protected string serviceAccountName
+		{
+			get
+			{
+				return GetServiceAccountPart("user");
+			}
+		}
+
+		public string ServiceAccountPassword
+		{
+			get
+			{
+				return GetServiceAccountPart("password");
+			}
+		}
+
+		public string ServiceAccountUser
+		{
+			get { return (serviceAccountDomain ?? "NULL") + @"\" + (serviceAccountName ?? "NULL"); }
+		}
+
+		public bool HasServiceAccount()
+		{
+			return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
+		}
 
     }
 }
