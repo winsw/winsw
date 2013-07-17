@@ -1,11 +1,30 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using NUnit.Framework;
 using winsw;
 
 namespace winswTests
 {
 
+<<<<<<< HEAD
     public class ServiceDescriptorExtended : ServiceDescriptor
     {
+=======
+	public class ServiceDescriptorExtended : ServiceDescriptor
+	{
+
+		public ServiceDescriptorExtended(string descriptorXml)
+		{
+			LoadTestXml(descriptorXml);
+		}
+
+		private void LoadTestXml(string xml)
+		{
+			dom.LoadXml(xml);
+		}
+	}
+>>>>>>> parent of 867698b... Resharper guided code clean up
 
         public ServiceDescriptorExtended(string descriptorXml)
         {

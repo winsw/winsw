@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Reflection;
 using System.Management;
+using DynamicProxy;
 
-namespace winsw
+namespace WMI
 {
     //Reference: http://msdn2.microsoft.com/en-us/library/aa389390(VS.85).aspx
 
@@ -62,7 +65,7 @@ namespace winsw
     public class WmiClassName : Attribute
     {
         public readonly string Name;
-        public WmiClassName(string name) { Name = name; }
+        public WmiClassName(string name) { this.Name = name; }
     }
 
     /// <summary>
@@ -89,19 +92,22 @@ namespace winsw
 
         public WmiRoot(string machineName)
         {
-            var options = new ConnectionOptions
-                {
-                    EnablePrivileges = true,
-                    Impersonation = ImpersonationLevel.Impersonate,
-                    Authentication = AuthenticationLevel.PacketPrivacy
-                };
+            ConnectionOptions options = new ConnectionOptions();
+            options.EnablePrivileges = true;
+            options.Impersonation = ImpersonationLevel.Impersonate;
+            options.Authentication = AuthenticationLevel.PacketPrivacy;
 
-            var path = machineName != null ? String.Format(@"\\{0}\root\cimv2", machineName) : @"\root\cimv2";
+            string path;
+
+            if (machineName != null)
+                path = String.Format(@"\\{0}\root\cimv2", machineName);
+            else
+                path = @"\root\cimv2";
             scope = new ManagementScope(path, options);
             scope.Connect();
         }
 
-        private static string Capitalize(string s)
+        private static string capitalize(string s)
         {
             return char.ToUpper(s[0]) + s.Substring(1);
         }
@@ -110,9 +116,9 @@ namespace winsw
         {
             public abstract object Invoke(object proxy, MethodInfo method, object[] args);
 
-            protected static void CheckError(ManagementBaseObject result)
+            protected void CheckError(ManagementBaseObject result)
             {
-                var code = Convert.ToInt32(result["returnValue"]);
+                int code = Convert.ToInt32(result["returnValue"]);
                 if (code != 0)
                     throw new WmiException((ReturnValue)code);
             }
@@ -122,7 +128,7 @@ namespace winsw
         {
             private readonly ManagementObject mo;
 
-            public InstanceHandler(ManagementObject o) { mo = o; }
+            public InstanceHandler(ManagementObject o) { this.mo = o; }
 
             public override object Invoke(object proxy, MethodInfo method, object[] args)
             {
@@ -143,11 +149,11 @@ namespace winsw
                 }
 
                 // method invocations
-                var methodArgs = method.GetParameters();
+                ParameterInfo[] methodArgs = method.GetParameters();
 
-                var wmiArgs = mo.GetMethodParameters(method.Name);
-                for (var i = 0; i < args.Length; i++)
-                    wmiArgs[Capitalize(methodArgs[i].Name)] = args[i];
+                ManagementBaseObject wmiArgs = mo.GetMethodParameters(method.Name);
+                for (int i = 0; i < args.Length; i++)
+                    wmiArgs[capitalize(methodArgs[i].Name)] = args[i];
 
                 CheckError(mo.InvokeMethod(method.Name, wmiArgs, null));
                 return null;
@@ -168,29 +174,29 @@ namespace winsw
 
             public override object Invoke(object proxy, MethodInfo method, object[] args)
             {
-                var methodArgs = method.GetParameters();
+                ParameterInfo[] methodArgs = method.GetParameters();
 
                 if (method.Name.StartsWith("Select"))
                 {
                     // select method to find instances
-                    var query = "SELECT * FROM " + wmiClass + " WHERE ";
-                    for (var i = 0; i < args.Length; i++)
+                    string query = "SELECT * FROM " + wmiClass + " WHERE ";
+                    for (int i = 0; i < args.Length; i++)
                     {
                         if (i != 0) query += " AND ";
-                        query += ' ' + Capitalize(methodArgs[i].Name) + " = '" + args[i] + "'";
+                        query += ' ' + capitalize(methodArgs[i].Name) + " = '" + args[i] + "'";
                     }
 
-                    var searcher = new ManagementObjectSearcher(mc.Scope, new ObjectQuery(query));
-                    var results = searcher.Get();
+                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(mc.Scope, new ObjectQuery(query));
+                    ManagementObjectCollection results = searcher.Get();
                     // TODO: support collections
                     foreach (ManagementObject manObject in results)
                         return ProxyFactory.GetInstance().Create(new InstanceHandler(manObject), method.ReturnType, true);
                     return null;
                 }
 
-                var wmiArgs = mc.GetMethodParameters(method.Name);
+                ManagementBaseObject wmiArgs = mc.GetMethodParameters(method.Name);
                 for (int i = 0; i < args.Length; i++)
-                    wmiArgs[Capitalize(methodArgs[i].Name)] = args[i];
+                    wmiArgs[capitalize(methodArgs[i].Name)] = args[i];
 
                 CheckError(mc.InvokeMethod(method.Name, wmiArgs, null));
                 return null;
@@ -202,11 +208,11 @@ namespace winsw
         /// </summary>
         public T GetCollection<T>() where T : IWmiCollection
         {
-            var cn = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
+            WmiClassName cn = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
 
-            var getOptions = new ObjectGetOptions();
-            var path = new ManagementPath(cn.Name);
-            var manClass = new ManagementClass(scope, path, getOptions);
+            ObjectGetOptions getOptions = new ObjectGetOptions();
+            ManagementPath path = new ManagementPath(cn.Name);
+            ManagementClass manClass = new ManagementClass(scope, path, getOptions);
             return (T)ProxyFactory.GetInstance().Create(new ClassHandler(manClass, cn.Name), typeof(T), true);
         }
     }

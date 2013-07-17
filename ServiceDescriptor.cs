@@ -1,8 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.ServiceProcess;
+using System.Text;
 using System.IO;
+using System.Net;
+using WMI;
 using System.Xml;
+using System.Threading;
+using Microsoft.Win32;
+using Advapi32;
 
 namespace winsw
 {
@@ -11,7 +22,7 @@ namespace winsw
     /// </summary>
     public class ServiceDescriptor
     {
-        protected readonly XmlDocument Dom = new XmlDocument();
+        protected readonly XmlDocument dom = new XmlDocument();
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -26,13 +37,13 @@ namespace winsw
         /// </summary>
         public readonly string BaseName;
 
-        public string ExecutablePath
+        public virtual string ExecutablePath
         {
             get
             {
                 // this returns the executable name as given by the calling process, so
                 // it needs to be absolutized.
-                var p = Environment.GetCommandLineArgs()[0];
+                string p = Environment.GetCommandLineArgs()[0];
                 return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p);
 
             }
@@ -42,23 +53,23 @@ namespace winsw
         {
             // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
             // as well as trimming off ".vshost" suffix (which is used during debugging)
-            var executablePath = ExecutablePath;
-            var baseName = Path.GetFileNameWithoutExtension(executablePath);
-            if (baseName != null && baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
+            string p = ExecutablePath;
+            string baseName = Path.GetFileNameWithoutExtension(p);
+            if (baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
             while (true)
             {
-                executablePath = Path.GetDirectoryName(executablePath);
-                if (executablePath != null && File.Exists(Path.Combine(executablePath, baseName + ".xml")))
+                p = Path.GetDirectoryName(p);
+                if (File.Exists(Path.Combine(p, baseName + ".xml")))
                     break;
             }
 
             // register the base directory as environment variable so that future expansions can refer to this.
-            Environment.SetEnvironmentVariable("BASE", executablePath);
+            Environment.SetEnvironmentVariable("BASE", p);
 
             BaseName = baseName;
-            BasePath = Path.Combine(executablePath, BaseName);
+            BasePath = Path.Combine(p, BaseName);
 
-            Dom.Load(BasePath + ".xml");
+            dom.Load(BasePath + ".xml");
         }
 
         private string SingleElement(string tagName)
@@ -68,26 +79,40 @@ namespace winsw
 
         private string SingleElement(string tagName, Boolean optional)
         {
-            var n = Dom.SelectSingleNode("//" + tagName);
+            var n = dom.SelectSingleNode("//" + tagName);
             if (n == null && !optional) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
             return n == null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
-        private static int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
+        private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
         {
-            var node = parent.SelectSingleNode(tagName);
+            var e = parent.SelectSingleNode(tagName);
 
-            return node == null ? defaultValue : int.Parse(node.InnerText);
+            if (e == null)
+            {
+                return defaultValue;
+            }
+            else
+            {
+                return int.Parse(e.InnerText);
+            }
         }
 
         private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
         {
-            var node = parent.SelectSingleNode(tagName);
+            var e = parent.SelectSingleNode(tagName);
 
-            return node == null ? defaultValue : ParseTimeSpan(node.InnerText);
+            if (e == null)
+            {
+                return defaultValue;
+            }
+            else
+            {
+                return ParseTimeSpan(e.InnerText);
+            }
         }
 
-        private static TimeSpan ParseTimeSpan(string v)
+        private TimeSpan ParseTimeSpan(string v)
         {
             v = v.Trim();
             foreach (var s in SUFFIX)
@@ -143,25 +168,31 @@ namespace winsw
         {
             get
             {
-                var arguments = AppendTags("argument");
+                string arguments = AppendTags("argument");
 
-                if (arguments != null)
+                if (arguments == null)
+                {
+                    var tagName = "arguments";
+                    var argumentsNode = dom.SelectSingleNode("//" + tagName);
+
+                    if (argumentsNode == null)
+                    {
+                        if (AppendTags("startargument") == null)
+                        {
+                            throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+                        }
+                        else
+                        {
+                            return "";
+                        }
+                    }
+
+                    return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
+                }
+                else
                 {
                     return arguments;
                 }
-                const string TagName = "arguments";
-                var argumentsNode = Dom.SelectSingleNode("//" + TagName);
-
-                if (argumentsNode == null)
-                {
-                    if (AppendTags("startargument") == null)
-                    {
-                        throw new InvalidDataException("<" + TagName + "> is missing in configuration XML");
-                    }
-                    return "";
-                }
-
-                return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
@@ -203,20 +234,19 @@ namespace winsw
         /// </summary>
         private string AppendTags(string tagName)
         {
-            var argumentNode = Dom.SelectSingleNode("//" + tagName);
+            XmlNode argumentNode = dom.SelectSingleNode("//" + tagName);
 
             if (argumentNode == null)
             {
                 return null;
             }
-            var arguments = "";
-
-            var xmlNodeList = Dom.SelectNodes("//" + tagName);
-            if (xmlNodeList != null)
+            else
             {
-                foreach (XmlElement argument in xmlNodeList)
+                string arguments = "";
+
+                foreach (XmlElement argument in dom.SelectNodes("//" + tagName))
                 {
-                    var token = Environment.ExpandEnvironmentVariables(argument.InnerText);
+                    string token = Environment.ExpandEnvironmentVariables(argument.InnerText);
 
                     if (token.StartsWith("\"") && token.EndsWith("\""))
                     {
@@ -233,9 +263,9 @@ namespace winsw
                     }
                     arguments += " " + token;
                 }
-            }
 
-            return arguments;
+                return arguments;
+            }
         }
 
         /// <summary>
@@ -245,9 +275,16 @@ namespace winsw
         {
             get
             {
-                var loggingNode = Dom.SelectSingleNode("//logpath");
+                XmlNode loggingNode = dom.SelectSingleNode("//logpath");
 
-                return loggingNode != null ? Environment.ExpandEnvironmentVariables(loggingNode.InnerText) : Path.GetDirectoryName(ExecutablePath);
+                if (loggingNode != null)
+                {
+                    return Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
+                }
+                else
+                {
+                    return Path.GetDirectoryName(ExecutablePath);
+                }
             }
         }
 
@@ -258,12 +295,12 @@ namespace winsw
                 string mode=null;
                 
                 // first, backward compatibility with older configuration
-                var e = (XmlElement)Dom.SelectSingleNode("//logmode");
+                XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
                 if (e!=null) {
                     mode = e.InnerText;
                 } else {
                     // this is more modern way, to support nested elements as configuration
-                    e = (XmlElement)Dom.SelectSingleNode("//log");
+                    e = (XmlElement)dom.SelectSingleNode("//log");
                     if (e!=null)
                         mode = e.GetAttribute("mode");
                 }
@@ -313,15 +350,11 @@ namespace winsw
         {
             get
             {
-                var serviceDependencies = new System.Collections.ArrayList();
+                System.Collections.ArrayList serviceDependencies = new System.Collections.ArrayList();
 
-                var xmlNodeList = Dom.SelectNodes("//depend");
-                if (xmlNodeList != null)
+                foreach (XmlNode depend in dom.SelectNodes("//depend"))
                 {
-                    foreach (XmlNode depend in xmlNodeList)
-                    {
-                        serviceDependencies.Add(depend.InnerText);
-                    }
+                    serviceDependencies.Add(depend.InnerText);
                 }
 
                 return (string[])serviceDependencies.ToArray(typeof(string));
@@ -360,7 +393,7 @@ namespace winsw
         {
             get
             {
-                return Dom.SelectSingleNode("//beeponshutdown") != null;
+                return dom.SelectSingleNode("//beeponshutdown") != null;
             }
         }
 
@@ -374,7 +407,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(Dom, "waithint", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom, "waithint", TimeSpan.FromSeconds(15));
             }
         }
 
@@ -388,7 +421,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(Dom, "sleeptime", TimeSpan.FromSeconds(1));
+                return SingleTimeSpanElement(dom, "sleeptime", TimeSpan.FromSeconds(1));
             }
         }
 
@@ -399,7 +432,7 @@ namespace winsw
         {
             get
             {
-                return Dom.SelectSingleNode("//interactive") != null;
+                return dom.SelectSingleNode("//interactive") != null;
             }
         }
 
@@ -410,21 +443,14 @@ namespace winsw
         {
             get
             {
-                var map = new Dictionary<string, string>();
-                var xmlNodeList = Dom.SelectNodes("//env");
-                if (xmlNodeList != null)
+                Dictionary<string, string> map = new Dictionary<string, string>();
+                foreach (XmlNode n in dom.SelectNodes("//env"))
                 {
-                    foreach (XmlNode n in xmlNodeList)
-                    {
-                        if (n.Attributes != null)
-                        {
-                            var key = n.Attributes["name"].Value;
-                            var value = Environment.ExpandEnvironmentVariables(n.Attributes["value"].Value);
-                            map[key] = value;
+                    string key = n.Attributes["name"].Value;
+                    string value = Environment.ExpandEnvironmentVariables(n.Attributes["value"].Value);
+                    map[key] = value;
 
-                            Environment.SetEnvironmentVariable(key, value);
-                        }
-                    }
+                    Environment.SetEnvironmentVariable(key, value);
                 }
                 return map;
             }
@@ -438,14 +464,10 @@ namespace winsw
         {
             get
             {
-                var r = new List<Download>();
-                var xmlNodeList = Dom.SelectNodes("//download");
-                if (xmlNodeList != null)
+                List<Download> r = new List<Download>();
+                foreach (XmlNode n in dom.SelectNodes("//download"))
                 {
-                    foreach (XmlNode n in xmlNodeList)
-                    {
-                        r.Add(new Download(n));
-                    }
+                    r.Add(new Download(n));
                 }
                 return r;
             }
@@ -455,37 +477,27 @@ namespace winsw
         {
             get
             {
-                var r = new List<SC_ACTION>();
-                var xmlNodeList = Dom.SelectNodes("//onfailure");
-                if (xmlNodeList != null)
+                List<SC_ACTION> r = new List<SC_ACTION>();
+                foreach (XmlNode n in dom.SelectNodes("//onfailure"))
                 {
-                    foreach (XmlNode n in xmlNodeList)
+                    SC_ACTION_TYPE type;
+                    string action = n.Attributes["action"].Value;
+                    switch (action)
                     {
-                        var type = SC_ACTION_TYPE.SC_ACTION_NONE;
-                        if (n.Attributes != null)
-                        {
-                            string action = n.Attributes["action"].Value;
-                            switch (action)
-                            {
-                                case "restart":
-                                    type = SC_ACTION_TYPE.SC_ACTION_RESTART;
-                                    break;
-                                case "none":
-                                    type = SC_ACTION_TYPE.SC_ACTION_NONE;
-                                    break;
-                                case "reboot":
-                                    type = SC_ACTION_TYPE.SC_ACTION_REBOOT;
-                                    break;
-                                default:
-                                    throw new Exception("Invalid failure action: " + action);
-                            }
-                        }
-                        if (n.Attributes != null)
-                        {
-                            var delay = n.Attributes["delay"];
-                            r.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
-                        }
+                        case "restart":
+                            type = SC_ACTION_TYPE.SC_ACTION_RESTART;
+                            break;
+                        case "none":
+                            type = SC_ACTION_TYPE.SC_ACTION_NONE;
+                            break;
+                        case "reboot":
+                            type = SC_ACTION_TYPE.SC_ACTION_REBOOT;
+                            break;
+                        default:
+                            throw new Exception("Invalid failure action: " + action);
                     }
+                    XmlAttribute delay = n.Attributes["delay"];
+                    r.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
                 }
                 return r;
             }
@@ -495,15 +507,23 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(Dom, "resetfailure", TimeSpan.FromDays(1));
+                return SingleTimeSpanElement(dom, "resetfailure", TimeSpan.FromDays(1));
             }
         }
 
+<<<<<<< HEAD
         private string GetServiceAccountPart(string subNodeName)
+=======
+		protected string GetServiceAccountPart(string attributeName)
+>>>>>>> parent of 867698b... Resharper guided code clean up
 		{
-			var node = Dom.SelectSingleNode("//serviceaccount");
+			var node = dom.SelectSingleNode("//serviceaccount");
 
+<<<<<<< HEAD
 			if (node != null)
+=======
+			if (node != null && node.Attributes[attributeName] != null)
+>>>>>>> parent of 867698b... Resharper guided code clean up
 			{
 			    var subNode = node.SelectSingleNode(subNodeName);
 			    if (subNode != null)
@@ -514,14 +534,14 @@ namespace winsw
             return null;
 		}
 
-        private string ServiceAccountDomain
+		protected string serviceAccountDomain
 		{
 			get{
 				return GetServiceAccountPart("domain");
 			}
 		}
 
-        private string ServiceAccountName
+		protected string serviceAccountName
 		{
 			get
 			{
@@ -539,12 +559,12 @@ namespace winsw
 
 		public string ServiceAccountUser
 		{
-			get { return (ServiceAccountDomain ?? "NULL") + @"\" + (ServiceAccountName ?? "NULL"); }
+			get { return (serviceAccountDomain ?? "NULL") + @"\" + (serviceAccountName ?? "NULL"); }
 		}
 
 		public bool HasServiceAccount()
 		{
-			return !string.IsNullOrEmpty(ServiceAccountDomain) && !string.IsNullOrEmpty(ServiceAccountName);
+			return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
 		}
 
     }

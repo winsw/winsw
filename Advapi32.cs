@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 
-namespace winsw
+namespace Advapi32
 {
     class ServiceManager : IDisposable
     {
-        private IntPtr handle;
+        private IntPtr Handle;
 
         public ServiceManager()
         {
-            handle = Advapi32.OpenSCManager(null, null, (uint)SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
-            if (handle == IntPtr.Zero)
+            Handle = Advapi32.OpenSCManager(null, null, (uint)SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
+            if (Handle == IntPtr.Zero)
             {
                 throw new Exception(String.Format("Error connecting to Service Control Manager. Error provided was: 0x{0:X}", Marshal.GetLastWin32Error()));
             }
@@ -20,7 +21,7 @@ namespace winsw
 
         public Service Open(string serviceName)
         {
-            IntPtr svcHandle = Advapi32.OpenService(handle, serviceName, (int)SERVICE_ACCESS.SERVICE_ALL_ACCESS);
+            IntPtr svcHandle = Advapi32.OpenService(Handle, serviceName, (int)SERVICE_ACCESS.SERVICE_ALL_ACCESS);
             if (svcHandle == IntPtr.Zero)
             {
                 throw new Exception(String.Format("Error opening service for modifying. Error returned was: 0x{0:X}", Marshal.GetLastWin32Error()));
@@ -30,9 +31,9 @@ namespace winsw
 
         public void Dispose()
         {
-            if (handle != IntPtr.Zero)
-                Advapi32.CloseServiceHandle(handle);
-            handle = IntPtr.Zero;
+            if (Handle != IntPtr.Zero)
+                Advapi32.CloseServiceHandle(Handle);
+            Handle = IntPtr.Zero;
         }
     }
 
@@ -47,20 +48,18 @@ namespace winsw
 
         public void ChangeConfig(TimeSpan failureResetPeriod, List<SC_ACTION> actions)
         {
-            var sfa = new SERVICE_FAILURE_ACTIONS
-                {
-                    dwResetPeriod = failureResetPeriod.Seconds,
-                    lpRebootMsg = "",
-                    lpCommand = ""
-                };
-
+            SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS();
+            sfa.dwResetPeriod = failureResetPeriod.Seconds;
+            sfa.lpRebootMsg = ""; // delete message
+            sfa.lpCommand = "";   // delete the command to run
+            
             int len = Marshal.SizeOf(typeof(SC_ACTION));
 
             sfa.cActions = actions.Count;
             sfa.lpsaActions = Marshal.AllocHGlobal(len * actions.Count);
             try
             {
-                for (var i = 0; i < actions.Count; i++)
+                for (int i = 0; i < actions.Count; i++)
                 {
                     Marshal.StructureToPtr(actions[i], new IntPtr(sfa.lpsaActions.ToInt64() + i * len), false);
                 }
@@ -258,8 +257,8 @@ namespace winsw
 
         public SC_ACTION(SC_ACTION_TYPE type, TimeSpan delay)
         {
-            Type = type;
-            Delay = (uint)delay.TotalMilliseconds;
+            this.Type = type;
+            this.Delay = (uint)delay.TotalMilliseconds;
         }
     }
 
@@ -299,6 +298,6 @@ namespace winsw
         [MarshalAs(UnmanagedType.LPWStr)]
         public string lpCommand;
         public int cActions;
-        public IntPtr lpsaActions;
+        public IntPtr/*SC_ACTION[]*/ lpsaActions;
     }
 }

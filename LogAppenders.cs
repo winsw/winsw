@@ -15,22 +15,33 @@ namespace winsw
     /// </summary>
     public abstract class LogHandler
     {
-        private readonly string baseLogFileName;
+        private EventLogger eventLogger;
+        private string baseLogFileName;
 
         public LogHandler(string logDirectory, string baseName)
         {
-            baseLogFileName = Path.Combine(logDirectory, baseName);
+            this.baseLogFileName = Path.Combine(logDirectory, baseName);
         }
 
         public abstract void log(Stream outputStream, Stream errorStream);
 
-        public EventLogger EventLogger { get; set; }
+        public EventLogger EventLogger
+        {
+            set
+            {
+                this.eventLogger = value;
+            }
+            get
+            {
+                return this.eventLogger;
+            }
+        }
 
         public string BaseLogFileName
         {
             get
             {
-                return baseLogFileName;
+                return this.baseLogFileName;
             }
         }
 
@@ -72,23 +83,37 @@ namespace winsw
     {
 
         private FileMode fileMode;
+        private string outputLogFileName;
+        private string errorLogFileName;
 
         public SimpleLogAppender(string logDirectory, string baseName, FileMode fileMode)
             : base(logDirectory, baseName)
         {
             this.fileMode = fileMode;
-            OutputLogFileName = BaseLogFileName + ".out.log";
-            ErrorLogFileName = BaseLogFileName + ".err.log";
+            this.outputLogFileName = BaseLogFileName + ".out.log";
+            this.errorLogFileName = BaseLogFileName + ".err.log";
         }
 
-        public string OutputLogFileName { get; private set; }
+        public string OutputLogFileName
+        {
+            get
+            {
+                return this.outputLogFileName;
+            }
+        }
 
-        public string ErrorLogFileName { get; private set; }
+        public string ErrorLogFileName
+        {
+            get
+            {
+                return this.errorLogFileName;
+            }
+        }
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(() => CopyStream(outputStream, new FileStream(OutputLogFileName, fileMode))).Start();
-            new Thread(() => CopyStream(errorStream, new FileStream(ErrorLogFileName, fileMode))).Start();
+            new Thread(delegate() { CopyStream(outputStream, new FileStream(outputLogFileName, fileMode)); }).Start();
+            new Thread(delegate() { CopyStream(errorStream, new FileStream(errorLogFileName, fileMode)); }).Start();
         }
     }
 
@@ -124,8 +149,8 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(() => CopyStreamWithDateRotation(outputStream, ".out.log")).Start();
-            new Thread(() => CopyStreamWithDateRotation(errorStream, ".err.log")).Start();
+            new Thread(delegate() { CopyStreamWithDateRotation(outputStream, ".out.log"); }).Start();
+            new Thread(delegate() { CopyStreamWithDateRotation(errorStream, ".err.log"); }).Start();
         }
 
         /// <summary>
@@ -133,41 +158,40 @@ namespace winsw
         /// </summary>
         private void CopyStreamWithDateRotation(Stream data, string ext)
         {
-            var periodicRollingCalendar = new PeriodicRollingCalendar(pattern, period);
+            PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(pattern, period);
             periodicRollingCalendar.init();
 
-            var buf = new byte[1024];
-            var w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create);
+            byte[] buf = new byte[1024];
+            FileStream w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
             while (true)
             {
-                var len = data.Read(buf, 0, buf.Length);
+                int len = data.Read(buf, 0, buf.Length);
                 if (len == 0) break;    // EOF
 
-                if (periodicRollingCalendar.ShouldRoll)
+                if (periodicRollingCalendar.shouldRoll)
                 {// rotate at the line boundary
-                    var offset = 0;
-                    var rolled = false;
-                    for (var i = 0; i < len; i++)
+                    int offset = 0;
+                    bool rolled = false;
+                    for (int i = 0; i < len; i++)
                     {
-                        if (buf[i] != 0x0A)
-                        {
-                            continue;
-                        } // at the line boundary.
-                        // time to rotate.
-                        w.Write(buf, offset, i + 1);
-                        w.Close();
-                        offset = i + 1;
+                        if (buf[i] == 0x0A)
+                        {// at the line boundary.
+                            // time to rotate.
+                            w.Write(buf, offset, i + 1);
+                            w.Close();
+                            offset = i + 1;
 
-                        // create a new file.
-                        w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create);
-                        rolled = true;
+                            // create a new file.
+                            w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
+                            rolled = true;
+                        }
                     }
 
                     if (!rolled)
                     {// we didn't roll - most likely as we didnt find a line boundary, so we should log what we read and roll anyway.
                         w.Write(buf, 0, len);
                         w.Close();
-                        w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create);
+                        w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
                     }
 
                 }
@@ -191,8 +215,8 @@ namespace winsw
         public static int DEFAULT_SIZE_THRESHOLD = 10 * BYTES_PER_MB; // rotate every 10MB.
         public static int DEFAULT_FILES_TO_KEEP = 8;
 
-        private readonly int sizeThreshold;
-        private readonly int filesToKeep;
+        private int sizeThreshold;
+        private int filesToKeep;
 
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, int sizeThreshold, int filesToKeep)
             : base(logDirectory, baseName)
@@ -206,8 +230,8 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(() => CopyStreamWithRotation(outputStream, ".out.log")).Start();
-            new Thread(() => CopyStreamWithRotation(errorStream, ".err.log")).Start();
+            new Thread(delegate() { CopyStreamWithRotation(outputStream, ".out.log"); }).Start();
+            new Thread(delegate() { CopyStreamWithRotation(errorStream, ".err.log"); }).Start();
         }
 
         /// <summary>
@@ -215,13 +239,13 @@ namespace winsw
         /// </summary>
         private void CopyStreamWithRotation(Stream data, string ext)
         {
-            var buf = new byte[1024];
-            var w = new FileStream(BaseLogFileName + ext, FileMode.Append);
-            var sz = new FileInfo(BaseLogFileName + ext).Length;
+            byte[] buf = new byte[1024];
+            FileStream w = new FileStream(BaseLogFileName + ext, FileMode.Append);
+            long sz = new FileInfo(BaseLogFileName + ext).Length;
 
             while (true)
             {
-                var len = data.Read(buf, 0, buf.Length);
+                int len = data.Read(buf, 0, buf.Length);
                 if (len == 0) break;    // EOF
                 if (sz + len < sizeThreshold)
                 {// typical case. write the whole thing into the current file
@@ -231,8 +255,8 @@ namespace winsw
                 else
                 {
                     // rotate at the line boundary
-                    var s = 0;
-                    for (var i = 0; i < len; i++)
+                    int s = 0;
+                    for (int i = 0; i < len; i++)
                     {
                         if (buf[i] != 0x0A) continue;
                         if (sz + i < sizeThreshold) continue;
@@ -245,10 +269,10 @@ namespace winsw
 
                         try
                         {
-                            for (var j = filesToKeep; j >= 1; j--)
+                            for (int j = filesToKeep; j >= 1; j--)
                             {
-                                var dst = BaseLogFileName + "." + (j - 1) + ext;
-                                var src = BaseLogFileName + "." + (j - 2) + ext;
+                                string dst = BaseLogFileName + "." + (j - 1) + ext;
+                                string src = BaseLogFileName + "." + (j - 2) + ext;
                                 if (File.Exists(dst))
                                     File.Delete(dst);
                                 if (File.Exists(src))

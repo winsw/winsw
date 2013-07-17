@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.IO;
+using System.Net;
+using WMI;
+using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
-
+using Advapi32;
 using System.Management;
 
 namespace winsw
@@ -44,8 +49,8 @@ namespace winsw
 
         private SERVICE_STATUS wrapperServiceStatus;
 
-        private readonly Process process = new Process();
-        private readonly ServiceDescriptor descriptor;
+        private Process process = new Process();
+        private ServiceDescriptor descriptor;
         private Dictionary<string, string> envs;
 
         /// <summary>
@@ -57,13 +62,13 @@ namespace winsw
 
         public WrapperService()
         {
-            descriptor = new ServiceDescriptor();
-            ServiceName = descriptor.Id;
-            CanShutdown = true;
-            CanStop = true;
-            CanPauseAndContinue = false;
-            AutoLog = true;
-            systemShuttingdown = false;
+            this.descriptor = new ServiceDescriptor();
+            this.ServiceName = descriptor.Id;
+            this.CanShutdown = true;
+            this.CanStop = true;
+            this.CanPauseAndContinue = false;
+            this.AutoLog = true;
+            this.systemShuttingdown = false;
         }
 
         /// <summary>
@@ -252,7 +257,7 @@ namespace winsw
 
             try
             {
-                systemShuttingdown = true;
+                this.systemShuttingdown = true;
                 StopIt();
             }
             catch (Exception ex)
@@ -263,6 +268,8 @@ namespace winsw
 
         protected override void OnStop()
         {
+//            WriteEvent("OnStop");
+
             try
             {
                 StopIt();
@@ -298,8 +305,13 @@ namespace winsw
 
                 stoparguments += " " + descriptor.Arguments;
 
-                var stopProcess = new Process();
-                var executable = descriptor.StopExecutable ?? descriptor.Executable;
+                Process stopProcess = new Process();
+                String executable = descriptor.StopExecutable;
+
+                if (executable == null)
+                {
+                    executable = descriptor.Executable;
+                }
 
                 StartProcess(stopProcess, stoparguments, executable);
 
@@ -317,7 +329,7 @@ namespace winsw
             WriteEvent("Finished " + descriptor.Id);
         }
 
-        private static void StopProcessAndChildren(int pid)
+        private void StopProcessAndChildren(int pid)
         {
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             foreach (var mo in searcher.Get())
@@ -360,7 +372,7 @@ namespace winsw
 
         private void SignalShutdownPending()
         {
-            IntPtr handle = ServiceHandle;
+            IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
             wrapperServiceStatus.waitHint = descriptor.WaitHint.Milliseconds;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
@@ -370,7 +382,7 @@ namespace winsw
 
         private void SignalShutdownComplete()
         {
-            IntPtr handle = ServiceHandle;
+            IntPtr handle = this.ServiceHandle;
             wrapperServiceStatus.checkPoint++;
 //            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
@@ -458,9 +470,9 @@ namespace winsw
         {
             if (_args.Length > 0)
             {
-                var serviceDescriptor = new ServiceDescriptor();
-                var svc = new WmiRoot().GetCollection<IWin32Services>();
-                var service = svc.Select(serviceDescriptor.Id);
+                var d = new ServiceDescriptor();
+                Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
+                Win32Service s = svc.Select(d.Id);
 
                 var args = new List<string>(Array.AsReadOnly(_args));
                 if (args[0] == "/redirect")
@@ -474,7 +486,8 @@ namespace winsw
                     // and among other things it makes it difficult for the caller
                     // to read stdout/stderr. Thus redirection becomes handy.
                     var f = new FileStream(args[1], FileMode.Create);
-                    var w = new StreamWriter(f) { AutoFlush = true };
+                    var w = new StreamWriter(f);
+                    w.AutoFlush = true;
                     Console.SetOut(w);
                     Console.SetError(w);
 
@@ -498,121 +511,114 @@ namespace winsw
                     }
 
                     svc.Create (
-                        serviceDescriptor.Id,
-                        serviceDescriptor.Caption,
-                        "\"" + serviceDescriptor.ExecutablePath + "\"",
-                        ServiceType.OwnProcess,
+                        d.Id,
+                        d.Caption,
+                        "\"" + d.ExecutablePath + "\"",
+                        WMI.ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
                         StartMode.Automatic,
-                        serviceDescriptor.Interactive,
+                        d.Interactive,
                         username,
                         password,
-                        serviceDescriptor.ServiceDependencies);
+                        d.ServiceDependencies);
+
+                    // update the description
+                    /* Somehow this doesn't work, even though it doesn't report an error
+                    Win32Service s = svc.Select(d.Id);
+                    s.Description = d.Description;
+                    s.Commit();
+                     */
 
                     // so using a classic method to set the description. Ugly.
-                    var openSubKey = Registry.LocalMachine.OpenSubKey("System");
-                    if (openSubKey != null)
-                    {
-                        var registryKey = openSubKey.OpenSubKey("CurrentControlSet");
-                        if (registryKey != null)
-                        {
-                            var subKey = registryKey.OpenSubKey("Services");
-                            if (subKey != null)
-                            {
-                                var key = subKey.OpenSubKey(serviceDescriptor.Id, true);
-                                if (key != null)
-                                {
-                                    key.SetValue("Description", serviceDescriptor.Description);
-                                }
-                            }
-                        }
-                    }
+                    Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
+                        .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
 
-                    var actions = serviceDescriptor.FailureActions;
+                    var actions = d.FailureActions;
                     if (actions.Count > 0)
                     {// set the failure actions
-                        using (var scm = new ServiceManager())
+                        using (Advapi32.ServiceManager scm = new Advapi32.ServiceManager())
                         {
-                            using (var sc = scm.Open(serviceDescriptor.Id))
+                            using (Advapi32.Service sc = scm.Open(d.Id))
                             {
-                                sc.ChangeConfig(serviceDescriptor.ResetFailureAfter, actions);
+                                sc.ChangeConfig(d.ResetFailureAfter, actions);
                             }
                         }
                     }
                 }
                 if (args[0] == "uninstall")
                 {
-                    if (service == null)
+                    if (s == null)
                         return; // there's no such service, so consider it already uninstalled
                     try
                     {
-                        service.Delete();
+                        s.Delete();
                     }
                     catch (WmiException e)
                     {
                         if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
                             return; // it's already uninstalled, so consider it a success
-                        throw;
+                        throw e;
                     }
                 }
                 if (args[0] == "start")
                 {
-                    if (service == null) ThrowNoSuchService();
-                    service.StartService();
+                    if (s == null) ThrowNoSuchService();
+                    s.StartService();
                 }
                 if (args[0] == "stop")
                 {
-                    if (service == null) ThrowNoSuchService();
-                    service.StopService();
+                    if (s == null) ThrowNoSuchService();
+                    s.StopService();
                 }
                 if (args[0] == "restart")
                 {
-                    if (service == null) 
+                    if (s == null) 
                         ThrowNoSuchService();
 
-                    if(service.Started)
-                        service.StopService();
+                    if(s.Started)
+                        s.StopService();
 
-                    while (service.Started)
+                    while (s.Started)
                     {
                         Thread.Sleep(1000);
-                        service = svc.Select(serviceDescriptor.Id);
+                        s = svc.Select(d.Id);
                     }
 
-                    service.StartService();
+                    s.StartService();
                 }
                 if (args[0] == "status")
                 {
-                    if (service == null)
+                    if (s == null)
                         Console.WriteLine("NonExistent");
-                    else if (service.Started)
+                    else if (s.Started)
                         Console.WriteLine("Started");
                     else
                         Console.WriteLine("Stopped");
                 }
                 if (args[0] == "test")
                 {
-                    var wsvc = new WrapperService();
+                    WrapperService wsvc = new WrapperService();
                     wsvc.OnStart(args.ToArray());
                     Thread.Sleep(1000);
                     wsvc.OnStop();
                 }
                 return;
             }
-            Run(new WrapperService());
+            ServiceBase.Run(new WrapperService());
         }
 
         private static string ReadPassword()
         {
-            var buf = new StringBuilder();
+            StringBuilder buf = new StringBuilder();
+            ConsoleKeyInfo key;
             while (true)
             {
-                var key = Console.ReadKey(true);
+                key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Enter)
                 {
                     return buf.ToString();
                 }
-                if (key.Key == ConsoleKey.Backspace)
+                else if (key.Key == ConsoleKey.Backspace)
                 {
                     buf.Remove(buf.Length - 1, 1);
                     Console.Write("\b \b");
