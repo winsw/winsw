@@ -240,3 +240,17 @@ If the service keeps failing and it goes beyond the number of `<onfailure>` conf
 This optional element controls the timing in which Windows SCM resets the failure count. For example, if you specify `<resetfailure>1 hour</resetfailure>` and your service continues to run longer than one hour, then the failure count is reset to zero. This affects the behaviour of the failure actions (see `<onfailure>` above).
 
 In other words, this is the duration in which you consider the service has been running successfully. Defaults to 1 day.
+
+### Service account
+It is possible to specify the useraccount (and password) that the service will run as. To do this, specify a `<serviceaccount>` element like this:
+
+    <serviceaccount>
+       <domain>YOURDOMAIN</domain>
+       <user>useraccount</user>
+       <password>Pa55w0rd</password>
+    </serviceaccount>
+
+### Working directory
+Some services need to run with a working directory specified. To do this, specify a `<workingdirectory>` element like this:
+
+    <workingdirectory>C:\application</workingdirectory>
