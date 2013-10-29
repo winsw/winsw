@@ -502,18 +502,27 @@ namespace winsw
                 if (args[0] == "install")
                 {
                     string username=null, password=null;
-                    if (args.Count > 1 && args[1] == "/p") {
+                    if (args.Count > 1 && args[1] == "/p")
+                    {
                         // we expected username/password on stdin
                         Console.Write("Username: ");
                         username = Console.ReadLine();
                         Console.Write("Password: ");
                         password = ReadPassword();
                     }
+                    else
+                    {
+                        if (d.HasServiceAccount())
+                        {
+                            username = d.ServiceAccountUser;
+                            password = d.ServiceAccountPassword;
+                        }
+                    }
 
                     svc.Create (
                         d.Id,
                         d.Caption,
-                        "\"" + ServiceDescriptor.ExecutablePath + "\"",
+                        "\"" + d.ExecutablePath + "\"",
                         WMI.ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
                         StartMode.Automatic,
