@@ -561,5 +561,15 @@ namespace winsw
 			return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
 		}
 
+         /// <summary>
+         /// True if the service can interact with the desktop.
+         /// </summary>
+         public bool SendSIGINT
+         {
+             get
+             {
+                 return dom.SelectSingleNode("//sendsigint") != null;
+             }
+         }
     }
 }
