@@ -340,7 +340,25 @@ namespace winsw
             try
             {
                 var proc = Process.GetProcessById(pid);
-                proc.Kill();
+                if (descriptor.SendSIGINT)
+                {
+                    WriteEvent("Send SIGINT " + process.Id);
+                    bool successful = SigIntHelper.SendSIGINTToProcess(proc);
+                    if (successful)
+                    {
+                        WriteEvent("SIGINT to" + process.Id + " successful");
+                    }
+                    else
+                    {
+                        WriteEvent("SIGINT to " + process.Id + " failed - Killing as fallback");
+                        proc.Kill();
+                    }
+                }
+                else
+                {
+                    WriteEvent("ProcessKill " + process.Id);
+                    proc.Kill();
+                }
             }
             catch (ArgumentException)
             {

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{0DE77F55-ADE5-43C1-999A-0BC81153B039}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -56,6 +56,7 @@
     <Compile Include="PeriodicRollingCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceDescriptor.cs" />
+    <Compile Include="SigIntHelper.cs" />
     <Compile Include="Wmi.cs" />
     <Compile Include="WmiSchema.cs" />
   </ItemGroup>
