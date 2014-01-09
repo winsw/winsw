@@ -280,6 +280,9 @@ namespace winsw
             }
         }
 
+        /// <summary>
+        /// Called when we are told by Windows SCM to exit.
+        /// </summary>
         private void StopIt()
         {
             string stoparguments = descriptor.Stoparguments;
@@ -432,7 +435,12 @@ namespace winsw
                     }
                     else
                     {
-                        LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Warning);
+                        LogEvent("Child process [" + msg + "] finished with " + process.ExitCode, EventLogEntryType.Warning);
+                        // if we finished orderly, report that to SCM.
+                        // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
+                        // restart the service automatically
+                        if (process.ExitCode == 0)
+                            SignalShutdownComplete();
                         Environment.Exit(process.ExitCode);
                     }
                 }
