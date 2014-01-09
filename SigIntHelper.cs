@@ -49,7 +49,7 @@ namespace winsw
                 SetConsoleCtrlHandler(null, true);
                 GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
-                process.WaitForExit(shutdownTimeout.TotalMilliseconds);
+                process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
 
                 return process.HasExited;
             }
