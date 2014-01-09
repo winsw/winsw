@@ -72,6 +72,21 @@ namespace winsw
             dom.Load(BasePath + ".xml");
         }
 
+        /// <summary>
+        /// Loads descriptor from existing DOM
+        /// </summary>
+        public ServiceDescriptor(XmlDocument dom)
+        {
+            this.dom = dom;
+        }
+
+        public static ServiceDescriptor FromXML(string xml)
+        {
+            var dom = new XmlDocument();
+            dom.LoadXml(xml);
+            return new ServiceDescriptor(dom);
+        }
+
         private string SingleElement(string tagName)
         {
             return SingleElement(tagName, false);
@@ -569,6 +584,20 @@ namespace winsw
             get
             {
                 return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+            }
+        }
+
+        /// <summary>
+        /// Desired process priority or null if not specified.
+        /// </summary>
+        public ProcessPriorityClass Priority
+        {
+            get
+            {
+                var p = SingleElement("priority",true);
+                if (p == null) return ProcessPriorityClass.Normal;  // default value
+
+                return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);
             }
         }
     }

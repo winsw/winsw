@@ -1,29 +1,15 @@
 ﻿using NUnit.Framework;
 using winsw;
+using System.Diagnostics;
+using System.Xml;
 
 namespace winswTests
 {
-
-    public class ServiceDescriptorExtended : ServiceDescriptor
-    {
-
-        public ServiceDescriptorExtended(string descriptorXml)
-        {
-            LoadTestXml(descriptorXml);
-        }
-
-        private void LoadTestXml(string xml)
-        {
-            dom.LoadXml(xml);
-        }
-    }
-
-
     [TestFixture]
     public class ServiceDescriptorTests
     {
 
-        private ServiceDescriptorExtended extendedServiceDescriptor;
+        private ServiceDescriptor extendedServiceDescriptor;
 
         private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
         private const string Username = "User";
@@ -50,8 +36,7 @@ namespace winswTests
                                    + "</workingdirectory>"
                                    + @"<logpath>C:\logs</logpath>"
                                    + "</service>";
-
-            extendedServiceDescriptor = new ServiceDescriptorExtended(SeedXml);
+            extendedServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
         }
 
         [Test]
@@ -73,6 +58,19 @@ namespace winswTests
         {
             System.Diagnostics.Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + extendedServiceDescriptor.WorkingDirectory);
             Assert.That(extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
+        }
+
+        [Test]
+        public void Priority()
+        {
+            var sd = ServiceDescriptor.FromXML("<service><id>test</id><priority>normal</priority></service>");
+            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
+
+            sd = ServiceDescriptor.FromXML("<service><id>test</id><priority>idle</priority></service>");
+            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Idle));
+
+            sd = ServiceDescriptor.FromXML("<service><id>test</id></service>");
+            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
         }
     }
 }

@@ -421,6 +421,10 @@ namespace winsw
             process.Start();
             WriteEvent("Started " + process.Id);
 
+            var priority = descriptor.Priority;
+            if (priority != ProcessPriorityClass.Normal)
+                process.PriorityClass = priority;
+
             // monitor the completion of the process
             StartThread(delegate()
             {
