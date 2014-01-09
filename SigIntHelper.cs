@@ -41,7 +41,7 @@ namespace winsw
         /// </summary>
         /// <param name="process">The process to attach to and send the SIGINT</param>
         /// <returns>True if the process shut down successfully to the SIGINT, false if it did not.</returns>
-        public static bool SendSIGINTToProcess(Process process)
+        public static bool SendSIGINTToProcess(Process process, TimeSpan shutdownTimeout)
         {
             if (AttachConsole((uint)process.Id))
             {
@@ -49,7 +49,7 @@ namespace winsw
                 SetConsoleCtrlHandler(null, true);
                 GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
-                process.WaitForExit(15000);
+                process.WaitForExit(shutdownTimeout.TotalMilliseconds);
 
                 return process.HasExited;
             }

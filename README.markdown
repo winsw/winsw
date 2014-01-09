@@ -185,6 +185,13 @@ When you use the `<stopargument>`, you must use `<startargument>` instead of `<a
     <stopexecutable>catalina.sh</stopexecutable>
     <stopargument>stop</stopargument>
 
+### stoptimeout
+When the service is requested to stop, winsw first attempts to <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx">send Ctrl+C signal to the process</a>, then wait for up to 15 seconds for the process to exit by itself gracefully. A process failing to do that (or if the process does not have a console), then winsw resorts to calling <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx">TerminateProcess</a> API to kill the service instantly.
+
+This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down. See `<onfailure>` below for how to specify time duration:
+
+    <stoptimeout>10sec</stoptimeout>
+
 ### env
 This optional element can be specified multiple times if necessary to specify environment variables to be set for the child process. The syntax is:
 

@@ -562,14 +562,14 @@ namespace winsw
 		}
 
          /// <summary>
-         /// True if the service can interact with the desktop.
+         /// Time to wait for the service to gracefully shutdown before we forcibly kill it
          /// </summary>
-         public bool SendSIGINT
-         {
-             get
-             {
-                 return dom.SelectSingleNode("//sendsigint") != null;
-             }
-         }
+        public TimeSpan StopTimeout
+        {
+            get
+            {
+                return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+            }
+        }
     }
 }

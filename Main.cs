@@ -337,32 +337,24 @@ namespace winsw
                 StopProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
             }
 
-            try
+            var proc = Process.GetProcessById(pid);
+            WriteEvent("Send SIGINT " + process.Id);
+            bool successful = SigIntHelper.SendSIGINTToProcess(proc,descriptor.StopTimeout);
+            if (successful)
             {
-                var proc = Process.GetProcessById(pid);
-                if (descriptor.SendSIGINT)
+                WriteEvent("SIGINT to" + process.Id + " successful");
+            }
+            else
+            {
+                try
                 {
-                    WriteEvent("Send SIGINT " + process.Id);
-                    bool successful = SigIntHelper.SendSIGINTToProcess(proc);
-                    if (successful)
-                    {
-                        WriteEvent("SIGINT to" + process.Id + " successful");
-                    }
-                    else
-                    {
-                        WriteEvent("SIGINT to " + process.Id + " failed - Killing as fallback");
-                        proc.Kill();
-                    }
-                }
-                else
-                {
-                    WriteEvent("ProcessKill " + process.Id);
+                    WriteEvent("SIGINT to " + process.Id + " failed - Killing as fallback");
                     proc.Kill();
                 }
-            }
-            catch (ArgumentException)
-            {
-                // Process already exited.
+                catch (ArgumentException)
+                {
+                    // Process already exited.
+                }
             }
         }
 
