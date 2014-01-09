@@ -261,3 +261,11 @@ It is possible to specify the useraccount (and password) that the service will r
 Some services need to run with a working directory specified. To do this, specify a `<workingdirectory>` element like this:
 
     <workingdirectory>C:\application</workingdirectory>
+
+### priority
+Optionally specify the scheduling priority of the service process (equivalent of Unix nice)
+Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `realtime` (case insensitive.)
+
+    <priority>idle</priority>
+
+Specifying a priority higher than normal has unintended consequences. See <a href="http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx">MSDN discussion</a> for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
