@@ -13,6 +13,8 @@ using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
 using Advapi32;
+using winsw.Utils;
+using winsw.Extensions;
 
 namespace winsw
 {
@@ -38,7 +40,7 @@ namespace winsw
         SERVICE_PAUSED = 0x00000007,
     }
     
-    public class WrapperService : ServiceBase, EventLogger
+    public class WrapperService : ServiceBase, EventLogger, IEventWriter
     {
         [DllImport("ADVAPI32.DLL")]
         private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
@@ -51,6 +53,7 @@ namespace winsw
         private Process process = new Process();
         private ServiceDescriptor descriptor;
         private Dictionary<string, string> envs;
+        private Dictionary<string, IWinSWExtension> extensions = new Dictionary<string,IWinSWExtension>();
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
@@ -204,6 +207,8 @@ namespace winsw
 
         protected override void OnStart(string[] _)
         {
+            
+
             envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
             {
@@ -237,6 +242,28 @@ namespace winsw
             else
             {
                 startarguments += " " + descriptor.Arguments;
+            }
+
+            // Test reg extension
+            LoadExtension(new Extensions.SharedDirectoryMapper.SharedDirectoryMapperExtension
+                ("SharedDirectoryMapper", descriptor.MapSharedFolder, descriptor.MapSharedFolderPath, descriptor.MapSharedFolderLabel));
+            LoadExtension( new Extensions.SharedDirectoryMapper.SharedDirectoryMapperExtension
+                ("ToolsDirectoryMapper", descriptor.MapToolsFolder, descriptor.MapToolsFolderPath, descriptor.MapToolsDirectoryLabel));
+            
+            // Start extensions
+            foreach (var ext in extensions)
+            {
+                try
+                {
+                    ext.Value.OnStart(this);
+                }
+                catch (ExtensionException ex)
+                {
+                    LogEvent("Failed to start extension  " + ex.ExtensionName + "\n" + ex.Message, EventLogEntryType.Error);
+                    WriteEvent("Failed to start extension  " + ex.ExtensionName, ex);
+
+                    //TODO: Add error
+                }
             }
 
             LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
@@ -318,6 +345,20 @@ namespace winsw
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
+            }
+
+            // Stop extensions
+            foreach (var ext in extensions)
+            {
+                try
+                {
+                    ext.Value.OnStop(this);
+                }
+                catch (ExtensionException ex)
+                {
+                    LogEvent("Failed to stop extension  " + ex.ExtensionName + "\n" + ex.Message, EventLogEntryType.Error);
+                    WriteEvent("Failed to stop extension  " + ex.ExtensionName, ex);
+                }
             }
 
             if (systemShuttingdown && descriptor.BeepOnShutdown) 
@@ -574,5 +615,22 @@ namespace winsw
             }
             ServiceBase.Run(new WrapperService());
         }
-    }
+
+        #region Extension management
+        //TODO: Implement loading of external extensions. Current version supports internal hack
+
+        private void LoadExtension<TExtensionType>(TExtensionType extension) 
+            where TExtensionType : IWinSWExtension
+        {
+            if (extensions.ContainsKey(extension.Name))
+            {
+                throw new ExtensionException(extension.Name, "Extension has been already loaded");
+            }
+
+            extensions.Add(extension.Name, extension);
+            extension.Init(descriptor);
+        }
+
+        #endregion
+    }    
 }
