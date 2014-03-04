@@ -63,13 +63,16 @@ namespace winsw
                     break;
             }
 
-            // register the base directory as environment variable so that future expansions can refer to this.
-            Environment.SetEnvironmentVariable("BASE", p);
-
             BaseName = baseName;
             BasePath = Path.Combine(p, BaseName);
 
             dom.Load(BasePath + ".xml");
+
+            // register the base directory as environment variable so that future expansions can refer to this.
+            Environment.SetEnvironmentVariable("BASE", p);
+            // ditto for ID
+            Environment.SetEnvironmentVariable("SERVICE_ID", Id);
+            Environment.SetEnvironmentVariable("WINSW_EXECUTABLE", ExecutablePath);
         }
 
         /// <summary>
