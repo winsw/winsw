@@ -180,10 +180,13 @@ Winsw will then wait for the two processes to exit on its own, before reporting 
 When you use the `<stopargument>`, you must use `<startargument>` instead of `<argument>`. See the complete example below:
 
     <executable>catalina.sh</executable>
+    <startargument>jpda</startargument>
     <startargument>run</startargument>
     
     <stopexecutable>catalina.sh</stopexecutable>
     <stopargument>stop</stopargument>
+
+Note that the name of the element is `startargument` and not `startarguments`. As such, to specify multiple arguments, you'll specify multiple elements.
 
 ### stoptimeout
 When the service is requested to stop, winsw first attempts to <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx">send Ctrl+C signal to the process</a>, then wait for up to 15 seconds for the process to exit by itself gracefully. A process failing to do that (or if the process does not have a console), then winsw resorts to calling <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx">TerminateProcess</a> API to kill the service instantly.
