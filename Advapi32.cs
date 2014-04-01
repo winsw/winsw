@@ -4,7 +4,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 
-namespace Advapi32
+namespace winsw
 {
     class ServiceManager : IDisposable
     {
@@ -104,6 +104,9 @@ namespace Advapi32
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CloseServiceHandle(IntPtr hSCObject);
+
+        [DllImport("ADVAPI32.DLL")]
+        internal static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
     }
 
 
@@ -244,6 +247,29 @@ namespace Advapi32
 
         WINSTA_ALL_ACCESS = 0x0000037f
     }
+
+    public struct SERVICE_STATUS
+    {
+        public int serviceType;
+        public int currentState;
+        public int controlsAccepted;
+        public int win32ExitCode;
+        public int serviceSpecificExitCode;
+        public int checkPoint;
+        public int waitHint;
+    }
+
+    public enum State
+    {
+        SERVICE_STOPPED = 0x00000001,
+        SERVICE_START_PENDING = 0x00000002,
+        SERVICE_STOP_PENDING = 0x00000003,
+        SERVICE_RUNNING = 0x00000004,
+        SERVICE_CONTINUE_PENDING = 0x00000005,
+        SERVICE_PAUSE_PENDING = 0x00000006,
+        SERVICE_PAUSED = 0x00000007,
+    }
+    
 
     // http://msdn.microsoft.com/en-us/library/windows/desktop/ms685126(v=vs.85).aspx
     [StructLayout(LayoutKind.Sequential)]

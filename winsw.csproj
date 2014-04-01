@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{0DE77F55-ADE5-43C1-999A-0BC81153B039}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -40,15 +40,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Data" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Advapi32.cs" />
     <Compile Include="Download.cs" />
     <Compile Include="DynamicProxy.cs" />
+    <Compile Include="Kernel32.cs" />
     <Compile Include="LogAppenders.cs" />
     <Compile Include="Main.cs">
       <SubType>Component</SubType>

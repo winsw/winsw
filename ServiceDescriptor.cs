@@ -13,7 +13,6 @@ using WMI;
 using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
-using Advapi32;
 
 namespace winsw
 {

@@ -12,81 +12,12 @@ using WMI;
 using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
-using Advapi32;
 using System.Management;
 
 namespace winsw
 {
-    public struct SERVICE_STATUS
-    {
-        public int serviceType;
-        public int currentState;
-        public int controlsAccepted;
-        public int win32ExitCode;
-        public int serviceSpecificExitCode;
-        public int checkPoint;
-        public int waitHint;
-    }
-
-    public enum State
-    {
-        SERVICE_STOPPED = 0x00000001,
-        SERVICE_START_PENDING = 0x00000002,
-        SERVICE_STOP_PENDING = 0x00000003,
-        SERVICE_RUNNING = 0x00000004,
-        SERVICE_CONTINUE_PENDING = 0x00000005,
-        SERVICE_PAUSE_PENDING = 0x00000006,
-        SERVICE_PAUSED = 0x00000007,
-    }
-    
     public class WrapperService : ServiceBase, EventLogger
     {
-        [DllImport("ADVAPI32.DLL")]
-        private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
-        
-        [DllImport("Kernel32.dll", SetLastError = true)]
-        public static extern int SetStdHandle(int device, IntPtr handle);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool CreateProcess(string lpApplicationName,
-           string lpCommandLine, IntPtr lpProcessAttributes,
-           IntPtr lpThreadAttributes, bool bInheritHandles,
-           uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory,
-           [In] ref STARTUPINFO lpStartupInfo,
-           out PROCESS_INFORMATION lpProcessInformation);
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct PROCESS_INFORMATION
-        {
-            public IntPtr hProcess;
-            public IntPtr hThread;
-            public int dwProcessId;
-            public int dwThreadId;
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        struct STARTUPINFO
-        {
-            public Int32 cb;
-            public string lpReserved;
-            public string lpDesktop;
-            public string lpTitle;
-            public Int32 dwX;
-            public Int32 dwY;
-            public Int32 dwXSize;
-            public Int32 dwYSize;
-            public Int32 dwXCountChars;
-            public Int32 dwYCountChars;
-            public Int32 dwFillAttribute;
-            public Int32 dwFlags;
-            public Int16 wShowWindow;
-            public Int16 cbReserved2;
-            public IntPtr lpReserved2;
-            public IntPtr hStdInput;
-            public IntPtr hStdOutput;
-            public IntPtr hStdError;
-        }
-
         private SERVICE_STATUS wrapperServiceStatus;
 
         private Process process = new Process();
@@ -430,7 +361,7 @@ namespace winsw
             wrapperServiceStatus.waitHint = descriptor.WaitHint.Milliseconds;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
-            SetServiceStatus(handle, ref wrapperServiceStatus);
+            Advapi32.SetServiceStatus(handle, ref wrapperServiceStatus);
         }
 
         private void SignalShutdownComplete()
@@ -439,7 +370,7 @@ namespace winsw
             wrapperServiceStatus.checkPoint++;
 //            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
-            SetServiceStatus(handle, ref wrapperServiceStatus);
+            Advapi32.SetServiceStatus(handle, ref wrapperServiceStatus);
         }
 
         private void StartProcess(Process process, string arguments, String executable)
@@ -554,8 +485,8 @@ namespace winsw
                     Console.SetError(w);
 
                     var handle = f.Handle;
-                    SetStdHandle(-11, handle); // set stdout
-                    SetStdHandle(-12, handle); // set stder
+                    Kernel32.SetStdHandle(-11, handle); // set stdout
+                    Kernel32.SetStdHandle(-12, handle); // set stder
 
                     args = args.GetRange(2, args.Count - 2);
                 }
@@ -607,9 +538,9 @@ namespace winsw
                     var actions = d.FailureActions;
                     if (actions.Count > 0)
                     {// set the failure actions
-                        using (Advapi32.ServiceManager scm = new Advapi32.ServiceManager())
+                        using (ServiceManager scm = new ServiceManager())
                         {
-                            using (Advapi32.Service sc = scm.Open(d.Id))
+                            using (Service sc = scm.Open(d.Id))
                             {
                                 sc.ChangeConfig(d.ResetFailureAfter, actions);
                             }
@@ -664,7 +595,7 @@ namespace winsw
                     STARTUPINFO si = new STARTUPINFO();
                     PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
 
-                    bool result = CreateProcess(null, d.ExecutablePath+" restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out pi);
+                    bool result = Kernel32.CreateProcess(null, d.ExecutablePath+" restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out pi);
                     if (!result)
                     {
                         throw new Exception("Failed to invoke restart: "+Marshal.GetLastWin32Error());
