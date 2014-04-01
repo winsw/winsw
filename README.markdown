@@ -82,6 +82,11 @@ Works like the append mode, except that every time the service starts, the old l
 
     <log mode="reset"/>
 
+### Ignore mode
+Throw away stdout and stderr, and do not produce any log files at all.
+
+    <log mode="none"/>
+
 ### Rotate mode
 Works like the append mode, but in addition, if the log file gets bigger than a set size, it gets rotated to `myapp.1.out.log`, `myapp.2.out.log` and so on. The nested `<sizeThreshold>` element specifies the rotation threshold in KB (defaults to 10MB), and the nested `<keepFiles>` element specifies the number of rotated files to keep (defaults to 8.)
 
