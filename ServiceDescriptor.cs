@@ -322,6 +322,9 @@ namespace winsw
                     case "rotate":
                         return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
 
+                    case "none":
+                        return new IgnoreLogAppender();
+
                     case "reset":
                         return new ResetLogAppender(LogDirectory, BaseName);
 

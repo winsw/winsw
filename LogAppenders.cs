@@ -16,15 +16,12 @@ namespace winsw
     public abstract class LogHandler
     {
         private EventLogger eventLogger;
-        private string baseLogFileName;
-
-        public LogHandler(string logDirectory, string baseName)
-        {
-            this.baseLogFileName = Path.Combine(logDirectory, baseName);
-        }
 
         public abstract void log(Stream outputStream, Stream errorStream);
 
+        /// <summary>
+        /// Error and information about logging should be reported here.
+        /// </summary>
         public EventLogger EventLogger
         {
             set
@@ -34,14 +31,6 @@ namespace winsw
             get
             {
                 return this.eventLogger;
-            }
-        }
-
-        public string BaseLogFileName
-        {
-            get
-            {
-                return this.baseLogFileName;
             }
         }
 
@@ -79,7 +68,30 @@ namespace winsw
         }
     }
 
-    public abstract class SimpleLogAppender : LogHandler
+    /// <summary>
+    /// Base class for file-based loggers
+    /// </summary>
+    public abstract class AbstractFileLogAppender : LogHandler
+    {
+        private string baseLogFileName;
+
+        public AbstractFileLogAppender(string logDirectory, string baseName)
+        {
+            this.baseLogFileName = Path.Combine(logDirectory, baseName);
+        }
+
+        
+        protected string BaseLogFileName
+        {
+            get
+            {
+                return this.baseLogFileName;
+            }
+        }
+
+    }
+
+    public abstract class SimpleLogAppender : AbstractFileLogAppender
     {
 
         private FileMode fileMode;
@@ -131,10 +143,21 @@ namespace winsw
             : base(logDirectory, baseName, FileMode.Create)
         {
         }
-
+    }
+    
+    /// <summary>
+    /// LogHandler that throws away output
+    /// </summary>
+    public class IgnoreLogAppender : LogHandler
+    {
+        public override void log(Stream outputStream, Stream errorStream)
+        {
+            new Thread(delegate() { CopyStream(outputStream, Stream.Null); }).Start();
+            new Thread(delegate() { CopyStream(errorStream, Stream.Null); }).Start();
+        }
     }
 
-    public class TimeBasedRollingLogAppender : LogHandler
+    public class TimeBasedRollingLogAppender : AbstractFileLogAppender
     {
 
         private string pattern;
@@ -208,7 +231,7 @@ namespace winsw
 
     }
 
-    public class SizeBasedRollingLogAppender : LogHandler
+    public class SizeBasedRollingLogAppender : AbstractFileLogAppender
     {
         public static int BYTES_PER_KB = 1024;
         public static int BYTES_PER_MB = 1024 * BYTES_PER_KB;
