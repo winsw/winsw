@@ -45,7 +45,47 @@ namespace winsw
         private static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
         
         [DllImport("Kernel32.dll", SetLastError = true)]
-        public static extern int SetStdHandle(int device, IntPtr handle); 
+        public static extern int SetStdHandle(int device, IntPtr handle);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool CreateProcess(string lpApplicationName,
+           string lpCommandLine, ref IntPtr lpProcessAttributes,
+           ref IntPtr lpThreadAttributes, bool bInheritHandles,
+           uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory,
+           [In] ref STARTUPINFO lpStartupInfo,
+           out PROCESS_INFORMATION lpProcessInformation);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
 
         private SERVICE_STATUS wrapperServiceStatus;
 
@@ -601,8 +641,16 @@ namespace winsw
                     if (s == null) ThrowNoSuchService();
                     s.StopService();
                 }
-                if (args[0] == "restart")
+                if (args[0] == "restart" || args[0]=="restart-self")
                 {
+                    if (args[0] == "restart-self")
+                    {
+                        Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs ev)
+                        {
+                            ev.Cancel = true;
+                        };
+                    }
+
                     if (s == null) 
                         ThrowNoSuchService();
 
@@ -617,6 +665,17 @@ namespace winsw
 
                     s.StartService();
                 }
+                /*
+                if (args[0] == "restart-self")
+                {
+                    ProcessStartInfo ps = new ProcessStartInfo();
+                    ps.FileName = d.ExecutablePath;
+                    ps.Arguments = "restart";
+                    ps.UseShellExecute = true;
+
+                    Process.Start(ps);
+                }
+                */
                 if (args[0] == "status")
                 {
                     if (s == null)
