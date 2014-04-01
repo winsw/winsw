@@ -49,8 +49,8 @@ namespace winsw
 
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool CreateProcess(string lpApplicationName,
-           string lpCommandLine, ref IntPtr lpProcessAttributes,
-           ref IntPtr lpThreadAttributes, bool bInheritHandles,
+           string lpCommandLine, IntPtr lpProcessAttributes,
+           IntPtr lpThreadAttributes, bool bInheritHandles,
            uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory,
            [In] ref STARTUPINFO lpStartupInfo,
            out PROCESS_INFORMATION lpProcessInformation);
@@ -641,16 +641,8 @@ namespace winsw
                     if (s == null) ThrowNoSuchService();
                     s.StopService();
                 }
-                if (args[0] == "restart" || args[0]=="restart-self")
+                if (args[0] == "restart")
                 {
-                    if (args[0] == "restart-self")
-                    {
-                        Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs ev)
-                        {
-                            ev.Cancel = true;
-                        };
-                    }
-
                     if (s == null) 
                         ThrowNoSuchService();
 
@@ -665,17 +657,19 @@ namespace winsw
 
                     s.StartService();
                 }
-                /*
-                if (args[0] == "restart-self")
+                if (args[0] == "restart!")
                 {
-                    ProcessStartInfo ps = new ProcessStartInfo();
-                    ps.FileName = d.ExecutablePath;
-                    ps.Arguments = "restart";
-                    ps.UseShellExecute = true;
+                    // run restart from another process group. see README.md for why this is useful.
 
-                    Process.Start(ps);
+                    STARTUPINFO si = new STARTUPINFO();
+                    PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
+
+                    bool result = CreateProcess(null, d.ExecutablePath+" restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out pi);
+                    if (!result)
+                    {
+                        throw new Exception("Failed to invoke restart: "+Marshal.GetLastWin32Error());
+                    }
                 }
-                */
                 if (args[0] == "status")
                 {
                     if (s == null)
