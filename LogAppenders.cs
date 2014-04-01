@@ -162,7 +162,7 @@ namespace winsw
             periodicRollingCalendar.init();
 
             byte[] buf = new byte[1024];
-            FileStream w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
+            FileStream w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Append);
             while (true)
             {
                 int len = data.Read(buf, 0, buf.Length);
