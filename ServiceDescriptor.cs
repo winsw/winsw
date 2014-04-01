@@ -190,19 +190,11 @@ namespace winsw
 
                 if (arguments == null)
                 {
-                    var tagName = "arguments";
-                    var argumentsNode = dom.SelectSingleNode("//" + tagName);
+                    var argumentsNode = dom.SelectSingleNode("//arguments");
 
                     if (argumentsNode == null)
                     {
-                        if (AppendTags("startargument") == null)
-                        {
-                            throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
-                        }
-                        else
-                        {
-                            return "";
-                        }
+                        return "";
                     }
 
                     return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
