@@ -68,7 +68,7 @@ The `<download>` element in the configuration file also provides an useful build
 Restarting service from itself
 ------------------------------
 To support self-restarting services, winsw exposes `WINSW_EXECUTABLE` environment variable into the forked process, which refers to the full path of `winsw.exe` that's managing the service.
-To restart the service from within, execute `$WINSW_EXECUTABLE restart!`. Note that you are invoking `restart!` command, not `restart` command. This hidden command is a flavor of the `restart` operation,
+To restart the service from within, execute `%WINSW_EXECUTABLE% restart!`. Note that you are invoking `restart!` command, not `restart` command. This hidden command is a flavor of the `restart` operation,
 except that winsw creates another winsw process in a separate process group, and restarts the service from there.
 
 This additional indirection is necessary, because Windows Service Control Manager (SCM) will kill child processes recursively when it stops the service. SCM doesn't provide restart operation
