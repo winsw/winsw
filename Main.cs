@@ -310,7 +310,7 @@ namespace winsw
             {
                 if (mo["ExecutablePath"].Equals(descriptor.BasePath + ".exe"))
                 {
-                    WriteEvent("Not killing service wrapper request, PID: " + pid);
+                    WriteEvent("Not killing service wrapper request, PID: " + mo["ProcessID"]);
                     continue;
                 }
                 StopProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
