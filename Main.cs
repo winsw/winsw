@@ -308,21 +308,26 @@ namespace winsw
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             foreach (var mo in searcher.Get())
             {
+                if (mo["ExecutablePath"].Equals(descriptor.BasePath + ".exe"))
+                {
+                    WriteEvent("Not killing service wrapper request, PID: " + pid);
+                    continue;
+                }
                 StopProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
             }
 
             var proc = Process.GetProcessById(pid);
-            WriteEvent("Send SIGINT " + process.Id);
+            WriteEvent("Send SIGINT " + pid);
             bool successful = SigIntHelper.SendSIGINTToProcess(proc,descriptor.StopTimeout);
             if (successful)
             {
-                WriteEvent("SIGINT to" + process.Id + " successful");
+                WriteEvent("SIGINT to " + pid + " successful");
             }
             else
             {
                 try
                 {
-                    WriteEvent("SIGINT to " + process.Id + " failed - Killing as fallback");
+                    WriteEvent("SIGINT to " + pid + " failed - Killing as fallback");
                     proc.Kill();
                 }
                 catch (ArgumentException)
