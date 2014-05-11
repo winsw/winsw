@@ -312,17 +312,17 @@ namespace winsw
             }
 
             var proc = Process.GetProcessById(pid);
-            WriteEvent("Send SIGINT " + process.Id);
+            WriteEvent("Send SIGINT " + pid);
             bool successful = SigIntHelper.SendSIGINTToProcess(proc,descriptor.StopTimeout);
             if (successful)
             {
-                WriteEvent("SIGINT to" + process.Id + " successful");
+                WriteEvent("SIGINT to" + pid + " successful");
             }
             else
             {
                 try
                 {
-                    WriteEvent("SIGINT to " + process.Id + " failed - Killing as fallback");
+                    WriteEvent("SIGINT to " + pid + " failed - Killing as fallback");
                     proc.Kill();
                 }
                 catch (ArgumentException)
