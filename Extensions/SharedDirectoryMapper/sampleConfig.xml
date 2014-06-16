@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<service>
+  <id>SERVICE_NAME</id>
+  <name>Jenkins Slave</name>
+  <description>This service runs a slave for Jenkins continuous integration system.</description>
+  <!--
+    if you'd like to run Jenkins with a specific version of Java, specify a full path to java.exe.
+    The following value assumes that you have java in your PATH.
+  -->
+  <executable>C:\Program Files\Java\jre7\bin\java.exe</executable>
+  <arguments>-Xrs  -jar "%BASE%\slave.jar" -jnlpUrl ...</arguments>
+  <!--
+    interactive flag causes the empty black Java window to be displayed.
+    I'm still debugging this.
+  <interactive />
+  -->
+  <logmode>rotate</logmode>
+
+  <mapDirectory>true</mapDirectory>
+  <mapDirectoryPath>\\UNC</mapDirectoryPath>
+  <mapDirectoryLabel>N:</mapDirectoryLabel>
+
+  <mapToolsDirectory>true</mapToolsDirectory>
+  <toolsDirectoryLabel>\\UNC2</toolsDirectoryLabel>
+  <toolsDirectoryPath>M:</toolsDirectoryPath>
+</service>
