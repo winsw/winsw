@@ -678,8 +678,7 @@ namespace winsw
             extension.Init(descriptor);
         }
 
-        #endregion
-    }    
+        #endregion   
 
         private static string ReadPassword()
         {
