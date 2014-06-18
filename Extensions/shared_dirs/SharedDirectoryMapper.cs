@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using winsw.util;
 using System.Xml;
+using winsw.Utils;
 
 namespace winsw.extensions.shared_dirs
 {
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {
         private SharedDirectoryMappingHelper mapper = new SharedDirectoryMappingHelper();
-        private List<SharedDirectoryMapperConfig> entries;
+        private List<SharedDirectoryMapperConfig> entries = new List<SharedDirectoryMapperConfig>();
 
         public override String DisplayName { get { return "Shared Directory Mapper"; } }
 
@@ -20,12 +21,12 @@ namespace winsw.extensions.shared_dirs
         public SharedDirectoryMapper(bool enableMapping, string directoryUNC, string driveLabel)
         {
             SharedDirectoryMapperConfig config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
-            this.entries = new List<SharedDirectoryMapperConfig> { config };
+            entries.Add(config);
         }
 
-        public override void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public override void Configure(ServiceDescriptor descriptor, XmlNode node, IEventWriter logger)
         {
-            var nodes = node.SelectNodes("map");
+            var nodes = XmlHelper.SingleNode(node, "mapping", false).SelectNodes("map");
             if (nodes != null)
             {
                 foreach (XmlNode mapNode in nodes)
@@ -58,7 +59,7 @@ namespace winsw.extensions.shared_dirs
                 }
                 else
                 {
-                    eventWriter.LogEvent(DisplayName + ": Mounting is disabled", System.Diagnostics.EventLogEntryType.Warning);
+                    eventWriter.LogEvent(DisplayName + ": Mounting of " + config.Label + " is disabled", System.Diagnostics.EventLogEntryType.Warning);
                 }
             }
         }
