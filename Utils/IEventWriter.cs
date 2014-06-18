@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 
-namespace winsw.Utils
+namespace winsw.util
 {
     public interface IEventWriter
     {

@@ -13,6 +13,7 @@ using WMI;
 using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
+using winsw.Utils;
 
 namespace winsw
 {
@@ -298,6 +299,37 @@ namespace winsw
             {
                 var wd = SingleElement("toolsDirectoryPath", !MapToolsFolder);
                 return String.IsNullOrEmpty(wd) ? "" : wd;
+            }
+        }
+
+        public List<string> ExtensionIds
+        {
+            get
+            {
+                List<string> res = new List<string>();
+
+                XmlNode argumentNode = ExtensionsConfiguration;
+                XmlNodeList extensions = argumentNode != null ? argumentNode.SelectNodes("extension") : null;
+                if ( extensions != null)
+                {
+                    foreach (XmlNode e in extensions)
+                    {
+                        XmlElement extension = (XmlElement)e;
+                        String extensionId = XmlHelper.SingleAttribute<string>(extension, "id");
+                        res.Add(extensionId);
+                    }
+                }
+
+                return res;
+            }
+        }
+
+        public XmlNode ExtensionsConfiguration
+        {
+            get
+            {
+                XmlNode argumentNode = dom.SelectSingleNode("//extensions");
+                return argumentNode;
             }
         }
 

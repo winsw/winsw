@@ -13,8 +13,8 @@ using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
 using System.Management;
-using winsw.Utils;
-using winsw.Extensions;
+using winsw.util;
+using winsw.extensions;
 
 namespace winsw
 {
@@ -23,10 +23,10 @@ namespace winsw
         private SERVICE_STATUS wrapperServiceStatus;
 
         private Process process = new Process();
-        private ServiceDescriptor descriptor;
+        internal ServiceDescriptor descriptor { private set; get; }
+        internal WinSWExtensionManager extensionManager { private set; get; }
         private Dictionary<string, string> envs;
-        private Dictionary<string, IWinSWExtension> extensions = new Dictionary<string,IWinSWExtension>();
-
+        
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
         /// so don't try to kill us when the child exits.
@@ -37,6 +37,7 @@ namespace winsw
         public WrapperService()
         {
             this.descriptor = new ServiceDescriptor();
+            this.extensionManager = new WinSWExtensionManager(this.descriptor);
             this.ServiceName = descriptor.Id;
             this.CanShutdown = true;
             this.CanStop = true;
@@ -216,26 +217,17 @@ namespace winsw
                 startarguments += " " + descriptor.Arguments;
             }
 
-            // Test reg extension
-            LoadExtension(new Extensions.SharedDirectoryMapper.SharedDirectoryMapperExtension
-                ("SharedDirectoryMapper", descriptor.MapSharedFolder, descriptor.MapSharedFolderPath, descriptor.MapSharedFolderLabel));
-            LoadExtension( new Extensions.SharedDirectoryMapper.SharedDirectoryMapperExtension
-                ("ToolsDirectoryMapper", descriptor.MapToolsFolder, descriptor.MapToolsFolderPath, descriptor.MapToolsDirectoryLabel));
-            
-            // Start extensions
-            foreach (var ext in extensions)
+            // Load and start extensions
+            extensionManager.LoadExtensions();
+            try
             {
-                try
-                {
-                    ext.Value.OnStart(this);
-                }
-                catch (ExtensionException ex)
-                {
-                    LogEvent("Failed to start extension  " + ex.ExtensionName + "\n" + ex.Message, EventLogEntryType.Error);
-                    WriteEvent("Failed to start extension  " + ex.ExtensionName, ex);
-
-                    //TODO: Add error
-                }
+                extensionManager.OnStart(this);
+            }
+            catch (ExtensionException ex)
+            {
+                LogEvent("Failed to start extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
+                WriteEvent("Failed to start extension  " + ex.ExtensionId, ex);
+                //TODO: Exit on error?
             }
 
             LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
@@ -322,18 +314,15 @@ namespace winsw
                 SignalShutdownComplete();
             }
 
-            // Stop extensions
-            foreach (var ext in extensions)
+            // Stop extensions      
+            try
             {
-                try
-                {
-                    ext.Value.OnStop(this);
-                }
-                catch (ExtensionException ex)
-                {
-                    LogEvent("Failed to stop extension  " + ex.ExtensionName + "\n" + ex.Message, EventLogEntryType.Error);
-                    WriteEvent("Failed to stop extension  " + ex.ExtensionName, ex);
-                }
+                extensionManager.OnStop(this);
+            }
+            catch (ExtensionException ex)
+            {
+                LogEvent("Failed to stop extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
+                WriteEvent("Failed to stop extension  " + ex.ExtensionId, ex);
             }
 
             if (systemShuttingdown && descriptor.BeepOnShutdown) 
@@ -663,22 +652,7 @@ namespace winsw
             ServiceBase.Run(new WrapperService());
         }
 
-        #region Extension management
-        //TODO: Implement loading of external extensions. Current version supports internal hack
-
-        private void LoadExtension<TExtensionType>(TExtensionType extension) 
-            where TExtensionType : IWinSWExtension
-        {
-            if (extensions.ContainsKey(extension.Name))
-            {
-                throw new ExtensionException(extension.Name, "Extension has been already loaded");
-            }
-
-            extensions.Add(extension.Name, extension);
-            extension.Init(descriptor);
-        }
-
-        #endregion   
+        
 
         private static string ReadPassword()
         {

@@ -75,12 +75,15 @@
     <Compile Include="Advapi32.cs" />
     <Compile Include="Download.cs" />
     <Compile Include="DynamicProxy.cs" />
+    <Compile Include="extensions\AbstractWinSWExtension.cs" />
+    <Compile Include="extensions\WinSWExtensionDescriptor.cs" />
+    <Compile Include="extensions\WinSWExtensionManager.cs" />
     <Compile Include="Kernel32.cs" />
-    <Compile Include="Extensions\IWinSWExtension.cs" />
-    <Compile Include="Extensions\SharedDirectoryMapper\SharedDirectoryMapper.cs" />
-    <Compile Include="Extensions\SharedDirectoryMapper\SharedDirectoryMapperExtension.cs" />
-    <Compile Include="Extensions\ExtensionException.cs" />
-    <Compile Include="Extensions\SharedDirectoryMapper\SharedMemoryMapperConfig.cs" />
+    <Compile Include="extensions\IWinSWExtension.cs" />
+    <Compile Include="extensions\shared_dirs\SharedDirectoryMapperHelper.cs" />
+    <Compile Include="extensions\shared_dirs\SharedDirectoryMapper.cs" />
+    <Compile Include="extensions\ExtensionException.cs" />
+    <Compile Include="extensions\shared_dirs\SharedDirectoryMapperConfig.cs" />
     <Compile Include="Utils\WinSWException.cs" />
     <Compile Include="LogAppenders.cs" />
     <Compile Include="Main.cs">
@@ -91,11 +94,14 @@
     <Compile Include="ServiceDescriptor.cs" />
     <Compile Include="SigIntHelper.cs" />
     <Compile Include="Utils\IEventWriter.cs" />
+    <Compile Include="Utils\XmlHelper.cs" />
     <Compile Include="Wmi.cs" />
     <Compile Include="WmiSchema.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Extensions\SharedDirectoryMapper\sampleConfig.xml" />
+    <Content Include="extensions\shared_dirs\sampleConfig.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="manifest.xml" />
     <Content Include="pom.xml" />
     <Content Include="winsw.xml" />

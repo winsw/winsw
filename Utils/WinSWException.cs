@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace winsw.Extensions
+namespace winsw.extensions
 {
     public class WinSWException : Exception
     {
