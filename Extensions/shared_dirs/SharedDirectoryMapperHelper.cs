@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 
 namespace winsw.extensions.shared_dirs
 {
@@ -15,7 +16,7 @@ namespace winsw.extensions.shared_dirs
         /// <exception cref="MapperException">Operation failure</exception>
         private void InvokeCommand(String command, String args)
         {
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
             p.StartInfo.RedirectStandardError = true;
@@ -27,7 +28,7 @@ namespace winsw.extensions.shared_dirs
             p.WaitForExit();
             if (p.ExitCode != 0)
             {
-                throw new MapperException("Command "+command+" failed with code "+p.ExitCode);
+                throw new MapperException(p, command, args);
             }
         }
 
@@ -55,8 +56,14 @@ namespace winsw.extensions.shared_dirs
 
     class MapperException : WinSWException
     {
-        public MapperException(string message) 
-            : base(message)
-        { }
+        public String Call { get; private set; }
+        public Process Process { get; private set; }
+
+        public MapperException(Process process, string command, string args)
+            : base("Command " + command + " " + args + " failed with code " + process.ExitCode)
+        {
+            Call = command + " " + args;
+            Process = process;
+        }
     }
 }

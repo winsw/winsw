@@ -4,6 +4,7 @@ using System.Text;
 using winsw.util;
 using System.Xml;
 using winsw.Utils;
+using System.Diagnostics;
 
 namespace winsw.extensions.shared_dirs
 {
@@ -47,19 +48,19 @@ namespace winsw.extensions.shared_dirs
             {
                 if (config.EnableMapping)
                 {
-                    eventWriter.LogEvent(DisplayName + ": Mounting shared directory " + config.UNCPath + " to " + config.Label, System.Diagnostics.EventLogEntryType.Information);
+                    eventWriter.LogEvent(DisplayName + ": Mapping shared directory " + config.UNCPath + " to " + config.Label, System.Diagnostics.EventLogEntryType.Information);
                     try
                     {
                         mapper.MapDirectory(config.Label, config.UNCPath);
                     }
                     catch (MapperException ex)
                     {
-                        throw new ExtensionException(DisplayName, "Can't map shared directory", ex);
+                        HandleMappingError(config, eventWriter, ex);
                     }
                 }
                 else
                 {
-                    eventWriter.LogEvent(DisplayName + ": Mounting of " + config.Label + " is disabled", System.Diagnostics.EventLogEntryType.Warning);
+                    eventWriter.LogEvent(DisplayName + ": Mapping of " + config.Label + " is disabled", System.Diagnostics.EventLogEntryType.Warning);
                 }
             }
         }
@@ -76,10 +77,18 @@ namespace winsw.extensions.shared_dirs
                     }
                     catch (MapperException ex)
                     {
-                        throw new ExtensionException(DisplayName, "Can't unmap shared directory", ex);
+                        HandleMappingError(config, eventWriter, ex);
                     }
                 }
             }
+        }
+
+        private void HandleMappingError(SharedDirectoryMapperConfig config, IEventWriter eventWriter, MapperException ex) {
+            String prefix = "Mapping of " + config.Label+ " ";
+            eventWriter.LogEvent(prefix + "STDOUT: " + ex.Process.StandardOutput.ReadToEnd(), EventLogEntryType.Information);
+            eventWriter.LogEvent(prefix + "STDERR: " + ex.Process.StandardError.ReadToEnd(), EventLogEntryType.Information);
+
+            throw new ExtensionException(Descriptor.Id, DisplayName + ": " + prefix + "failed", ex);
         }
     }
 }
