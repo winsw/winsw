@@ -218,7 +218,7 @@ namespace winsw
             }
 
             // Load and start extensions
-            extensionManager.LoadExtensions();
+            extensionManager.LoadExtensions(this);
             try
             {
                 extensionManager.OnStart(this);

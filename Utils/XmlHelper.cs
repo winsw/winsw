@@ -24,6 +24,21 @@ namespace winsw.Utils
         }
 
         /// <summary>
+        /// Retrieves a single node
+        /// </summary>
+        /// <param name="node">Parent node</param>
+        /// <param name="tagName">Element name</param>
+        /// <param name="optional">If otional, don't throw an exception if the elemen is missing</param>
+        /// <returns>String value or null</returns>
+        /// <exception cref="InvalidDataException">The required element is missing</exception>
+        public static XmlNode SingleNode(XmlNode node, string tagName, Boolean optional)
+        {
+            var n = node.SelectSingleNode(tagName);
+            if (n == null && !optional) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+            return n;
+        }
+
+        /// <summary>
         /// Retrieves a single mandatory attribute
         /// </summary>
         /// <param name="node">Parent node</param>

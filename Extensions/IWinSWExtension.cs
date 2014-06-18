@@ -27,20 +27,20 @@ namespace winsw.extensions
         /// </summary>
         /// <param name="descriptor">Service descriptor</param>
         /// <param name="node">Configuration node</param>
-        void Configure(ServiceDescriptor descriptor, XmlNode node);
+        void Configure(ServiceDescriptor descriptor, XmlNode node, IEventWriter logger);
 
         /// <summary>
         /// Start handler. Called during start of the service
         /// </summary>
-        /// <param name="eventWriter">Logger</param>
+        /// <param name="logger">Logger</param>
         /// <exception cref="ExtensionException">Any error during execution</exception>
-        void OnStart(IEventWriter eventWriter);
+        void OnStart(IEventWriter logger);
 
         /// <summary>
         /// Stop handler. Called during stop of the service
         /// </summary>
-        /// <param name="eventWriter">Logger</param>
+        /// <param name="logger">Logger</param>
         /// <exception cref="ExtensionException">Any error during execution</exception>
-        void OnStop(IEventWriter eventWriter);
+        void OnStop(IEventWriter logger);
     }
 }

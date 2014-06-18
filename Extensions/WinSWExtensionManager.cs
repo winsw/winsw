@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.Reflection;
+using winsw.util;
+using System.Diagnostics;
 
 namespace winsw.extensions
 {
@@ -21,11 +23,11 @@ namespace winsw.extensions
         /// Starts all extensions
         /// </summary>
         /// <exception cref="ExtensionException">Start failure</exception>
-        internal void OnStart(WrapperService service) 
+        internal void OnStart(IEventWriter logger) 
         {
             foreach (var ext in extensions)
             {
-                ext.Value.OnStart(service);     
+                ext.Value.OnStart(logger);     
             }
         }
 
@@ -33,23 +35,23 @@ namespace winsw.extensions
         /// Stops all extensions
         /// </summary>
         /// <exception cref="ExtensionException">Stop failure</exception>
-        internal void OnStop(WrapperService service)
+        internal void OnStop(IEventWriter logger)
         {
             foreach (var ext in extensions)
             {
-                ext.Value.OnStop(service);
+                ext.Value.OnStop(logger);
             }
         }
 
         #region Extension load management
         //TODO: Implement loading of external extensions. Current version supports internal hack
 
-        internal void LoadExtensions()
+        internal void LoadExtensions(IEventWriter logger)
         {
             var extensionIds = ServiceDescriptor.ExtensionIds;
             foreach (String extensionId in extensionIds) 
             {
-                LoadExtension(extensionId);
+                LoadExtension(extensionId, logger);
             }
         }
 
@@ -58,7 +60,7 @@ namespace winsw.extensions
         /// </summary>
         /// <param name="id">Extension ID</param>
         /// <exception cref="ExtensionException">Loading failure</exception>
-        private void LoadExtension(string id)
+        private void LoadExtension(string id, IEventWriter logger)
         {
             if (extensions.ContainsKey(id))
             {
@@ -73,12 +75,17 @@ namespace winsw.extensions
             }
 
             var descriptor = WinSWExtensionDescriptor.FromXml(configNode);
-            if (descriptor.Enabled) 
+            if (descriptor.Enabled)
             {
                 IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
-                extension.Configure(ServiceDescriptor, configNode);
+                extension.Configure(ServiceDescriptor, configNode, logger);
                 extensions.Add(id, extension);
+                logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);
+            }
+            else
+            {
+                logger.LogEvent("Extension is disabled: " + id, EventLogEntryType.Warning);
             }
             
         }

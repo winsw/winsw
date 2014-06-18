@@ -11,7 +11,7 @@ namespace winsw.extensions
         public abstract String DisplayName { get; }
         public WinSWExtensionDescriptor Descriptor { get; set; }
 
-        public virtual void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public virtual void Configure(ServiceDescriptor descriptor, XmlNode node, IEventWriter logger)
         {
             // Do nothing
         }

@@ -4,6 +4,7 @@ using System.Text;
 using winsw;
 using NUnit.Framework;
 using winsw.extensions;
+using winswTests.util;
 
 namespace winswTests.extensions
 {
@@ -11,6 +12,7 @@ namespace winswTests.extensions
     class WinSWExtensionManagerTest
     {
         ServiceDescriptor testServiceDescriptor;
+        TestLogger logger = new TestLogger();
 
         [SetUp]
         public void SetUp()
@@ -39,7 +41,16 @@ namespace winswTests.extensions
         public void LoadExtensions()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(testServiceDescriptor);
-            manager.LoadExtensions();
+            manager.LoadExtensions(logger);
+        }
+
+        [Test]
+        public void StartStopExtension()
+        {
+            WinSWExtensionManager manager = new WinSWExtensionManager(testServiceDescriptor);
+            manager.LoadExtensions(logger);
+            manager.OnStart(logger);
+            manager.OnStop(logger);
         }
     }
 }
