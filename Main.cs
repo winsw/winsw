@@ -170,12 +170,21 @@ namespace winsw
 
         private void WriteEvent(String message)
         {
-            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
-            StreamWriter log = new StreamWriter(logfilename, true);
+            string logfilename = "unknown";
+            try
+            {
+                logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
+                StreamWriter log = new StreamWriter(logfilename, true);
 
-            log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
-            log.Flush();
-            log.Close();
+                log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
+                log.Flush();
+                log.Close();
+            }
+            catch (IOException ex)
+            {
+                LogEvent("Cannot write the message to " + logfilename + ": " + ex.Message);
+                throw ex;
+            }
         }
 
         protected override void OnStart(string[] _)

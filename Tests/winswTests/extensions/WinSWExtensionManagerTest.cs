@@ -31,7 +31,13 @@ namespace winswTests.extensions
                 + "        <map enabled=\"false\" label=\"N:\" uncpath=\"\\\\UNC\"/>                                                        "
                 + "        <map enabled=\"false\" label=\"M:\" uncpath=\"\\\\UNC2\"/>                                                       "
                 + "      </mapping>                                                                                                 "
-                + "    </extension>                                                                                                 "
+                + "    </extension>         "
+                + "    <extension enabled=\"true\" className=\"winsw.extensions.shared_dirs.SharedDirectoryMapper\" id=\"mapNetworDirs2\"> "
+                + "      <mapping>                                                                                                  "
+                + "        <map enabled=\"false\" label=\"X:\" uncpath=\"\\\\UNC\"/>                                                        "
+                + "        <map enabled=\"false\" label=\"Y:\" uncpath=\"\\\\UNC2\"/>                                                       "
+                + "      </mapping>                                                                                                 "
+                + "    </extension>         "
                 + "  </extensions>                                                                                                  "
                 + "</service>";
             testServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
@@ -42,6 +48,7 @@ namespace winswTests.extensions
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(testServiceDescriptor);
             manager.LoadExtensions(logger);
+            Assert.AreEqual(2, manager.Extensions.Count, "Two extensions should be loaded");
         }
 
         [Test]

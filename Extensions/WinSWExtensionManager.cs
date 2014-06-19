@@ -10,13 +10,13 @@ namespace winsw.extensions
 {
     internal class WinSWExtensionManager
     {
-        private Dictionary<string, IWinSWExtension> extensions = new Dictionary<string, IWinSWExtension>();
-
+        internal Dictionary<string, IWinSWExtension> Extensions { private set; get; }
         internal ServiceDescriptor ServiceDescriptor { private set; get; }
 
         internal WinSWExtensionManager(ServiceDescriptor serviceDescriptor)
         {
             ServiceDescriptor = serviceDescriptor;
+            Extensions = new Dictionary<string, IWinSWExtension>();
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace winsw.extensions
         /// <exception cref="ExtensionException">Start failure</exception>
         internal void OnStart(IEventWriter logger) 
         {
-            foreach (var ext in extensions)
+            foreach (var ext in Extensions)
             {
                 ext.Value.OnStart(logger);     
             }
@@ -37,7 +37,7 @@ namespace winsw.extensions
         /// <exception cref="ExtensionException">Stop failure</exception>
         internal void OnStop(IEventWriter logger)
         {
-            foreach (var ext in extensions)
+            foreach (var ext in Extensions)
             {
                 ext.Value.OnStop(logger);
             }
@@ -62,7 +62,7 @@ namespace winsw.extensions
         /// <exception cref="ExtensionException">Loading failure</exception>
         private void LoadExtension(string id, IEventWriter logger)
         {
-            if (extensions.ContainsKey(id))
+            if (Extensions.ContainsKey(id))
             {
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
@@ -80,7 +80,7 @@ namespace winsw.extensions
                 IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 extension.Configure(ServiceDescriptor, configNode, logger);
-                extensions.Add(id, extension);
+                Extensions.Add(id, extension);
                 logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);
             }
             else
