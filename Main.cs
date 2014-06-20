@@ -266,7 +266,7 @@ namespace winsw
                 try
                 {
                     WriteEvent("ProcessKill " + process.Id);
-                    StopProcessAndChildren(process.Id);
+                    StopProcess(process.Id);
                 }
                 catch (InvalidOperationException)
                 {
@@ -303,14 +303,8 @@ namespace winsw
             WriteEvent("Finished " + descriptor.Id);
         }
 
-        private void StopProcessAndChildren(int pid)
+        private void StopProcess(int pid)
         {
-            var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-            foreach (var mo in searcher.Get())
-            {
-                StopProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
-            }
-
             var proc = Process.GetProcessById(pid);
             WriteEvent("Send SIGINT " + pid);
             bool successful = SigIntHelper.SendSIGINTToProcess(proc,descriptor.StopTimeout);
