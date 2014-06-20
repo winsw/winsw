@@ -76,7 +76,7 @@ namespace winswTests
         }
 
         [Test]
-        public void StopParentProcessFirstIsFalse()
+        public void StopParentProcessFirstIsFalseByDefault()
         {
             Assert.False(extendedServiceDescriptor.StopParentProcessFirst);
         }
@@ -127,6 +127,28 @@ namespace winswTests
             var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(60)));
+        }
+
+        [Test]
+        public void CanParseStopTimeoutFromMinutes()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "</serviceaccount>"
+                                   + "<stoptimeout>10min</stoptimeout>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+
+            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
         }
     }
 }
