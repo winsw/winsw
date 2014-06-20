@@ -28,13 +28,13 @@ namespace winsw
         /// 
         /// This string is "c:\abc\def\ghi" when the configuration XML is "c:\abc\def\ghi.xml"
         /// </summary>
-        public readonly string BasePath;
+        public string BasePath { get; set; }
         /// <summary>
         /// The file name portion of the configuration file.
         /// 
         /// In the above example, this would be "ghi".
         /// </summary>
-        public readonly string BaseName;
+        public string BaseName { get; set; }
 
         public virtual string ExecutablePath
         {
@@ -581,6 +581,20 @@ namespace winsw
             get
             {
                 return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+            }
+        }
+
+        public bool StopParentProcessFirst
+        {
+            get
+            {
+                var value = SingleElement("stopparentprocessfirst", true);
+                bool result;
+                if (bool.TryParse(value, out result))
+                {
+                    return result;
+                }
+                return false;
             }
         }
 
