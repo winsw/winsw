@@ -584,6 +584,20 @@ namespace winsw
             }
         }
 
+        public bool StopParentProcessFirst
+        {
+            get
+            {
+                var value = SingleElement("stopparentprocessfirst", true);
+                bool result;
+                if (bool.TryParse(value, out result))
+                {
+                    return result;
+                }
+                return false;
+            }
+        }
+
         /// <summary>
         /// Desired process priority or null if not specified.
         /// </summary>

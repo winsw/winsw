@@ -72,5 +72,36 @@ namespace winswTests
             sd = ServiceDescriptor.FromXML("<service><id>test</id></service>");
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
         }
+
+        [Test]
+        public void StopParentProcessFirstIsFalse()
+        {
+            Assert.False(extendedServiceDescriptor.StopParentProcessFirst);
+        }
+
+        public void CanParseStopParentProcessFirst()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "</serviceaccount>"
+                                   + "<workingdirectory>"
+                                   + ExpectedWorkingDirectory
+                                   + "</workingdirectory>"
+                                   + @"<logpath>C:\logs</logpath>"
+                                   + "<stopparentprocessfirst>true</stopparentprocessfirst>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+
+            Assert.True(serviceDescriptor.StopParentProcessFirst);
+        }
     }
 }
