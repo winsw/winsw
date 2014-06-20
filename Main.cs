@@ -325,20 +325,33 @@ namespace winsw
             }
         }
 
-        private static List<int> GetChildPids(int pid)
+        private List<int> GetChildPids(int pid)
         {
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             var childPids = new List<int>();
             foreach (var mo in searcher.Get())
             {
-                childPids.Add(Convert.ToInt32(mo["ProcessID"]));
+                var childProcessId = mo["ProcessID"];
+                WriteEvent("Found child process: " + childProcessId + " Name: " + mo["Name"]);
+                childPids.Add(Convert.ToInt32(childProcessId));
             }
             return childPids;
         }
 
         private void StopProcess(int pid)
         {
-            var proc = Process.GetProcessById(pid);
+            WriteEvent("Stopping process " + pid);
+            Process proc;
+            try
+            {
+                proc = Process.GetProcessById(pid);
+            }
+            catch (ArgumentException)
+            {
+                WriteEvent("Process " + pid + " is already stopped");
+                return;
+            }
+            
             WriteEvent("Send SIGINT " + pid);
             bool successful = SigIntHelper.SendSIGINTToProcess(proc, descriptor.StopTimeout);
             if (successful)
