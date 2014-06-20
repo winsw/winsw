@@ -295,4 +295,6 @@ Specifying a priority higher than normal has unintended consequences. See <a hre
 
 ###stopparentprocessfirst
 Optionally specify the order of service shutdown. If true, the parent process is shutdown first. This is useful when the main process is a console, which can respond to Ctrol+C command and will gracefully shutdown child processes
-    <stopparentprocessfirst>true</stopparentprocessfirst>
+```
+<stopparentprocessfirst>true</stopparentprocessfirst>
+```
