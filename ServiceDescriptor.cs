@@ -580,7 +580,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom.FirstChild, "stoptimeout", TimeSpan.FromSeconds(15));
             }
         }
 
