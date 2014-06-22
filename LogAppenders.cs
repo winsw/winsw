@@ -163,6 +163,22 @@ namespace winsw
         private string pattern;
         private int period;
 
+        public string Pattern
+        {
+            get
+            {
+                return pattern;
+            }
+        }
+
+        public int Period
+        {
+            get
+            {
+                return period;
+            }
+        }
+
         public TimeBasedRollingLogAppender(string logDirectory, string baseName, string pattern, int period)
             : base(logDirectory, baseName)
         {
@@ -240,6 +256,22 @@ namespace winsw
 
         private int sizeThreshold;
         private int filesToKeep;
+
+        public int SizeTheshold
+        {
+            get
+            {
+                return sizeThreshold;
+            }
+        }
+
+        public int FilesToKeep
+        {
+            get
+            {
+                return filesToKeep;
+            }
+        }
 
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, int sizeThreshold, int filesToKeep)
             : base(logDirectory, baseName)
