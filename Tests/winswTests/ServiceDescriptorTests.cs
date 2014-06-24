@@ -5,6 +5,8 @@ using System.Xml;
 
 namespace winswTests
 {
+    using System;
+
     [TestFixture]
     public class ServiceDescriptorTests
     {
@@ -71,6 +73,82 @@ namespace winswTests
 
             sd = ServiceDescriptor.FromXML("<service><id>test</id></service>");
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
+        }
+
+        [Test]
+        public void StopParentProcessFirstIsFalseByDefault()
+        {
+            Assert.False(extendedServiceDescriptor.StopParentProcessFirst);
+        }
+
+        [Test]
+        public void CanParseStopParentProcessFirst()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "</serviceaccount>"
+                                   + "<workingdirectory>"
+                                   + ExpectedWorkingDirectory
+                                   + "</workingdirectory>"
+                                   + @"<logpath>C:\logs</logpath>"
+                                   + "<stopparentprocessfirst>true</stopparentprocessfirst>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+
+            Assert.True(serviceDescriptor.StopParentProcessFirst);
+        }
+
+        [Test]
+        public void CanParseStopTimeout()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "</serviceaccount>"
+                                   + "<stoptimeout>60sec</stoptimeout>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+
+            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(60)));
+        }
+
+        [Test]
+        public void CanParseStopTimeoutFromMinutes()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "</serviceaccount>"
+                                   + "<stoptimeout>10min</stoptimeout>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+
+            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
         }
     }
 }

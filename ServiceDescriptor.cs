@@ -103,7 +103,7 @@ namespace winsw
 
         private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
         {
-            var e = parent.SelectSingleNode(tagName);
+            var e = parent.SelectSingleNode("//" + tagName);
 
             if (e == null)
             {
@@ -117,7 +117,7 @@ namespace winsw
 
         private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
         {
-            var e = parent.SelectSingleNode(tagName);
+            var e = parent.SelectSingleNode("//" + tagName);
 
             if (e == null)
             {
@@ -331,7 +331,7 @@ namespace winsw
                         return new RollingLogAppender(LogDirectory, BaseName);
 
                     case "roll-by-time":
-                        XmlNode patternNode = e.SelectSingleNode("pattern");
+                        XmlNode patternNode = e.SelectSingleNode("//pattern");
                         if (patternNode == null)
                         {
                             throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
@@ -581,6 +581,20 @@ namespace winsw
             get
             {
                 return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+            }
+        }
+
+        public bool StopParentProcessFirst
+        {
+            get
+            {
+                var value = SingleElement("stopparentprocessfirst", true);
+                bool result;
+                if (bool.TryParse(value, out result))
+                {
+                    return result;
+                }
+                return false;
             }
         }
 
