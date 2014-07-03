@@ -28,13 +28,13 @@ namespace winsw
         /// 
         /// This string is "c:\abc\def\ghi" when the configuration XML is "c:\abc\def\ghi.xml"
         /// </summary>
-        public readonly string BasePath;
+        public string BasePath { get; set; }
         /// <summary>
         /// The file name portion of the configuration file.
         /// 
         /// In the above example, this would be "ghi".
         /// </summary>
-        public readonly string BaseName;
+        public string BaseName { get; set; }
 
         public virtual string ExecutablePath
         {
@@ -103,7 +103,7 @@ namespace winsw
 
         private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
         {
-            var e = parent.SelectSingleNode("//" + tagName);
+            var e = parent.SelectSingleNode(tagName);
 
             if (e == null)
             {
@@ -117,7 +117,7 @@ namespace winsw
 
         private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
         {
-            var e = parent.SelectSingleNode("//" + tagName);
+            var e = parent.SelectSingleNode(tagName);
 
             if (e == null)
             {
@@ -331,7 +331,7 @@ namespace winsw
                         return new RollingLogAppender(LogDirectory, BaseName);
 
                     case "roll-by-time":
-                        XmlNode patternNode = e.SelectSingleNode("//pattern");
+                        XmlNode patternNode = e.SelectSingleNode("pattern");
                         if (patternNode == null)
                         {
                             throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
@@ -580,7 +580,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom.FirstChild, "stoptimeout", TimeSpan.FromSeconds(15));
             }
         }
 
