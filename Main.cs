@@ -138,7 +138,14 @@ namespace winsw
             }
             else
             {
-                EventLog.WriteEntry(message);
+                try
+                {
+                    EventLog.WriteEntry(message);
+                }
+                catch (Exception e)
+                {
+                    WriteEvent("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
+                }
             }
         }
 
@@ -150,7 +157,14 @@ namespace winsw
             }
             else
             {
-                EventLog.WriteEntry(message, type);
+                try
+                {
+                    EventLog.WriteEntry(message, type);
+                }
+                catch (Exception e)
+                {
+                    WriteEvent("Failed to log event in Windows Event Log. Reason: ", e);
+                }
             }
         }
 
