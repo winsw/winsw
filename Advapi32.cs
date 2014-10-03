@@ -49,7 +49,7 @@ namespace winsw
         public void ChangeConfig(TimeSpan failureResetPeriod, List<SC_ACTION> actions)
         {
             SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS();
-            sfa.dwResetPeriod = failureResetPeriod.Seconds;
+            sfa.dwResetPeriod = (int)failureResetPeriod.TotalSeconds;
             sfa.lpRebootMsg = ""; // delete message
             sfa.lpCommand = "";   // delete the command to run
             
