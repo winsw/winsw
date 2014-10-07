@@ -419,7 +419,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "waithint", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom, "//waithint", TimeSpan.FromSeconds(15));
             }
         }
 
@@ -433,7 +433,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "sleeptime", TimeSpan.FromSeconds(1));
+                return SingleTimeSpanElement(dom, "//sleeptime", TimeSpan.FromSeconds(1));
             }
         }
 
@@ -519,7 +519,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "resetfailure", TimeSpan.FromDays(1));
+                return SingleTimeSpanElement(dom, "//resetfailure", TimeSpan.FromDays(1));
             }
         }
 
@@ -580,7 +580,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom, "stoptimeout", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom, "//stoptimeout", TimeSpan.FromSeconds(15));
             }
         }
 
