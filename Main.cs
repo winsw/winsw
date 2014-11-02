@@ -13,17 +13,20 @@ using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
 using System.Management;
+using winsw.util;
+using winsw.extensions;
 
 namespace winsw
 {
-    public class WrapperService : ServiceBase, EventLogger
+    public class WrapperService : ServiceBase, EventLogger, IEventWriter
     {
         private SERVICE_STATUS wrapperServiceStatus;
 
         private Process process = new Process();
-        private ServiceDescriptor descriptor;
+        internal ServiceDescriptor descriptor { private set; get; }
+        internal WinSWExtensionManager extensionManager { private set; get; }
         private Dictionary<string, string> envs;
-
+        
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
         /// so don't try to kill us when the child exits.
@@ -34,6 +37,7 @@ namespace winsw
         public WrapperService()
         {
             this.descriptor = new ServiceDescriptor();
+            this.extensionManager = new WinSWExtensionManager(this.descriptor);
             this.ServiceName = descriptor.Id;
             this.CanShutdown = true;
             this.CanStop = true;
@@ -180,16 +184,27 @@ namespace winsw
 
         private void WriteEvent(String message)
         {
-            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
-            StreamWriter log = new StreamWriter(logfilename, true);
+            string logfilename = "unknown";
+            try
+            {
+                logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
+                StreamWriter log = new StreamWriter(logfilename, true);
 
-            log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
-            log.Flush();
-            log.Close();
+                log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
+                log.Flush();
+                log.Close();
+            }
+            catch (IOException ex)
+            {
+                LogEvent("Cannot write the message to " + logfilename + ": " + ex.Message);
+                throw ex;
+            }
         }
 
         protected override void OnStart(string[] _)
         {
+            
+
             envs = descriptor.EnvironmentVariables;
             foreach (string key in envs.Keys)
             {
@@ -223,6 +238,19 @@ namespace winsw
             else
             {
                 startarguments += " " + descriptor.Arguments;
+            }
+
+            // Load and start extensions
+            extensionManager.LoadExtensions(this);
+            try
+            {
+                extensionManager.OnStart(this);
+            }
+            catch (ExtensionException ex)
+            {
+                LogEvent("Failed to start extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
+                WriteEvent("Failed to start extension  " + ex.ExtensionId, ex);
+                //TODO: Exit on error?
             }
 
             LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
@@ -307,6 +335,17 @@ namespace winsw
                 WaitForProcessToExit(process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
+            }
+
+            // Stop extensions      
+            try
+            {
+                extensionManager.OnStop(this);
+            }
+            catch (ExtensionException ex)
+            {
+                LogEvent("Failed to stop extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
+                WriteEvent("Failed to stop extension  " + ex.ExtensionId, ex);
             }
 
             if (systemShuttingdown && descriptor.BeepOnShutdown) 
@@ -635,6 +674,8 @@ namespace winsw
             }
             ServiceBase.Run(new WrapperService());
         }
+
+        
 
         private static string ReadPassword()
         {
