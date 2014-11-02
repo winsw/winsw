@@ -204,9 +204,14 @@ namespace winsw
                             w.Close();
                             offset = i + 1;
 
-                            // create a new file.
+                            // create a new file and write everything to the new file.
                             w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
                             rolled = true;
+                            if (offset < len)
+                            {
+                                w.Write(buf, offset, len - offset);
+                                break;
+                            }
                         }
                     }
 
