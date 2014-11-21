@@ -51,12 +51,10 @@ namespace winsw
 
                 process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
 
-                return process.HasExited;
+                return process.HasExited;    
             }
-            else
-            {
-                return false;
-            }
+         
+            return false;
         }
     }
 }

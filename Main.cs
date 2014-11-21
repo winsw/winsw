@@ -319,15 +319,55 @@ namespace winsw
 
         private void StopProcessAndChildren(int pid)
         {
+            var childPids = GetChildPids(pid);
+
+            if (descriptor.StopParentProcessFirst)
+            {
+                StopProcess(pid);
+                foreach (var childPid in childPids)
+                {
+                    StopProcessAndChildren(childPid);
+                }
+            }
+            else
+            {
+                foreach (var childPid in childPids)
+                {
+                    StopProcessAndChildren(childPid);
+                }
+                StopProcess(pid);
+            }
+        }
+
+        private List<int> GetChildPids(int pid)
+        {
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+            var childPids = new List<int>();
             foreach (var mo in searcher.Get())
             {
-                StopProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
+                var childProcessId = mo["ProcessID"];
+                WriteEvent("Found child process: " + childProcessId + " Name: " + mo["Name"]);
+                childPids.Add(Convert.ToInt32(childProcessId));
             }
+            return childPids;
+        }
 
-            var proc = Process.GetProcessById(pid);
+        private void StopProcess(int pid)
+        {
+            WriteEvent("Stopping process " + pid);
+            Process proc;
+            try
+            {
+                proc = Process.GetProcessById(pid);
+            }
+            catch (ArgumentException)
+            {
+                WriteEvent("Process " + pid + " is already stopped");
+                return;
+            }
+            
             WriteEvent("Send SIGINT " + pid);
-            bool successful = SigIntHelper.SendSIGINTToProcess(proc,descriptor.StopTimeout);
+            bool successful = SigIntHelper.SendSIGINTToProcess(proc, descriptor.StopTimeout);
             if (successful)
             {
                 WriteEvent("SIGINT to" + pid + " successful");

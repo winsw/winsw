@@ -292,3 +292,9 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
     <priority>idle</priority>
 
 Specifying a priority higher than normal has unintended consequences. See <a href="http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx">MSDN discussion</a> for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
+
+###stopparentprocessfirst
+Optionally specify the order of service shutdown. If true, the parent process is shutdown first. This is useful when the main process is a console, which can respond to Ctrol+C command and will gracefully shutdown child processes
+```
+<stopparentprocessfirst>true</stopparentprocessfirst>
+```
