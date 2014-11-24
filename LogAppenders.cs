@@ -79,7 +79,6 @@ namespace winsw
         {
             this.baseLogFileName = Path.Combine(logDirectory, baseName);
         }
-
         
         protected string BaseLogFileName
         {
@@ -88,7 +87,6 @@ namespace winsw
                 return this.baseLogFileName;
             }
         }
-
     }
 
     public abstract class SimpleLogAppender : AbstractFileLogAppender
@@ -159,7 +157,6 @@ namespace winsw
 
     public class TimeBasedRollingLogAppender : AbstractFileLogAppender
     {
-
         private string pattern;
         private int period;
 
