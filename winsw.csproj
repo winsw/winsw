@@ -15,8 +15,8 @@
     <StartupObject>
     </StartupObject>
     <SignManifests>false</SignManifests>
-    <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile/>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>winsw_cert.pfx</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -84,8 +84,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.xml" />
-    <Content Include="pom.xml" />
-    <Content Include="winsw.xml" />
+    <Content Include="pom.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="winsw.xml">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="winsw_cert.pfx" />
@@ -111,8 +115,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\mt.exe" -manifest "$(ProjectDir)manifest.xml"  -outputresource:"$(TargetDir)$(TargetFileName)";#1
-
-"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\signtool.exe" sign /f c:\winsw-do-not-add-to-scm.pfx /p winsw /t http://timestamp.comodoca.com/authenticode $(TargetFileName)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
