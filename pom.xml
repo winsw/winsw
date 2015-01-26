@@ -29,7 +29,7 @@
             </goals>
             <configuration>
               <tasks>
-                <attachArtifact file="bin/Debug/winsw.exe" type="exe" classifier="bin" />
+                <attachArtifact file="bin/Release/winsw.exe" type="exe" classifier="bin" />
               </tasks>
             </configuration>
           </execution>
