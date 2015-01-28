@@ -298,3 +298,15 @@ Optionally specify the order of service shutdown. If true, the parent process is
 ```
 <stopparentprocessfirst>true</stopparentprocessfirst>
 ```
+
+Developer info
+----------------------
+
+### Build Environment
+
+* IDE: [Visual Studio Community 2013][MVS2013] (free for open-source projects)
+* winsw_cert.pfx should be available in the project's root
+ * You can generate the certificate in "Project Settings/Signing"
+ * The certificate is in <code>.gitignore</code> list. Please do not add it to the repository
+
+[MVS2013]: http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx
