@@ -566,6 +566,9 @@ namespace winsw
                         }
                     }
 
+                    if (username != null && password != null)
+                        AddLogonAsAServiceRight(username);
+
                     svc.Create (
                         d.Id,
                         d.Caption,
@@ -698,6 +701,11 @@ namespace winsw
                     buf.Append(key.KeyChar);
                 }
             }
+        }
+
+        private static void AddLogonAsAServiceRight(string username)
+        {
+            LogonAsAService.AddLogonAsAServiceRight(username);
         }
 
     }
