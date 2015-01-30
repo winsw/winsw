@@ -85,13 +85,24 @@ namespace winsw
     {
         public static void AddLogonAsAServiceRight(string Username)
         {
-            var newuser = GetLocalAccountIfLocalAccount(Username);
-            //Trace.WriteLine("Username for Logon as A Service: " + newuser);
-            long rightexitcode = SetRight(newuser, PrivlegeRights.SeServiceLogonRight.ToString());
-            if (rightexitcode != 0)
+            //Needs to be at least XP or 2003 server
+            //https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
+            System.OperatingSystem osInfo = System.Environment.OSVersion;
+
+            if (osInfo.Version.Major >= 5 && osInfo.Version.Minor >= 1)
             {
-                Console.WriteLine("Failed to set logon as a service right");
-                Environment.Exit(1);
+                var newuser = GetLocalAccountIfLocalAccount(Username);
+                //Trace.WriteLine("Username for Logon as A Service: " + newuser);
+                long rightexitcode = SetRight(newuser, PrivlegeRights.SeServiceLogonRight.ToString());
+                if (rightexitcode != 0)
+                {
+                    Console.WriteLine("Failed to set logon as a service right");
+                    Environment.Exit(1);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Cannot set Logon as a Service right.  Unsupported operating system detected");
             }
         }
 
