@@ -558,7 +558,7 @@ namespace winsw
                         Console.Write("Password: ");
                         password = ReadPassword();
                         Console.WriteLine();
-                        Console.Write("Set Account rights to allow log on as a servuce (y/n)?: ");
+                        Console.Write("Set Account rights to allow log on as a service (y/n)?: ");
                         var keypressed = Console.ReadKey();
                         Console.WriteLine();
                         if (keypressed.Key == ConsoleKey.Y)
