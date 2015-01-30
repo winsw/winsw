@@ -1,5 +1,6 @@
 using System;
-using System.Data;
+
+// ReSharper disable InconsistentNaming
 
 namespace winsw
 {
@@ -8,23 +9,22 @@ namespace winsw
      **/
     public class PeriodicRollingCalendar
     {
-        private PeriodicityType _periodicityType;
-        private string _format;
-        private long _period;
+        private readonly string _format;
+        private readonly long _period;
         private DateTime _currentRoll;
         private DateTime _nextRoll;
 
         public PeriodicRollingCalendar(string format, long period)
         {
-            this._format = format;
-            this._period = period;
-            this._currentRoll = DateTime.Now;
+            _format = format;
+            _period = period;
+            _currentRoll = DateTime.Now;
         }
 
         public void init()
         {
-            this._periodicityType = determinePeriodicityType();
-            this._nextRoll = nextTriggeringTime(this._currentRoll, this._period);
+            periodicityType = determinePeriodicityType();
+            _nextRoll = nextTriggeringTime(_currentRoll, _period);
         }
 
         public enum PeriodicityType
@@ -32,7 +32,7 @@ namespace winsw
             ERRONEOUS, TOP_OF_MILLISECOND, TOP_OF_SECOND, TOP_OF_MINUTE, TOP_OF_HOUR, TOP_OF_DAY
         }
 
-        private static PeriodicityType[] VALID_ORDERED_LIST = new PeriodicityType[] {
+        private static readonly PeriodicityType[] VALID_ORDERED_LIST = {
             PeriodicityType.TOP_OF_MILLISECOND, PeriodicityType.TOP_OF_SECOND, PeriodicityType.TOP_OF_MINUTE, PeriodicityType.TOP_OF_HOUR, PeriodicityType.TOP_OF_DAY
         };
 
@@ -60,7 +60,7 @@ namespace winsw
         private DateTime nextTriggeringTime(DateTime input, long increment)
         {
             DateTime output;
-            switch (_periodicityType)
+            switch (periodicityType)
             {
                 case PeriodicityType.TOP_OF_MILLISECOND:
                     output = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second, input.Millisecond);
@@ -83,27 +83,21 @@ namespace winsw
                     output = output.AddDays(increment);
                     return output;
                 default:
-                    throw new Exception("invalid periodicity type: " + _periodicityType);
+                    throw new Exception("invalid periodicity type: " + periodicityType);
             }
         }
 
-        public PeriodicityType periodicityType
-        {
-            set
-            {
-                this._periodicityType = value;
-            }
-        }
+        public PeriodicityType periodicityType { get; set; }
 
         public Boolean shouldRoll
         {
             get
             {
                 DateTime now = DateTime.Now;
-                if (now > this._nextRoll)
+                if (now > _nextRoll)
                 {
-                    this._currentRoll = now;
-                    this._nextRoll = nextTriggeringTime(now, this._period);
+                    _currentRoll = now;
+                    _nextRoll = nextTriggeringTime(now, _period);
                     return true;
                 }
                 return false;
@@ -114,7 +108,7 @@ namespace winsw
         {
             get
             {
-                return this._currentRoll.ToString(this._format);
+                return _currentRoll.ToString(_format);
             }
         }
 

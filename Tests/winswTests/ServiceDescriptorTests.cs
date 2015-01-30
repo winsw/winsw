@@ -1,17 +1,15 @@
-﻿using NUnit.Framework;
-using winsw;
+﻿using System;
 using System.Diagnostics;
-using System.Xml;
+using NUnit.Framework;
+using winsw;
 
 namespace winswTests
 {
-    using System;
-
     [TestFixture]
     public class ServiceDescriptorTests
     {
 
-        private ServiceDescriptor extendedServiceDescriptor;
+        private ServiceDescriptor _extendedServiceDescriptor;
 
         private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
         private const string Username = "User";
@@ -22,7 +20,7 @@ namespace winswTests
         [SetUp]
         public void SetUp()
         {
-            const string SeedXml = "<service>"
+            const string seedXml = "<service>"
                                    + "<id>service.exe</id>"
                                    + "<name>Service</name>"
                                    + "<description>The service.</description>"
@@ -40,34 +38,34 @@ namespace winswTests
                                    + "</workingdirectory>"
                                    + @"<logpath>C:\logs</logpath>"
                                    + "</service>";
-            extendedServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
         [Test]
         public void VerifyWorkingDirectory()
         {
-            System.Diagnostics.Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(_extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
         }
 
         [Test]
         public void VerifyServiceLogonRight()
         {
-            Assert.That(extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(true));
+            Assert.That(_extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(true));
         }
 
         [Test]
         public void VerifyUsername()
         {
-            System.Diagnostics.Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(extendedServiceDescriptor.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(_extendedServiceDescriptor.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
         }
 
         [Test]
         public void VerifyPassword()
         {
-            System.Diagnostics.Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(_extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
         }
 
         [Test]
@@ -86,16 +84,16 @@ namespace winswTests
         [Test]
         public void StopParentProcessFirstIsFalseByDefault()
         {
-            Assert.False(extendedServiceDescriptor.StopParentProcessFirst);
+            Assert.False(_extendedServiceDescriptor.StopParentProcessFirst);
         }
 
         [Test]
         public void CanParseStopParentProcessFirst()
         {
-            const string SeedXml =   "<service>"
+            const string seedXml =   "<service>"
                                    +    "<stopparentprocessfirst>true</stopparentprocessfirst>"
                                    + "</service>";
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
             Assert.True(serviceDescriptor.StopParentProcessFirst);
         }
@@ -103,10 +101,10 @@ namespace winswTests
         [Test]
         public void CanParseStopTimeout()
         {
-            const string SeedXml =   "<service>"
+            const string seedXml =   "<service>"
                                    +    "<stoptimeout>60sec</stoptimeout>"
                                    + "</service>";
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(60)));
         }
@@ -114,10 +112,10 @@ namespace winswTests
         [Test]
         public void CanParseStopTimeoutFromMinutes()
         {
-            const string SeedXml =   "<service>"
+            const string seedXml =   "<service>"
                                    +    "<stoptimeout>10min</stoptimeout>"
                                    + "</service>";
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
         }   
@@ -125,7 +123,7 @@ namespace winswTests
         [Test]
         public void LogModeRollBySize()
         {
-            const string SeedXml =   "<service>"
+            const string seedXml =   "<service>"
                                    + "<logpath>c:\\</logpath>"
                                    + "<log mode=\"roll-by-size\">"
                                    +    "<sizeThreshold>112</sizeThreshold>"
@@ -133,7 +131,7 @@ namespace winswTests
                                    + "</log>"
                                    + "</service>";
             
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as SizeBasedRollingLogAppender;
@@ -145,7 +143,7 @@ namespace winswTests
         [Test]
         public void LogModeRollByTime()
         {
-            const string SeedXml = "<service>"
+            const string seedXml = "<service>"
                                    + "<logpath>c:\\</logpath>"
                                    + "<log mode=\"roll-by-time\">"
                                    +    "<period>7</period>"
@@ -153,7 +151,7 @@ namespace winswTests
                                    + "</log>"
                                    + "</service>";
 
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as TimeBasedRollingLogAppender;
@@ -165,7 +163,7 @@ namespace winswTests
         [Test]
         public void VerifyServiceLogonRightGraceful()
         {
-            const string SeedXml="<service>"
+            const string seedXml="<service>"
                                    + "<serviceaccount>"
                                    +   "<domain>" + Domain + "</domain>"
                                    +   "<user>" + Username + "</user>"
@@ -173,20 +171,20 @@ namespace winswTests
                                    + "<allowservicelogon>true1</allowservicelogon>"
                                    +  "</serviceaccount>"
                                    + "</service>";
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
         }
         [Test]
         public void VerifyServiceLogonRightOmitted()
         {
-            const string SeedXml = "<service>"
+            const string seedXml = "<service>"
                                    + "<serviceaccount>"
                                    + "<domain>" + Domain + "</domain>"
                                    + "<user>" + Username + "</user>"
                                    + "<password>" + Password + "</password>"
                                    + "</serviceaccount>"
                                    + "</service>";
-            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
         }
     }

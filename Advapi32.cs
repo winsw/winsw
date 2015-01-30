@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Text;
+
+// ReSharper disable InconsistentNaming
 
 namespace winsw
 {
     class ServiceManager : IDisposable
     {
-        private IntPtr Handle;
+        private IntPtr _handle;
 
         public ServiceManager()
         {
-            Handle = Advapi32.OpenSCManager(null, null, (uint)SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
-            if (Handle == IntPtr.Zero)
+            _handle = Advapi32.OpenSCManager(null, null, (uint)SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
+            if (_handle == IntPtr.Zero)
             {
                 throw new Exception(String.Format("Error connecting to Service Control Manager. Error provided was: 0x{0:X}", Marshal.GetLastWin32Error()));
             }
@@ -21,7 +23,7 @@ namespace winsw
 
         public Service Open(string serviceName)
         {
-            IntPtr svcHandle = Advapi32.OpenService(Handle, serviceName, (int)SERVICE_ACCESS.SERVICE_ALL_ACCESS);
+            IntPtr svcHandle = Advapi32.OpenService(_handle, serviceName, (int)SERVICE_ACCESS.SERVICE_ALL_ACCESS);
             if (svcHandle == IntPtr.Zero)
             {
                 throw new Exception(String.Format("Error opening service for modifying. Error returned was: 0x{0:X}", Marshal.GetLastWin32Error()));
@@ -31,9 +33,9 @@ namespace winsw
 
         public void Dispose()
         {
-            if (Handle != IntPtr.Zero)
-                Advapi32.CloseServiceHandle(Handle);
-            Handle = IntPtr.Zero;
+            if (_handle != IntPtr.Zero)
+                Advapi32.CloseServiceHandle(_handle);
+            _handle = IntPtr.Zero;
         }
     }
 
@@ -48,11 +50,15 @@ namespace winsw
 
         public void ChangeConfig(TimeSpan failureResetPeriod, List<SC_ACTION> actions)
         {
-            SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS();
-            sfa.dwResetPeriod = (int)failureResetPeriod.TotalSeconds;
-            sfa.lpRebootMsg = ""; // delete message
-            sfa.lpCommand = "";   // delete the command to run
-            
+            SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS
+            {
+                dwResetPeriod = (int) failureResetPeriod.TotalSeconds,
+                lpRebootMsg = "",
+                lpCommand = ""
+            };
+            // delete message
+            // delete the command to run
+
             int len = Marshal.SizeOf(typeof(SC_ACTION));
 
             sfa.cActions = actions.Count;
@@ -83,15 +89,15 @@ namespace winsw
 
     static class LogonAsAService
     {
-        public static void AddLogonAsAServiceRight(string Username)
+        public static void AddLogonAsAServiceRight(string username)
         {
             //Needs to be at least XP or 2003 server
             //https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
-            System.OperatingSystem osInfo = System.Environment.OSVersion;
+            OperatingSystem osInfo = Environment.OSVersion;
 
             if (osInfo.Version.Major >= 5 && osInfo.Version.Minor >= 1)
             {
-                var newuser = GetLocalAccountIfLocalAccount(Username);
+                var newuser = GetLocalAccountIfLocalAccount(username);
                 //Trace.WriteLine("Username for Logon as A Service: " + newuser);
                 long rightexitcode = SetRight(newuser, PrivlegeRights.SeServiceLogonRight.ToString());
                 if (rightexitcode != 0)
@@ -108,17 +114,19 @@ namespace winsw
 
         private static string GetDomain(string s)
         {
-            int stop = s.IndexOf("\\");
+            int stop = s.IndexOf("\\", StringComparison.Ordinal);
             if (stop >= 0)
                 return s.Substring(0, stop);
             else
                 return null;
         }
+
         private static string GetLogin(string s)
         {
-            int stop = s.IndexOf("\\");
+            int stop = s.IndexOf("\\", StringComparison.Ordinal);
             return (stop > -1) ? s.Substring(stop + 1, s.Length - stop - 1) : s;
         }
+
         private static string GetLocalAccountIfLocalAccount(string username)
         {
             var machinename = Environment.MachineName;
@@ -174,34 +182,36 @@ namespace winsw
                 //initialize an empty unicode-string
                 LSA_UNICODE_STRING systemName = new LSA_UNICODE_STRING();
                 //combine all policies
-                int access = (int)(
-                                       LSA_AccessPolicy.POLICY_AUDIT_LOG_ADMIN |
-                                       LSA_AccessPolicy.POLICY_CREATE_ACCOUNT |
-                                       LSA_AccessPolicy.POLICY_CREATE_PRIVILEGE |
-                                       LSA_AccessPolicy.POLICY_CREATE_SECRET |
-                                       LSA_AccessPolicy.POLICY_GET_PRIVATE_INFORMATION |
-                                       LSA_AccessPolicy.POLICY_LOOKUP_NAMES |
-                                       LSA_AccessPolicy.POLICY_NOTIFICATION |
-                                       LSA_AccessPolicy.POLICY_SERVER_ADMIN |
-                                       LSA_AccessPolicy.POLICY_SET_AUDIT_REQUIREMENTS |
-                                       LSA_AccessPolicy.POLICY_SET_DEFAULT_QUOTA_LIMITS |
-                                       LSA_AccessPolicy.POLICY_TRUST_ADMIN |
-                                       LSA_AccessPolicy.POLICY_VIEW_AUDIT_INFORMATION |
-                                       LSA_AccessPolicy.POLICY_VIEW_LOCAL_INFORMATION
-                                   );
+                const int access = (int)(
+                    LSA_AccessPolicy.POLICY_AUDIT_LOG_ADMIN |
+                    LSA_AccessPolicy.POLICY_CREATE_ACCOUNT |
+                    LSA_AccessPolicy.POLICY_CREATE_PRIVILEGE |
+                    LSA_AccessPolicy.POLICY_CREATE_SECRET |
+                    LSA_AccessPolicy.POLICY_GET_PRIVATE_INFORMATION |
+                    LSA_AccessPolicy.POLICY_LOOKUP_NAMES |
+                    LSA_AccessPolicy.POLICY_NOTIFICATION |
+                    LSA_AccessPolicy.POLICY_SERVER_ADMIN |
+                    LSA_AccessPolicy.POLICY_SET_AUDIT_REQUIREMENTS |
+                    LSA_AccessPolicy.POLICY_SET_DEFAULT_QUOTA_LIMITS |
+                    LSA_AccessPolicy.POLICY_TRUST_ADMIN |
+                    LSA_AccessPolicy.POLICY_VIEW_AUDIT_INFORMATION |
+                    LSA_AccessPolicy.POLICY_VIEW_LOCAL_INFORMATION
+                    );
                 //initialize a pointer for the policy handle
                 IntPtr policyHandle = IntPtr.Zero;
 
                 //these attributes are not used, but LsaOpenPolicy wants them to exists
-                LSA_OBJECT_ATTRIBUTES ObjectAttributes = new LSA_OBJECT_ATTRIBUTES();
-                ObjectAttributes.Length = 0;
-                ObjectAttributes.RootDirectory = IntPtr.Zero;
-                ObjectAttributes.Attributes = 0;
-                ObjectAttributes.SecurityDescriptor = IntPtr.Zero;
-                ObjectAttributes.SecurityQualityOfService = IntPtr.Zero;
+                LSA_OBJECT_ATTRIBUTES objectAttributes = new LSA_OBJECT_ATTRIBUTES
+                {
+                    Length = 0,
+                    RootDirectory = IntPtr.Zero,
+                    Attributes = 0,
+                    SecurityDescriptor = IntPtr.Zero,
+                    SecurityQualityOfService = IntPtr.Zero
+                };
 
                 //get a policy handle
-                uint resultPolicy = Advapi32.LsaOpenPolicy(ref systemName, ref ObjectAttributes, access, out policyHandle);
+                uint resultPolicy = Advapi32.LsaOpenPolicy(ref systemName, ref objectAttributes, access, out policyHandle);
                 winErrorCode = Advapi32.LsaNtStatusToWinError(resultPolicy);
 
                 if (winErrorCode != 0)
@@ -324,6 +334,7 @@ namespace winsw
     }
 
     // enum all policies
+    [Flags]
     enum LSA_AccessPolicy : long
     {
         POLICY_VIEW_LOCAL_INFORMATION = 0x00000001L,
@@ -346,6 +357,7 @@ namespace winsw
         /// <summary>
         /// Required to connect to the service control manager.
         /// </summary>
+        
         SC_MANAGER_CONNECT = 0x00001,
 
         /// <summary>
@@ -514,8 +526,8 @@ namespace winsw
 
         public SC_ACTION(SC_ACTION_TYPE type, TimeSpan delay)
         {
-            this.Type = type;
-            this.Delay = (uint)delay.TotalMilliseconds;
+            Type = type;
+            Delay = (uint)delay.TotalMilliseconds;
         }
     }
 

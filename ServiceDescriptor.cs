@@ -1,18 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.ServiceProcess;
-using System.Text;
 using System.IO;
-using System.Net;
-using WMI;
+using System.Reflection;
 using System.Xml;
-using System.Threading;
-using Microsoft.Win32;
 
 namespace winsw
 {
@@ -21,6 +13,7 @@ namespace winsw
     /// </summary>
     public class ServiceDescriptor
     {
+        // ReSharper disable once InconsistentNaming
         protected readonly XmlDocument dom = new XmlDocument();
 
         /// <summary>
@@ -132,7 +125,7 @@ namespace winsw
         private TimeSpan ParseTimeSpan(string v)
         {
             v = v.Trim();
-            foreach (var s in SUFFIX)
+            foreach (var s in Suffix)
             {
                 if (v.EndsWith(s.Key))
                 {
@@ -142,7 +135,7 @@ namespace winsw
             return TimeSpan.FromMilliseconds(int.Parse(v));
         }
 
-        private static readonly Dictionary<string,long> SUFFIX = new Dictionary<string,long> {
+        private static readonly Dictionary<string,long> Suffix = new Dictionary<string,long> {
             { "ms",     1 }, 
             { "sec",    1000L },
             { "secs",   1000L },
@@ -362,7 +355,7 @@ namespace winsw
         {
             get
             {
-                System.Collections.ArrayList serviceDependencies = new System.Collections.ArrayList();
+                ArrayList serviceDependencies = new ArrayList();
 
                 foreach (XmlNode depend in dom.SelectNodes("//depend"))
                 {
@@ -548,13 +541,16 @@ namespace winsw
             }
         }
 
+        // ReSharper disable once InconsistentNaming
 		protected string serviceAccountDomain
 		{
-			get{
+			get
+            {
 				return GetServiceAccountPart("domain");
 			}
 		}
 
+        // ReSharper disable once InconsistentNaming
 		protected string serviceAccountName
 		{
 			get
@@ -587,7 +583,7 @@ namespace winsw
             {
                 if (AllowServiceLogon != null)
                 {
-                    bool parsedvalue = false;
+                    bool parsedvalue;
                     if (Boolean.TryParse(AllowServiceLogon, out parsedvalue))
                     {
                         return parsedvalue;

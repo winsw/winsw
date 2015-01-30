@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
+using System.IO;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
-using System.IO;
-using System.Net;
-using WMI;
-using System.Xml;
 using System.Threading;
 using Microsoft.Win32;
-using System.Management;
+using WMI;
+using ServiceType = WMI.ServiceType;
 
 namespace winsw
 {
@@ -20,26 +17,26 @@ namespace winsw
     {
         private SERVICE_STATUS wrapperServiceStatus;
 
-        private Process process = new Process();
-        private ServiceDescriptor descriptor;
-        private Dictionary<string, string> envs;
+        private readonly Process process = new Process();
+        private readonly ServiceDescriptor descriptor;
+        private Dictionary<string, string> _envs;
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
         /// so don't try to kill us when the child exits.
         /// </summary>
-        private bool orderlyShutdown;
-        private bool systemShuttingdown;
+        private bool _orderlyShutdown;
+        private bool _systemShuttingdown;
 
         public WrapperService()
         {
-            this.descriptor = new ServiceDescriptor();
-            this.ServiceName = descriptor.Id;
-            this.CanShutdown = true;
-            this.CanStop = true;
-            this.CanPauseAndContinue = false;
-            this.AutoLog = true;
-            this.systemShuttingdown = false;
+            descriptor = new ServiceDescriptor();
+            ServiceName = descriptor.Id;
+            CanShutdown = true;
+            CanStop = true;
+            CanPauseAndContinue = false;
+            AutoLog = true;
+            _systemShuttingdown = false;
         }
 
         /// <summary>
@@ -132,7 +129,7 @@ namespace winsw
 
         public void LogEvent(String message)
         {
-            if (systemShuttingdown)
+            if (_systemShuttingdown)
             {
                 /* NOP - cannot call EventLog because of shutdown. */
             }
@@ -151,7 +148,7 @@ namespace winsw
 
         public void LogEvent(String message, EventLogEntryType type)
         {
-            if (systemShuttingdown)
+            if (_systemShuttingdown)
             {
                 /* NOP - cannot call EventLog because of shutdown. */
             }
@@ -190,10 +187,10 @@ namespace winsw
 
         protected override void OnStart(string[] _)
         {
-            envs = descriptor.EnvironmentVariables;
-            foreach (string key in envs.Keys)
+            _envs = descriptor.EnvironmentVariables;
+            foreach (string key in _envs.Keys)
             {
-                LogEvent("envar " + key + '=' + envs[key]);
+                LogEvent("envar " + key + '=' + _envs[key]);
             }
 
             HandleFileCopies();
@@ -242,7 +239,7 @@ namespace winsw
 
             try
             {
-                this.systemShuttingdown = true;
+                _systemShuttingdown = true;
                 StopIt();
             }
             catch (Exception ex)
@@ -273,7 +270,7 @@ namespace winsw
             string stoparguments = descriptor.Stoparguments;
             LogEvent("Stopping " + descriptor.Id);
             WriteEvent("Stopping " + descriptor.Id);
-            orderlyShutdown = true;
+            _orderlyShutdown = true;
 
             if (stoparguments == null)
             {
@@ -309,7 +306,7 @@ namespace winsw
                 SignalShutdownComplete();
             }
 
-            if (systemShuttingdown && descriptor.BeepOnShutdown) 
+            if (_systemShuttingdown && descriptor.BeepOnShutdown) 
             {
                 Console.Beep();
             }
@@ -386,7 +383,7 @@ namespace winsw
             }
         }
 
-        private void WaitForProcessToExit(Process process)
+        private void WaitForProcessToExit(Process processoWait)
         {
             SignalShutdownPending();
 
@@ -394,7 +391,7 @@ namespace winsw
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
-                while (!process.WaitForExit(descriptor.SleepTime.Milliseconds))
+                while (!processoWait.WaitForExit(descriptor.SleepTime.Milliseconds))
                 {
                     SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
@@ -410,7 +407,7 @@ namespace winsw
 
         private void SignalShutdownPending()
         {
-            IntPtr handle = this.ServiceHandle;
+            IntPtr handle = ServiceHandle;
             wrapperServiceStatus.checkPoint++;
             wrapperServiceStatus.waitHint = descriptor.WaitHint.Milliseconds;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
@@ -420,7 +417,7 @@ namespace winsw
 
         private void SignalShutdownComplete()
         {
-            IntPtr handle = this.ServiceHandle;
+            IntPtr handle = ServiceHandle;
             wrapperServiceStatus.checkPoint++;
 //            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
@@ -439,8 +436,8 @@ namespace winsw
             ps.RedirectStandardOutput = true;
             ps.RedirectStandardError = true;
 
-            foreach (string key in envs.Keys)
-                System.Environment.SetEnvironmentVariable(key, envs[key]);
+            foreach (string key in _envs.Keys)
+                Environment.SetEnvironmentVariable(key, _envs[key]);
                 // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
 
             process.Start();
@@ -451,14 +448,14 @@ namespace winsw
                 process.PriorityClass = priority;
 
             // monitor the completion of the process
-            StartThread(delegate()
+            StartThread(delegate
             {
                 string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
                 process.WaitForExit();
 
                 try
                 {
-                    if (orderlyShutdown)
+                    if (_orderlyShutdown)
                     {
                         LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
                     }
@@ -585,7 +582,7 @@ namespace winsw
                         d.Id,
                         d.Caption,
                         "\"" + d.ExecutablePath + "\"",
-                        WMI.ServiceType.OwnProcess,
+                        ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
                         StartMode.Automatic,
                         d.Interactive,
@@ -688,7 +685,7 @@ namespace winsw
                 }
                 return;
             }
-            ServiceBase.Run(new WrapperService());
+            Run(new WrapperService());
         }
 
         private static string ReadPassword()

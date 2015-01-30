@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
 
@@ -85,11 +85,11 @@ namespace DynamicProxy
     /// </summary>
     public class ProxyFactory
     {
-        private static ProxyFactory instance;
-        private static Object lockObj = new Object();
+        private static ProxyFactory _instance;
+        private static readonly Object LockObj = new Object();
 
-        private Hashtable typeMap = Hashtable.Synchronized(new Hashtable());
-        private static readonly Hashtable opCodeTypeMapper = new Hashtable();
+        private readonly Hashtable _typeMap = Hashtable.Synchronized(new Hashtable());
+        private static readonly Hashtable OpCodeTypeMapper = new Hashtable();
 
         private const string PROXY_SUFFIX = "Proxy";
         private const string ASSEMBLY_NAME = "ProxyAssembly";
@@ -100,14 +100,14 @@ namespace DynamicProxy
         // return types, used in the Emit process.
         static ProxyFactory()
         {
-            opCodeTypeMapper.Add(typeof(System.Boolean), OpCodes.Ldind_I1);
-            opCodeTypeMapper.Add(typeof(System.Int16), OpCodes.Ldind_I2);
-            opCodeTypeMapper.Add(typeof(System.Int32), OpCodes.Ldind_I4);
-            opCodeTypeMapper.Add(typeof(System.Int64), OpCodes.Ldind_I8);
-            opCodeTypeMapper.Add(typeof(System.Double), OpCodes.Ldind_R8);
-            opCodeTypeMapper.Add(typeof(System.Single), OpCodes.Ldind_R4);
-            opCodeTypeMapper.Add(typeof(System.UInt16), OpCodes.Ldind_U2);
-            opCodeTypeMapper.Add(typeof(System.UInt32), OpCodes.Ldind_U4);
+            OpCodeTypeMapper.Add(typeof(Boolean), OpCodes.Ldind_I1);
+            OpCodeTypeMapper.Add(typeof(Int16), OpCodes.Ldind_I2);
+            OpCodeTypeMapper.Add(typeof(Int32), OpCodes.Ldind_I4);
+            OpCodeTypeMapper.Add(typeof(Int64), OpCodes.Ldind_I8);
+            OpCodeTypeMapper.Add(typeof(Double), OpCodes.Ldind_R8);
+            OpCodeTypeMapper.Add(typeof(Single), OpCodes.Ldind_R4);
+            OpCodeTypeMapper.Add(typeof(UInt16), OpCodes.Ldind_U2);
+            OpCodeTypeMapper.Add(typeof(UInt32), OpCodes.Ldind_U4);
         }
 
         private ProxyFactory()
@@ -116,21 +116,21 @@ namespace DynamicProxy
 
         public static ProxyFactory GetInstance()
         {
-            if (instance == null)
+            if (_instance == null)
             {
                 CreateInstance();
             }
 
-            return instance;
+            return _instance;
         }
 
         private static void CreateInstance()
         {
-            lock (lockObj)
+            lock (LockObj)
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = new ProxyFactory();
+                    _instance = new ProxyFactory();
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace DynamicProxy
         public Object Create(IProxyInvocationHandler handler, Type objType, bool isObjInterface)
         {
             string typeName = objType.FullName + PROXY_SUFFIX;
-            Type type = (Type)typeMap[typeName];
+            Type type = (Type)_typeMap[typeName];
 
             // check to see if the type was in the cache.  If the type was not cached, then
             // create a new instance of the dynamic type and add it to the cache.
@@ -153,7 +153,7 @@ namespace DynamicProxy
                     type = CreateType(handler, objType.GetInterfaces(), typeName);
                 }
 
-                typeMap.Add(typeName, type);
+                _typeMap.Add(typeName, type);
             }
 
             // return a new instance of the type.
@@ -171,7 +171,7 @@ namespace DynamicProxy
 
             if (handler != null && interfaces != null)
             {
-                Type objType = typeof(System.Object);
+                Type objType = typeof(Object);
                 Type handlerType = typeof(IProxyInvocationHandler);
 
                 AppDomain domain = Thread.GetDomain();
@@ -316,7 +316,7 @@ namespace DynamicProxy
                         } else if ( !methodInfo.ReturnType.IsPrimitive ) {
                             methodIL.Emit( OpCodes.Ldobj, methodInfo.ReturnType );
                         } else {
-                            methodIL.Emit( (OpCode) opCodeTypeMapper[ methodInfo.ReturnType ] );
+                            methodIL.Emit( (OpCode) OpCodeTypeMapper[ methodInfo.ReturnType ] );
                         }
                     }                                                                     
                 } else {

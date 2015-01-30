@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using System.Management;
+using System.Reflection;
 using DynamicProxy;
 
 namespace WMI
@@ -65,7 +63,7 @@ namespace WMI
     public class WmiClassName : Attribute
     {
         public readonly string Name;
-        public WmiClassName(string name) { this.Name = name; }
+        public WmiClassName(string name) { Name = name; }
     }
 
     /// <summary>
@@ -107,7 +105,7 @@ namespace WMI
             scope.Connect();
         }
 
-        private static string capitalize(string s)
+        private static string Capitalize(string s)
         {
             return char.ToUpper(s[0]) + s.Substring(1);
         }
@@ -126,9 +124,9 @@ namespace WMI
 
         class InstanceHandler : BaseHandler, IWmiObject
         {
-            private readonly ManagementObject mo;
+            private readonly ManagementObject _mo;
 
-            public InstanceHandler(ManagementObject o) { this.mo = o; }
+            public InstanceHandler(ManagementObject o) { _mo = o; }
 
             public override object Invoke(object proxy, MethodInfo method, object[] args)
             {
@@ -140,37 +138,37 @@ namespace WMI
                 // TODO: proper property support
                 if (method.Name.StartsWith("set_"))
                 {
-                    mo[method.Name.Substring(4)] = args[0];
+                    _mo[method.Name.Substring(4)] = args[0];
                     return null;
                 }
                 if (method.Name.StartsWith("get_"))
                 {
-                    return mo[method.Name.Substring(4)];
+                    return _mo[method.Name.Substring(4)];
                 }
 
                 // method invocations
                 ParameterInfo[] methodArgs = method.GetParameters();
 
-                ManagementBaseObject wmiArgs = mo.GetMethodParameters(method.Name);
+                ManagementBaseObject wmiArgs = _mo.GetMethodParameters(method.Name);
                 for (int i = 0; i < args.Length; i++)
-                    wmiArgs[capitalize(methodArgs[i].Name)] = args[i];
+                    wmiArgs[Capitalize(methodArgs[i].Name)] = args[i];
 
-                CheckError(mo.InvokeMethod(method.Name, wmiArgs, null));
+                CheckError(_mo.InvokeMethod(method.Name, wmiArgs, null));
                 return null;
             }
 
             public void Commit()
             {
-                mo.Put();
+                _mo.Put();
             }
         }
 
         class ClassHandler : BaseHandler
         {
-            private readonly ManagementClass mc;
-            private readonly string wmiClass;
+            private readonly ManagementClass _mc;
+            private readonly string _wmiClass;
 
-            public ClassHandler(ManagementClass mc, string wmiClass) { this.mc = mc; this.wmiClass = wmiClass; }
+            public ClassHandler(ManagementClass mc, string wmiClass) { _mc = mc; _wmiClass = wmiClass; }
 
             public override object Invoke(object proxy, MethodInfo method, object[] args)
             {
@@ -179,14 +177,14 @@ namespace WMI
                 if (method.Name.StartsWith("Select"))
                 {
                     // select method to find instances
-                    string query = "SELECT * FROM " + wmiClass + " WHERE ";
+                    string query = "SELECT * FROM " + _wmiClass + " WHERE ";
                     for (int i = 0; i < args.Length; i++)
                     {
                         if (i != 0) query += " AND ";
-                        query += ' ' + capitalize(methodArgs[i].Name) + " = '" + args[i] + "'";
+                        query += ' ' + Capitalize(methodArgs[i].Name) + " = '" + args[i] + "'";
                     }
 
-                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(mc.Scope, new ObjectQuery(query));
+                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(_mc.Scope, new ObjectQuery(query));
                     ManagementObjectCollection results = searcher.Get();
                     // TODO: support collections
                     foreach (ManagementObject manObject in results)
@@ -194,11 +192,11 @@ namespace WMI
                     return null;
                 }
 
-                ManagementBaseObject wmiArgs = mc.GetMethodParameters(method.Name);
+                ManagementBaseObject wmiArgs = _mc.GetMethodParameters(method.Name);
                 for (int i = 0; i < args.Length; i++)
-                    wmiArgs[capitalize(methodArgs[i].Name)] = args[i];
+                    wmiArgs[Capitalize(methodArgs[i].Name)] = args[i];
 
-                CheckError(mc.InvokeMethod(method.Name, wmiArgs, null));
+                CheckError(_mc.InvokeMethod(method.Name, wmiArgs, null));
                 return null;
             }
         }

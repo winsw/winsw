@@ -1,9 +1,10 @@
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 namespace winsw
 {
+    // ReSharper disable once InconsistentNaming
     public interface EventLogger
     {
         void LogEvent(string message);
@@ -15,24 +16,13 @@ namespace winsw
     /// </summary>
     public abstract class LogHandler
     {
-        private EventLogger eventLogger;
-
+        // ReSharper disable once InconsistentNaming
         public abstract void log(Stream outputStream, Stream errorStream);
 
         /// <summary>
         /// Error and information about logging should be reported here.
         /// </summary>
-        public EventLogger EventLogger
-        {
-            set
-            {
-                this.eventLogger = value;
-            }
-            get
-            {
-                return this.eventLogger;
-            }
-        }
+        public EventLogger EventLogger { set; get; }
 
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
@@ -73,59 +63,32 @@ namespace winsw
     /// </summary>
     public abstract class AbstractFileLogAppender : LogHandler
     {
-        private string baseLogFileName;
+        protected string BaseLogFileName { private set; get; }
 
         public AbstractFileLogAppender(string logDirectory, string baseName)
         {
-            this.baseLogFileName = Path.Combine(logDirectory, baseName);
+            BaseLogFileName = Path.Combine(logDirectory, baseName);
         }
-
-        
-        protected string BaseLogFileName
-        {
-            get
-            {
-                return this.baseLogFileName;
-            }
-        }
-
     }
 
     public abstract class SimpleLogAppender : AbstractFileLogAppender
     {
-
-        private FileMode fileMode;
-        private string outputLogFileName;
-        private string errorLogFileName;
+        public FileMode FileMode { private set; get; }
+        public string OutputLogFileName { private set; get; }
+        public string ErrorLogFileName { private set; get; }
 
         public SimpleLogAppender(string logDirectory, string baseName, FileMode fileMode)
             : base(logDirectory, baseName)
         {
-            this.fileMode = fileMode;
-            this.outputLogFileName = BaseLogFileName + ".out.log";
-            this.errorLogFileName = BaseLogFileName + ".err.log";
-        }
-
-        public string OutputLogFileName
-        {
-            get
-            {
-                return this.outputLogFileName;
-            }
-        }
-
-        public string ErrorLogFileName
-        {
-            get
-            {
-                return this.errorLogFileName;
-            }
+            FileMode = fileMode;
+            OutputLogFileName = BaseLogFileName + ".out.log";
+            ErrorLogFileName = BaseLogFileName + ".err.log";
         }
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(delegate() { CopyStream(outputStream, new FileStream(outputLogFileName, fileMode)); }).Start();
-            new Thread(delegate() { CopyStream(errorStream, new FileStream(errorLogFileName, fileMode)); }).Start();
+            new Thread(delegate() { CopyStream(outputStream, new FileStream(OutputLogFileName, FileMode)); }).Start();
+            new Thread(delegate() { CopyStream(errorStream, new FileStream(ErrorLogFileName, FileMode)); }).Start();
         }
     }
 
@@ -159,31 +122,14 @@ namespace winsw
 
     public class TimeBasedRollingLogAppender : AbstractFileLogAppender
     {
-
-        private string pattern;
-        private int period;
-
-        public string Pattern
-        {
-            get
-            {
-                return pattern;
-            }
-        }
-
-        public int Period
-        {
-            get
-            {
-                return period;
-            }
-        }
+        public string Pattern { get; private set; }
+        public int Period { get; private set; }
 
         public TimeBasedRollingLogAppender(string logDirectory, string baseName, string pattern, int period)
             : base(logDirectory, baseName)
         {
-            this.pattern = pattern;
-            this.period = period;
+            Pattern = pattern;
+            Period = period;
         }
 
         public override void log(Stream outputStream, Stream errorStream)
@@ -197,7 +143,7 @@ namespace winsw
         /// </summary>
         private void CopyStreamWithDateRotation(Stream data, string ext)
         {
-            PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(pattern, period);
+            PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(Pattern, Period);
             periodicRollingCalendar.init();
 
             byte[] buf = new byte[1024];
@@ -254,35 +200,24 @@ namespace winsw
 
     public class SizeBasedRollingLogAppender : AbstractFileLogAppender
     {
+        // ReSharper disable once InconsistentNaming
         public static int BYTES_PER_KB = 1024;
+        // ReSharper disable once InconsistentNaming
         public static int BYTES_PER_MB = 1024 * BYTES_PER_KB;
+        // ReSharper disable once InconsistentNaming
         public static int DEFAULT_SIZE_THRESHOLD = 10 * BYTES_PER_MB; // rotate every 10MB.
+        // ReSharper disable once InconsistentNaming
         public static int DEFAULT_FILES_TO_KEEP = 8;
 
-        private int sizeThreshold;
-        private int filesToKeep;
+        public int SizeTheshold { private set; get; }
 
-        public int SizeTheshold
-        {
-            get
-            {
-                return sizeThreshold;
-            }
-        }
-
-        public int FilesToKeep
-        {
-            get
-            {
-                return filesToKeep;
-            }
-        }
+        public int FilesToKeep { private set; get; }
 
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, int sizeThreshold, int filesToKeep)
             : base(logDirectory, baseName)
         {
-            this.sizeThreshold = sizeThreshold;
-            this.filesToKeep = filesToKeep;
+            SizeTheshold = sizeThreshold;
+            FilesToKeep = filesToKeep;
         }
 
         public SizeBasedRollingLogAppender(string logDirectory, string baseName)
@@ -307,7 +242,7 @@ namespace winsw
             {
                 int len = data.Read(buf, 0, buf.Length);
                 if (len == 0) break;    // EOF
-                if (sz + len < sizeThreshold)
+                if (sz + len < SizeTheshold)
                 {// typical case. write the whole thing into the current file
                     w.Write(buf, 0, len);
                     sz += len;
@@ -319,7 +254,7 @@ namespace winsw
                     for (int i = 0; i < len; i++)
                     {
                         if (buf[i] != 0x0A) continue;
-                        if (sz + i < sizeThreshold) continue;
+                        if (sz + i < SizeTheshold) continue;
 
                         // at the line boundary and exceeded the rotation unit.
                         // time to rotate.
@@ -329,7 +264,7 @@ namespace winsw
 
                         try
                         {
-                            for (int j = filesToKeep; j >= 1; j--)
+                            for (int j = FilesToKeep; j >= 1; j--)
                             {
                                 string dst = BaseLogFileName + "." + (j - 1) + ext;
                                 string src = BaseLogFileName + "." + (j - 2) + ext;
