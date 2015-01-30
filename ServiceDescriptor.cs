@@ -540,7 +540,7 @@ namespace winsw
 
 		}
 
-        protected string allowservicelogon
+        protected string AllowServiceLogon
         {
             get
             {
@@ -585,10 +585,10 @@ namespace winsw
         {
             get
             {
-                if (allowservicelogon != null)
+                if (AllowServiceLogon != null)
                 {
                     bool parsedvalue = false;
-                    if (Boolean.TryParse(allowservicelogon, out parsedvalue))
+                    if (Boolean.TryParse(AllowServiceLogon, out parsedvalue))
                     {
                         return parsedvalue;
                     }
