@@ -540,6 +540,14 @@ namespace winsw
 
 		}
 
+        protected string allowServiceAccountLogonRight
+        {
+            get
+            {
+                return GetServiceAccountPart("allowserviceaccountlogonright");
+            }
+        }
+
 		protected string serviceAccountDomain
 		{
 			get{
@@ -572,6 +580,22 @@ namespace winsw
 		{
 			return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
 		}
+
+        public bool AllowServiceAcountLogonRight
+        {
+            get
+            {
+                if (allowServiceAccountLogonRight != null)
+                {
+                    bool parsedvalue = false;
+                    if (Boolean.TryParse(allowServiceAccountLogonRight, out parsedvalue))
+                    {
+                        return parsedvalue;
+                    }
+                }
+                return false;
+            }
+        }
 
          /// <summary>
          /// Time to wait for the service to gracefully shutdown before we forcibly kill it

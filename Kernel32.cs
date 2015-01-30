@@ -21,6 +21,8 @@ namespace winsw
            [In] ref STARTUPINFO lpStartupInfo,
            out PROCESS_INFORMATION lpProcessInformation);
 
+        [DllImport("kernel32.dll")]
+        internal static extern int GetLastError();
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -72,7 +72,6 @@
     <Compile Include="DynamicProxy.cs" />
     <Compile Include="Kernel32.cs" />
     <Compile Include="LogAppenders.cs" />
-    <Compile Include="LogonAsAService.cs" />
     <Compile Include="Main.cs">
       <SubType>Component</SubType>
     </Compile>

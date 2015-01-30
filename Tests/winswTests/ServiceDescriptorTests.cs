@@ -17,6 +17,7 @@ namespace winswTests
         private const string Username = "User";
         private const string Password = "Password";
         private const string Domain = "Domain";
+        private const string AllowServiceAccountLogonRight = "true";
 
         [SetUp]
         public void SetUp()
@@ -32,6 +33,7 @@ namespace winswTests
                                    +   "<domain>" + Domain + "</domain>"
                                    +   "<user>" + Username + "</user>"
                                    +   "<password>" + Password + "</password>"
+                                   + "<allowserviceaccountlogonright>" + AllowServiceAccountLogonRight + "</allowserviceaccountlogonright>"
                                    + "</serviceaccount>"
                                    + "<workingdirectory>"
                                    + ExpectedWorkingDirectory
@@ -46,6 +48,12 @@ namespace winswTests
         {
             System.Diagnostics.Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + extendedServiceDescriptor.WorkingDirectory);
             Assert.That(extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+        }
+
+        [Test]
+        public void VerifyServiceLogonRight()
+        {
+            Assert.That(extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(true));
         }
 
         [Test]
@@ -152,6 +160,34 @@ namespace winswTests
             Assert.NotNull(logHandler);
             Assert.That(logHandler.Period, Is.EqualTo(7));
             Assert.That(logHandler.Pattern, Is.EqualTo("log pattern"));
+        }
+
+        [Test]
+        public void VerifyServiceLogonRightGraceful()
+        {
+            const string SeedXml="<service>"
+                                   + "<serviceaccount>"
+                                   +   "<domain>" + Domain + "</domain>"
+                                   +   "<user>" + Username + "</user>"
+                                   +   "<password>" + Password + "</password>"
+                                   + "<allowserviceaccountlogonright>true1</allowserviceaccountlogonright>"
+                                   +  "</serviceaccount>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
+        }
+        [Test]
+        public void VerifyServiceLogonRightOmitted()
+        {
+            const string SeedXml = "<service>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "</serviceaccount>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
         }
     }
 }

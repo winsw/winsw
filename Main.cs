@@ -549,6 +549,7 @@ namespace winsw
                 if (args[0] == "install")
                 {
                     string username=null, password=null;
+                    bool setallowlogonasaserviceright = false;
                     if (args.Count > 1 && args[1] == "/p")
                     {
                         // we expected username/password on stdin
@@ -556,6 +557,14 @@ namespace winsw
                         username = Console.ReadLine();
                         Console.Write("Password: ");
                         password = ReadPassword();
+                        Console.WriteLine();
+                        Console.Write("Set Account rights to allow log on as a servuce (y/n)?: ");
+                        var keypressed = Console.ReadKey();
+                        Console.WriteLine();
+                        if (keypressed.Key == ConsoleKey.Y)
+                        {
+                            setallowlogonasaserviceright = true;
+                        }
                     }
                     else
                     {
@@ -563,11 +572,14 @@ namespace winsw
                         {
                             username = d.ServiceAccountUser;
                             password = d.ServiceAccountPassword;
+                            setallowlogonasaserviceright = d.AllowServiceAcountLogonRight;
                         }
                     }
-
-                    if (username != null && password != null)
-                        AddLogonAsAServiceRight(username);
+                    
+                    if (setallowlogonasaserviceright)
+                    {
+                        LogonAsAService.AddLogonAsAServiceRight(username);
+                    }
 
                     svc.Create (
                         d.Id,
@@ -702,11 +714,5 @@ namespace winsw
                 }
             }
         }
-
-        private static void AddLogonAsAServiceRight(string username)
-        {
-            LogonAsAService.AddLogonAsAServiceRight(username);
-        }
-
     }
 }
