@@ -33,7 +33,7 @@ namespace winswTests
                                    +   "<domain>" + Domain + "</domain>"
                                    +   "<user>" + Username + "</user>"
                                    +   "<password>" + Password + "</password>"
-                                   + "<allowserviceaccountlogonright>" + AllowServiceAccountLogonRight + "</allowserviceaccountlogonright>"
+                                   + "<allowservicelogon>" + AllowServiceAccountLogonRight + "</allowservicelogon>"
                                    + "</serviceaccount>"
                                    + "<workingdirectory>"
                                    + ExpectedWorkingDirectory
@@ -170,7 +170,7 @@ namespace winswTests
                                    +   "<domain>" + Domain + "</domain>"
                                    +   "<user>" + Username + "</user>"
                                    +   "<password>" + Password + "</password>"
-                                   + "<allowserviceaccountlogonright>true1</allowserviceaccountlogonright>"
+                                   + "<allowservicelogon>true1</allowservicelogon>"
                                    +  "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(SeedXml);

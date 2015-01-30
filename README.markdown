@@ -278,10 +278,10 @@ It is possible to specify the useraccount (and password) that the service will r
        <domain>YOURDOMAIN</domain>
        <user>useraccount</user>
        <password>Pa55w0rd</password>
-       <allowserviceaccountlogonright>true</allowserviceaccountlogonright>
+       <allowservicelogon>true</allowservicelogon>
     </serviceaccount>
 
-The <allowserviceaccountlogonright> is optional.  If set to true, will automatically set the "Allow Log On As A Service" right to the listed account.
+The <allowservicelogon> is optional.  If set to true, will automatically set the "Allow Log On As A Service" right to the listed account.
 
 ### Working directory
 Some services need to run with a working directory specified. To do this, specify a `<workingdirectory>` element like this:

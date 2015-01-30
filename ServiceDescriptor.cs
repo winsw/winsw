@@ -540,11 +540,11 @@ namespace winsw
 
 		}
 
-        protected string allowServiceAccountLogonRight
+        protected string allowservicelogon
         {
             get
             {
-                return GetServiceAccountPart("allowserviceaccountlogonright");
+                return GetServiceAccountPart("allowservicelogon");
             }
         }
 
@@ -585,10 +585,10 @@ namespace winsw
         {
             get
             {
-                if (allowServiceAccountLogonRight != null)
+                if (allowservicelogon != null)
                 {
                     bool parsedvalue = false;
-                    if (Boolean.TryParse(allowServiceAccountLogonRight, out parsedvalue))
+                    if (Boolean.TryParse(allowservicelogon, out parsedvalue))
                     {
                         return parsedvalue;
                     }
