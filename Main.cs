@@ -15,10 +15,10 @@ namespace winsw
 {
     public class WrapperService : ServiceBase, EventLogger
     {
-        private SERVICE_STATUS wrapperServiceStatus;
+        private SERVICE_STATUS _wrapperServiceStatus;
 
-        private readonly Process process = new Process();
-        private readonly ServiceDescriptor descriptor;
+        private readonly Process _process = new Process();
+        private readonly ServiceDescriptor _descriptor;
         private Dictionary<string, string> _envs;
 
         /// <summary>
@@ -30,8 +30,8 @@ namespace winsw
 
         public WrapperService()
         {
-            descriptor = new ServiceDescriptor();
-            ServiceName = descriptor.Id;
+            _descriptor = new ServiceDescriptor();
+            ServiceName = _descriptor.Id;
             CanShutdown = true;
             CanStop = true;
             CanPauseAndContinue = false;
@@ -45,7 +45,7 @@ namespace winsw
         /// </summary>
         private void HandleFileCopies()
         {
-            var file = descriptor.BasePath + ".copies";
+            var file = _descriptor.BasePath + ".copies";
             if (!File.Exists(file))
                 return; // nothing to handle
 
@@ -115,16 +115,16 @@ namespace winsw
         /// </summary>
         private void HandleLogfiles()
         {
-            string logDirectory = descriptor.LogDirectory;
+            string logDirectory = _descriptor.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = descriptor.LogHandler;
+            LogHandler logAppender = _descriptor.LogHandler;
             logAppender.EventLogger = this;
-            logAppender.log(process.StandardOutput.BaseStream, process.StandardError.BaseStream);
+            logAppender.log(_process.StandardOutput.BaseStream, _process.StandardError.BaseStream);
         }
 
         public void LogEvent(String message)
@@ -177,7 +177,7 @@ namespace winsw
 
         private void WriteEvent(String message)
         {
-            string logfilename = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
+            string logfilename = Path.Combine(_descriptor.LogDirectory, _descriptor.BaseName + ".wrapper.log");
             StreamWriter log = new StreamWriter(logfilename, true);
 
             log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
@@ -187,7 +187,7 @@ namespace winsw
 
         protected override void OnStart(string[] _)
         {
-            _envs = descriptor.EnvironmentVariables;
+            _envs = _descriptor.EnvironmentVariables;
             foreach (string key in _envs.Keys)
             {
                 LogEvent("envar " + key + '=' + _envs[key]);
@@ -196,7 +196,7 @@ namespace winsw
             HandleFileCopies();
 
             // handle downloads
-            foreach (Download d in descriptor.Downloads)
+            foreach (Download d in _descriptor.Downloads)
             {
                 LogEvent("Downloading: " + d.From+ " to "+d.To);
                 try
@@ -211,26 +211,26 @@ namespace winsw
                 }
             }
 
-            string startarguments = descriptor.Startarguments;
+            string startarguments = _descriptor.Startarguments;
 
             if (startarguments == null)
             {
-                startarguments = descriptor.Arguments;
+                startarguments = _descriptor.Arguments;
             }
             else
             {
-                startarguments += " " + descriptor.Arguments;
+                startarguments += " " + _descriptor.Arguments;
             }
 
-            LogEvent("Starting " + descriptor.Executable + ' ' + startarguments);
-            WriteEvent("Starting " + descriptor.Executable + ' ' + startarguments);
+            LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+            WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
 
-            StartProcess(process, startarguments, descriptor.Executable);
+            StartProcess(_process, startarguments, _descriptor.Executable);
 
             // send stdout and stderr to its respective output file.
             HandleLogfiles();
 
-            process.StandardInput.Close(); // nothing for you to read!
+            _process.StandardInput.Close(); // nothing for you to read!
         }
 
         protected override void OnShutdown()
@@ -267,17 +267,17 @@ namespace winsw
         /// </summary>
         private void StopIt()
         {
-            string stoparguments = descriptor.Stoparguments;
-            LogEvent("Stopping " + descriptor.Id);
-            WriteEvent("Stopping " + descriptor.Id);
+            string stoparguments = _descriptor.Stoparguments;
+            LogEvent("Stopping " + _descriptor.Id);
+            WriteEvent("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
 
             if (stoparguments == null)
             {
                 try
                 {
-                    WriteEvent("ProcessKill " + process.Id);
-                    StopProcessAndChildren(process.Id);
+                    WriteEvent("ProcessKill " + _process.Id);
+                    StopProcessAndChildren(_process.Id);
                 }
                 catch (InvalidOperationException)
                 {
@@ -288,37 +288,37 @@ namespace winsw
             {
                 SignalShutdownPending();
 
-                stoparguments += " " + descriptor.Arguments;
+                stoparguments += " " + _descriptor.Arguments;
 
                 Process stopProcess = new Process();
-                String executable = descriptor.StopExecutable;
+                String executable = _descriptor.StopExecutable;
 
                 if (executable == null)
                 {
-                    executable = descriptor.Executable;
+                    executable = _descriptor.Executable;
                 }
 
                 StartProcess(stopProcess, stoparguments, executable);
 
-                WriteEvent("WaitForProcessToExit "+process.Id+"+"+stopProcess.Id);
-                WaitForProcessToExit(process);
+                WriteEvent("WaitForProcessToExit "+_process.Id+"+"+stopProcess.Id);
+                WaitForProcessToExit(_process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
             }
 
-            if (_systemShuttingdown && descriptor.BeepOnShutdown) 
+            if (_systemShuttingdown && _descriptor.BeepOnShutdown) 
             {
                 Console.Beep();
             }
 
-            WriteEvent("Finished " + descriptor.Id);
+            WriteEvent("Finished " + _descriptor.Id);
         }
 
         private void StopProcessAndChildren(int pid)
         {
             var childPids = GetChildPids(pid);
 
-            if (descriptor.StopParentProcessFirst)
+            if (_descriptor.StopParentProcessFirst)
             {
                 StopProcess(pid);
                 foreach (var childPid in childPids)
@@ -364,7 +364,7 @@ namespace winsw
             }
             
             WriteEvent("Send SIGINT " + pid);
-            bool successful = SigIntHelper.SendSIGINTToProcess(proc, descriptor.StopTimeout);
+            bool successful = SigIntHelper.SendSIGINTToProcess(proc, _descriptor.StopTimeout);
             if (successful)
             {
                 WriteEvent("SIGINT to" + pid + " successful");
@@ -391,7 +391,7 @@ namespace winsw
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
-                while (!processoWait.WaitForExit(descriptor.SleepTime.Milliseconds))
+                while (!processoWait.WaitForExit(_descriptor.SleepTime.Milliseconds))
                 {
                     SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
@@ -408,28 +408,28 @@ namespace winsw
         private void SignalShutdownPending()
         {
             IntPtr handle = ServiceHandle;
-            wrapperServiceStatus.checkPoint++;
-            wrapperServiceStatus.waitHint = descriptor.WaitHint.Milliseconds;
+            _wrapperServiceStatus.checkPoint++;
+            _wrapperServiceStatus.waitHint = _descriptor.WaitHint.Milliseconds;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
-            Advapi32.SetServiceStatus(handle, ref wrapperServiceStatus);
+            _wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
+            Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
 
         private void SignalShutdownComplete()
         {
             IntPtr handle = ServiceHandle;
-            wrapperServiceStatus.checkPoint++;
+            _wrapperServiceStatus.checkPoint++;
 //            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
-            Advapi32.SetServiceStatus(handle, ref wrapperServiceStatus);
+            _wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
+            Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
 
-        private void StartProcess(Process process, string arguments, String executable)
+        private void StartProcess(Process processToStart, string arguments, String executable)
         {
-            var ps = process.StartInfo;
+            var ps = processToStart.StartInfo;
             ps.FileName = executable;
             ps.Arguments = arguments;
-            ps.WorkingDirectory = descriptor.WorkingDirectory;
+            ps.WorkingDirectory = _descriptor.WorkingDirectory;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
             ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
@@ -440,34 +440,34 @@ namespace winsw
                 Environment.SetEnvironmentVariable(key, _envs[key]);
                 // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
 
-            process.Start();
-            WriteEvent("Started " + process.Id);
+            processToStart.Start();
+            WriteEvent("Started " + processToStart.Id);
 
-            var priority = descriptor.Priority;
+            var priority = _descriptor.Priority;
             if (priority != ProcessPriorityClass.Normal)
-                process.PriorityClass = priority;
+                processToStart.PriorityClass = priority;
 
             // monitor the completion of the process
             StartThread(delegate
             {
-                string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
-                process.WaitForExit();
+                string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
+                processToStart.WaitForExit();
 
                 try
                 {
                     if (_orderlyShutdown)
                     {
-                        LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
+                        LogEvent("Child process [" + msg + "] terminated with " + processToStart.ExitCode, EventLogEntryType.Information);
                     }
                     else
                     {
-                        LogEvent("Child process [" + msg + "] finished with " + process.ExitCode, EventLogEntryType.Warning);
+                        LogEvent("Child process [" + msg + "] finished with " + processToStart.ExitCode, EventLogEntryType.Warning);
                         // if we finished orderly, report that to SCM.
                         // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
                         // restart the service automatically
-                        if (process.ExitCode == 0)
+                        if (processToStart.ExitCode == 0)
                             SignalShutdownComplete();
-                        Environment.Exit(process.ExitCode);
+                        Environment.Exit(processToStart.ExitCode);
                     }
                 }
                 catch (InvalidOperationException ioe)
@@ -477,7 +477,7 @@ namespace winsw
 
                 try
                 {
-                    process.Dispose();
+                    processToStart.Dispose();
                 }
                 catch (InvalidOperationException ioe)
                 {
@@ -510,6 +510,7 @@ namespace winsw
             throw new WmiException(ReturnValue.NoSuchService);
         }
 
+        // ReSharper disable once InconsistentNaming
         public static void Run(string[] _args)
         {
             if (_args.Length > 0)
@@ -530,8 +531,7 @@ namespace winsw
                     // and among other things it makes it difficult for the caller
                     // to read stdout/stderr. Thus redirection becomes handy.
                     var f = new FileStream(args[1], FileMode.Create);
-                    var w = new StreamWriter(f);
-                    w.AutoFlush = true;
+                    var w = new StreamWriter(f) {AutoFlush = true};
                     Console.SetOut(w);
                     Console.SetError(w);
 
