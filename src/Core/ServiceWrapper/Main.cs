@@ -18,6 +18,7 @@ using winsw.Extensions;
 using winsw.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
+using winsw.Native;
 using System.Reflection;
 
 namespace winsw

@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>winsw</RootNamespace>
-    <AssemblyName>winsw</AssemblyName>
+    <AssemblyName>WindowsService</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StartupObject>
@@ -62,9 +62,6 @@
     </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\packages\log4net.2.0.3\lib\net20-full\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
@@ -74,28 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Advapi32.cs" />
-    <Compile Include="Download.cs" />
-    <Compile Include="DynamicProxy.cs" />
-    <Compile Include="Extensions\AbstractWinSWExtension.cs" />
-    <Compile Include="Extensions\ExtensionException.cs" />
-    <Compile Include="Extensions\IWinSWExtension.cs" />
-    <Compile Include="Extensions\WinSWExtensionDescriptor.cs" />
-    <Compile Include="Extensions\WinSWExtensionManager.cs" />
-    <Compile Include="Kernel32.cs" />
-    <Compile Include="LogAppenders.cs" />
     <Compile Include="Main.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="PeriodicRollingCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceDescriptor.cs" />
     <Compile Include="SigIntHelper.cs" />
-    <Compile Include="Util\IEventWriter.cs" />
-    <Compile Include="Util\WinSWException.cs" />
-    <Compile Include="Util\XmlHelper.cs" />
-    <Compile Include="Wmi.cs" />
-    <Compile Include="WmiSchema.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.xml" />
@@ -108,7 +88,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\winsw_cert.pfx" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -121,6 +100,16 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj">
+      <Project>{ca5c71db-c5a8-4c27-bf83-8e6daed9d6b5}</Project>
+      <Name>SharedDirectoryMapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WinSWCore\WinSWCore.csproj">
+      <Project>{9d0c63e2-b6ff-4a85-bd36-b3e5d7f27d06}</Project>
+      <Name>WinSWCore</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -141,5 +130,19 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+  <!-- Merge plugins into winsw.exe -->
+  <UsingTask TaskName="ILMerge.MSBuild.Tasks.ILMerge" AssemblyFile="$(SolutionDir)\packages\ILMerge.MSBuild.Tasks.1.0.0.3\tools\ILMerge.MSBuild.Tasks.dll" />
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <MergeAsm Include="$(OutputPath)$(TargetFileName)" />
+      <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
+      <MergeAsm Include="$(OutputPath)SharedDirectoryMapper.dll" />
+    </ItemGroup>
+    <PropertyGroup>
+      <MergedAssembly>$(ProjectDir)$(OutDir)winsw.exe</MergedAssembly>
+    </PropertyGroup>
+    <Message Text="ILMerge @(MergeAsm) -&gt; $(MergedAssembly)" Importance="high" />
+    <ILMerge InputAssemblies="@(MergeAsm)" OutputFile="$(MergedAssembly)" TargetKind="SameAsPrimaryAssembly" />
   </Target>
 </Project>

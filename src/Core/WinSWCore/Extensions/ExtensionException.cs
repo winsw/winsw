@@ -1,5 +1,4 @@
 ﻿using System;
-using winsw.Util;
 
 namespace winsw.Extensions
 {

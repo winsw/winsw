@@ -64,6 +64,10 @@
       <Project>{0DE77F55-ADE5-43C1-999A-0BC81153B039}</Project>
       <Name>winsw</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Core\WinSWCore\WinSWCore.csproj">
+      <Project>{9d0c63e2-b6ff-4a85-bd36-b3e5d7f27d06}</Project>
+      <Name>WinSWCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj">
       <Project>{ca5c71db-c5a8-4c27-bf83-8e6daed9d6b5}</Project>
       <Name>SharedDirectoryMapper</Name>

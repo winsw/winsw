@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace winsw.Util
+namespace winsw
 {
     public class WinSWException : Exception
     {

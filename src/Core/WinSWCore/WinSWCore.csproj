@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}</ProjectGuid>
+    <ProjectGuid>{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>winsw.Plugins.SharedDirectoryMapper</RootNamespace>
-    <AssemblyName>SharedDirectoryMapper</AssemblyName>
+    <RootNamespace>winsw</RootNamespace>
+    <AssemblyName>WinSWCore</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -29,22 +29,40 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\..\..\winsw_cert.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Download.cs" />
+    <Compile Include="DynamicProxy.cs" />
+    <Compile Include="Extensions\AbstractWinSWExtension.cs" />
+    <Compile Include="Extensions\ExtensionException.cs" />
+    <Compile Include="Extensions\IWinSWExtension.cs" />
+    <Compile Include="Extensions\WinSWExtensionDescriptor.cs" />
+    <Compile Include="Extensions\WinSWExtensionManager.cs" />
+    <Compile Include="LogAppenders.cs" />
+    <Compile Include="Native\Advapi32.cs" />
+    <Compile Include="Native\Kernel32.cs" />
+    <Compile Include="PeriodicRollingCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SharedDirectoryMapper.cs" />
-    <Compile Include="SharedDirectoryMapperConfig.cs" />
-    <Compile Include="SharedDirectoryMapperHelper.cs" />
+    <Compile Include="ServiceDescriptor.cs" />
+    <Compile Include="Util\IEventWriter.cs" />
+    <Compile Include="Util\XmlHelper.cs" />
+    <Compile Include="WinSWException.cs" />
+    <Compile Include="Wmi.cs" />
+    <Compile Include="WmiSchema.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\WinSWCore\WinSWCore.csproj">
-      <Project>{9d0c63e2-b6ff-4a85-bd36-b3e5d7f27d06}</Project>
-      <Name>WinSWCore</Name>
-    </ProjectReference>
+    <None Include="..\..\..\winsw_cert.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

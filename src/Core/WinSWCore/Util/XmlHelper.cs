@@ -4,9 +4,9 @@ using System.Text;
 using System.Xml;
 using System.IO;
 
-namespace winsw.Utils
+namespace winsw.Util
 {
-    internal class XmlHelper
+    public class XmlHelper
     {
         /// <summary>
         /// Retrieves a single string element 

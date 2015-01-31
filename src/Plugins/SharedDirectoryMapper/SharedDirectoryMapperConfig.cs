@@ -7,7 +7,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
     /// <summary>
     /// Stores configuration entries for SharedDirectoryMapper extension.
     /// </summary>
-    internal class SharedDirectoryMapperConfig
+    public class SharedDirectoryMapperConfig
     {
         public bool EnableMapping { get; set; }
         public String Label { get; set; }

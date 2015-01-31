@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using winsw.Native;
 using winsw.Util;
 using WMI;
 

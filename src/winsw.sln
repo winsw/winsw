@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
@@ -6,15 +5,11 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winsw", "Core\ServiceWrapper\winsw.csproj", "{0DE77F55-ADE5-43C1-999A-0BC81153B039}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winswTests", "Test\winswTests\winswTests.csproj", "{93843402-842B-44B4-B303-AEE829BE0B43}"
-	ProjectSection(ProjectDependencies) = postProject
-		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5} = {CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6BDF4025-D46C-4C69-BDB2-5CE434C857AA}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedDirectoryMapper", "Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj", "{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}"
@@ -22,6 +17,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{077C2CEC-B687-4B53-86E9-C1A1BF5554E5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{BC4AD891-E87E-4F30-867C-FD8084A29E5D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{5297623A-1A95-4F89-9AAE-DA634081EC86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinSWCore", "Core\WinSWCore\WinSWCore.csproj", "{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,8 +34,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Mixed Platforms.Build.0 = Release|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Debug|Win32.Build.0 = Debug|Any CPU
 		{0DE77F55-ADE5-43C1-999A-0BC81153B039}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,12 +68,26 @@ Global
 		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}.Release|Win32.ActiveCfg = Release|Any CPU
 		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}.Release|Win32.Build.0 = Release|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Debug|Win32.Build.0 = Debug|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Release|Win32.ActiveCfg = Release|Any CPU
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{0DE77F55-ADE5-43C1-999A-0BC81153B039} = {5297623A-1A95-4F89-9AAE-DA634081EC86}
 		{93843402-842B-44B4-B303-AEE829BE0B43} = {077C2CEC-B687-4B53-86E9-C1A1BF5554E5}
 		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5} = {BC4AD891-E87E-4F30-867C-FD8084A29E5D}
+		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06} = {5297623A-1A95-4F89-9AAE-DA634081EC86}
 	EndGlobalSection
 EndGlobal
