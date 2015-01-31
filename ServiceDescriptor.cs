@@ -75,6 +75,7 @@ namespace winsw
             this.dom = dom;
         }
 
+        // ReSharper disable once InconsistentNaming
         public static ServiceDescriptor FromXML(string xml)
         {
             var dom = new XmlDocument();
@@ -357,10 +358,12 @@ namespace winsw
             {
                 ArrayList serviceDependencies = new ArrayList();
 
-                foreach (XmlNode depend in dom.SelectNodes("//depend"))
-                {
-                    serviceDependencies.Add(depend.InnerText);
-                }
+                var xmlNodeList = dom.SelectNodes("//depend");
+                if (xmlNodeList != null)
+                    foreach (XmlNode depend in xmlNodeList)
+                    {
+                        serviceDependencies.Add(depend.InnerText);
+                    }
 
                 return (string[])serviceDependencies.ToArray(typeof(string));
             }
@@ -470,10 +473,12 @@ namespace winsw
             get
             {
                 List<Download> r = new List<Download>();
-                foreach (XmlNode n in dom.SelectNodes("//download"))
-                {
-                    r.Add(new Download(n));
-                }
+                var xmlNodeList = dom.SelectNodes("//download");
+                if (xmlNodeList != null)
+                    foreach (XmlNode n in xmlNodeList)
+                    {
+                        r.Add(new Download(n));
+                    }
                 return r;
             }
         }
@@ -483,26 +488,30 @@ namespace winsw
             get
             {
                 List<SC_ACTION> r = new List<SC_ACTION>();
-                foreach (XmlNode n in dom.SelectNodes("//onfailure"))
+                var childNodes = dom.SelectNodes("//onfailure");
+                if (childNodes != null)
                 {
-                    SC_ACTION_TYPE type;
-                    string action = n.Attributes["action"].Value;
-                    switch (action)
+                    foreach (XmlNode n in childNodes)
                     {
-                        case "restart":
-                            type = SC_ACTION_TYPE.SC_ACTION_RESTART;
-                            break;
-                        case "none":
-                            type = SC_ACTION_TYPE.SC_ACTION_NONE;
-                            break;
-                        case "reboot":
-                            type = SC_ACTION_TYPE.SC_ACTION_REBOOT;
-                            break;
-                        default:
-                            throw new Exception("Invalid failure action: " + action);
+                        SC_ACTION_TYPE type;
+                        string action = n.Attributes["action"].Value;
+                        switch (action)
+                        {
+                            case "restart":
+                                type = SC_ACTION_TYPE.SC_ACTION_RESTART;
+                                break;
+                            case "none":
+                                type = SC_ACTION_TYPE.SC_ACTION_NONE;
+                                break;
+                            case "reboot":
+                                type = SC_ACTION_TYPE.SC_ACTION_REBOOT;
+                                break;
+                            default:
+                                throw new Exception("Invalid failure action: " + action);
+                        }
+                        XmlAttribute delay = n.Attributes["delay"];
+                        r.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
                     }
-                    XmlAttribute delay = n.Attributes["delay"];
-                    r.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
                 }
                 return r;
             }
