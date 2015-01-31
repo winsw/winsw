@@ -49,7 +49,7 @@
     <Compile Include="ServiceDescriptorTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\winsw.csproj">
+    <ProjectReference Include="..\..\Core\ServiceWrapper\winsw.csproj">
       <Project>{0DE77F55-ADE5-43C1-999A-0BC81153B039}</Project>
       <Name>winsw</Name>
     </ProjectReference>
