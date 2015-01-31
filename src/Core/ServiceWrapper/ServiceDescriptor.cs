@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using winsw.Util;
 using WMI;
 
 namespace winsw
@@ -227,13 +228,42 @@ namespace winsw
             }
         }
 
-        /// <summary>
-        /// Optional working directory.
-        /// </summary>
+        
         public string WorkingDirectory {
             get {
                 var wd = SingleElement("workingdirectory", true);
                 return String.IsNullOrEmpty(wd) ? Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) : wd;
+            }
+        }
+
+        public List<string> ExtensionIds
+        {
+            get
+            {
+                List<string> res = new List<string>();
+
+                XmlNode argumentNode = ExtensionsConfiguration;
+                XmlNodeList extensions = argumentNode != null ? argumentNode.SelectNodes("extension") : null;
+                if ( extensions != null)
+                {
+                    foreach (XmlNode e in extensions)
+                    {
+                        XmlElement extension = (XmlElement)e;
+                        String extensionId = XmlHelper.SingleAttribute<string>(extension, "id");
+                        res.Add(extensionId);
+                    }
+                }
+
+                return res;
+            }
+        }
+
+        public XmlNode ExtensionsConfiguration
+        {
+            get
+            {
+                XmlNode argumentNode = dom.SelectSingleNode("//extensions");
+                return argumentNode;
             }
         }
 

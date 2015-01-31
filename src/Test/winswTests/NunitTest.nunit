@@ -1,0 +1,7 @@
+<NUnitProject>
+ <Settings activeconfig="Debug" />
+ <Config name="Debug">
+ <assembly path="bin\Debug\winswTests.dll" />
+ </Config>
+ <Config name="Release"></Config>
+</NUnitProject>
