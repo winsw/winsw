@@ -545,6 +545,14 @@ namespace winsw
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
                 {
+                    // Check if the service exists
+                    if (s != null)
+                    {
+                        Console.WriteLine("Service with id '" + d.Id + "' already exists");
+                        Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
+                        throw new Exception("Installation failure: Service with id '" + d.Id + "' already exists");
+                    }
+
                     string username=null, password=null;
                     bool setallowlogonasaserviceright = false;
                     if (args.Count > 1 && args[1] == "/p")
@@ -616,7 +624,10 @@ namespace winsw
                 if (args[0] == "uninstall")
                 {
                     if (s == null)
+                    {
+                        Console.WriteLine("Warning! The service with id '" + d.Id + "' does not exist. Nothing to uninstall");
                         return; // there's no such service, so consider it already uninstalled
+                    }
                     try
                     {
                         s.Delete();
