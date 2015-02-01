@@ -171,6 +171,9 @@ Long human-readable description of the service. This gets displayed in Windows s
 ### executable
 This element specifies the executable to be launched. It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
 
+### startmode - Optional Element
+This element specifies the start mode of the Windows service. It can be one of the following values: Boot, System, Automatic, or Manual. See [MSDN](https://msdn.microsoft.com/en-us/library/aa384896%28v=vs.85%29.aspx) for details.  The default is Automatic.
+
 ### depend
 Specify IDs of other services that this service depends on. When service X depends on service Y, X can only run if Y is running.
 
