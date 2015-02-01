@@ -45,18 +45,24 @@ namespace winsw
         {
             // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
             // as well as trimming off ".vshost" suffix (which is used during debugging)
+            //Get the first parent to go into the recursive loop
             string p = ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(p);
             if (baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
+            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
             {
-                p = Path.GetDirectoryName(p);
-                if (File.Exists(Path.Combine(p, baseName + ".xml")))
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
                     break;
+
+                if (d.Parent == null)
+                    throw new FileNotFoundException("Unable to locate "+baseName+".xml file within executable directory or any parents");
+
+                d = d.Parent;
             }
 
             BaseName = baseName;
-            BasePath = Path.Combine(p, BaseName);
+            BasePath = Path.Combine(d.FullName, BaseName);
 
             dom.Load(BasePath + ".xml");
 
