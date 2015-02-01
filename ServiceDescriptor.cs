@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using WMI;
 
 namespace winsw
 {
@@ -390,6 +391,31 @@ namespace winsw
             get
             {
                 return SingleElement("description");
+            }
+        }
+
+        /// <summary>
+        /// Start mode of the Service
+        /// </summary>
+        public StartMode StartMode
+        {
+            get
+            {
+                var p = SingleElement("startmode", true);
+                if (p == null) return StartMode.Automatic;  // default value
+                try
+                {
+                    return (StartMode)Enum.Parse(typeof(StartMode), p, true);
+                }
+                catch
+                {
+                    Console.WriteLine("Start mode in XML must be one of the following:");
+                    foreach (string sm in Enum.GetNames(typeof(StartMode)))
+                    {
+                        Console.WriteLine(sm);
+                    }
+                    throw;
+                }
             }
         }
 

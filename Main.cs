@@ -584,7 +584,7 @@ namespace winsw
                         "\"" + d.ExecutablePath + "\"",
                         ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
-                        StartMode.Automatic,
+                        d.StartMode,
                         d.Interactive,
                         username,
                         password,

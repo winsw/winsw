@@ -5,6 +5,9 @@ using winsw;
 
 namespace winswTests
 {
+    using System;
+    using WMI;
+
     [TestFixture]
     public class ServiceDescriptorTests
     {
@@ -41,6 +44,66 @@ namespace winswTests
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
+        [Test]
+        public void DefaultStartMode()
+        {
+            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
+        }
+
+        [Test]
+        [ExpectedException(typeof(System.ArgumentException))]
+        public void IncorrectStartMode()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<startmode>rotate</startmode>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "<allowservicelogon>" + AllowServiceAccountLogonRight + "</allowservicelogon>"
+                                   + "</serviceaccount>"
+                                   + "<workingdirectory>"
+                                   + ExpectedWorkingDirectory
+                                   + "</workingdirectory>"
+                                   + @"<logpath>C:\logs</logpath>"
+                                   + "</service>";
+
+            _extendedServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+        }
+
+        [Test]
+        public void ChangedStartMode()
+        {
+            const string SeedXml = "<service>"
+                                   + "<id>service.exe</id>"
+                                   + "<name>Service</name>"
+                                   + "<description>The service.</description>"
+                                   + "<executable>node.exe</executable>"
+                                   + "<arguments>My Arguments</arguments>"
+                                   + "<startmode>manual</startmode>"
+                                   + "<logmode>rotate</logmode>"
+                                   + "<serviceaccount>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
+                                   + "<allowservicelogon>" + AllowServiceAccountLogonRight + "</allowservicelogon>"
+                                   + "</serviceaccount>"
+                                   + "<workingdirectory>"
+                                   + ExpectedWorkingDirectory
+                                   + "</workingdirectory>"
+                                   + @"<logpath>C:\logs</logpath>"
+                                   + "</service>";
+
+            _extendedServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+        }
         [Test]
         public void VerifyWorkingDirectory()
         {
