@@ -4,6 +4,12 @@ using winsw.Util;
 
 namespace winsw.Extensions
 {
+    /// <summary>
+    /// Describes WinSW extensions in <see cref="IWinSWExtension"/>
+    /// </summary>
+    /// <remarks>
+    /// Any extension has its own descriptor instance.
+    /// </remarks>
     public class WinSWExtensionDescriptor
     {
         /// <summary>

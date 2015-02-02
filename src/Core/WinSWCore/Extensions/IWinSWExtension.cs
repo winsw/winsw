@@ -7,7 +7,10 @@ namespace winsw.Extensions
     /// <summary>
     /// Interface for Win Service Wrapper Extension
     /// </summary>
-    /// <remarks>All implementations should provide the default empty constructor. The initialization will be performed by Init methods</remarks>
+    /// <remarks>
+    /// All implementations should provide the default empty constructor. 
+    /// The initialization will be performed by Init methods
+    /// </remarks>
     public interface IWinSWExtension
     {
         /// <summary>
@@ -28,7 +31,7 @@ namespace winsw.Extensions
         void Configure(ServiceDescriptor descriptor, XmlNode node, IEventWriter logger);
 
         /// <summary>
-        /// Start handler. Called during start of the service
+        /// Start handler. Called during startup of the service before the child process.
         /// </summary>
         /// <param name="logger">Logger</param>
         /// <exception cref="ExtensionException">Any error during execution</exception>

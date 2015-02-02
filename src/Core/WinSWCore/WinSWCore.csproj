@@ -51,6 +51,7 @@
     <Compile Include="DynamicProxy.cs" />
     <Compile Include="Extensions\AbstractWinSWExtension.cs" />
     <Compile Include="Extensions\ExtensionException.cs" />
+    <Compile Include="Extensions\ExtensionPointAttribute.cs" />
     <Compile Include="Extensions\IWinSWExtension.cs" />
     <Compile Include="Extensions\WinSWExtensionDescriptor.cs" />
     <Compile Include="Extensions\WinSWExtensionManager.cs" />
