@@ -7,6 +7,12 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
+using log4net;
+using log4net.Appender;
+using log4net.Config;
+using log4net.Core;
+using log4net.Layout;
+using log4net.Repository.Hierarchy;
 using Microsoft.Win32;
 using WMI;
 using ServiceType = WMI.ServiceType;
@@ -20,6 +26,8 @@ namespace winsw
         private readonly Process _process = new Process();
         private readonly ServiceDescriptor _descriptor;
         private Dictionary<string, string> _envs;
+
+        private static readonly ILog Log = LogManager.GetLogger("WinSW");
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
@@ -167,22 +175,19 @@ namespace winsw
 
         private void WriteEvent(Exception exception)
         {
-            WriteEvent(exception.Message + "\nStacktrace:" + exception.StackTrace);
+            //TODO: pass exception to logger
+            WriteEvent(exception.Message + "\nStacktrace:" + exception.StackTrace, Level.Error);
         }
 
         private void WriteEvent(String message, Exception exception)
         {
-            WriteEvent(message + "\nMessage:" + exception.Message + "\nStacktrace:" + exception.StackTrace);
+            //TODO: pass exception to logger
+            WriteEvent(message + "\nMessage:" + exception.Message + "\nStacktrace:" + exception.StackTrace, Level.Error);
         }
 
-        private void WriteEvent(String message)
+        private void WriteEvent(String message, Level logLevel = null, Exception ex = null)
         {
-            string logfilename = Path.Combine(_descriptor.LogDirectory, _descriptor.BaseName + ".wrapper.log");
-            StreamWriter log = new StreamWriter(logfilename, true);
-
-            log.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
-            log.Flush();
-            log.Close();
+            Log.Logger.Log(GetType(), logLevel ?? Level.Info, message, ex);
         }
 
         protected override void OnStart(string[] _)
@@ -373,7 +378,7 @@ namespace winsw
             {
                 try
                 {
-                    WriteEvent("SIGINT to " + pid + " failed - Killing as fallback");
+                    WriteEvent("SIGINT to " + pid + " failed - Killing as fallback", Level.Warn);
                     proc.Kill();
                 }
                 catch (ArgumentException)
@@ -488,6 +493,7 @@ namespace winsw
 
         public static int Main(string[] args)
         {
+            // Run app
             try
             {
                 Run(args);
@@ -513,9 +519,18 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         public static void Run(string[] _args)
         {
-            if (_args.Length > 0)
+            bool isCLIMode = _args.Length > 0;
+            var d = new ServiceDescriptor();
+
+            // Configure the wrapper-internal logging
+            // STDIN and STDOUT of the child process will be handled independently
+            InitLoggers(d, isCLIMode);
+
+            if (isCLIMode) // CLI mode
             {
-                var d = new ServiceDescriptor();
+                Log.Debug("Starting ServiceWrapper in CLI mode");
+
+                // Get service info for the future use
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
                 Win32Service s = svc.Select(d.Id);
 
@@ -669,6 +684,7 @@ namespace winsw
                 }
                 if (args[0] == "status")
                 {
+                    Log.Warn("User requested the status");
                     if (s == null)
                         Console.WriteLine("NonExistent");
                     else if (s.Started)
@@ -686,6 +702,43 @@ namespace winsw
                 return;
             }
             Run(new WrapperService());
+        }
+
+        private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
+        {
+            Level logLevel = Level.Debug;
+
+            // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
+            PatternLayout pl = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
+            pl.ActivateOptions();
+
+            // wrapper.log
+            String wrapperLogPath = Path.Combine(d.LogDirectory, d.BaseName + ".wrapper.log");
+            var wrapperLog = new FileAppender
+            {
+                AppendToFile = true,
+                File = wrapperLogPath,
+                ImmediateFlush = true,
+                Name = "Wrapper file log",
+                Threshold = logLevel,
+                LockingModel = new FileAppender.MinimalLock(),
+                Layout = pl
+            };
+            wrapperLog.ActivateOptions();
+            BasicConfigurator.Configure(wrapperLog);
+
+            // Also display logs in CLI if required
+            if (enableCLILogging)
+            {
+                var consoleAppender = new ConsoleAppender
+                {
+                    Name = "Wrapper console log", 
+                    Threshold = logLevel,
+                    Layout = pl               
+                };
+                consoleAppender.ActivateOptions();
+                ((Logger)Log.Logger).AddAppender(consoleAppender);
+            }
         }
 
         private static string ReadPassword()
