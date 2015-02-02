@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.Win32;
 using WMI;
 using ServiceType = WMI.ServiceType;
+using System.Reflection;
 
 namespace winsw
 {
@@ -28,15 +29,30 @@ namespace winsw
         private bool _orderlyShutdown;
         private bool _systemShuttingdown;
 
-        public WrapperService()
+        /// <summary>
+        /// Version of Windows service wrapper
+        /// </summary>
+        /// <remarks>
+        /// The version will be taken from <see cref="AssemblyInfo"/>
+        /// </remarks>
+        public static Version Version
         {
-            _descriptor = new ServiceDescriptor();
+            get { return Assembly.GetExecutingAssembly().GetName().Version; }
+        }
+
+        public WrapperService(ServiceDescriptor descriptor)
+        {
+            _descriptor = descriptor;
             ServiceName = _descriptor.Id;
             CanShutdown = true;
             CanStop = true;
             CanPauseAndContinue = false;
             AutoLog = true;
             _systemShuttingdown = false;
+        }
+
+        public WrapperService() : this (new ServiceDescriptor())
+        {          
         }
 
         /// <summary>
@@ -511,11 +527,11 @@ namespace winsw
         }
 
         // ReSharper disable once InconsistentNaming
-        public static void Run(string[] _args)
+        public static void Run(string[] _args, ServiceDescriptor descriptor = null)
         {
             if (_args.Length > 0)
             {
-                var d = new ServiceDescriptor();
+                var d = descriptor ?? new ServiceDescriptor();
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
                 Win32Service s = svc.Select(d.Id);
 
@@ -612,6 +628,7 @@ namespace winsw
                             }
                         }
                     }
+                    return;
                 }
                 if (args[0] == "uninstall")
                 {
@@ -627,16 +644,19 @@ namespace winsw
                             return; // it's already uninstalled, so consider it a success
                         throw e;
                     }
+                    return;
                 }
                 if (args[0] == "start")
                 {
                     if (s == null) ThrowNoSuchService();
                     s.StartService();
+                    return;
                 }
                 if (args[0] == "stop")
                 {
                     if (s == null) ThrowNoSuchService();
                     s.StopService();
+                    return;
                 }
                 if (args[0] == "restart")
                 {
@@ -653,6 +673,7 @@ namespace winsw
                     }
 
                     s.StartService();
+                    return;
                 }
                 if (args[0] == "restart!")
                 {
@@ -666,6 +687,7 @@ namespace winsw
                     {
                         throw new Exception("Failed to invoke restart: "+Marshal.GetLastWin32Error());
                     }
+                    return;
                 }
                 if (args[0] == "status")
                 {
@@ -675,6 +697,7 @@ namespace winsw
                         Console.WriteLine("Started");
                     else
                         Console.WriteLine("Stopped");
+                    return;
                 }
                 if (args[0] == "test")
                 {
@@ -682,8 +705,24 @@ namespace winsw
                     wsvc.OnStart(args.ToArray());
                     Thread.Sleep(1000);
                     wsvc.OnStop();
+                    return;
                 }
-                return;
+                if (args[0] == "help" || args[0] == "--help" || args[0] == "-h" 
+                    || args[0] == "-?" || args[0] == "/?")
+                {
+                    printHelp();
+                    return;
+                }
+                if (args[0] == "version")
+                {
+                    printVersion();
+                    return;
+                }
+                
+                Console.WriteLine("Unknown command: " + args[0]);
+                printAvailableCommandsInfo();
+                throw new Exception("Unknown command: " + args[0]);
+
             }
             Run(new WrapperService());
         }
@@ -710,6 +749,44 @@ namespace winsw
                     buf.Append(key.KeyChar);
                 }
             }
+        }
+
+        private static void printHelp()
+        {
+            Console.WriteLine("A wrapper binary that can be used to host executables as Windows services");
+            Console.WriteLine("");
+            Console.WriteLine("Usage: winsw [/redirect file] <command> [<args>]");
+            Console.WriteLine("       Missing arguments trigger the service mode");
+            Console.WriteLine("");
+            printAvailableCommandsInfo();
+            Console.WriteLine("");
+            Console.WriteLine("Extra options:");
+            Console.WriteLine("- '/redirect' - redirect the wrapper's STDOUT and STDERR to the specified file");
+            Console.WriteLine("");
+            printVersion();
+            Console.WriteLine("More info: https://github.com/kohsuke/winsw");
+            Console.WriteLine("Bug tracker: https://github.com/kohsuke/winsw/issues");
+        }
+
+        //TODO: Rework to enum in winsw-2.0
+        private static void printAvailableCommandsInfo()
+        {
+            Console.WriteLine("Available commands:");
+            Console.WriteLine("- 'install'   - install the service to Windows Service Controller");
+            Console.WriteLine("- 'uninstall' - uninstall the service");
+            Console.WriteLine("- 'start'     - start the service (must be installed before)");
+            Console.WriteLine("- 'stop'      - stop the service");
+            Console.WriteLine("- 'restart'   - restart the service");
+            Console.WriteLine("- 'restart!'  - self-restart (can be called from child processes)");
+            Console.WriteLine("- 'status'    - check the current status of the service");
+            Console.WriteLine("- 'test'      - check if the service can be started and then stopped");  
+            Console.WriteLine("- 'version'   - print the version info");
+            Console.WriteLine("- 'help'      - print the help info (aliases: -h,--help,-?,/?)");
+        }
+
+        private static void printVersion()
+        {
+            Console.WriteLine("WinSW " + Version);
         }
     }
 }
