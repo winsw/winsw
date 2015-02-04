@@ -142,6 +142,7 @@
       <MergeAsm Include="$(OutputPath)$(TargetFileName)" />
       <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
       <MergeAsm Include="$(OutputPath)SharedDirectoryMapper.dll" />
+      <MergeAsm Include="$(OutputPath)log4net.dll" />
     </ItemGroup>
     <PropertyGroup>
       <MergedAssembly>$(ProjectDir)$(OutDir)winsw.exe</MergedAssembly>
