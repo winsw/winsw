@@ -308,6 +308,17 @@ Optionally specify the order of service shutdown. If true, the parent process is
 Developer info
 ----------------------
 
+### Project status
+
+* WinSW 1.x - Maintenance only
+ * [winsw-1.17] fixes the most of active issues
+ * [winsw-1.17-beta.2] is available for the evaluation
+ * New versions may be released on-demand
+ * All new fixes will be ported to WinSW-2.x
+* WinSW 2.x - Active development, no stable releases available
+ * [winsw-2.0] - Current development branch
+ * API stability is not guaranteed till the first release, the project structure is in flux
+
 ### Build Environment
 
 * IDE: [Visual Studio Community 2013][MVS2013] (free for open-source projects)
@@ -316,3 +327,6 @@ Developer info
  * The certificate is in <code>.gitignore</code> list. Please do not add it to the repository
 
 [MVS2013]: http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx
+[winsw-1.17]: https://github.com/kohsuke/winsw/milestones/winsw-1.17
+[winsw-1.17-beta.2]: https://github.com/kohsuke/winsw/releases/tag/1.17-beta.2
+[WinSW-2.0]: https://github.com/kohsuke/winsw/milestones/winsw-2.0
