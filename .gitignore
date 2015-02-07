@@ -7,3 +7,4 @@ obj
 *.user
 /src/packages/NUnit.2.6.4
 /src/packages/ILMerge.MSBuild.Tasks.1.0.0.3
+/winsw_key.snk

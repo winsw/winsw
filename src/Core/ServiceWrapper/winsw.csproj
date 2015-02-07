@@ -16,7 +16,7 @@
     </StartupObject>
     <SignManifests>false</SignManifests>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\..\winsw_cert.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>$(SolutionDir)..\winsw_key.snk</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -91,7 +91,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\winsw_cert.pfx" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="$(AssemblyOriginatorKeyFile)" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -124,10 +127,6 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -135,8 +134,8 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
-  <!-- Merge plugins into winsw.exe -->
-  <UsingTask TaskName="ILMerge.MSBuild.Tasks.ILMerge" AssemblyFile="$(SolutionDir)\packages\ILMerge.MSBuild.Tasks.1.0.0.3\tools\ILMerge.MSBuild.Tasks.dll" />
+  <!-- Merge plugins and other DLLs into winsw.exe -->
+  <UsingTask TaskName="MSBuild.Community.Tasks.ILMerge" AssemblyFile="$(SolutionDir)\packages\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" />
   <Target Name="AfterBuild">
     <ItemGroup>
       <MergeAsm Include="$(OutputPath)$(TargetFileName)" />
@@ -146,8 +145,35 @@
     </ItemGroup>
     <PropertyGroup>
       <MergedAssembly>$(ProjectDir)$(OutDir)winsw.exe</MergedAssembly>
+      <CertificatePfxFile>$(AssemblyOriginatorKeyFile)</CertificatePfxFile>
     </PropertyGroup>
+    <!-- Locate SN.EXE in Windows SDK, use the first found one-->
+    <PropertyGroup>
+      <SnPathTmpFile>$(OutputPath)sn-path.txt</SnPathTmpFile>
+    </PropertyGroup>
+    <GetFrameworkSdkPath>
+      <Output TaskParameter="Path" PropertyName="WindowsSdkPath" />
+    </GetFrameworkSdkPath>
+    <Message Text="Using SDK from $(WindowsSdkPath)" Importance="high" />
+    <Exec Command="WHERE /r &quot;$(WindowsSdkPath.TrimEnd('\\'))&quot; sn &gt; $(SnPathTmpFile)" />
+    <ReadLinesFromFile File="$(SnPathTmpFile)">
+      <Output TaskParameter="Lines" PropertyName="SNPath" />
+    </ReadLinesFromFile>
+    <Delete Files="$(SnPathTmpFile)" />
+    <PropertyGroup>
+      <SNPath>$([System.Text.RegularExpressions.Regex]::Replace('$(SNPath)', ';.*', ''))</SNPath>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SNPath)')" Text="Cannot find SN.EXE utility in $(WindowsSdkPath)" />
+    <Message Text="Using SN.EXE utility from $(SNPath)" Importance="high" />
+    <!-- Merge and re-sign assemblies -->
+    <PropertyGroup>
+      <ILMergePath>$(SolutionDir)packages\ilmerge.2.14.1208\tools</ILMergePath>
+      <CertificateTmpPubFile>$(OutputPath)winsw_cert.pub</CertificateTmpPubFile>
+    </PropertyGroup>
+    <Message Text="Extracting public key from $(AssemblyOriginatorKeyFile)" />
+    <Exec Command="&quot;$(SNPath)&quot; -p &quot;$(AssemblyOriginatorKeyFile)&quot; &quot;$(CertificateTmpPubFile)&quot;" /> 
     <Message Text="ILMerge @(MergeAsm) -&gt; $(MergedAssembly)" Importance="high" />
-    <ILMerge InputAssemblies="@(MergeAsm)" OutputFile="$(MergedAssembly)" TargetKind="SameAsPrimaryAssembly" />
+    <ILMerge ToolPath="$(ILMergePath)" InputAssemblies="@(MergeAsm)" OutputFile="$(MergedAssembly)" TargetKind="SameAsPrimaryAssembly" KeyFile="$(CertificateTmpPubFile)" DelaySign="true" />
+    <Exec Command="&quot;$(SNPath)&quot; -R &quot;$(MergedAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" />
   </Target>
 </Project>
