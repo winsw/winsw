@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using WMI;
 
 namespace winsw
 {
@@ -36,8 +37,7 @@ namespace winsw
                 // this returns the executable name as given by the calling process, so
                 // it needs to be absolutized.
                 string p = Environment.GetCommandLineArgs()[0];
-                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p);
-
+                return Path.GetFullPath(p);
             }
         }
 
@@ -45,18 +45,24 @@ namespace winsw
         {
             // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
             // as well as trimming off ".vshost" suffix (which is used during debugging)
+            //Get the first parent to go into the recursive loop
             string p = ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(p);
             if (baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
+            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
             {
-                p = Path.GetDirectoryName(p);
-                if (File.Exists(Path.Combine(p, baseName + ".xml")))
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
                     break;
+
+                if (d.Parent == null)
+                    throw new FileNotFoundException("Unable to locate "+baseName+".xml file within executable directory or any parents");
+
+                d = d.Parent;
             }
 
             BaseName = baseName;
-            BasePath = Path.Combine(p, BaseName);
+            BasePath = Path.Combine(d.FullName, BaseName);
 
             dom.Load(BasePath + ".xml");
 
@@ -390,6 +396,31 @@ namespace winsw
             get
             {
                 return SingleElement("description");
+            }
+        }
+
+        /// <summary>
+        /// Start mode of the Service
+        /// </summary>
+        public StartMode StartMode
+        {
+            get
+            {
+                var p = SingleElement("startmode", true);
+                if (p == null) return StartMode.Automatic;  // default value
+                try
+                {
+                    return (StartMode)Enum.Parse(typeof(StartMode), p, true);
+                }
+                catch
+                {
+                    Console.WriteLine("Start mode in XML must be one of the following:");
+                    foreach (string sm in Enum.GetNames(typeof(StartMode)))
+                    {
+                        Console.WriteLine(sm);
+                    }
+                    throw;
+                }
             }
         }
 
