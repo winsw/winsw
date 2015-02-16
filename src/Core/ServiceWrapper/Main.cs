@@ -14,19 +14,24 @@ using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
 using Microsoft.Win32;
+using winsw.Extensions;
+using winsw.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
+using winsw.Native;
 using System.Reflection;
 
 namespace winsw
 {
-    public class WrapperService : ServiceBase, EventLogger
+    public class WrapperService : ServiceBase, EventLogger, IEventWriter
     {
         private SERVICE_STATUS _wrapperServiceStatus;
 
         private readonly Process _process = new Process();
         private readonly ServiceDescriptor _descriptor;
         private Dictionary<string, string> _envs;
+
+        internal WinSWExtensionManager ExtensionManager { private set; get; }
 
         private static readonly ILog Log = LogManager.GetLogger("WinSW");
 
@@ -52,6 +57,7 @@ namespace winsw
         {
             _descriptor = descriptor;
             ServiceName = _descriptor.Id;
+            ExtensionManager = new WinSWExtensionManager(_descriptor);
             CanShutdown = true;
             CanStop = true;
             CanPauseAndContinue = false;
@@ -246,6 +252,22 @@ namespace winsw
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
 
+            // Load and start extensions
+            ExtensionManager.LoadExtensions(this);
+            try
+            {
+                ExtensionManager.OnStart(this);
+            }
+            catch (ExtensionException ex)
+            {
+                LogEvent("Failed to start extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
+                WriteEvent("Failed to start extension  " + ex.ExtensionId, ex);
+                //TODO: Exit on error?
+            }
+
+            LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+            WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+
             StartProcess(_process, startarguments, _descriptor.Executable);
 
             // send stdout and stderr to its respective output file.
@@ -325,6 +347,17 @@ namespace winsw
                 WaitForProcessToExit(_process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
+            }
+
+            // Stop extensions      
+            try
+            {
+                ExtensionManager.OnStop(this);
+            }
+            catch (ExtensionException ex)
+            {
+                LogEvent("Failed to stop extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
+                WriteEvent("Failed to stop extension  " + ex.ExtensionId, ex);
             }
 
             if (_systemShuttingdown && _descriptor.BeepOnShutdown) 

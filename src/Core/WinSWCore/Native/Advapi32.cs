@@ -6,9 +6,9 @@ using System.Text;
 
 // ReSharper disable InconsistentNaming
 
-namespace winsw
+namespace winsw.Native
 {
-    class ServiceManager : IDisposable
+    public class ServiceManager : IDisposable
     {
         private IntPtr _handle;
 
@@ -39,7 +39,7 @@ namespace winsw
         }
     }
 
-    class Service : IDisposable
+    public class Service : IDisposable
     {
         internal IntPtr Handle;
 
@@ -87,7 +87,7 @@ namespace winsw
         }
     }
 
-    static class LogonAsAService
+    public static class LogonAsAService
     {
         public static void AddLogonAsAServiceRight(string username)
         {
@@ -251,7 +251,7 @@ namespace winsw
     /// Advapi32.dll wrapper for performing additional service related operations that are not
     /// available in WMI.
     /// </summary>
-    internal class Advapi32
+    public class Advapi32
     {
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -272,7 +272,7 @@ namespace winsw
         internal static extern bool CloseServiceHandle(IntPtr hSCObject);
 
         [DllImport("advapi32.DLL")]
-        internal static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
+        public static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
         [DllImport("advapi32.dll", PreserveSig = true)]
         internal static extern UInt32 LsaOpenPolicy(ref LSA_UNICODE_STRING SystemName, ref LSA_OBJECT_ATTRIBUTES ObjectAttributes, Int32 DesiredAccess,
