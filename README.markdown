@@ -49,7 +49,7 @@ Your renamed `winsw.exe` accepts the following commands:
 
 Error reporting
 ---------------
-Winsw uses WMI underneath, and as such it uses its error code as the exit code. See [this MSDN article] for the complete list of exit code.
+Winsw uses WMI underneath, and as such it uses its error code as the exit code. See the MSDN article [Create method of the Win32_Service class] for the complete list of exit code.
 
 When winsw is running as a service, more detailed error information is reported to the Windows event log.
 
@@ -295,7 +295,7 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
 
     <priority>idle</priority>
 
-Specifying a priority higher than normal has unintended consequences. See [this MSDN discussion] for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
+Specifying a priority higher than normal has unintended consequences. See the MSDN article [ProcessPriorityClass Enumeration] for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
 
 ###stopparentprocessfirst
 Optionally specify the order of service shutdown. If true, the parent process is shutdown first. This is useful when the main process is a console, which can respond to Ctrl+C command and will gracefully shutdown child processes
@@ -329,6 +329,6 @@ Developer info
 [winsw-1.17-beta.2]: https://github.com/kohsuke/winsw/releases/tag/1.17-beta.2
 [WinSW-2.0]: https://github.com/kohsuke/winsw/milestones/winsw-2.0
 [TerminateProcess]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx "TerminateProcess function"
-[this MSDN article]: http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx "Create method of the Win32_Service class"
+[Create method of the Win32_Service class]: http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx
 [send Ctrl+C signal to the process]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx "GenerateConsoleCtrlEvent function"
-[this MSDN discussion]: http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx "ProcessPriorityClass Enumeration"
+[ProcessPriorityClass Enumeration]: http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx
