@@ -2,11 +2,16 @@
 using System.Collections.Generic;
 using System.Xml;
 using System.Diagnostics;
+using Mono.Addins;
 using winsw.Extensions;
 using winsw.Util;
 
+[assembly: Addin]
+[assembly: AddinDependency("SharedDirectoryMapper", "1.0")]
+
 namespace winsw.Plugins.SharedDirectoryMapper
 {
+    [Extension]
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {
         private readonly SharedDirectoryMappingHelper _mapper = new SharedDirectoryMappingHelper();
