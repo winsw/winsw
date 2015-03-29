@@ -8,12 +8,18 @@
   <version>1.17</version>
   <name>Windows service wrapper</name>
     
-   <distributionManagement>
+  <distributionManagement>
     <repository>
       <id>maven.jenkins-ci.org</id>
       <url>http://maven.jenkins-ci.org:8081/content/repositories/releases</url>
     </repository>
   </distributionManagement>
+
+  <scm>
+    <connection>scm:git:ssh://github.com/kohsuke/winsw.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/kohsuke/winsw.git</developerConnection>
+    <url>https://github.com/kohsuke/winsw</url>
+  </scm>
 
   <build>
     <plugins>
