@@ -241,11 +241,6 @@ This is another useful building block for developing a self-updating service.
 ### log
 See the "Logging" section above for more details.
 
-### workingdirectory
-This optional element sets the current directory of the process launched by winsw.
-
-    <workingdirectory>%SystemDrive%\</workingdirectory>
-
 ### onfailure
 This optional repeatable element controls the behaviour when the process launched by winsw fails (i.e., exits with non-zero exit code).
 
