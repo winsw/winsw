@@ -8,7 +8,7 @@
   <logmode>rotate</logmode>
 
   <extensions>
-    <extension enabled="true" className="winsw.extensions.shared_dirs.SharedDirectoryMapper" id="mapNetworDirs">
+    <extension enabled="true" className="winsw.Plugins.SharedDirectoryMapper.SharedDirectoryMapper" id="mapNetworDirs">
       <mapping>
         <map enabled="false" label="N:" uncpath="\\UNC"/>
         <map enabled="false" label="M:" uncpath="\\UNC2"/>
