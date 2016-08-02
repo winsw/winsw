@@ -15,7 +15,7 @@
     <StartupObject>
     </StartupObject>
     <SignManifests>false</SignManifests>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>winsw_cert.pfx</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
