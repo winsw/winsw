@@ -3,7 +3,7 @@
   <groupId>com.sun.winsw</groupId>
   <artifactId>winsw</artifactId>
   <packaging>pom</packaging>
-  <version>1.19.1-SNAPSHOT</version>
+  <version>1.19.1</version>
   <name>Windows service wrapper</name>
     
   <distributionManagement>
@@ -17,7 +17,7 @@
     <connection>scm:git:ssh://github.com/kohsuke/winsw.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/kohsuke/winsw.git</developerConnection>
     <url>https://github.com/kohsuke/winsw</url>
-    <tag>HEAD</tag>
+    <tag>winsw-1.19.1</tag>
   </scm>
 
   <build>
