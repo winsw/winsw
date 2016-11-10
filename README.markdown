@@ -5,7 +5,7 @@ Why?
 ----
 Now, I think the first question that people would ask is, why another, when there's [Java Service Wrapper project](http://wrapper.tanukisoftware.org/doc/english/download.jsp) already available. The main reason for writing my own was the license — Java Service Wrapper project is in GPL (so that they can sell their commercial version in a different license), and that made it difficult for [Jenkins](http://jenkins-ci.org/) (which is under the MIT license) to use it.
 
-Functionality-wise, there's really not much that's worth noting; the problem of wrapping a process as a Windows service is so well defined that there aren't really any room for substantial innovation. You basically write a configuration file specifying how you'd like your process to be launched, and we provide programmatic means to install/uninstall/start/stop services. Another notable different is that winsw can host any executable, whereas Java Service Wrapper can only host Java apps. Whether you like this or not depends on your taste, so I wouldn't claim mine is better. It's just different.
+Functionality-wise, there's really not much that's worth noting; the problem of wrapping a process as a Windows service is so well defined that there aren't really any room for substantial innovation. You basically write a configuration file specifying how you'd like your process to be launched, and we provide programmatic means to install/uninstall/start/stop services. Another notable difference is that winsw can host any executable, whereas Java Service Wrapper can only host Java apps. Whether you like this or not depends on your taste, so I wouldn't claim mine is better. It's just different.
 
 As the name implies, this is for Windows only. Unix systems have their own conventions for daemons, so a good behaving Unix daemon should just be using launchd/upstart/SMF/etc, instead of custom service wrapper.
 
@@ -49,7 +49,7 @@ Your renamed `winsw.exe` accepts the following commands:
 
 Error reporting
 ---------------
-Winsw uses WMI underneath, and as such it uses its error code as the exit code. See <a href="http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx">MSDN article</a> for the complete list of exit code.
+Winsw uses WMI underneath, and as such it uses its error code as the exit code. See the MSDN article [Create method of the Win32_Service class] for the complete list of exit code.
 
 When winsw is running as a service, more detailed error information is reported to the Windows event log.
 
@@ -72,11 +72,9 @@ The `<download>` element in the configuration file also provides an useful build
 Restarting service from itself
 ------------------------------
 To support self-restarting services, winsw exposes `WINSW_EXECUTABLE` environment variable into the forked process, which refers to the full path of `winsw.exe` that's managing the service.
-To restart the service from within, execute `%WINSW_EXECUTABLE% restart!`. Note that you are invoking `restart!` command, not `restart` command. This hidden command is a flavor of the `restart` operation,
-where winsw creates another winsw process in a separate process group, and restarts the service from there.
+To restart the service from within, execute `%WINSW_EXECUTABLE% restart!`. Note that you are invoking `restart!` command, not `restart` command. This hidden command is a flavor of the `restart` operation, where winsw creates another winsw process in a separate process group, and restarts the service from there.
 
-This additional indirection is necessary because Windows Service Control Manager (SCM) will kill child processes recursively when it stops a service. SCM doesn't provide the restart operation
-as an atomic operation either, so winsw implements restart by a sequence of stop and start. The 2nd winsw process in a separate process group ensures that winsw can survive this massacre to
+This additional indirection is necessary because Windows Service Control Manager (SCM) will kill child processes recursively when it stops a service. SCM doesn't provide the restart operation as an atomic operation either, so winsw implements restart by a sequence of stop and start. The 2nd winsw process in a separate process group ensures that winsw can survive this massacre to
 execute the start call.
 
 
@@ -88,7 +86,7 @@ Winsw supports several different ways to capture stdout and stderr from the proc
 The `<logpath>` element specifies the directory in which the log files are created. If this element is absent, it'll default to the same directory where the configuration file resides.
 
 ### Append mode (default)
-In this mode, `myapp.out.log` nad `myapp.err.log` (where `myapp` is the base name of the executable and the configuration file) are created and outputs are simply appended to these files. Note that the file can get quite big.
+In this mode, `myapp.out.log` and `myapp.err.log` (where `myapp` is the base name of the executable and the configuration file) are created and outputs are simply appended to these files. Note that the file can get quite big.
 
     <log mode="append"/>
 
@@ -157,7 +155,7 @@ Configuration XML files can include environment variable expansions of the form 
 
 Configuration File Syntax
 -------------------------
-The behaviour of the service is controlled by the XML configuration file. The root element of this XML file must be `<service>`, and it supports the following child element.
+The behavior of the service is controlled by the XML configuration file. The root element of this XML file must be `<service>`, and it supports the following child element.
 
 ### id
 Specifies the ID that Windows uses internally to identify the service. This has to be unique among all the services installed in a system, and (while I haven't verified this) this must consist entirely out of alpha-numeric characters.
@@ -196,7 +194,7 @@ This element specifies the arguments to be passed to the executable. Winsw will 
 For backward compatibility, `<arguments>` element can be used instead to specify the whole command line in a single element.
 
 ### stopargument/stopexecutable
-When the service is requested to stop, winsw simply calls <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx">TerminateProcess</a> API to kill the service instantly. However, if `<stopargument>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the `<stopargument>` arguments, and expects that to initiate the graceful shutdown of the service process.
+When the service is requested to stop, winsw simply calls [TerminateProcess] API to kill the service instantly. However, if `<stopargument>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the `<stopargument>` arguments, and expects that to initiate the graceful shutdown of the service process.
 
 Winsw will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
 
@@ -212,7 +210,7 @@ When you use the `<stopargument>`, you must use `<startargument>` instead of `<a
 Note that the name of the element is `startargument` and not `startarguments`. As such, to specify multiple arguments, you'll specify multiple elements.
 
 ### stoptimeout
-When the service is requested to stop, winsw first attempts to <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx">send Ctrl+C signal to the process</a>, then wait for up to 15 seconds for the process to exit by itself gracefully. A process failing to do that (or if the process does not have a console), then winsw resorts to calling <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx">TerminateProcess</a> API to kill the service instantly.
+When the service is requested to stop, winsw first attempts to [send Ctrl+C signal to the process], then wait for up to 15 seconds for the process to exit by itself gracefully. A process failing to do that (or if the process does not have a console), then winsw resorts to calling [TerminateProcess] API to kill the service instantly.
 
 This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down. See `<onfailure>` below for how to specify time duration:
 
@@ -242,11 +240,6 @@ This is another useful building block for developing a self-updating service.
 
 ### log
 See the "Logging" section above for more details.
-
-### workingdirectory
-This optional element sets the current directory of the process launched by winsw.
-
-    <workingdirectory>%SystemDrive%\</workingdirectory>
 
 ### onfailure
 This optional repeatable element controls the behaviour when the process launched by winsw fails (i.e., exits with non-zero exit code).
@@ -284,7 +277,7 @@ It is possible to specify the useraccount (and password) that the service will r
        <allowservicelogon>true</allowservicelogon>
     </serviceaccount>
 
-The <allowservicelogon> is optional.  If set to true, will automatically set the "Allow Log On As A Service" right to the listed account.
+The `<allowservicelogon>` is optional.  If set to true, will automatically set the "Allow Log On As A Service" right to the listed account.
 
 ### Working directory
 Some services need to run with a working directory specified. To do this, specify a `<workingdirectory>` element like this:
@@ -297,10 +290,10 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
 
     <priority>idle</priority>
 
-Specifying a priority higher than normal has unintended consequences. See <a href="http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx">MSDN discussion</a> for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
+Specifying a priority higher than normal has unintended consequences. See the MSDN article [ProcessPriorityClass Enumeration] for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
 
 ###stopparentprocessfirst
-Optionally specify the order of service shutdown. If true, the parent process is shutdown first. This is useful when the main process is a console, which can respond to Ctrol+C command and will gracefully shutdown child processes
+Optionally specify the order of service shutdown. If true, the parent process is shutdown first. This is useful when the main process is a console, which can respond to Ctrl+C command and will gracefully shutdown child processes
 ```
 <stopparentprocessfirst>true</stopparentprocessfirst>
 ```
@@ -330,3 +323,7 @@ Developer info
 [winsw-1.17]: https://github.com/kohsuke/winsw/milestones/winsw-1.17
 [winsw-1.17-beta.2]: https://github.com/kohsuke/winsw/releases/tag/1.17-beta.2
 [WinSW-2.0]: https://github.com/kohsuke/winsw/milestones/winsw-2.0
+[TerminateProcess]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx "TerminateProcess function"
+[Create method of the Win32_Service class]: http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx
+[send Ctrl+C signal to the process]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx "GenerateConsoleCtrlEvent function"
+[ProcessPriorityClass Enumeration]: http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx
