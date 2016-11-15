@@ -20,6 +20,9 @@ using WMI;
 using ServiceType = WMI.ServiceType;
 using winsw.Native;
 using System.Reflection;
+using Mono.Addins;
+
+[assembly: AddinRoot("WinSW", "2.0")]
 
 namespace winsw
 {
@@ -570,6 +573,11 @@ namespace winsw
         {
             bool isCLIMode = _args.Length > 0;
             var d = descriptor ?? new ServiceDescriptor();
+
+            AddinManager.Initialize();
+            AddinManager.Registry.Update();
+            foreach (IWinSWExtension ext in AddinManager.GetExtensionObjects<IWinSWExtension>())
+                Log.Debug(ext.DisplayName);
 
             // Configure the wrapper-internal logging
             // STDIN and STDOUT of the child process will be handled independently

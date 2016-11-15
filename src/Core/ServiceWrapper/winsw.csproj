@@ -62,8 +62,14 @@
     </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LinqBridge">
+      <HintPath>..\..\..\lib\LinqBridge.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\packages\log4net.2.0.3\lib\net20-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Addins-1.2-patched">
+      <HintPath>..\..\..\lib\Mono.Addins-1.2-patched.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -142,6 +148,8 @@
       <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
       <MergeAsm Include="$(OutputPath)SharedDirectoryMapper.dll" />
       <MergeAsm Include="$(OutputPath)log4net.dll" />
+      <MergeAsm Include="$(OutputPath)LinqBridge.dll" />
+      <MergeAsm Include="$(OutputPath)Mono.Addins-1.2-patched.dll" />
     </ItemGroup>
     <PropertyGroup>
       <MergedAssembly>$(ProjectDir)$(OutDir)winsw.exe</MergedAssembly>
@@ -171,7 +179,7 @@
       <CertificateTmpPubFile>$(OutputPath)winsw_cert.pub</CertificateTmpPubFile>
     </PropertyGroup>
     <Message Text="Extracting public key from $(AssemblyOriginatorKeyFile)" />
-    <Exec Command="&quot;$(SNPath)&quot; -p &quot;$(AssemblyOriginatorKeyFile)&quot; &quot;$(CertificateTmpPubFile)&quot;" /> 
+    <Exec Command="&quot;$(SNPath)&quot; -p &quot;$(AssemblyOriginatorKeyFile)&quot; &quot;$(CertificateTmpPubFile)&quot;" />
     <Message Text="ILMerge @(MergeAsm) -&gt; $(MergedAssembly)" Importance="high" />
     <ILMerge ToolPath="$(ILMergePath)" InputAssemblies="@(MergeAsm)" OutputFile="$(MergedAssembly)" TargetKind="SameAsPrimaryAssembly" KeyFile="$(CertificateTmpPubFile)" DelaySign="true" />
     <Exec Command="&quot;$(SNPath)&quot; -R &quot;$(MergedAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" />

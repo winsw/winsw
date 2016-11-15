@@ -38,8 +38,14 @@
     <AssemblyOriginatorKeyFile>..\..\..\winsw_cert.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LinqBridge">
+      <HintPath>..\..\..\lib\LinqBridge.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\packages\log4net.2.0.3\lib\net20-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Addins-1.2-patched">
+      <HintPath>..\..\..\lib\Mono.Addins-1.2-patched.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

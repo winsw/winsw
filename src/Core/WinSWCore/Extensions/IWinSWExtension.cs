@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml;
+using Mono.Addins;
 using winsw.Util;
 
 namespace winsw.Extensions
@@ -11,6 +12,7 @@ namespace winsw.Extensions
     /// All implementations should provide the default empty constructor. 
     /// The initialization will be performed by Init methods
     /// </remarks>
+    [TypeExtensionPoint]
     public interface IWinSWExtension
     {
         /// <summary>
