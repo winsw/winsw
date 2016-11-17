@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace winsw
+namespace winsw.Native
 {
     /// <summary>
     /// kernel32.dll P/Invoke wrappers
     /// </summary>
-    internal class Kernel32
+    public class Kernel32
     {
         [DllImport("Kernel32.dll", SetLastError = true)]
-        internal static extern int SetStdHandle(int device, IntPtr handle);
+        public static extern int SetStdHandle(int device, IntPtr handle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool CreateProcess(string lpApplicationName,
+        public static extern bool CreateProcess(string lpApplicationName,
            string lpCommandLine, IntPtr lpProcessAttributes,
            IntPtr lpThreadAttributes, bool bInheritHandles,
            uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory,
@@ -20,11 +20,11 @@ namespace winsw
            out PROCESS_INFORMATION lpProcessInformation);
 
         [DllImport("kernel32.dll")]
-        internal static extern int GetLastError();
+        public static extern int GetLastError();
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct PROCESS_INFORMATION
+    public struct PROCESS_INFORMATION
     {
         public IntPtr hProcess;
         public IntPtr hThread;
@@ -33,7 +33,7 @@ namespace winsw
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    struct STARTUPINFO
+    public struct STARTUPINFO
     {
         public Int32 cb;
         public string lpReserved;
