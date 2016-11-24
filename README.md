@@ -49,7 +49,7 @@ Your renamed `winsw.exe` accepts the following commands:
 
 Error reporting
 ---------------
-Winsw uses WMI underneath, and as such it uses its error code as the exit code. See the MSDN article [Create method of the Win32_Service class] for the complete list of exit code.
+Winsw uses WMI underneath, and as such it uses its error code as the exit code. See the MSDN article [Create method of the Win32_Service class](http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx) for the complete list of exit code.
 
 When winsw is running as a service, more detailed error information is reported to the Windows event log.
 
@@ -194,7 +194,7 @@ This element specifies the arguments to be passed to the executable. Winsw will 
 For backward compatibility, `<arguments>` element can be used instead to specify the whole command line in a single element.
 
 ### stopargument/stopexecutable
-When the service is requested to stop, winsw simply calls [TerminateProcess] API to kill the service instantly. However, if `<stopargument>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the `<stopargument>` arguments, and expects that to initiate the graceful shutdown of the service process.
+When the service is requested to stop, winsw simply calls [TerminateProcess function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx ) API to kill the service instantly. However, if `<stopargument>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the `<stopargument>` arguments, and expects that to initiate the graceful shutdown of the service process.
 
 Winsw will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
 
@@ -210,7 +210,7 @@ When you use the `<stopargument>`, you must use `<startargument>` instead of `<a
 Note that the name of the element is `startargument` and not `startarguments`. As such, to specify multiple arguments, you'll specify multiple elements.
 
 ### stoptimeout
-When the service is requested to stop, winsw first attempts to [send Ctrl+C signal to the process], then wait for up to 15 seconds for the process to exit by itself gracefully. A process failing to do that (or if the process does not have a console), then winsw resorts to calling [TerminateProcess] API to kill the service instantly.
+When the service is requested to stop, winsw first attempts to [GenerateConsoleCtrlEvent function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx) (similar to Ctrl+C), then wait for up to 15 seconds for the process to exit by itself gracefully. A process failing to do that (or if the process does not have a console), then winsw resorts to calling [TerminateProcess function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx ) API to kill the service instantly.
 
 This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down. See `<onfailure>` below for how to specify time duration:
 
@@ -290,7 +290,7 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
 
     <priority>idle</priority>
 
-Specifying a priority higher than normal has unintended consequences. See the MSDN article [ProcessPriorityClass Enumeration] for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
+Specifying a priority higher than normal has unintended consequences. See the MSDN article [ProcessPriorityClass Enumeration](http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx) for details. This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
 
 ###stopparentprocessfirst
 Optionally specify the order of service shutdown. If true, the parent process is shutdown first. This is useful when the main process is a console, which can respond to Ctrl+C command and will gracefully shutdown child processes
@@ -304,26 +304,17 @@ Developer info
 ### Project status
 
 * WinSW 1.x - Maintenance only
- * [winsw-1.17] fixes the most of active issues
- * [winsw-1.17-beta.2] is available for the evaluation
+ * [winsw-1.17](https://github.com/kohsuke/winsw/milestones/winsw-1.17) fixes the most of active issues
+ * [winsw-1.17-beta.2](https://github.com/kohsuke/winsw/releases/tag/1.17-beta.2) is available for the evaluation
  * New versions may be released on-demand
  * All new fixes will be ported to WinSW-2.x
 * WinSW 2.x - Active development, no stable releases available
- * [winsw-2.0] - Current development branch
+ * [winsw-2.0](https://github.com/kohsuke/winsw/milestones/winsw-2.0) - Current development branch
  * API stability is not guaranteed till the first release, the project structure is in flux
 
 ### Build Environment
 
-* IDE: [Visual Studio Community 2013][MVS2013] (free for open-source projects)
+* IDE: [Visual Studio Community 2013](http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx) (free for open-source projects)
 * winsw_cert.pfx should be available in the project's root
  * You can generate the certificate in "Project Settings/Signing"
  * The certificate is in <code>.gitignore</code> list. Please do not add it to the repository
-
-[MVS2013]: http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx
-[winsw-1.17]: https://github.com/kohsuke/winsw/milestones/winsw-1.17
-[winsw-1.17-beta.2]: https://github.com/kohsuke/winsw/releases/tag/1.17-beta.2
-[WinSW-2.0]: https://github.com/kohsuke/winsw/milestones/winsw-2.0
-[TerminateProcess]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx "TerminateProcess function"
-[Create method of the Win32_Service class]: http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx
-[send Ctrl+C signal to the process]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx "GenerateConsoleCtrlEvent function"
-[ProcessPriorityClass Enumeration]: http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx
