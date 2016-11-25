@@ -76,8 +76,7 @@ Once the start button is clicked, Windows will start `myapp.exe`,
   
 #### Making WinSW compatible with .NET runtime 4.0+
 
-<!--TODO: modify the text. Newer => Modern-->
-Newer versions of Windows (confirmed on Windows Server 2012, possibly with Windows 8, too) do not ship with .NET runtime `2.0`, which is what `winsw.exe` is built against. 
+Modern versions of Windows (e.g. Windows Server 2012 or Windows 10) do not ship with .NET runtime `2.0`, which is what `winsw.exe` is built against. 
 This is because unlike Java, where a newer runtime can host apps developed against earlier runtime, .NET apps need version specific runtimes.
 
 One way to deal with this is to ensure that `.NET 2.0` runtime is installed through your installer, but another way is to declare that `winsw.exe` can be hosted on `.NET 4.0` runtime by creating an app config file `winsw.exe.config`.

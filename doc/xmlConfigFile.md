@@ -69,8 +69,9 @@ Multiple elements can be used to specify multiple dependencies.
 
 ### logging
 
-<!--TODO: link-->
 Optionally set a different logging directory with `<logpath>` and startup `<logmode>`: reset (clear log), roll (move to \*.old) or append (default).
+
+See the [Logging and Error reporting page](loggingAndErrorReporting.md) for more info.
 
 ### argument
 This element specifies the arguments to be passed to the executable. 
