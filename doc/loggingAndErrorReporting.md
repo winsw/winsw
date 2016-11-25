@@ -53,6 +53,6 @@ For example, in the above example, the log of Jan 1, 2013 gets written to `myapp
 ### Error reporting
 
 Winsw uses WMI underneath, and as such it uses its error code as the exit code. 
-See the MSDN article [Create method of the Win32_Service class](http://msdn.microsoft.com/en-us/library/aa389390(VS.85).aspx) for the complete list of exit code.
+See the MSDN article [Create method of the Win32_Service class](http://msdn.microsoft.com/en-us/library/aa389390%28VS.85%29.aspx) for the complete list of exit code.
 
 When winsw is running as a service, more detailed error information is reported to the Windows event log.

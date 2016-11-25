@@ -102,10 +102,10 @@ Note that the name of the element is `startargument` and not `startarguments`.
 As such, to specify multiple arguments, you'll specify multiple elements.
 
 ### stoptimeout
-When the service is requested to stop, winsw first attempts to [GenerateConsoleCtrlEvent function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155(v=vs.85).aspx) (similar to Ctrl+C), 
+When the service is requested to stop, winsw first attempts to [GenerateConsoleCtrlEvent function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683155%28v=vs.85%29.aspx) (similar to Ctrl+C), 
   then wait for up to 15 seconds for the process to exit by itself gracefully. 
 A process failing to do that (or if the process does not have a console), 
-  then winsw resorts to calling [TerminateProcess function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx ) API to kill the service instantly.
+  then winsw resorts to calling [TerminateProcess function](http://msdn.microsoft.com/en-us/library/windows/desktop/ms686714%28v=vs.85%29.aspx ) API to kill the service instantly.
 
 This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down. 
 See `<onfailure>` below for how to specify time duration:
@@ -210,7 +210,7 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
     <priority>idle</priority>
 
 Specifying a priority higher than normal has unintended consequences.
-See the MSDN article [ProcessPriorityClass Enumeration](http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass(v=vs.110).aspx) for details.
+See the MSDN article [ProcessPriorityClass Enumeration](http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass%28v=vs.110%29.aspx) for details.
 This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
 
 ###stopparentprocessfirst

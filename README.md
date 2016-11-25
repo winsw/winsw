@@ -19,10 +19,19 @@ Unix systems have their own conventions for daemons, so a good behaving Unix dae
 ### Download
 [Binaries are available here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/)
 
-### Available commands
-Your renamed `winsw.exe` accepts the following commands:
+### Description
 
-* `install` to install the service to Windows Service Controller
+WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
+Once you download the installation package, you can rename `winsw.exe` to any name, e.g. `myService.exe`.
+
+WinSW is being managed by configuration files. 
+
+* 
+
+Your renamed `winsw.exe` binary accepts the following commands:
+
+* `install` to install the service to Windows Service Controller.
+  This command requires some preliminary steps described in the [Installation Guide](doc/installation.md).
 * `uninstall` to uninstall the service. The opposite operation of above.
 * `start` to start the service. The service must have already been installed.
 * `stop` to stop the service.
@@ -31,7 +40,7 @@ Your renamed `winsw.exe` accepts the following commands:
 
 ### Documentation
 
-* [Installation Guide](doc/protocols.md) - Describes the installation process for different systems and .NET versions
+* [Installation Guide](doc/installation.md) - Describes the installation process for different systems and .NET versions
 * Configuration:
  * [Main XML Configuration file](doc/xmlConfigFile.md)
  * [Configuration File](doc/xmlConfigFile.md)
