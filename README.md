@@ -1,6 +1,16 @@
 winsw: Windows service wrapper in less restrictive license
 =========================
 
+WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
+Once you download the installation package, you can rename `winsw.exe` to any name, e.g. `myService.exe`.
+
+### Download
+Right now the project uses [Jenkins](https://jenkins.io/index.html) Maven repository as a main storage of release files. 
+Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
+
+Some releases (e.g. alpha- and beta-versions) can be also downloaded from the project's GitHub page. 
+This source of releases is not an **official one**.
+
 ### Why?
 
 Here is a cite from [Kohsuke Kawaguchi](https://github.com/kohsuke/), who is the original author of this project:
@@ -17,19 +27,11 @@ It's just different.
 > As the name implies, this is for Windows only. 
 Unix systems have their own conventions for daemons, so a good behaving Unix daemon should just be using `launchd/upstart/SMF/etc`, instead of custom service wrapper.
 
-### Download
-[Binaries are available here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/)
+### Usage
 
-### Description
+WinSW is being managed by configuration files: [Main XML Configuration file](doc/xmlConfigFile.md) and [EXE .config file](TODO).
 
-WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
-Once you download the installation package, you can rename `winsw.exe` to any name, e.g. `myService.exe`.
-
-WinSW is being managed by configuration files. 
-
-* 
-
-Your renamed `winsw.exe` binary accepts the following commands:
+Your renamed `winsw.exe` binary also accepts the following commands:
 
 * `install` to install the service to Windows Service Controller.
   This command requires some preliminary steps described in the [Installation Guide](doc/installation.md).
