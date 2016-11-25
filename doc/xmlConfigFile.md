@@ -27,6 +27,10 @@ Configuration XML files can include environment variable expansions of the form 
 Such occurrences, if found, will be automatically replaced by the actual values of the variables. 
 If an undefined environment variable is referenced, no substitution occurs.
 
+Also, the service wrapper sets the environment variable `BASE` by itself, which points to a directory that contains the renamed `winsw.exe`. 
+This is useful to refer to other files in the same directory. 
+Since this is an environment variable by itself, this value can be also accessed from the child process launched from the service wrapper.
+
 ## Configuration entries
 
 ### id

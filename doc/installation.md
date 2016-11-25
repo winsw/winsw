@@ -3,7 +3,25 @@ WinSW Installation Guide
 
 This page provides WinSW installation guidelines for different cases.
 
-### Basic setup
+### Installation steps
+
+In order to setup WinSW, you commonly need to perform the following steps:
+
+0. Take `winsw.exe` from the distribution, and rename it to your taste (such as `myapp.exe`)
+0. Write `myapp.xml `(see [XML Config File specification](xmlConfigFile.md) for more details)
+0. Place those two files side by side, because that's how WinSW discovers its configuration.
+0. Run `myapp.exe install <OPTIONS>` in order to install the service wrapper.
+0. Optional - Perform additional configuration in the Windows Service Manager.
+0. Optional - Perform extra configurations if required (guidelines are available below).
+ * Declare that the executable is compatible with .NET 4 or above
+ * Enable the WinSW offline mode
+0. Run the service from the Windows Service Manager.
+
+There are some details for each step available below.
+
+### Installation step details
+
+#### Step 2. Configuration file
 
 You write the configuration file that defines your service. 
 The example below is a primitive example being used in the Jenkins project:
@@ -20,22 +38,40 @@ The example below is a primitive example being used in the Jenkins project:
     </service>
 ```
 
-You'll rename `winsw.exe` into something like `jenkins.exe`, then you put this XML file as `jenkins.xml`. 
-The executable locates the configuration file via this file name convention. 
+The full specification of the configuration file is available [here](xmlConfigFile.md).
+
+#### Step 4. Service registration
+ 
 You can then install the service like:
 
 ```
-    jenkins.exe install
+    jenkins.exe install <OPTIONS>
 ```
 
 ... and you can use the exit code from these processes to determine whether the operation was successful. 
-There are other commands to perform other operations, like `uninstall`, `start`, `stop`, and so on.
+Possible return error codes are described  [here](http://msdn.microsoft.com/en-us/library/aa389390%28VS.85%29.aspx). 
+Beyond these error codes, all the non-zero exit code should be assumed as a failure.
 
-Once the service is installed, you can start it from Windows service manager. Windows will start `jenkins.exe`, 
-  then `jenkins.exe` will launch the executable specified in the configuration file (Java in this case). 
-  If this process dies, winsw will exit itself, and the service will be considered stopped.
+#### Step 5. Windows Service Manager
+
+Once the service is installed, you can start it from Windows Service Manager.
+If you open `Properties` for the service, you can also configure how the service should be launched. 
+
+In particular, the following option can be set up:
+
+* Service automatic startup on the Windows startup
+* User or system account, under which the service runs
+* Recovery options (how Windows recovers the service if it dies due to whatever reason)
+
+In addition to the service manager, it is possible to make some additional configurations in the `Windows Registry Editor`.
+
+Once the start button is clicked, Windows will start `myapp.exe`, 
+  then `myapp.exe` will launch the executable specified in the configuration file (Java in this case). 
+  If this process dies, `myapp.exe` will exit itself, and the service will be considered stopped.
   
-### Making WinSW compatible with .NET runtime 4.0+
+### Extra configuration options
+  
+#### Making WinSW compatible with .NET runtime 4.0+
 
 <!--TODO: modify the text. Newer => Modern-->
 Newer versions of Windows (confirmed on Windows Server 2012, possibly with Windows 8, too) do not ship with .NET runtime `2.0`, which is what `winsw.exe` is built against. 
@@ -57,7 +93,7 @@ See [this post](http://www.davidmoore.info/2010/12/17/running-net-2-runtime-appl
 <!--TODO: Modify the text-->
 To our knowledge, none of the other flags are needed.
 
-### WinSW Offline mode and Authenticode
+#### WinSW Offline mode and Authenticode
 
 To work with UAC-enabled Windows, winsw ships with a digital signature.
 This causes Windows to automatically verify this digital signature when the application is launched (see [more discussions](http://msdn.microsoft.com/en-us/library/bb629393.aspx)). 

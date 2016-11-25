@@ -1,5 +1,6 @@
 Deferred file operations
-------------------------
+====
+
 To support self updating services, winsw offers a mechanism to perform file operations before the process you specified in the configuration file gets launched. 
 This is often necessary because Windows prevents files from overwritten while it's in use.
 
