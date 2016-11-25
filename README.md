@@ -17,7 +17,7 @@ This source of releases is not an **official one**.
 
 ### Usage
 
-WinSW is being managed by configuration files: [Main XML Configuration file](doc/xmlConfigFile.md) and [EXE .config file](TODO).
+WinSW is being managed by configuration files: [Main XML Configuration file](doc/xmlConfigFile.md) and [EXE Config file](doc/exeConfigFile.md).
 
 Your renamed `winsw.exe` binary also accepts the following commands:
 
@@ -35,7 +35,7 @@ Your renamed `winsw.exe` binary also accepts the following commands:
 * [Release notes](CHANGELOG.md)
 * Configuration:
  * [Main XML Configuration file](doc/xmlConfigFile.md)
- * [Configuration File](doc/xmlConfigFile.md)
+ * [EXE Configuration File](doc/exeConfigFile.md)
  * [Logging and Error Reporting](doc/loggingAndErrorReporting.md)
 * Use-cases:
  * [Self-restarting services](doc/selfRestartingService.md)

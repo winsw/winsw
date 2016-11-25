@@ -1,5 +1,5 @@
-Configuration File Syntax
--------------------------
+WinSW XML Configuration File
+====
 
 This page describes the configuration file, which controls the behavior of the Jenkins service.
 
