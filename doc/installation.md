@@ -45,12 +45,15 @@ The full specification of the configuration file is available [here](xmlConfigFi
 You can then install the service like:
 
 ```
-    jenkins.exe install <OPTIONS>
+    myapp.exe install <OPTIONS>
 ```
 
 ... and you can use the exit code from these processes to determine whether the operation was successful. 
 Possible return error codes are described  [here](http://msdn.microsoft.com/en-us/library/aa389390%28VS.85%29.aspx). 
 Beyond these error codes, all the non-zero exit code should be assumed as a failure.
+
+The Installer can be also started with the `/p` option.
+In such case it will prompt for an account name and password, which should be used as a service account.
 
 #### Step 5. Windows Service Manager
 
