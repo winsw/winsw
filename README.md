@@ -40,16 +40,23 @@ Your renamed `winsw.exe` accepts the following commands:
  * [Self-restarting services](doc/selfRestartingService.md)
  * [Deferred File Operations](doc/deferredFileOperations.md)
 
-### Project status
+### Release lines
 
-* WinSW 1.x - Maintenance only
- * [winsw-1.17](https://github.com/kohsuke/winsw/milestones/winsw-1.17) fixes the most of active issues
- * [winsw-1.17-beta.2](https://github.com/kohsuke/winsw/releases/tag/1.17-beta.2) is available for the evaluation
- * New versions may be released on-demand
- * All new fixes will be ported to WinSW-2.x
-* WinSW 2.x - Active development, no stable releases available
- * [winsw-2.0](https://github.com/kohsuke/winsw/milestones/winsw-2.0) - Current development branch
- * API stability is not guaranteed till the first release, the project structure is in flux
+#### WinSW 2.x
+
+This is a new release line under active development.
+API stability is not guaranteed till the first release, the project structure is in flux.
+
+Major changes since 1.x:
+* Rework of the project structure
+* Better logging
+* Internal plugin engine, which allows extending the WinSW behavior
+
+#### WinSW 1.x
+
+This is an old baseline of WinSW.
+Currently it is in the maintenance-only state.
+New versions with fixes may be released on-demand.
 
 ### Build Environment
 
