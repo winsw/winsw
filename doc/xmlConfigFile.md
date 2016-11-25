@@ -35,9 +35,8 @@ Since this is an environment variable by itself, this value can be also accessed
 
 ### id
 Specifies the ID that Windows uses internally to identify the service. 
-<!--TODO: "have not verified" is confusing-->
 This has to be unique among all the services installed in a system, 
-  and (while I haven't verified this) this must consist entirely out of alpha-numeric characters.
+  and it should consist entirely out of alpha-numeric characters.
 
 ### name
 Short display name of the service, which can contain spaces and other characters.
@@ -205,13 +204,17 @@ If set to `true`, will automatically set the "Allow Log On As A Service" right t
 Some services need to run with a working directory specified. 
 To do this, specify a `<workingdirectory>` element like this:
 
+```
     <workingdirectory>C:\application</workingdirectory>
+```
 
 ### priority
 Optionally specify the scheduling priority of the service process (equivalent of Unix nice)
 Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `realtime` (case insensitive.)
 
+```
     <priority>idle</priority>
+```
 
 Specifying a priority higher than normal has unintended consequences.
 See the MSDN article [ProcessPriorityClass Enumeration](http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass%28v=vs.110%29.aspx) for details.

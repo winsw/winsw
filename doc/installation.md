@@ -91,10 +91,9 @@ One way to deal with this is to ensure that `.NET 2.0` runtime is installed thro
   </configuration>
 ```
 
-The way the runtime finds this file is by naming convention, so don't forget to rename a file based on your actual executable name. 
+The way the runtime finds this file is by naming convention, so don't forget to rename a file based on your actual executable name (e.g. `myapp.exe`). 
 See [this post](http://www.davidmoore.info/2010/12/17/running-net-2-runtime-applications-under-the-net-4-runtime/) for more about this. 
-<!--TODO: Modify the text-->
-To our knowledge, none of the other flags are needed.
+None of the other flags are needed.
 
 #### WinSW Offline mode and Authenticode
 
