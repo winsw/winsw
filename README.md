@@ -41,6 +41,7 @@ Your renamed `winsw.exe` binary accepts the following commands:
 ### Documentation
 
 * [Installation Guide](doc/installation.md) - Describes the installation process for different systems and .NET versions
+* [Release notes](CHANGELOG.md)
 * Configuration:
  * [Main XML Configuration file](doc/xmlConfigFile.md)
  * [Configuration File](doc/xmlConfigFile.md)
