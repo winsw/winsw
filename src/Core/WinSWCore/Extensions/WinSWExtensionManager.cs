@@ -120,6 +120,7 @@ namespace winsw.Extensions
             {
                 IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
+                //TODO: Handle exceptions
                 extension.Configure(ServiceDescriptor, configNode, logger);
                 Extensions.Add(id, extension);
                 logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);
