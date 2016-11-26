@@ -321,7 +321,7 @@ namespace winsw
                 try
                 {
                     WriteEvent("ProcessKill " + _process.Id);
-                    StopProcessAndChildren(_process.Id);
+                    ProcessHelper.StopProcessAndChildren(_process.Id, _descriptor.StopTimeout, _descriptor.StopParentProcessFirst);
                     ExtensionManager.FireOnProcessTerminated(_process);
                 }
                 catch (InvalidOperationException)
@@ -368,75 +368,6 @@ namespace winsw
             }
 
             WriteEvent("Finished " + _descriptor.Id);
-        }
-
-        private void StopProcessAndChildren(int pid)
-        {
-            var childPids = GetChildPids(pid);
-
-            if (_descriptor.StopParentProcessFirst)
-            {
-                StopProcess(pid);
-                foreach (var childPid in childPids)
-                {
-                    StopProcessAndChildren(childPid);
-                }
-            }
-            else
-            {
-                foreach (var childPid in childPids)
-                {
-                    StopProcessAndChildren(childPid);
-                }
-                StopProcess(pid);
-            }
-        }
-
-        private List<int> GetChildPids(int pid)
-        {
-            var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-            var childPids = new List<int>();
-            foreach (var mo in searcher.Get())
-            {
-                var childProcessId = mo["ProcessID"];
-                WriteEvent("Found child process: " + childProcessId + " Name: " + mo["Name"]);
-                childPids.Add(Convert.ToInt32(childProcessId));
-            }
-            return childPids;
-        }
-
-        private void StopProcess(int pid)
-        {
-            WriteEvent("Stopping process " + pid);
-            Process proc;
-            try
-            {
-                proc = Process.GetProcessById(pid);
-            }
-            catch (ArgumentException)
-            {
-                WriteEvent("Process " + pid + " is already stopped");
-                return;
-            }
-            
-            WriteEvent("Send SIGINT " + pid);
-            bool successful = SigIntHelper.SendSIGINTToProcess(proc, _descriptor.StopTimeout);
-            if (successful)
-            {
-                WriteEvent("SIGINT to" + pid + " successful");
-            }
-            else
-            {
-                try
-                {
-                    WriteEvent("SIGINT to " + pid + " failed - Killing as fallback", Level.Warn);
-                    proc.Kill();
-                }
-                catch (ArgumentException)
-                {
-                    // Process already exited.
-                }
-            }
         }
 
         private void WaitForProcessToExit(Process processoWait)
