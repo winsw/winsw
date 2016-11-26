@@ -23,5 +23,15 @@ namespace winsw.Extensions
         {
             // Do nothing
         }
+
+        public virtual void OnProcessStarted(System.Diagnostics.Process process)
+        {
+            // Do nothing
+        }
+
+        public virtual void OnProcessTerminated(System.Diagnostics.Process process)
+        {
+            // Do nothing
+        }
     }
 }

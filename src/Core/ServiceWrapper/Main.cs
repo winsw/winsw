@@ -269,6 +269,7 @@ namespace winsw
             WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
 
             StartProcess(_process, startarguments, _descriptor.Executable);
+            ExtensionManager.FireOnProcessStarted(_process);
 
             // send stdout and stderr to its respective output file.
             HandleLogfiles();
@@ -321,6 +322,7 @@ namespace winsw
                 {
                     WriteEvent("ProcessKill " + _process.Id);
                     StopProcessAndChildren(_process.Id);
+                    ExtensionManager.FireOnProcessTerminated(_process);
                 }
                 catch (InvalidOperationException)
                 {
