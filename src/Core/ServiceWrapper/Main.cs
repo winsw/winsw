@@ -440,12 +440,24 @@ namespace winsw
         private void WaitForProcessToExit(Process processoWait)
         {
             SignalShutdownPending();
+            
+            int effectiveProcessWaitSleepTime;
+            if (_descriptor.SleepTime.TotalMilliseconds > Int32.MaxValue)
+            {
+                Log.Warn("The requested sleep time " + _descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " + 
+                    Int32.MaxValue + ". The value will be truncated");
+                effectiveProcessWaitSleepTime = Int32.MaxValue;
+            }
+            else
+            {
+                effectiveProcessWaitSleepTime = (int)_descriptor.SleepTime.TotalMilliseconds;
+            }
 
             try
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
-                while (!processoWait.WaitForExit(_descriptor.SleepTime.Milliseconds))
+                while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
                 {
                     SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
