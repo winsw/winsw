@@ -440,12 +440,24 @@ namespace winsw
         private void WaitForProcessToExit(Process processoWait)
         {
             SignalShutdownPending();
+            
+            int effectiveProcessWaitSleepTime;
+            if (_descriptor.SleepTime.TotalMilliseconds > Int32.MaxValue)
+            {
+                Log.Warn("The requested sleep time " + _descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " + 
+                    Int32.MaxValue + ". The value will be truncated");
+                effectiveProcessWaitSleepTime = Int32.MaxValue;
+            }
+            else
+            {
+                effectiveProcessWaitSleepTime = (int)_descriptor.SleepTime.TotalMilliseconds;
+            }
 
             try
             {
 //                WriteEvent("WaitForProcessToExit [start]");
 
-                while (!processoWait.WaitForExit(_descriptor.SleepTime.Milliseconds))
+                while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
                 {
                     SignalShutdownPending();
 //                    WriteEvent("WaitForProcessToExit [repeat]");
@@ -461,9 +473,22 @@ namespace winsw
 
         private void SignalShutdownPending()
         {
+            int effectiveWaitHint;
+            if (_descriptor.WaitHint.TotalMilliseconds > Int32.MaxValue)
+            {
+                Log.Warn("The requested WaitHint value (" + _descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " + 
+                    Int32.MaxValue + ". The value will be truncated");
+                effectiveWaitHint = Int32.MaxValue;
+            }
+            else
+            {
+                effectiveWaitHint = (int)_descriptor.WaitHint.TotalMilliseconds;
+            }
+
+
             IntPtr handle = ServiceHandle;
             _wrapperServiceStatus.checkPoint++;
-            _wrapperServiceStatus.waitHint = _descriptor.WaitHint.Milliseconds;
+            _wrapperServiceStatus.waitHint = effectiveWaitHint;
 //            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             _wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
             Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
