@@ -41,7 +41,7 @@ Your renamed `winsw.exe` binary also accepts the following commands:
  * [Self-restarting services](doc/selfRestartingService.md)
  * [Deferred File Operations](doc/deferredFileOperations.md)
 * Configuration Management:
- * Puppet Forge Module(doc/puppetWinSQ.md)
+ * [Puppet Forge Module](doc/puppetWinSQ.md)
 
 ### Release lines
 
