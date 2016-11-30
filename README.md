@@ -1,4 +1,4 @@
-*winsw: Windows service wrapper in less restrictive license
+winsw: Windows service wrapper in less restrictive license
 =========================
 
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
