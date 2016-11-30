@@ -1,4 +1,4 @@
-winsw: Windows service wrapper in less restrictive license
+*winsw: Windows service wrapper in less restrictive license
 =========================
 
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
@@ -40,6 +40,8 @@ Your renamed `winsw.exe` binary also accepts the following commands:
 * Use-cases:
  * [Self-restarting services](doc/selfRestartingService.md)
  * [Deferred File Operations](doc/deferredFileOperations.md)
+* Configuration Management:
+ * Puppet Forge Module(doc/puppetWinSQ.md)
 
 ### Release lines
 
