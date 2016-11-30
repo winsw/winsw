@@ -66,6 +66,7 @@
     <Compile Include="Util\SigIntHelper.cs" />
     <Compile Include="Util\XmlHelper.cs" />
     <Compile Include="WinSWException.cs" />
+    <Compile Include="WinSWSystem.cs" />
     <Compile Include="Wmi.cs" />
     <Compile Include="WmiSchema.cs" />
   </ItemGroup>

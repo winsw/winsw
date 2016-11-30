@@ -72,7 +72,11 @@ namespace winsw
             Environment.SetEnvironmentVariable("BASE", d.FullName);
             // ditto for ID
             Environment.SetEnvironmentVariable("SERVICE_ID", Id);
-            Environment.SetEnvironmentVariable("WINSW_EXECUTABLE", ExecutablePath);
+
+            // New name
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
+            // Also inject system environment variables
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
         }
 
         /// <summary>
