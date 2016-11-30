@@ -5,6 +5,7 @@ using System.Diagnostics;
 using winsw.Extensions;
 using winsw.Util;
 using log4net;
+using System.Collections.Specialized;
 
 namespace winsw.Plugins.RunawayProcessKiller
 {
@@ -28,6 +29,8 @@ namespace winsw.Plugins.RunawayProcessKiller
 
         public override String DisplayName { get { return "Runaway Process Killer"; } }
 
+        private String ServiceId { get; set; }
+
         private static readonly ILog Logger = LogManager.GetLogger(typeof(RunawayProcessKillerExtension));
 
         public RunawayProcessKillerExtension()
@@ -47,6 +50,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             Pidfile = XmlHelper.SingleElement(node, "pidfile", false);
             StopTimeout = TimeSpan.FromMilliseconds(Int32.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
             StopParentProcessFirst = Boolean.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
+            ServiceId = descriptor.Id;
         }
 
         /// <summary>
@@ -96,7 +100,38 @@ namespace winsw.Plugins.RunawayProcessKiller
                 return;
             }
 
+            // Ensure the process references the service
+            String affiliatedServiceId;
+            // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
+            // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
+            StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;
+            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower();
+            if (previousProcessEnvVars.ContainsKey(expectedEnvVarName))
+            {
+                affiliatedServiceId = previousProcessEnvVars[expectedEnvVarName];
+            }
+            else
+            {
+                Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. " 
+                    + "The process has not been started by this service, hence it won't be terminated.");
+                if (Logger.IsDebugEnabled) {
+                    foreach (string key in previousProcessEnvVars.Keys) {
+                        Logger.Debug("Env var of " + pid + ": " + key + "=" + previousProcessEnvVars[key]);
+                    }
+                }
+                return;
+            }
+
+            // Check the service ID value
+            if (!ServiceId.Equals(affiliatedServiceId))
+            {
+                Logger.Warn("The process " + pid + " has been started by Windows service with ID='" + affiliatedServiceId + "'. "
+                    + "It is another service (current service id is '" + ServiceId + "'), hence the process won't be terminated.");
+                return;
+            }
+
             // Kill the runaway process
+            Logger.Warn("Stopping the runaway process (pid=" + pid + ") and its children.");
             ProcessHelper.StopProcessAndChildren(pid, this.StopTimeout, this.StopParentProcessFirst);
         }
 

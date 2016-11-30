@@ -424,8 +424,13 @@ namespace winsw
             ps.RedirectStandardError = true;
 
             foreach (string key in _envs.Keys)
+            {
                 Environment.SetEnvironmentVariable(key, _envs[key]);
                 // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
+            }
+
+            // TODO: Make it generic via extension points. The issue mentioned above should be ideally worked around somehow
+            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower()] = _descriptor.Id;
 
             processToStart.Start();
             WriteEvent("Started " + processToStart.Id);
