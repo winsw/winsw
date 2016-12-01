@@ -4,6 +4,7 @@ using System.Xml;
 using System.Reflection;
 using System.Diagnostics;
 using winsw.Util;
+using log4net;
 
 namespace winsw.Extensions
 {
@@ -11,6 +12,8 @@ namespace winsw.Extensions
     {
         public Dictionary<string, IWinSWExtension> Extensions { private set; get; }
         public ServiceDescriptor ServiceDescriptor { private set; get; }
+
+        private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
         public WinSWExtensionManager(ServiceDescriptor serviceDescriptor)
         {
@@ -39,6 +42,44 @@ namespace winsw.Extensions
             foreach (var ext in Extensions)
             {
                 ext.Value.OnStop(logger);
+            }
+        }
+
+        /// <summary>
+        /// Handler, which is being invoked once the child process is started.
+        /// </summary>
+        /// <param name="process">Process</param>
+        public void FireOnProcessStarted(System.Diagnostics.Process process)
+        {
+            foreach (var ext in Extensions)
+            {
+                try
+                {
+                    ext.Value.OnProcessStarted(process);
+                }
+                catch (ExtensionException ex)
+                {
+                    Log.Error("onProcessStarted() handler failed for " + ext.Value.DisplayName, ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handler, which is being invoked once the child process is terminated.
+        /// </summary>
+        /// <param name="process">Process</param>
+        public void FireOnProcessTerminated(System.Diagnostics.Process process)
+        {
+            foreach (var ext in Extensions)
+            {
+                try
+                {
+                    ext.Value.OnProcessTerminated(process);
+                }
+                catch (ExtensionException ex)
+                {
+                    Log.Error("onProcessTerminated() handler failed for " + ext.Value.DisplayName, ex);
+                }
             }
         }
 
@@ -79,6 +120,7 @@ namespace winsw.Extensions
             {
                 IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
+                //TODO: Handle exceptions
                 extension.Configure(ServiceDescriptor, configNode, logger);
                 Extensions.Add(id, extension);
                 logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);

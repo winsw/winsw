@@ -109,6 +109,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj">
+      <Project>{57284b7a-82a4-407a-b706-ebea6bf8ea13}</Project>
+      <Name>RunawayProcessKiller</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj">
       <Project>{ca5c71db-c5a8-4c27-bf83-8e6daed9d6b5}</Project>
       <Name>SharedDirectoryMapper</Name>
@@ -141,6 +145,7 @@
       <MergeAsm Include="$(OutputPath)$(TargetFileName)" />
       <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
       <MergeAsm Include="$(OutputPath)SharedDirectoryMapper.dll" />
+      <MergeAsm Include="$(OutputPath)RunawayProcessKiller.dll" />
       <MergeAsm Include="$(OutputPath)log4net.dll" />
     </ItemGroup>
     <PropertyGroup>
@@ -171,7 +176,7 @@
       <CertificateTmpPubFile>$(OutputPath)winsw_cert.pub</CertificateTmpPubFile>
     </PropertyGroup>
     <Message Text="Extracting public key from $(AssemblyOriginatorKeyFile)" />
-    <Exec Command="&quot;$(SNPath)&quot; -p &quot;$(AssemblyOriginatorKeyFile)&quot; &quot;$(CertificateTmpPubFile)&quot;" /> 
+    <Exec Command="&quot;$(SNPath)&quot; -p &quot;$(AssemblyOriginatorKeyFile)&quot; &quot;$(CertificateTmpPubFile)&quot;" />
     <Message Text="ILMerge @(MergeAsm) -&gt; $(MergedAssembly)" Importance="high" />
     <ILMerge ToolPath="$(ILMergePath)" InputAssemblies="@(MergeAsm)" OutputFile="$(MergedAssembly)" TargetKind="SameAsPrimaryAssembly" KeyFile="$(CertificateTmpPubFile)" DelaySign="true" />
     <Exec Command="&quot;$(SNPath)&quot; -R &quot;$(MergedAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" />
