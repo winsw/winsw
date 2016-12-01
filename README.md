@@ -51,7 +51,7 @@ API stability is not guaranteed till the first release, the project structure is
 Major changes since 1.x:
 * Rework of the project structure
 * Better logging
-* Internal plugin engine, which allows extending the WinSW behavior
+* [Internal extension engine](doc/extensions/extensions.md), which allows extending the WinSW behavior
 
 #### WinSW 1.x
 
