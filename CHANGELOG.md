@@ -8,13 +8,13 @@ Below you can find release notes for the trunk version of WinSW.
 Release date: Coming Soon
 
 Improvements:
-* Introduced a concept of WinSW extensions, which allows extending the wrapper's behavior
+* Introduced the [WinSW extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
 ([PR #42](https://github.com/kohsuke/winsw/pull/42)).
- * The extension binary backward comparability is not guaranteed
-  * The engine does not support extensions in external DLLs (but you can repackage the executable if you want to extend WinSW)
-* `SharedDirectoriesMapper` extension for mapping shared directories when the Windows service starts 
+* [SharedDirectoriesMapper extension](doc/extensions/sharedDirectoryMapper.md)
 ([PR #42](https://github.com/kohsuke/winsw/pull/42)).
-* Migrate event logging to log4j
+* [RunawayProcessKiller extension](doc/extensions/runawayProcessKiller.md)
+([PR #133](https://github.com/kohsuke/winsw/pull/133)).
+* Migrate event logging to `log4j`
 ([PR #73](https://github.com/kohsuke/winsw/pull/73)).
 
 ##### 1.19.1

@@ -37,6 +37,7 @@ Your renamed `winsw.exe` binary also accepts the following commands:
  * [Main XML Configuration file](doc/xmlConfigFile.md)
  * [EXE Configuration File](doc/exeConfigFile.md)
  * [Logging and Error Reporting](doc/loggingAndErrorReporting.md)
+ * [Extensions](doc/extensions/extensions.md)
 * Use-cases:
  * [Self-restarting services](doc/selfRestartingService.md)
  * [Deferred File Operations](doc/deferredFileOperations.md)
@@ -53,7 +54,7 @@ API stability is not guaranteed till the first release, the project structure is
 Major changes since 1.x:
 * Rework of the project structure
 * Better logging
-* Internal plugin engine, which allows extending the WinSW behavior
+* [Internal extension engine](doc/extensions/extensions.md), which allows extending the WinSW behavior
 
 #### WinSW 1.x
 
