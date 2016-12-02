@@ -6,7 +6,7 @@ These extensions allow to alter the behavior of the Windows service in order to 
 
 ### Available extensions
 
-* [Shared Directory Mapper](sharedDirectoriesMapper.md) - Allows mapping shared drives before starting the executable
+* [Shared Directory Mapper](sharedDirectoryMapper.md) - Allows mapping shared drives before starting the executable
 * [Runaway Process Killer](runawayProcessKiller.md) - Termination of processes started by the previous runs of WinSW
 
 ### Developer guide
