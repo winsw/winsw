@@ -86,6 +86,11 @@ namespace winsw.Extensions
         //TODO: Implement loading of external extensions. Current version supports internal hack
         #region Extension load management
 
+        /// <summary>
+        /// Loads extensions according to the configuration file.
+        /// </summary>
+        /// <param name="logger">Logger</param>
+        /// <exception cref="Exception">Loading failure</exception>
         public void LoadExtensions(IEventWriter logger)
         {
             var extensionIds = ServiceDescriptor.ExtensionIds;
@@ -100,7 +105,7 @@ namespace winsw.Extensions
         /// </summary>
         /// <param name="id">Extension ID</param>
         /// <param name="logger">Logger</param>
-        /// <exception cref="ExtensionException">Loading failure</exception>
+        /// <exception cref="Exception">Loading failure</exception>
         private void LoadExtension(string id, IEventWriter logger)
         {
             if (Extensions.ContainsKey(id))
@@ -120,8 +125,15 @@ namespace winsw.Extensions
             {
                 IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
-                //TODO: Handle exceptions
-                extension.Configure(ServiceDescriptor, configNode, logger);
+                try
+                {
+                    extension.Configure(ServiceDescriptor, configNode, logger);
+                }
+                catch (Exception ex)
+                { // Consider any unexpected exception as fatal
+                    Log.Fatal("Failed to configure the extension " + id, ex);
+                    throw ex;
+                }
                 Extensions.Add(id, extension);
                 logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);
             }
