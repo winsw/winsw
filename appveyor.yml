@@ -16,7 +16,11 @@ nuget:
   disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
 
 before_build:
-  cmd: sn -k winsw_key.snk
+  # Check SDKs
+  - ECHO "Installed SDKs:"
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  # Generates a temporary SNK. Not for real signing
+  - cmd: 'C:\\Program Files\\Microsoft SDKs\\Windows\\v8.1A\\Bin\\sn.exe -k winsw_key.snk'
 
 build:
   parallel: true 
