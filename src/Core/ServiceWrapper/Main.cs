@@ -509,6 +509,7 @@ namespace winsw
             try
             {
                 Run(args);
+                Log.Info("Completed. Exit code is 0");
                 return 0;
             }
             catch (WmiException e)
@@ -540,7 +541,7 @@ namespace winsw
 
             if (isCLIMode) // CLI mode
             {               
-                Log.Debug("Starting ServiceWrapper in CLI mode");
+                Log.Info("Starting ServiceWrapper in the CLI mode");
 
                 // Get service info for the future use
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
@@ -747,6 +748,10 @@ namespace winsw
                 throw new Exception("Unknown command: " + args[0]);
 
             }
+            else
+            {
+                Log.Info("Starting ServiceWrapper in the service mode");
+            }
             Run(new WrapperService());
         }
 
@@ -757,6 +762,8 @@ namespace winsw
             // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             PatternLayout pl = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
             pl.ActivateOptions();
+
+            List<IAppender> appenders = new List<IAppender>();
 
             // wrapper.log
             String wrapperLogPath = Path.Combine(d.LogDirectory, d.BaseName + ".wrapper.log");
@@ -771,7 +778,7 @@ namespace winsw
                 Layout = pl
             };
             wrapperLog.ActivateOptions();
-            BasicConfigurator.Configure(wrapperLog);
+            appenders.Add(wrapperLog);
 
             // Also display logs in CLI if required
             if (enableCLILogging)
@@ -780,11 +787,13 @@ namespace winsw
                 {
                     Name = "Wrapper console log", 
                     Threshold = logLevel,
-                    Layout = pl               
+                    Layout = pl,
                 };
                 consoleAppender.ActivateOptions();
-                ((Logger)Log.Logger).AddAppender(consoleAppender);
+                appenders.Add(consoleAppender);
             }
+
+            BasicConfigurator.Configure(appenders.ToArray());
         }
 
         private static string ReadPassword()
