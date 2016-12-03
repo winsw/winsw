@@ -1,6 +1,8 @@
 winsw: Windows service wrapper in less restrictive license
 =========================
 
+[![Build status](https://ci.appveyor.com/api/projects/status/i94752yal9iy77in?svg=true)](https://ci.appveyor.com/project/oleg-nenashev/winsw)
+
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
 Once you download the installation package, you can rename `winsw.exe` to any name, e.g. `myService.exe`.
 
