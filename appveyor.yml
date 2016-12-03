@@ -27,10 +27,10 @@ build:
   project:  src\winsw.sln 
 
 test_script:
-- ps: vstest.console /Logger:Appveyor 'src\\Test\\winswTests\\bin\\Release\\winswTests.dll'
+- ps: vstest.console /Logger:Appveyor 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll'
 
 artifacts:
-  - path: 'src\\Core\\ServiceWrapper\\bin\\Release\\winsw.exe'
+  - path: 'C:/projects/winsw/src/Core/ServiceWrapper/bin/Release/winsw.exe'
     name: WinSW
 
 
