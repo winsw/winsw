@@ -26,12 +26,12 @@ build:
   parallel: true 
   project:  src\winsw.sln 
 
-test:
-  assemblies:
-    - 'src\\Test\\winswTests\\bin\\Release\\winswTests.dll'
+test_script:
+- ps: vstest.console /Logger:Appveyor 'src\\Test\\winswTests\\bin\\Release\\winswTests.dll'
 
 artifacts:
   - path: 'src\\Core\\ServiceWrapper\\bin\\Release\\winsw.exe'
+    name: WinSW
 
 
 
