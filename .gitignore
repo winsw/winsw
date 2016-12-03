@@ -3,7 +3,6 @@ obj
 *.suo
 /UpgradeLog.htm
 /winsw.csproj.user
-/winsw_cert.pfx
 *.user
 /src/packages/NUnit.2.6.4
 /src/packages/ILMerge.MSBuild.Tasks.1.0.0.3

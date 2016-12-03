@@ -90,7 +90,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\winsw_cert.pfx" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
