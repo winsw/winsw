@@ -28,5 +28,7 @@ Generic extension creation guideline:
 
 WinSW engine will automatically locate your extension using the class name in the [XML Configuration File](../xmlConfigFile.md).
 See configuration samples provided for the extensions in the core.
+For extensions from external DLLs, the `className` field should also specify the assembly name. 
+It can be done via fully qualified class name or just by the `${CLASS_NAME}, ${ASSEMBLY_NAME}` declaration.
 
 Please note that in the current versions of WinSW `2.x` the binary compatibility of extension APIs *is not guaranteed*.
