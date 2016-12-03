@@ -1,0 +1,31 @@
+
+version: 2.0.0.{build}
+
+# Do not build on tags (GitHub and BitBucket)
+skip_tags: true
+
+# Project configuration
+image: Visual Studio 2013
+platform: Any CPU
+configuration: Release
+
+# Automatically register private account and/or project AppVeyor NuGet feeds.
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+
+build:
+  parallel: true 
+  project:  src\winsw.sln 
+
+test:
+  assemblies:
+    - 'src\\Test\\winswTests\\bin\\Release\\winswTests.dll'
+
+artifacts:
+  - path: 'src\\Core\\ServiceWrapper\\bin\\Release\\winsw.exe'
+
+
+
+  
