@@ -30,7 +30,7 @@ test_script:
 - ps: vstest.console /Logger:Appveyor 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll'
 
 artifacts:
-  - path: 'C:/projects/winsw/src/Core/ServiceWrapper/bin/Release/winsw.exe'
+  - path: 'src/Core/ServiceWrapper/bin/Release/winsw.exe'
     name: WinSW
 
 
