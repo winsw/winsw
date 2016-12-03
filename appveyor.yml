@@ -20,7 +20,7 @@ before_build:
   - ECHO "Installed SDKs:"
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
   # Generates a temporary SNK. Not for real signing
-  - cmd: 'C:\\Program Files\\Microsoft SDKs\\Windows\\v8.1A\\Bin\\sn.exe -k winsw_key.snk'
+  - cmd: "\"C:/Program Files/Microsoft SDKs/Windows/v7.1/Bin/sn.exe\" -k winsw_key.snk"
 
 build:
   parallel: true 
