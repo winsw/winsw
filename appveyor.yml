@@ -15,6 +15,9 @@ nuget:
   project_feed: true
   disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
 
+before_build:
+  cmd: sn -k winsw_key.snk
+
 build:
   parallel: true 
   project:  src\winsw.sln 
