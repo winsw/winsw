@@ -27,7 +27,8 @@ build:
   project:  src\winsw.sln 
 
 test_script:
-- ps: vstest.console /Logger:Appveyor 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll'
+# Runner for NUnit2
+- ps: nunit-console /Logger:Appveyor 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll'
 
 artifacts:
   - path: 'src/Core/ServiceWrapper/bin/Release/winsw.exe'
