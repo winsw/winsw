@@ -28,7 +28,7 @@ build:
 
 test_script:
 # Runner for NUnit2
-- ps: nunit-console 'C:/projects/winsw/src/Test/winswTests/bin/Release/*.dll'
+- ps: nunit-console 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll' 'C:/projects/winsw/src/Test/winswTests/bin/Release/SharedDirectoryMapper.dll' 'C:/projects/winsw/src/Test/winswTests/bin/Release/RunawayProcessKiller.dll'
 
 artifacts:
   - path: 'src/Core/ServiceWrapper/bin/Release/winsw.exe'
