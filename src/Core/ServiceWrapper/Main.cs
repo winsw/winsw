@@ -20,6 +20,7 @@ using WMI;
 using ServiceType = WMI.ServiceType;
 using winsw.Native;
 using System.Reflection;
+using winsw.Logging;
 
 namespace winsw
 {
@@ -34,6 +35,7 @@ namespace winsw
         internal WinSWExtensionManager ExtensionManager { private set; get; }
 
         private static readonly ILog Log = LogManager.GetLogger("WinSW");
+        private static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
@@ -53,6 +55,13 @@ namespace winsw
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
 
+        /// <summary>
+        /// Indicates that the system is shutting down.
+        /// </summary>
+        public bool IsShuttingDown {
+            get { return _systemShuttingdown; }
+        }
+
         public WrapperService(ServiceDescriptor descriptor)
         {
             _descriptor = descriptor;
@@ -63,6 +72,9 @@ namespace winsw
             CanPauseAndContinue = false;
             AutoLog = true;
             _systemShuttingdown = false;
+
+            // Register the event log provider
+            eventLogProvider.service = this;
         }
 
         public WrapperService() : this (new ServiceDescriptor())
@@ -757,7 +769,9 @@ namespace winsw
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
         {
+            // TODO: Make logging levels configurable
             Level logLevel = Level.Debug;
+            Level eventLogLevel = Level.Warn;
 
             // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             PatternLayout pl = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
@@ -792,6 +806,16 @@ namespace winsw
                 consoleAppender.ActivateOptions();
                 appenders.Add(consoleAppender);
             }
+
+            // System log
+            var systemEventLogger = new ServiceEventLogAppender 
+            {
+                Name = "System event log",
+                Threshold = eventLogLevel,
+                provider  = eventLogProvider
+            };
+            systemEventLogger.ActivateOptions();
+            appenders.Add(systemEventLogger);
 
             BasicConfigurator.Configure(appenders.ToArray());
         }
