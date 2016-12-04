@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{D88064
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunawayProcessKiller", "Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj", "{57284B7A-82A4-407A-B706-EBEA6BF8EA13}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winsw_dotNET4", "Core\ServiceWrapper_dotNET4\winsw_dotNET4.csproj", "{419AEEA7-E7DE-4A76-B001-76DB5F98C838}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,16 @@ Global
 		{57284B7A-82A4-407A-B706-EBEA6BF8EA13}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{57284B7A-82A4-407A-B706-EBEA6BF8EA13}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{57284B7A-82A4-407A-B706-EBEA6BF8EA13}.Release|Win32.ActiveCfg = Release|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Release|Any CPU.Build.0 = Release|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,5 +121,6 @@ Global
 		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5} = {BC4AD891-E87E-4F30-867C-FD8084A29E5D}
 		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06} = {5297623A-1A95-4F89-9AAE-DA634081EC86}
 		{57284B7A-82A4-407A-B706-EBEA6BF8EA13} = {BC4AD891-E87E-4F30-867C-FD8084A29E5D}
+		{419AEEA7-E7DE-4A76-B001-76DB5F98C838} = {5297623A-1A95-4F89-9AAE-DA634081EC86}
 	EndGlobalSection
 EndGlobal
