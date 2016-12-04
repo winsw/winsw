@@ -1,0 +1,39 @@
+
+version: 2.0.0.{build}
+
+# Do not build on tags (GitHub and BitBucket)
+skip_tags: true
+
+# Project configuration
+image: Visual Studio 2013
+platform: Any CPU
+configuration: Release
+
+# Automatically register private account and/or project AppVeyor NuGet feeds.
+nuget:
+  account_feed: true
+  project_feed: true
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+
+before_build:
+  # Check SDKs
+  - ECHO "Installed SDKs:"
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  # Generates a temporary SNK. Not for real signing
+  - cmd: "\"C:/Program Files/Microsoft SDKs/Windows/v7.1/Bin/sn.exe\" -k winsw_key.snk"
+
+build:
+  parallel: true 
+  project:  src\winsw.sln 
+
+test_script:
+# Runner for NUnit2
+- ps: nunit-console 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll' 'C:/projects/winsw/src/Test/winswTests/bin/Release/SharedDirectoryMapper.dll' 'C:/projects/winsw/src/Test/winswTests/bin/Release/RunawayProcessKiller.dll'
+
+artifacts:
+  - path: 'src/Core/ServiceWrapper/bin/Release/winsw.exe'
+    name: WinSW
+
+
+
+  

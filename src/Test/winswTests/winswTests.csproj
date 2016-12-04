@@ -46,14 +46,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\packages\log4net.2.0.3\lib\net20-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ExtensionTestBase.cs" />
     <Compile Include="Extensions\RunawayProcessKillerTest.cs" />
-    <Compile Include="Extensions\WinSWExtensionManagerTest.cs" />
+    <Compile Include="Extensions\SharedDirectoryMapperTest.cs" />
     <Compile Include="MainTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceDescriptorTests.cs" />
