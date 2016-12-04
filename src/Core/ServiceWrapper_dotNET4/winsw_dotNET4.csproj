@@ -85,7 +85,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -142,7 +141,7 @@
     <ItemGroup>
       <MergeAsm Include="$(OutputPath)$(TargetFileName)" />
       <MergeAsm Include="$(OutputPath)WindowsService.exe" />
-	  <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
+      <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
       <MergeAsm Include="$(OutputPath)SharedDirectoryMapper.dll" />
       <MergeAsm Include="$(OutputPath)RunawayProcessKiller.dll" />
       <MergeAsm Include="$(OutputPath)log4net.dll" />
