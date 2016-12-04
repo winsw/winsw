@@ -3,17 +3,19 @@ using NUnit.Framework;
 using winsw.Extensions;
 using winsw.Plugins.SharedDirectoryMapper;
 
-namespace winswTests.extensions
+namespace winswTests.Extensions
 {
     [TestFixture]
-    class WinSWExtensionManagerTest
+    class SharedDirectoryMapperTest : ExtensionTestBase
     {
         ServiceDescriptor _testServiceDescriptor;
+
+        string testExtension = getExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
         [SetUp]
         public void SetUp()
         {
-            string testExtension = typeof (SharedDirectoryMapper).ToString();
+            
             string seedXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
                 + "<service>                                                                                                        "
                 + "  <id>SERVICE_NAME</id>                                                                                          "

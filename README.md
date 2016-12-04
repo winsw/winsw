@@ -1,6 +1,8 @@
 winsw: Windows service wrapper in less restrictive license
 =========================
 
+[![Build status](https://ci.appveyor.com/api/projects/status/i94752yal9iy77in?svg=true)](https://ci.appveyor.com/project/oleg-nenashev/winsw)
+
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
 Once you download the installation package, you can rename `winsw.exe` to any name, e.g. `myService.exe`.
 
@@ -65,6 +67,6 @@ New versions with fixes may be released on-demand.
 ### Build Environment
 
 * IDE: [Visual Studio Community 2013](http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx) (free for open-source projects)
-* winsw_cert.pfx should be available in the project's root
+* `winsw-key.snk` should be available in the project's root in order to build the executable
  * You can generate the certificate in "Project Settings/Signing"
  * The certificate is in <code>.gitignore</code> list. Please do not add it to the repository
