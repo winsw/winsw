@@ -24,7 +24,7 @@ using winsw.Logging;
 
 namespace winsw
 {
-    public class WrapperService : ServiceBase, EventLogger, IEventWriter
+    public class WrapperService : ServiceBase, EventLogger
     {
         private SERVICE_STATUS _wrapperServiceStatus;
 
@@ -147,7 +147,7 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Thread failed unexpectedly",e);
+                    Log.Error("Thread failed unexpectedly",e);
                 }
             }).Start();
         }
@@ -183,7 +183,7 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
+                    Log.Error("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
                 }
             }
         }
@@ -202,26 +202,9 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Failed to log event in Windows Event Log. Reason: ", e);
+                    Log.Error("Failed to log event in Windows Event Log. Reason: ", e);
                 }
             }
-        }
-
-        private void WriteEvent(Exception exception)
-        {
-            //TODO: pass exception to logger
-            WriteEvent(exception.Message + "\nStacktrace:" + exception.StackTrace, Level.Error);
-        }
-
-        private void WriteEvent(String message, Exception exception)
-        {
-            //TODO: pass exception to logger
-            WriteEvent(message + "\nMessage:" + exception.Message + "\nStacktrace:" + exception.StackTrace, Level.Error);
-        }
-
-        private void WriteEvent(String message, Level logLevel = null, Exception ex = null)
-        {
-            Log.Logger.Log(GetType(), logLevel ?? Level.Info, message, ex);
         }
 
         protected override void OnStart(string[] _)
@@ -245,7 +228,7 @@ namespace winsw
                 catch (Exception e)
                 {
                     LogEvent("Failed to download " + d.From + " to " + d.To + "\n" + e.Message);
-                    WriteEvent("Failed to download " + d.From +" to "+d.To, e);
+                    Log.Error("Failed to download " + d.From +" to "+d.To, e);
                     // but just keep going
                 }
             }
@@ -262,23 +245,14 @@ namespace winsw
             }
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
 
             // Load and start extensions
-            ExtensionManager.LoadExtensions(this);
-            try
-            {
-                ExtensionManager.OnStart(this);
-            }
-            catch (ExtensionException ex)
-            {
-                LogEvent("Failed to start extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
-                WriteEvent("Failed to start extension  " + ex.ExtensionId, ex);
-                //TODO: Exit on error?
-            }
+            ExtensionManager.LoadExtensions();
+            ExtensionManager.FireOnWrapperStarted();
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
 
             StartProcess(_process, startarguments, _descriptor.Executable);
             ExtensionManager.FireOnProcessStarted(_process);
@@ -300,7 +274,7 @@ namespace winsw
             }
             catch (Exception ex)
             {
-                WriteEvent("Shutdown exception", ex);
+                Log.Error("Shutdown exception", ex);
             }
         }
 
@@ -314,7 +288,7 @@ namespace winsw
             }
             catch (Exception ex)
             {
-                WriteEvent("Stop exception", ex);
+                Log.Error("Cannot stop exception", ex);
             }
         }
 
@@ -325,14 +299,14 @@ namespace winsw
         {
             string stoparguments = _descriptor.Stoparguments;
             LogEvent("Stopping " + _descriptor.Id);
-            WriteEvent("Stopping " + _descriptor.Id);
+            Log.Info("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
 
             if (stoparguments == null)
             {
                 try
                 {
-                    WriteEvent("ProcessKill " + _process.Id);
+                    Log.Debug("ProcessKill " + _process.Id);
                     ProcessHelper.StopProcessAndChildren(_process.Id, _descriptor.StopTimeout, _descriptor.StopParentProcessFirst);
                     ExtensionManager.FireOnProcessTerminated(_process);
                 }
@@ -357,29 +331,21 @@ namespace winsw
 
                 StartProcess(stopProcess, stoparguments, executable);
 
-                WriteEvent("WaitForProcessToExit "+_process.Id+"+"+stopProcess.Id);
+                Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(_process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
             }
 
             // Stop extensions      
-            try
-            {
-                ExtensionManager.OnStop(this);
-            }
-            catch (ExtensionException ex)
-            {
-                LogEvent("Failed to stop extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
-                WriteEvent("Failed to stop extension  " + ex.ExtensionId, ex);
-            }
+            ExtensionManager.FireBeforeWrapperStopped();
 
             if (_systemShuttingdown && _descriptor.BeepOnShutdown) 
             {
                 Console.Beep();
             }
 
-            WriteEvent("Finished " + _descriptor.Id);
+            Log.Info("Finished " + _descriptor.Id);
         }
 
         private void WaitForProcessToExit(Process processoWait)
@@ -470,7 +436,7 @@ namespace winsw
             ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower()] = _descriptor.Id;
 
             processToStart.Start();
-            WriteEvent("Started " + processToStart.Id);
+            Log.Info("Started " + processToStart.Id);
 
             var priority = _descriptor.Priority;
             if (priority != ProcessPriorityClass.Normal)

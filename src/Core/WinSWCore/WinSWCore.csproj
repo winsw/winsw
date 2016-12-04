@@ -63,7 +63,6 @@
     <Compile Include="PeriodicRollingCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceDescriptor.cs" />
-    <Compile Include="Util\IEventWriter.cs" />
     <Compile Include="Util\ProcessHelper.cs" />
     <Compile Include="Util\SigIntHelper.cs" />
     <Compile Include="Util\XmlHelper.cs" />

@@ -22,26 +22,43 @@ namespace winsw.Extensions
         }
 
         /// <summary>
-        /// Starts all extensions
+        /// Notifies all extensions that the wrapper is being started.
+        /// They are supposed to run the initialization logic.
+        /// If any extensions fails, WinSW startup should be interrupted.
         /// </summary>
-        /// <exception cref="ExtensionException">Start failure</exception>
-        public void OnStart(IEventWriter logger) 
+        /// <exception cref="Exception">Start failure</exception>
+        public void FireOnWrapperStarted() 
         {
             foreach (var ext in Extensions)
             {
-                ext.Value.OnStart(logger);     
+                try
+                {
+                    ext.Value.OnWrapperStarted();
+                }
+                catch (ExtensionException ex)
+                {
+                    Log.Fatal("onWrapperStarted() handler failed for " + ext.Value.DisplayName, ex);
+                    throw ex; // Propagate error to stop the startup
+                }
             }
         }
 
         /// <summary>
-        /// Stops all extensions
+        /// Notifies all extensions that the wrapper is being stopped.
+        /// If an error happens, further extensions will be tried
         /// </summary>
-        /// <exception cref="ExtensionException">Stop failure</exception>
-        public void OnStop(IEventWriter logger)
+        public void FireBeforeWrapperStopped()
         {
             foreach (var ext in Extensions)
-            {
-                ext.Value.OnStop(logger);
+            { 
+                try
+                {
+                    ext.Value.BeforeWrapperStopped();
+                }
+                catch (ExtensionException ex)
+                {
+                    Log.Error("beforeWrapperStopped() handler failed for " + ext.Value.DisplayName, ex);
+                }
             }
         }
 
@@ -86,12 +103,12 @@ namespace winsw.Extensions
         //TODO: Implement loading of external extensions. Current version supports internal hack
         #region Extension load management
 
-        public void LoadExtensions(IEventWriter logger)
+        public void LoadExtensions()
         {
             var extensionIds = ServiceDescriptor.ExtensionIds;
             foreach (String extensionId in extensionIds) 
             {
-                LoadExtension(extensionId, logger);
+                LoadExtension(extensionId);
             }
         }
 
@@ -101,7 +118,7 @@ namespace winsw.Extensions
         /// <param name="id">Extension ID</param>
         /// <param name="logger">Logger</param>
         /// <exception cref="ExtensionException">Loading failure</exception>
-        private void LoadExtension(string id, IEventWriter logger)
+        private void LoadExtension(string id)
         {
             if (Extensions.ContainsKey(id))
             {
@@ -121,13 +138,13 @@ namespace winsw.Extensions
                 IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 //TODO: Handle exceptions
-                extension.Configure(ServiceDescriptor, configNode, logger);
+                extension.Configure(ServiceDescriptor, configNode);
                 Extensions.Add(id, extension);
-                logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);
+                Log.Info("Extension loaded: " + id);
             }
             else
             {
-                logger.LogEvent("Extension is disabled: " + id, EventLogEntryType.Warning);
+                Log.Warn("Extension is disabled: " + id);
             }
             
         }

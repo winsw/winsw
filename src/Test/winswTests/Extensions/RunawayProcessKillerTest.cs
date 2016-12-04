@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using winsw.Extensions;
 using winsw.Plugins.SharedDirectoryMapper;
-using winswTests.util;
 using winsw.Plugins.RunawayProcessKiller;
 
 namespace winswTests.extensions
@@ -11,7 +10,6 @@ namespace winswTests.extensions
     class RunawayProcessKillerExtensionTest
     {
         ServiceDescriptor _testServiceDescriptor;
-        readonly TestLogger _logger = new TestLogger();
 
         [SetUp]
         public void SetUp()
@@ -40,7 +38,7 @@ namespace winswTests.extensions
         public void LoadExtensions()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
-            manager.LoadExtensions(_logger);
+            manager.LoadExtensions();
             Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
 
             // Check the file is correct
@@ -55,9 +53,9 @@ namespace winswTests.extensions
         public void StartStopExtension()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
-            manager.LoadExtensions(_logger);
-            manager.OnStart(_logger);
-            manager.OnStop(_logger);
+            manager.LoadExtensions();
+            manager.FireOnWrapperStarted();
+            manager.FireBeforeWrapperStopped();
         }
     }
 }
