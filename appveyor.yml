@@ -33,6 +33,8 @@ test_script:
 artifacts:
   - path: 'src/Core/ServiceWrapper/bin/Release/winsw.exe'
     name: WinSW
+  - path: 'src/Core/ServiceWrapper_dotNET4/bin/Release/winsw.exe'
+    name: WinSW_dotNET4
 
 
 
