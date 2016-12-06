@@ -135,7 +135,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
-  <!-- Merge plugins and other DLLs into winsw.exe -->
+  <!-- Merge plugins and other DLLs into the executable -->
   <UsingTask TaskName="MSBuild.Community.Tasks.ILMerge" AssemblyFile="$(SolutionDir)\packages\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" />
   <Target Name="AfterBuild">
     <ItemGroup>
@@ -147,7 +147,7 @@
       <MergeAsm Include="$(OutputPath)log4net.dll" />
     </ItemGroup>
     <PropertyGroup>
-      <MergedAssembly>$(ProjectDir)$(OutDir)winsw.exe</MergedAssembly>
+      <MergedAssembly>$(ProjectDir)$(OutDir)WinSW.NET4.exe</MergedAssembly>
       <CertificatePfxFile>$(AssemblyOriginatorKeyFile)</CertificatePfxFile>
     </PropertyGroup>
     <!-- Locate SN.EXE in Windows SDK, use the first found one-->
