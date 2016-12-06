@@ -31,6 +31,16 @@ Your renamed `winsw.exe` binary also accepts the following commands:
 * `restart` to restart the service. If the service is not currently running, this command acts like `start`.
 * `status` to check the current status of the service. This command prints one line to the console. `NonExistent` to indicate the service is not currently installed, `Started` to indicate the service is currently running, and `Stopped` to indicate that the service is installed but not currently running.
 
+### Supported .NET versions
+
+WinSW `1.x` Executable is being built with a .NET Framework `2.0` target, and by defaut it will work only for .NET Framework versions below `3.5`.
+On the other hand, the code is known to be compatible with .NET Framework `4.0` and above.
+It is possible to declare the support of this framework via the `exe.config` file.
+See the [Installation Guide](doc/installation.md) for more details.
+
+WinSW `2.x` offers two executables, which declare .NET Frameworks `2.0` and `4.0` as targets.
+Naming and download sources for these binaries are currently in flux.
+
 ### Documentation
 
 * [Installation Guide](doc/installation.md) - Describes the installation process for different systems and .NET versions
@@ -57,6 +67,7 @@ Major changes since 1.x:
 * Rework of the project structure
 * Better logging
 * [Internal extension engine](doc/extensions/extensions.md), which allows extending the WinSW behavior
+* Executable package targeting the .NET Framework 4.0
 
 #### WinSW 1.x
 
