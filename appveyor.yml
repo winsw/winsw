@@ -1,5 +1,5 @@
 
-version: 2.0.0.{build}
+version: 2.0.{build}
 
 # Do not build on tags (GitHub and BitBucket)
 skip_tags: true
@@ -22,6 +22,13 @@ before_build:
   # Generates a temporary SNK. Not for real signing
   - cmd: "\"C:/Program Files/Microsoft SDKs/Windows/v7.1/Bin/sn.exe\" -k winsw_key.snk"
 
+assembly_info:
+  patch: true
+  file: "**\\AssemblyInfo.*"
+  assembly_version:  $(appveyor_build_version)
+  assembly_file_version:  $(appveyor_build_version)
+  assembly_informational_version: '$(appveyor_build_version)-rc'
+  
 build:
   parallel: true 
   project:  src\winsw.sln 
