@@ -24,7 +24,7 @@ before_build:
 
 assembly_info:
   patch: true
-  file: "**\AssemblyInfo.*"
+  file: "**\\AssemblyInfo.*"
   assembly_version:  $(appveyor_build_version)
   assembly_file_version:  $(appveyor_build_version)
   assembly_informational_version: '$(appveyor_build_version)-rc'
