@@ -1,5 +1,6 @@
-# Do not build on tags (GitHub and BitBucket)
+# Do not build tags and feature branches
 skip_tags: true
+skip_branch_with_pr: true
 
 # Project configuration
 image: Visual Studio 2013
@@ -32,7 +33,7 @@ build:
 
 test_script:
 # Runner for NUnit2
-- ps: nunit-console 'C:/projects/winsw/src/Test/winswTests/bin/Release/winswTests.dll' 'C:/projects/winsw/src/Test/winswTests/bin/Release/SharedDirectoryMapper.dll' 'C:/projects/winsw/src/Test/winswTests/bin/Release/RunawayProcessKiller.dll'
+- ps: nunit-console 'src/Test/winswTests/bin/Release/winswTests.dll' 'src/Test/winswTests/bin/Release/SharedDirectoryMapper.dll' 'src/Test/winswTests/bin/Release/RunawayProcessKiller.dll'
 
 artifacts:
   - path: 'src/Core/ServiceWrapper/bin/Release/WinSW.NET2.exe'
