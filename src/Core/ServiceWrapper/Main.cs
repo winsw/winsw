@@ -492,11 +492,13 @@ namespace winsw
             }
             catch (WmiException e)
             {
+                Log.Fatal("WMI Operation failure: " + e.ErrorCode, e);
                 Console.Error.WriteLine(e);
                 return (int)e.ErrorCode;
             }
             catch (Exception e)
             {
+                Log.Fatal("Unhandled exception", e);
                 Console.Error.WriteLine(e);
                 return -1;
             }
@@ -507,17 +509,29 @@ namespace winsw
             throw new WmiException(ReturnValue.NoSuchService);
         }
 
+
         // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// Runs the wrapper.
+        /// </summary>
+        /// <param name="_args">Arguments. If empty, WinSW will behave in the service mode. Otherwise - CLI mode</param>
+        /// <param name="descriptor">Service descriptor. If null, it will be initialized within the method. 
+        ///                          In such case configs will be loaded from the XML Configuration File.</param>
+        /// <exception cref="Exception">Any unhandled exception</exception>
         public static void Run(string[] _args, ServiceDescriptor descriptor = null)
         {
             bool isCLIMode = _args.Length > 0;
+            
+            
+            // If descriptor is not specified, initialize the new one (and load configs from there)
             var d = descriptor ?? new ServiceDescriptor();
-
-            // Configure the wrapper-internal logging
-            // STDIN and STDOUT of the child process will be handled independently
+                
+            // Configure the wrapper-internal logging.
+            // STDIN and STDOUT of the child process will be handled independently.
             InitLoggers(d, isCLIMode);
 
-            if (isCLIMode) // CLI mode
+            
+            if (isCLIMode) // CLI mode, in-service mode otherwise
             {               
                 Log.Info("Starting ServiceWrapper in the CLI mode");
 

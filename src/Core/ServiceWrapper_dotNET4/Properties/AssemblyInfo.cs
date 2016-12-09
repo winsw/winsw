@@ -1,15 +1,12 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("winswTests")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Windows Service Wrapper for .NET4")]
+[assembly: AssemblyDescription("Allows arbitrary process to run as a Windows service by wrapping it")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("winswTests")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2013")]
+[assembly: AssemblyCompany("CloudBees, Inc.")]
+[assembly: AssemblyProduct("Windows Service Wrapper")]
+[assembly: AssemblyCopyright("Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -19,7 +16,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("01ee65cd-18ae-4f3b-8eac-c9f790d5f24e")]
+[assembly: Guid("59ce18df-cacb-4360-bb80-798bd6459ca3")]
 
 // Version information for an assembly consists of the following four values:
 //
