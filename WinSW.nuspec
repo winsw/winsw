@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>winsw</id>
+    <id>WinSW</id>
     <version>$version$</version>
     <title>Windows Service Wrapper</title>
     <summary>WinSW is a binary, which can be used to wrap and manage custom executables as Windows services.</summary>
