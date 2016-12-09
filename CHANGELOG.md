@@ -9,13 +9,13 @@ Release date: Coming Soon
 
 Improvements:
 * Provide the executable for `.NET Framework 4.0`.
-Now patches of `exe.config` are not required to get the new executable running.
+With this binary patching of `exe.config` is no longer required to get WinSW running on newest systems.
 ([PR #147](https://github.com/kohsuke/winsw/pull/147))
-* Introduced the [WinSW extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
+* Introduce the [WinSW extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
 ([PR #42](https://github.com/kohsuke/winsw/pull/42)).
-* [SharedDirectoriesMapper extension](doc/extensions/sharedDirectoryMapper.md)
+* Add new `SharedDirectoriesMapper` extension. See the docs [here](doc/extensions/sharedDirectoryMapper.md).
 ([PR #42](https://github.com/kohsuke/winsw/pull/42)).
-* [RunawayProcessKiller extension](doc/extensions/runawayProcessKiller.md)
+* Add new `RunawayProcessKiller` extension. See the docs [here](doc/extensions/runawayProcessKiller.md).
 ([PR #133](https://github.com/kohsuke/winsw/pull/133)).
 * Migrate event logging to [Apache log4net](https://logging.apache.org/log4net/). 
 ([PR #145](https://github.com/kohsuke/winsw/pull/145), [PR #73](https://github.com/kohsuke/winsw/pull/73) and others).
