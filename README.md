@@ -11,11 +11,11 @@ Once you download the installation package, you can rename `winsw.exe` to any na
 See the [project manifest](MANIFEST.md).
 
 ### Download
-Right now the project uses [Jenkins](https://jenkins.io/index.html) Maven repository as a main storage of release files. 
-Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
-Some releases (e.g. alpha- and beta-versions) can be also downloaded from the project's GitHub page. 
-This source of releases is not an **official one**.
+Starting from WinSW `2.x`, the releases are being hosted on GitHub ([here](https://github.com/kohsuke/winsw/releases)).
+
+The project also uses the  [Jenkins](https://jenkins.io/index.html) Maven repository as a secondary storage of release files. 
+Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
 ### Usage
 
