@@ -61,13 +61,16 @@ Naming and download sources for these binaries are currently in flux.
 #### WinSW 2.x
 
 This is a new release line under active development.
-API stability is not guaranteed till the first release, the project structure is in flux.
 
 Major changes since 1.x:
-* Rework of the project structure
-* Better logging
-* [Internal extension engine](doc/extensions/extensions.md), which allows extending the WinSW behavior
-* Executable package targeting the .NET Framework 4.0
+* New executable package targeting the .NET Framework `4.0`. .NET Framework `2.0` is still supported.
+* Migration of the logging subsystem to `Apache log4net`
+* Internal [extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
+
+See the full changelog in the [release notes](CHANGELOG.md#20).
+
+The version `2.x` is **fully compatible** with the `1.x` configuration file format, 
+  hence the upgrade procedure just requires replacement of the executable file.
 
 #### WinSW 1.x
 

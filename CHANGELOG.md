@@ -28,9 +28,15 @@ Prevent the CPU overutilization when waiting for the process to exit.
 
 Non-code changes:
 * Documentation refactoring and update
-* Introduced the CI flow being hosted on Appveyor. The project page is [here](https://ci.appveyor.com/project/oleg-nenashev/winsw)
+* Introduced the CI flow being hosted on AppVeyor. The project page is [here](https://ci.appveyor.com/project/oleg-nenashev/winsw)
 * Starting from WinSW 2.0, [GitHub](https://github.com/kohsuke/winsw/releases) and NuGet will be the release sources
  * [Maven repository](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/) will be periodically updated on-demand
+
+Compatibility notes:
+* WinSW `2.x` is **fully compatible** with WinSW `1.x` in terms of the command-line interface and configuration files.
+* Any behavior difference will be considered as a bug
+* New features like [WinSW extensions](doc/extensions/extensions.md) are disabled by default. 
+They can be enabled via the configuration file.
 
 ##### 1.19.1
 
