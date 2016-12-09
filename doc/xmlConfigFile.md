@@ -201,6 +201,16 @@ It is possible to specify the useraccount (and password) that the service will r
 The `<allowservicelogon>` is optional. 
 If set to `true`, will automatically set the "Allow Log On As A Service" right to the listed account.
 
+To use [(Group) Managed Service Accounts](https://technet.microsoft.com/en-us/library/hh831782.aspx) append `$` to the account name and remove `<password>` element:
+
+```
+    <serviceaccount>
+       <domain>YOURDOMAIN</domain>
+       <user>gmsa_account$</user>
+       <allowservicelogon>true</allowservicelogon>
+    </serviceaccount>
+```
+
 ### Working directory
 Some services need to run with a working directory specified. 
 To do this, specify a `<workingdirectory>` element like this:
