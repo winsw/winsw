@@ -1,5 +1,6 @@
-# Do not build on tags (GitHub and BitBucket)
+# Do not build tags and feature branches
 skip_tags: true
+skip_branch_with_pr: true
 
 # Project configuration
 image: Visual Studio 2013
