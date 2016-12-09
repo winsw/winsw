@@ -43,7 +43,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             this.Pidfile = pidfile;
         }
 
-        public override void Configure(ServiceDescriptor descriptor, XmlNode node, IEventWriter logger)
+        public override void Configure(ServiceDescriptor descriptor, XmlNode node)
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
@@ -57,7 +57,7 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// This method checks if the PID file is stored on the disk and then terminates runaway processes if they exist.
         /// </summary>
         /// <param name="logger">Unused logger</param>
-        public override void OnStart(IEventWriter logger)
+        public override void OnWrapperStarted()
         {
             // Read PID file from the disk
             int pid;

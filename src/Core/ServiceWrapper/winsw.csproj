@@ -79,6 +79,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SigIntHelper.cs" />
+    <Compile Include="Logging\WrapperServiceEventLogProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.xml" />

@@ -20,10 +20,11 @@ using WMI;
 using ServiceType = WMI.ServiceType;
 using winsw.Native;
 using System.Reflection;
+using winsw.Logging;
 
 namespace winsw
 {
-    public class WrapperService : ServiceBase, EventLogger, IEventWriter
+    public class WrapperService : ServiceBase, EventLogger
     {
         private SERVICE_STATUS _wrapperServiceStatus;
 
@@ -34,6 +35,7 @@ namespace winsw
         internal WinSWExtensionManager ExtensionManager { private set; get; }
 
         private static readonly ILog Log = LogManager.GetLogger("WinSW");
+        private static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
@@ -53,6 +55,13 @@ namespace winsw
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
 
+        /// <summary>
+        /// Indicates that the system is shutting down.
+        /// </summary>
+        public bool IsShuttingDown {
+            get { return _systemShuttingdown; }
+        }
+
         public WrapperService(ServiceDescriptor descriptor)
         {
             _descriptor = descriptor;
@@ -63,6 +72,9 @@ namespace winsw
             CanPauseAndContinue = false;
             AutoLog = true;
             _systemShuttingdown = false;
+
+            // Register the event log provider
+            eventLogProvider.service = this;
         }
 
         public WrapperService() : this (new ServiceDescriptor())
@@ -135,7 +147,7 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Thread failed unexpectedly",e);
+                    Log.Error("Thread failed unexpectedly",e);
                 }
             }).Start();
         }
@@ -171,7 +183,7 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
+                    Log.Error("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
                 }
             }
         }
@@ -190,26 +202,9 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    WriteEvent("Failed to log event in Windows Event Log. Reason: ", e);
+                    Log.Error("Failed to log event in Windows Event Log. Reason: ", e);
                 }
             }
-        }
-
-        private void WriteEvent(Exception exception)
-        {
-            //TODO: pass exception to logger
-            WriteEvent(exception.Message + "\nStacktrace:" + exception.StackTrace, Level.Error);
-        }
-
-        private void WriteEvent(String message, Exception exception)
-        {
-            //TODO: pass exception to logger
-            WriteEvent(message + "\nMessage:" + exception.Message + "\nStacktrace:" + exception.StackTrace, Level.Error);
-        }
-
-        private void WriteEvent(String message, Level logLevel = null, Exception ex = null)
-        {
-            Log.Logger.Log(GetType(), logLevel ?? Level.Info, message, ex);
         }
 
         protected override void OnStart(string[] _)
@@ -233,7 +228,7 @@ namespace winsw
                 catch (Exception e)
                 {
                     LogEvent("Failed to download " + d.From + " to " + d.To + "\n" + e.Message);
-                    WriteEvent("Failed to download " + d.From +" to "+d.To, e);
+                    Log.Error("Failed to download " + d.From +" to "+d.To, e);
                     // but just keep going
                 }
             }
@@ -250,23 +245,14 @@ namespace winsw
             }
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
 
             // Load and start extensions
-            ExtensionManager.LoadExtensions(this);
-            try
-            {
-                ExtensionManager.OnStart(this);
-            }
-            catch (ExtensionException ex)
-            {
-                LogEvent("Failed to start extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
-                WriteEvent("Failed to start extension  " + ex.ExtensionId, ex);
-                //TODO: Exit on error?
-            }
+            ExtensionManager.LoadExtensions();
+            ExtensionManager.FireOnWrapperStarted();
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            WriteEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
+            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
 
             StartProcess(_process, startarguments, _descriptor.Executable);
             ExtensionManager.FireOnProcessStarted(_process);
@@ -288,7 +274,7 @@ namespace winsw
             }
             catch (Exception ex)
             {
-                WriteEvent("Shutdown exception", ex);
+                Log.Error("Shutdown exception", ex);
             }
         }
 
@@ -302,7 +288,7 @@ namespace winsw
             }
             catch (Exception ex)
             {
-                WriteEvent("Stop exception", ex);
+                Log.Error("Cannot stop exception", ex);
             }
         }
 
@@ -313,14 +299,14 @@ namespace winsw
         {
             string stoparguments = _descriptor.Stoparguments;
             LogEvent("Stopping " + _descriptor.Id);
-            WriteEvent("Stopping " + _descriptor.Id);
+            Log.Info("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
 
             if (stoparguments == null)
             {
                 try
                 {
-                    WriteEvent("ProcessKill " + _process.Id);
+                    Log.Debug("ProcessKill " + _process.Id);
                     ProcessHelper.StopProcessAndChildren(_process.Id, _descriptor.StopTimeout, _descriptor.StopParentProcessFirst);
                     ExtensionManager.FireOnProcessTerminated(_process);
                 }
@@ -345,29 +331,21 @@ namespace winsw
 
                 StartProcess(stopProcess, stoparguments, executable);
 
-                WriteEvent("WaitForProcessToExit "+_process.Id+"+"+stopProcess.Id);
+                Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(_process);
                 WaitForProcessToExit(stopProcess);
                 SignalShutdownComplete();
             }
 
             // Stop extensions      
-            try
-            {
-                ExtensionManager.OnStop(this);
-            }
-            catch (ExtensionException ex)
-            {
-                LogEvent("Failed to stop extension  " + ex.ExtensionId + "\n" + ex.Message, EventLogEntryType.Error);
-                WriteEvent("Failed to stop extension  " + ex.ExtensionId, ex);
-            }
+            ExtensionManager.FireBeforeWrapperStopped();
 
             if (_systemShuttingdown && _descriptor.BeepOnShutdown) 
             {
                 Console.Beep();
             }
 
-            WriteEvent("Finished " + _descriptor.Id);
+            Log.Info("Finished " + _descriptor.Id);
         }
 
         private void WaitForProcessToExit(Process processoWait)
@@ -458,7 +436,7 @@ namespace winsw
             ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower()] = _descriptor.Id;
 
             processToStart.Start();
-            WriteEvent("Started " + processToStart.Id);
+            Log.Info("Started " + processToStart.Id);
 
             var priority = _descriptor.Priority;
             if (priority != ProcessPriorityClass.Normal)
@@ -509,6 +487,7 @@ namespace winsw
             try
             {
                 Run(args);
+                Log.Info("Completed. Exit code is 0");
                 return 0;
             }
             catch (WmiException e)
@@ -554,7 +533,7 @@ namespace winsw
             
             if (isCLIMode) // CLI mode, in-service mode otherwise
             {               
-                Log.Debug("Starting ServiceWrapper in CLI mode");
+                Log.Info("Starting ServiceWrapper in the CLI mode");
 
                 // Get service info for the future use
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
@@ -761,16 +740,24 @@ namespace winsw
                 throw new Exception("Unknown command: " + args[0]);
 
             }
+            else
+            {
+                Log.Info("Starting ServiceWrapper in the service mode");
+            }
             Run(new WrapperService());
         }
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
         {
+            // TODO: Make logging levels configurable
             Level logLevel = Level.Debug;
+            Level eventLogLevel = Level.Warn;
 
             // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             PatternLayout pl = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
             pl.ActivateOptions();
+
+            List<IAppender> appenders = new List<IAppender>();
 
             // wrapper.log
             String wrapperLogPath = Path.Combine(d.LogDirectory, d.BaseName + ".wrapper.log");
@@ -785,7 +772,7 @@ namespace winsw
                 Layout = pl
             };
             wrapperLog.ActivateOptions();
-            BasicConfigurator.Configure(wrapperLog);
+            appenders.Add(wrapperLog);
 
             // Also display logs in CLI if required
             if (enableCLILogging)
@@ -794,11 +781,23 @@ namespace winsw
                 {
                     Name = "Wrapper console log", 
                     Threshold = logLevel,
-                    Layout = pl               
+                    Layout = pl,
                 };
                 consoleAppender.ActivateOptions();
-                ((Logger)Log.Logger).AddAppender(consoleAppender);
+                appenders.Add(consoleAppender);
             }
+
+            // System log
+            var systemEventLogger = new ServiceEventLogAppender 
+            {
+                Name = "System event log",
+                Threshold = eventLogLevel,
+                provider  = eventLogProvider
+            };
+            systemEventLogger.ActivateOptions();
+            appenders.Add(systemEventLogger);
+
+            BasicConfigurator.Configure(appenders.ToArray());
         }
 
         private static string ReadPassword()

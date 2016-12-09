@@ -22,26 +22,43 @@ namespace winsw.Extensions
         }
 
         /// <summary>
-        /// Starts all extensions
+        /// Notifies all extensions that the wrapper is being started.
+        /// They are supposed to run the initialization logic.
+        /// If any extensions fails, WinSW startup should be interrupted.
         /// </summary>
-        /// <exception cref="ExtensionException">Start failure</exception>
-        public void OnStart(IEventWriter logger) 
+        /// <exception cref="Exception">Start failure</exception>
+        public void FireOnWrapperStarted() 
         {
             foreach (var ext in Extensions)
             {
-                ext.Value.OnStart(logger);     
+                try
+                {
+                    ext.Value.OnWrapperStarted();
+                }
+                catch (ExtensionException ex)
+                {
+                    Log.Fatal("onWrapperStarted() handler failed for " + ext.Value.DisplayName, ex);
+                    throw ex; // Propagate error to stop the startup
+                }
             }
         }
 
         /// <summary>
-        /// Stops all extensions
+        /// Notifies all extensions that the wrapper is being stopped.
+        /// If an error happens, further extensions will be tried
         /// </summary>
-        /// <exception cref="ExtensionException">Stop failure</exception>
-        public void OnStop(IEventWriter logger)
+        public void FireBeforeWrapperStopped()
         {
             foreach (var ext in Extensions)
-            {
-                ext.Value.OnStop(logger);
+            { 
+                try
+                {
+                    ext.Value.BeforeWrapperStopped();
+                }
+                catch (ExtensionException ex)
+                {
+                    Log.Error("beforeWrapperStopped() handler failed for " + ext.Value.DisplayName, ex);
+                }
             }
         }
 
@@ -86,17 +103,17 @@ namespace winsw.Extensions
         //TODO: Implement loading of external extensions. Current version supports internal hack
         #region Extension load management
 
-        /// <summary>
+        
         /// Loads extensions according to the configuration file.
         /// </summary>
         /// <param name="logger">Logger</param>
         /// <exception cref="Exception">Loading failure</exception>
-        public void LoadExtensions(IEventWriter logger)
+        public void LoadExtensions()
         {
             var extensionIds = ServiceDescriptor.ExtensionIds;
             foreach (String extensionId in extensionIds) 
             {
-                LoadExtension(extensionId, logger);
+                LoadExtension(extensionId);
             }
         }
 
@@ -106,7 +123,7 @@ namespace winsw.Extensions
         /// <param name="id">Extension ID</param>
         /// <param name="logger">Logger</param>
         /// <exception cref="Exception">Loading failure</exception>
-        private void LoadExtension(string id, IEventWriter logger)
+        private void LoadExtension(string id)
         {
             if (Extensions.ContainsKey(id))
             {
@@ -127,7 +144,7 @@ namespace winsw.Extensions
                 extension.Descriptor = descriptor;
                 try
                 {
-                    extension.Configure(ServiceDescriptor, configNode, logger);
+                    extension.Configure(ServiceDescriptor, configNode);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
@@ -135,11 +152,11 @@ namespace winsw.Extensions
                     throw ex;
                 }
                 Extensions.Add(id, extension);
-                logger.LogEvent("Extension loaded: "+id, EventLogEntryType.Information);
+                Log.Info("Extension loaded: " + id);
             }
             else
             {
-                logger.LogEvent("Extension is disabled: " + id, EventLogEntryType.Warning);
+                Log.Warn("Extension is disabled: " + id);
             }
             
         }
