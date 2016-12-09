@@ -1,6 +1,3 @@
-
-version: '2.0-SNAPSHOT-build{build}'
-
 # Do not build on tags (GitHub and BitBucket)
 skip_tags: true
 
