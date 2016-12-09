@@ -32,7 +32,7 @@ build:
   project:  src\winsw.sln 
 
 after_build:
-  - cmd: nuget pack WinSW.nuspec -Version $env:APPVEYOR_BUILD_VERSION -OutputDirectory nuget
+  - ps: nuget pack WinSW.nuspec -Version $env:APPVEYOR_BUILD_VERSION -OutputDirectory nuget
 
 test_script:
 # Runner for NUnit2
