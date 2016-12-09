@@ -1,9 +1,8 @@
 bin
 obj
 *.suo
-/UpgradeLog.htm
-/winsw.csproj.user
 *.user
-/src/packages/NUnit.2.6.4
-/src/packages/ILMerge.MSBuild.Tasks.1.0.0.3
+/eval
+/src/packages/
 /winsw_key.snk
+/winsw_key.pfx
