@@ -29,7 +29,11 @@ Your renamed `winsw.exe` binary also accepts the following commands:
 * `start` to start the service. The service must have already been installed.
 * `stop` to stop the service.
 * `restart` to restart the service. If the service is not currently running, this command acts like `start`.
-* `status` to check the current status of the service. This command prints one line to the console. `NonExistent` to indicate the service is not currently installed, `Started` to indicate the service is currently running, and `Stopped` to indicate that the service is installed but not currently running.
+* `status` to check the current status of the service.
+ * This command prints one line to the console.
+ * `NonExistent` indicates the service is not currently installed
+ * `Started` to indicate the service is currently running
+ * `Stopped` to indicate that the service is installed but not currently running.
 
 ### Supported .NET versions
 
