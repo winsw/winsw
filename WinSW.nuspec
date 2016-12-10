@@ -6,13 +6,9 @@
     <title>Windows Service Wrapper</title>
     <summary>WinSW is a binary, which can be used to wrap and manage custom executables as Windows services.</summary>
     <description>
-Windows Service Wrapper (WinSW) is a binary, which can be used to wrap and manage custom executables as Windows services.
-The project has a MIT License, hence it can be used just as a binary even in commercial systems.
-Currently the distributable includes binaries targeting .NET Frameworks 2.0 and 4.0.
+Windows Service Wrapper (WinSW) is a binary, which can be used to wrap and manage custom executables as Windows services. The project has a MIT License, hence it can be used just as a binary even in commercial systems. Currently the distributable includes binaries targeting .NET Frameworks 2.0 and 4.0.
     
-WinSW provides a CL for installation and management of Windows services.
-It also offers many advanced options, which can be configured via additional XML file.
-Several examples: logging of spawned executables with log rotation, automated update of files from URL, runaway process termination, shared directory mapping on startup, etc.
+WinSW provides a CL for installation and management of Windows services. It also offers many advanced options, which can be configured via additional XML file. Several examples: logging of spawned executables with log rotation, automated update of files from URL, runaway process termination, shared directory mapping on startup, etc.
     
 More info about the wrapper is available in the projects GitHub repository.
     </description>
