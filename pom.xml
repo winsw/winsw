@@ -4,8 +4,12 @@
   <artifactId>winsw</artifactId>
   <packaging>pom</packaging>
   <version>2.0-SNAPSHOT</version>
-  <name>Windows service wrapper</name>
+  <name>Windows Service Wrapper (WinSW)</name>
     
+  <properties>
+    <winsw.version>2.0.3</winsw.version>
+  </properties>  
+  
   <distributionManagement>
     <repository>
       <id>maven.jenkins-ci.org</id>
@@ -19,17 +23,17 @@
     <url>https://github.com/kohsuke/winsw</url>
     <tag>HEAD</tag>
   </scm>
-
+  
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5.3</version>
       </plugin>
-      <!-- fake out maven and install the binary artifact -->
       <plugin>
         <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
         <artifactId>maven-antrun-extended-plugin</artifactId>
+        <version>1.43</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -38,7 +42,10 @@
             </goals>
             <configuration>
               <tasks>
-                <attachArtifact file="bin/Release/winsw.exe" type="exe" classifier="bin" />
+                <mkdir dir="${project.build.directory}/bin/"/>
+                <get src="https://github.com/kohsuke/winsw/releases/download/winsw-draft-v${winsw.version}/WinSW.NET2.exe" 
+                     dest="${project.build.directory}/bin/winsw.exe"/>
+                <attachArtifact file="${project.build.directory}/bin/bin/winsw.exe" type="exe" classifier="bin" />
               </tasks>
             </configuration>
           </execution>
