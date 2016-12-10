@@ -43,7 +43,8 @@ artifacts:
     name: WinSW.NET2.exe
   - path: 'src/Core/ServiceWrapper_dotNET4/bin/Release/WinSW.NET4.exe'
     name: WinSW.NET4.exe
-  - path: '*.nupkg'
+  - path: 'WinSW.$(appveyor_build_version).nupkg'
+    name: WinSW.nupkg
 
 
 
