@@ -5,10 +5,30 @@
   <packaging>pom</packaging>
   <version>2.0-SNAPSHOT</version>
   <name>Windows Service Wrapper (WinSW)</name>
-    
+  <url>https://github.com/kohsuke/winsw/</url>
+   
   <properties>
     <winsw.version>2.0.3</winsw.version>
-  </properties>  
+  </properties>
+  
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>  
+  
+  <developers>
+    <developer>
+      <id>oleg_nenashev</id>
+      <name>Oleg Nenashev</name>
+      <roles>
+        <role>Maintainer</role>
+      </roles>
+      <url>https://github.com/oleg-nenashev/</url>
+    </developer>
+  </developers>
   
   <distributionManagement>
     <repository>
@@ -16,6 +36,11 @@
       <url>https://repo.jenkins-ci.org/releases/</url>
     </repository>
   </distributionManagement>
+  
+  <ciManagement>
+    <system>AppVeyor</system>
+    <url>https://ci.appveyor.com/project/oleg-nenashev/winsw</url>
+  </ciManagement>
 
   <scm>
     <connection>scm:git:ssh://github.com/kohsuke/winsw.git</connection>
@@ -53,12 +78,4 @@
       </plugin>
     </plugins>
   </build>
-  
-  <licenses>
-    <license>
-      <name>The MIT license</name>
-      <url>http://www.opensource.org/licenses/mit-license.php</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
 </project>
