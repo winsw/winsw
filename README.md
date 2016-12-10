@@ -12,9 +12,9 @@ See the [project manifest](MANIFEST.md).
 
 ### Download
 
-Starting from WinSW `2.x`, the releases are being hosted on GitHub ([here](https://github.com/kohsuke/winsw/releases)).
+Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://github.com/kohsuke/winsw/releases) and [nuget.org](https://www.nuget.org/packages/WinSW/).
 
-The project also uses the  [Jenkins](https://jenkins.io/index.html) Maven repository as a secondary storage of release files. 
+Due to historical reasons, the project also uses  [Jenkins Maven repository](https://jenkins.io/index.html)  as a secondary source. 
 Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
 The executables in all sources are [strong-named assemblies](https://msdn.microsoft.com/en-us/library/wd40t7ad%28v=vs.110%29.aspx), which are being singed by randomly generated keys.
