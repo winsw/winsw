@@ -54,6 +54,9 @@
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.5.3</version>
+        <configuration>
+          <releaseProfiles>release-verify-winsw-version</releaseProfiles>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
@@ -78,4 +81,49 @@
       </plugin>
     </plugins>
   </build>
+  
+  <!-- Ensures that the version of the released WinSW package equals to WinSW-->
+  <profiles>
+    <profile>
+      <id>release-verify-winsw-version</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
+            <artifactId>maven-antrun-extended-plugin</artifactId>
+            <version>1.43</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <taskdef resource="net/sf/antcontrib/antcontrib.properties"
+                             classpathref="maven.plugin.classpath" />
+                    <if>
+                      <not>
+                        <equals arg1="${project.version}" arg2="${winsw.version}"/>
+                      </not>
+                      <then>
+                        <fail message="Project version ${project.version} is different from the WinSW version ${winsw.version}."/>
+                      </then>
+                    </if>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>ant-contrib</groupId>
+                <artifactId>ant-contrib</artifactId>
+                <version>20020829</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>               
+      </build>
+    </profile>
+  </profiles>
 </project>
