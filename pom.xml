@@ -1,0 +1,129 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.sun.winsw</groupId>
+  <artifactId>winsw</artifactId>
+  <packaging>pom</packaging>
+  <version>2.0-SNAPSHOT</version>
+  <name>Windows Service Wrapper (WinSW)</name>
+  <url>https://github.com/kohsuke/winsw/</url>
+   
+  <properties>
+    <winsw.version>2.0.3</winsw.version>
+  </properties>
+  
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>  
+  
+  <developers>
+    <developer>
+      <id>oleg_nenashev</id>
+      <name>Oleg Nenashev</name>
+      <roles>
+        <role>Maintainer</role>
+      </roles>
+      <url>https://github.com/oleg-nenashev/</url>
+    </developer>
+  </developers>
+  
+  <distributionManagement>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/releases/</url>
+    </repository>
+  </distributionManagement>
+  
+  <ciManagement>
+    <system>AppVeyor</system>
+    <url>https://ci.appveyor.com/project/oleg-nenashev/winsw</url>
+  </ciManagement>
+
+  <scm>
+    <connection>scm:git:ssh://github.com/kohsuke/winsw.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/kohsuke/winsw.git</developerConnection>
+    <url>https://github.com/kohsuke/winsw</url>
+    <tag>HEAD</tag>
+  </scm>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <releaseProfiles>release-verify-winsw-version</releaseProfiles>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
+        <artifactId>maven-antrun-extended-plugin</artifactId>
+        <version>1.43</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <mkdir dir="${project.build.directory}/bin/"/>
+                <get src="https://github.com/kohsuke/winsw/releases/download/winsw-draft-v${winsw.version}/WinSW.NET2.exe" 
+                     dest="${project.build.directory}/bin/winsw.exe"/>
+                <attachArtifact file="${project.build.directory}/bin/bin/winsw.exe" type="exe" classifier="bin" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <!-- Ensures that the version of the released WinSW package equals to WinSW-->
+  <profiles>
+    <profile>
+      <id>release-verify-winsw-version</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jvnet.maven-antrun-extended-plugin</groupId>
+            <artifactId>maven-antrun-extended-plugin</artifactId>
+            <version>1.43</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <taskdef resource="net/sf/antcontrib/antcontrib.properties"
+                             classpathref="maven.plugin.classpath" />
+                    <if>
+                      <not>
+                        <equals arg1="${project.version}" arg2="${winsw.version}"/>
+                      </not>
+                      <then>
+                        <fail message="Project version ${project.version} is different from the WinSW version ${winsw.version}."/>
+                      </then>
+                    </if>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>ant-contrib</groupId>
+                <artifactId>ant-contrib</artifactId>
+                <version>20020829</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>               
+      </build>
+    </profile>
+  </profiles>
+</project>
