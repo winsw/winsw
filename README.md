@@ -12,11 +12,15 @@ Once you download the installation package, you can rename `winsw.exe` to any na
 See the [project manifest](MANIFEST.md).
 
 ### Download
-Right now the project uses [Jenkins](https://jenkins.io/index.html) Maven repository as a main storage of release files. 
+
+Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://github.com/kohsuke/winsw/releases) and [nuget.org](https://www.nuget.org/packages/WinSW/).
+
+Due to historical reasons, the project also uses  [Jenkins Maven repository](https://jenkins.io/index.html)  as a secondary source. 
 Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
-Some releases (e.g. alpha- and beta-versions) can be also downloaded from the project's GitHub page. 
-This source of releases is not an **official one**.
+The executables in all sources are [strong-named assemblies](https://msdn.microsoft.com/en-us/library/wd40t7ad%28v=vs.110%29.aspx), which are being singed by randomly generated keys.
+Do not rely on such strong names for security (as well as on other strong names as it recommended by Microsoft). 
+They provide a unique identity only.
 
 ### Usage
 
@@ -30,7 +34,11 @@ Your renamed `winsw.exe` binary also accepts the following commands:
 * `start` to start the service. The service must have already been installed.
 * `stop` to stop the service.
 * `restart` to restart the service. If the service is not currently running, this command acts like `start`.
-* `status` to check the current status of the service. This command prints one line to the console. `NonExistent` to indicate the service is not currently installed, `Started` to indicate the service is currently running, and `Stopped` to indicate that the service is installed but not currently running.
+* `status` to check the current status of the service.
+ * This command prints one line to the console.
+ * `NonExistent` indicates the service is not currently installed
+ * `Started` to indicate the service is currently running
+ * `Stopped` to indicate that the service is installed but not currently running.
 
 ### Supported .NET versions
 
@@ -62,13 +70,16 @@ Naming and download sources for these binaries are currently in flux.
 #### WinSW 2.x
 
 This is a new release line under active development.
-API stability is not guaranteed till the first release, the project structure is in flux.
 
 Major changes since 1.x:
-* Rework of the project structure
-* Better logging
-* [Internal extension engine](doc/extensions/extensions.md), which allows extending the WinSW behavior
-* Executable package targeting the .NET Framework 4.0
+* New executable package targeting the .NET Framework `4.0`. .NET Framework `2.0` is still supported.
+* Migration of the logging subsystem to `Apache log4net`
+* Internal [extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
+
+See the full changelog in the [release notes](CHANGELOG.md#20).
+
+The version `2.x` is **fully compatible** with the `1.x` configuration file format, 
+  hence the upgrade procedure just requires replacement of the executable file.
 
 #### WinSW 1.x
 

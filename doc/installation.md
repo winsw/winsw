@@ -13,7 +13,7 @@ In order to setup WinSW, you commonly need to perform the following steps:
 0. Run `myapp.exe install <OPTIONS>` in order to install the service wrapper.
 0. Optional - Perform additional configuration in the Windows Service Manager.
 0. Optional - Perform extra configurations if required (guidelines are available below).
- * Declare that the executable is compatible with .NET 4 or above
+ * Declare that the executable is compatible with .NET 4 or above (for WinSW 1.x **only**)
  * Enable the WinSW offline mode
 0. Run the service from the Windows Service Manager.
 
@@ -74,7 +74,10 @@ Once the start button is clicked, Windows will start `myapp.exe`,
   
 ### Extra configuration options
   
-#### Making WinSW compatible with .NET runtime 4.0+
+#### Making WinSW 1.x compatible with .NET runtime 4.0+
+
+**NOTE.** _Starting from WinSW `2.0` the release offers a new binary, which targets the .NET Framework 4.0.
+Such configuration is no longer required._  
 
 Modern versions of Windows (e.g. Windows Server 2012 or Windows 10) do not ship with .NET runtime `2.0`, which is what `winsw.exe` is built against. 
 This is because unlike Java, where a newer runtime can host apps developed against earlier runtime, .NET apps need version specific runtimes.
