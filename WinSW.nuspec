@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>WinSW</id>
+    <version>$version$</version>
+    <title>Windows Service Wrapper</title>
+    <summary>WinSW is a binary, which can be used to wrap and manage custom executables as Windows services.</summary>
+    <description>
+Windows Service Wrapper (WinSW) is a binary, which can be used to wrap and manage custom executables as Windows services. The project has a MIT License, hence it can be used just as a binary even in commercial systems. Currently the distributable includes binaries targeting .NET Frameworks 2.0 and 4.0.
+    
+WinSW provides a CL for installation and management of Windows services. It also offers many advanced options, which can be configured via additional XML file. Several examples: logging of spawned executables with log rotation, automated update of files from URL, runaway process termination, shared directory mapping on startup, etc.
+    
+More info about the wrapper is available in the projects GitHub repository.
+    </description>
+    <authors>WinSW contributors</authors>
+    <owners>Oleg Nenashev, Kohsuke Kawaguchi</owners>
+    <licenseUrl>https://github.com/kohsuke/winsw/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/kohsuke/winsw</projectUrl>
+    <!--<iconUrl>TODO</iconUrl>-->
+    <copyright>Copyright (c) 2010-2016 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</copyright>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>service wrapper</tags>
+    <dependencies>
+      <!-- No explicit dependencies, everything is bundled via ILMerge -->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="src\Core\ServiceWrapper\bin\Release\WinSW.NET2.exe" target="lib\net20-full" />
+    <file src="src\Core\ServiceWrapper_dotNET4\bin\Release\WinSW.NET4.exe" target="lib\net40-full" />
+  </files>
+</package>
