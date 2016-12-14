@@ -644,11 +644,19 @@ namespace winsw
                 }
                 if (args[0] == "uninstall")
                 {
+                    Log.Info("Uninstalling the service with id '" + d.Id + "'");
                     if (s == null)
                     {
-                        Console.WriteLine("Warning! The service with id '" + d.Id + "' does not exist. Nothing to uninstall");
+                        Log.Warn("The service with id '" + d.Id + "' does not exist. Nothing to uninstall");
                         return; // there's no such service, so consider it already uninstalled
                     }
+                    if (s.Started)
+                    {
+                        // We could fail the opeartion here, but it would be an incompatible change.
+                        // So it is just a warning
+                        Log.Warn("The service with id '" + d.Id + "' is running. It may be impossible to uninstall it");
+                    }
+
                     try
                     {
                         s.Delete();
@@ -656,7 +664,17 @@ namespace winsw
                     catch (WmiException e)
                     {
                         if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
+                        {
+                            Log.Error("Failed to uninstall the service with id '" + d.Id + "'" 
+                               + ". It has been marked for deletion.");
+                            
+                            // TODO: change the default behavior to Error?
                             return; // it's already uninstalled, so consider it a success
+                        }
+                        else
+                        {
+                            Log.Fatal("Failed to uninstall the service with id '" + d.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
+                        }
                         throw e;
                     }
                     return;
