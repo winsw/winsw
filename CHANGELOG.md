@@ -25,12 +25,20 @@ Fixed issues:
 Prevent the CPU overutilization when waiting for the process to exit.
 ([PR #135](https://github.com/kohsuke/winsw/pull/135))
  * It should also fix issues related to the process termination failures, to be confirmed
+* [Issue #164](https://github.com/kohsuke/winsw/issues/164) - 
+Print warnings when the service cannot be uninstalled immediately and its uninstallation gets postponed.
+([PR #165](https://github.com/kohsuke/winsw/pull/165))
+* Do not propagate exceptions from Process.Kill() if the process actually exits.
+([PR #166](https://github.com/kohsuke/winsw/pull/166))
 
 Non-code changes:
 * Documentation refactoring and update
 * Introduced the CI flow being hosted on AppVeyor. The project page is [here](https://ci.appveyor.com/project/oleg-nenashev/winsw)
 * Starting from WinSW 2.0, [GitHub](https://github.com/kohsuke/winsw/releases) and NuGet will be the release sources
  * [Maven repository](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/) will be periodically updated on-demand
+* [Issue #80](https://github.com/kohsuke/winsw/issues/80) - 
+Maven releases now pick releases from GitHub Releases. The Maven package version is guaranteed to be equal to the assembly version. 
+([PR #162](https://github.com/kohsuke/winsw/pull/162))
 
 Compatibility notes:
 * WinSW `2.x` is **fully compatible** with WinSW `1.x` in terms of the command-line interface and configuration files.
