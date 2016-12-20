@@ -66,9 +66,15 @@ namespace winsw.Util
                     Logger.Warn("SIGINT to " + pid + " failed - Killing as fallback");
                     proc.Kill();
                 }
-                catch (ArgumentException)
+                catch (Exception ex)
                 {
+                    if (!proc.HasExited)
+                    {
+                        throw;
+                    }
+
                     // Process already exited.
+                    Logger.Warn("Ignoring exception from killing process because it has exited", ex);
                 }
             }
 
