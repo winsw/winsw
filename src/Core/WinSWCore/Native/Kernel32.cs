@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Runtime.InteropServices;
 
 namespace winsw.Native
@@ -7,9 +8,9 @@ namespace winsw.Native
     /// kernel32.dll P/Invoke wrappers
     /// </summary>
     public class Kernel32
-    {
-        [DllImport("Kernel32.dll", SetLastError = true)]
-        public static extern int SetStdHandle(int device, IntPtr handle);
+    {        
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetStdHandle(int nStdHandle, SafeFileHandle handle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CreateProcess(string lpApplicationName,

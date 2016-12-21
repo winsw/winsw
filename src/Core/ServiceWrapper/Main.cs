@@ -555,7 +555,7 @@ namespace winsw
                     Console.SetOut(w);
                     Console.SetError(w);
 
-                    var handle = f.Handle;
+                    var handle = f.SafeFileHandle;
                     Kernel32.SetStdHandle(-11, handle); // set stdout
                     Kernel32.SetStdHandle(-12, handle); // set stder
 
