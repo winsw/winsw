@@ -83,12 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="manifest.xml" />
-    <Content Include="pom.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="winsw.xml">
-      <SubType>Designer</SubType>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
