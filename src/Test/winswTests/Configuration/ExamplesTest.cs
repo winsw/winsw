@@ -26,7 +26,7 @@ namespace winswTests.Configuration
 
         private ServiceDescriptor doLoad(string exampleName) {
             var dir = Directory.GetCurrentDirectory();
-            string path = dir + "\\..\\..\\..\\..\\..\\examples\\" + exampleName + ".xml";
+            string path = dir + "\\..\\..\\..\\..\\..\\examples\\config-" + exampleName + ".xml";
             if (!File.Exists(path))
             {
                 throw new FileNotFoundException("Cannot find the XML file " + path, path);

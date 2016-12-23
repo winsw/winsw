@@ -33,6 +33,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunawayProcessKiller", "Plu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winsw_dotNET4", "Core\ServiceWrapper_dotNET4\winsw_dotNET4.csproj", "{419AEEA7-E7DE-4A76-B001-76DB5F98C838}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AA414F46-B863-473A-A0E0-C2971B3396AE}"
+	ProjectSection(SolutionItems) = preProject
+		..\examples\config-allOptions.xml = ..\examples\config-allOptions.xml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
