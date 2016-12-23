@@ -21,6 +21,25 @@ namespace winswTests.Configuration
         public void allOptionsConfigShouldDeclareDefaults()
         {
             ServiceDescriptor d = doLoad("allOptions");
+
+            Assert.AreEqual("myapp", d.Id);
+            Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
+            Assert.AreEqual("This service is a service cratead from a sample configuration", d.Description);
+            Assert.AreEqual("%BASE%\\myExecutable.exe", d.Executable);
+
+            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
+        }
+
+        [Test]
+        public void minimalConfigShouldDeclareDefaults()
+        {
+            ServiceDescriptor d = doLoad("minimal");
+
+            Assert.AreEqual("myapp", d.Id);
+            Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
+            Assert.AreEqual("This service is a service cratead from a minimal configuration", d.Description);
+            Assert.AreEqual("%BASE%\\myExecutable.exe", d.Executable);
+
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
         }
 

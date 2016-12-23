@@ -22,7 +22,7 @@
  This configuration file should be placed near the WinSW executable, the name should be the same.
  E.g. for myapp.exe the configuration file name should be myapp.xml
  
- You can find more information about the parameters here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
+ You can find more information about configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
 -->
 <configuration>
   
