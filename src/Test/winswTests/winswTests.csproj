@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ExamplesTest.cs" />
     <Compile Include="Extensions\ExtensionTestBase.cs" />
     <Compile Include="Extensions\RunawayProcessKillerTest.cs" />
     <Compile Include="Extensions\SharedDirectoryMapperTest.cs" />

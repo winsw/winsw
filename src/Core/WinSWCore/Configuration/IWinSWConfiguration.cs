@@ -5,7 +5,7 @@ using System.Xml;
 using WMI;
 namespace winsw.Configuration
 {
-    interface IWinSWConfiguration
+    public interface IWinSWConfiguration
     {
         //TODO: Document the parameters && refactor
 

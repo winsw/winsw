@@ -33,7 +33,7 @@ namespace winsw.Configuration
         // Installation
         public bool AllowServiceAcountLogonRight { get { return false; } }
         public string ServiceAccountPassword { get { return null; } }
-        public string ServiceAccountUser { get { return null; } }
+        public string ServiceAccountUser { get { return "NULL\\NULL"; } }
         public List<winsw.Native.SC_ACTION> FailureActions { get { return new List<winsw.Native.SC_ACTION>(); } }
         public TimeSpan ResetFailureAfter { get { return TimeSpan.FromDays(1); } }
 

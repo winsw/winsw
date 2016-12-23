@@ -18,12 +18,12 @@
 -->
 
 <!--
- - This is a sample configuration of the Windows Service Wrapper.
- - This configuration file should be placed near the WinSW executable, the name should be the same.
- - E.g. for myapp.exe the configuration file name should be myapp.xml
- -
- - You can find more information about the parameters here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
--->﻿
+ This is a sample configuration of the Windows Service Wrapper.
+ This configuration file should be placed near the WinSW executable, the name should be the same.
+ E.g. for myapp.exe the configuration file name should be myapp.xml
+ 
+ You can find more information about the parameters here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
+-->
 <configuration>
   
 <!-- 
@@ -148,9 +148,9 @@ SECTION: Executable management
     Additional arguments, which should be passed to the stop executable during termination.
     This OPTION also enables termination of the executable via stop executable
   -->
-  <!--<stoparguments>--stop true</stoparguments>-->
-  
   <!--
+  <stoparguments>-stop true</stoparguments>-->
+  -->
 <!-- 
 SECTION: Service management 
 -->
@@ -205,7 +205,9 @@ SECTION:Logging
     Sets a custom logging directory for all logs being produced by the service wrapper
     Default value: Directory, which contains the executor
   -->
-  <logpath></logpath>
+  <!--
+    <logpath>%BASE%\logs</logpath>
+  -->
   
   <!--
     OPTION: log
