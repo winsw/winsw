@@ -90,23 +90,32 @@ namespace winsw.Util
         /// <param name="stopParentProcessFirst">If enabled, the perent process will be terminated before its children on all levels</param>
         public static void StopProcessAndChildren(int pid, TimeSpan stopTimeout, bool stopParentProcessFirst)
         {
-            var childPids = GetChildPids(pid);
-
-            if (stopParentProcessFirst)
+            List<int> childPids = null;
+            try
             {
-                StopProcess(pid, stopTimeout);
+                childPids = GetChildPids(pid);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
+            }
+
+            if (!stopParentProcessFirst && childPids != null)
+            {  
                 foreach (var childPid in childPids)
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
                 }
             }
-            else
+
+            StopProcess(pid, stopTimeout);
+
+            if (stopParentProcessFirst && childPids != null)
             {
                 foreach (var childPid in childPids)
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
                 }
-                StopProcess(pid, stopTimeout);
             }
         }
 
