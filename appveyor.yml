@@ -45,6 +45,10 @@ artifacts:
     name: WinSW.NET4.exe
   - path: 'WinSW.$(appveyor_build_version).nupkg'
     name: WinSW.nupkg
+  - path: 'examples/sample-allOptions.xml'
+    name: 'sample-allOptions.xml'
+  - path: 'examples/sample-minimal.xml'
+    name: 'sample-minimal.xml'
 
 
 

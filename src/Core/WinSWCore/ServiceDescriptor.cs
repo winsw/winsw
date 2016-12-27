@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using winsw.Configuration;
 using winsw.Native;
 using winsw.Util;
 using WMI;
@@ -14,10 +15,13 @@ namespace winsw
     /// <summary>
     /// In-memory representation of the configuration file.
     /// </summary>
-    public class ServiceDescriptor
+    public class ServiceDescriptor : IWinSWConfiguration
     {
         // ReSharper disable once InconsistentNaming
         protected readonly XmlDocument dom = new XmlDocument();
+
+        private static readonly DefaultWinSWSettings defaults = new DefaultWinSWSettings();
+        public static DefaultWinSWSettings Defaults { get { return defaults; } }
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -25,6 +29,7 @@ namespace winsw
         /// This string is "c:\abc\def\ghi" when the configuration XML is "c:\abc\def\ghi.xml"
         /// </summary>
         public string BasePath { get; set; }
+
         /// <summary>
         /// The file name portion of the configuration file.
         /// 
@@ -36,10 +41,8 @@ namespace winsw
         {
             get
             {
-                // this returns the executable name as given by the calling process, so
-                // it needs to be absolutized.
-                string p = Environment.GetCommandLineArgs()[0];
-                return Path.GetFullPath(p);
+                // Currently there is no opportunity to alter the executable path
+                return Defaults.ExecutablePath;
             }
         }
 
@@ -180,7 +183,7 @@ namespace winsw
         {
             get
             {
-                return SingleElement("stopexecutable");
+                return SingleElement("stopexecutable", true);
             }
         }
 
@@ -191,7 +194,7 @@ namespace winsw
         {
             get
             {
-                string arguments = AppendTags("argument");
+                string arguments = AppendTags("argument", Defaults.Arguments);
 
                 if (arguments == null)
                 {
@@ -199,7 +202,7 @@ namespace winsw
 
                     if (argumentsNode == null)
                     {
-                        return "";
+                        return Defaults.Arguments;
                     }
 
                     return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
@@ -218,7 +221,7 @@ namespace winsw
         {
             get
             {
-                return AppendTags("startargument");
+                return AppendTags("startargument", Defaults.Startarguments);
             }
         }
 
@@ -229,7 +232,7 @@ namespace winsw
         {
             get
             {
-                return AppendTags("stopargument");
+                return AppendTags("stopargument", Defaults.Startarguments);
             }
         }
 
@@ -237,7 +240,7 @@ namespace winsw
         public string WorkingDirectory {
             get {
                 var wd = SingleElement("workingdirectory", true);
-                return String.IsNullOrEmpty(wd) ? Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) : wd;
+                return String.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd;
             }
         }
 
@@ -276,13 +279,13 @@ namespace winsw
         /// Combines the contents of all the elements of the given name,
         /// or return null if no element exists. Handles whitespace quotation.
         /// </summary>
-        private string AppendTags(string tagName)
+        private string AppendTags(string tagName, string defaultValue = null)
         {
             XmlNode argumentNode = dom.SelectSingleNode("//" + tagName);
 
             if (argumentNode == null)
             {
-                return null;
+                return defaultValue;
             }
             else
             {
@@ -327,31 +330,51 @@ namespace winsw
                 }
                 else
                 {
-                    return Path.GetDirectoryName(ExecutablePath);
+                    return Defaults.LogDirectory;
                 }
+            }
+        }
+
+        public string LogMode
+        {
+            get
+            {
+                string mode = null;
+
+                // first, backward compatibility with older configuration
+                XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
+                if (e != null)
+                {
+                    mode = e.InnerText;
+                }
+                else
+                {
+                    // this is more modern way, to support nested elements as configuration
+                    e = (XmlElement)dom.SelectSingleNode("//log");
+                    if (e != null)
+                        mode = e.GetAttribute("mode");
+                }
+
+                if (mode == null)
+                {
+                    mode = Defaults.LogMode;
+                }
+                return mode;
             }
         }
 
         public LogHandler LogHandler
         {
+            
             get
             {
-                string mode=null;
-                
-                // first, backward compatibility with older configuration
                 XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
-                if (e!=null) {
-                    mode = e.InnerText;
-                } else {
+                if (e == null)
+                {
                     // this is more modern way, to support nested elements as configuration
                     e = (XmlElement)dom.SelectSingleNode("//log");
-                    if (e!=null)
-                        mode = e.GetAttribute("mode");
                 }
-
-                if (mode == null) mode = "append";
-
-                switch (mode)
+                switch (LogMode)
                 {
                     case "rotate":
                         return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
@@ -384,7 +407,7 @@ namespace winsw
                         return new DefaultLogAppender(LogDirectory, BaseName);
 
                     default:
-                        throw new InvalidDataException("Undefined logging mode: " + mode);
+                        throw new InvalidDataException("Undefined logging mode: " + LogMode);
                 }
             }
 
@@ -397,16 +420,17 @@ namespace winsw
         {
             get
             {
-                ArrayList serviceDependencies = new ArrayList();
-
                 var xmlNodeList = dom.SelectNodes("//depend");
                 if (xmlNodeList != null)
+                {
+                    ArrayList serviceDependencies = new ArrayList();
                     foreach (XmlNode depend in xmlNodeList)
                     {
                         serviceDependencies.Add(depend.InnerText);
                     }
-
-                return (string[])serviceDependencies.ToArray(typeof(string));
+                    return (string[])serviceDependencies.ToArray(typeof(string));
+                }
+                return Defaults.ServiceDependencies;
             }
         }
 
@@ -442,7 +466,7 @@ namespace winsw
             get
             {
                 var p = SingleElement("startmode", true);
-                if (p == null) return StartMode.Automatic;  // default value
+                if (p == null) return Defaults.StartMode;
                 try
                 {
                     return (StartMode)Enum.Parse(typeof(StartMode), p, true);
@@ -460,7 +484,7 @@ namespace winsw
         }
 
         /// <summary>
-        /// True if the service should when finished on shutdown.
+        /// True if the service should beep when finished on shutdown.
         /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx
         /// </summary>
         public bool BeepOnShutdown
@@ -481,7 +505,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "waithint", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom.FirstChild, "waithint", Defaults.WaitHint);
             }
         }
 
@@ -495,7 +519,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "sleeptime", TimeSpan.FromSeconds(1));
+                return SingleTimeSpanElement(dom.FirstChild, "sleeptime", Defaults.SleepTime);
             }
         }
 
@@ -538,13 +562,17 @@ namespace winsw
         {
             get
             {
-                List<Download> r = new List<Download>();
                 var xmlNodeList = dom.SelectNodes("//download");
-                if (xmlNodeList != null)
-                    foreach (XmlNode n in xmlNodeList)
-                    {
-                        r.Add(new Download(n));
-                    }
+                if (xmlNodeList == null) 
+                {
+                    return Defaults.Downloads;
+                }
+
+                List<Download> r = new List<Download>();
+                foreach (XmlNode n in xmlNodeList)
+                {
+                    r.Add(new Download(n));
+                }
                 return r;
             }
         }
@@ -587,7 +615,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "resetfailure", TimeSpan.FromDays(1));
+                return SingleTimeSpanElement(dom.FirstChild, "resetfailure", Defaults.ResetFailureAfter);
             }
         }
 
@@ -669,13 +697,13 @@ namespace winsw
         }
 
          /// <summary>
-         /// Time to wait for the service to gracefully shutdown before we forcibly kill it
+         /// Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
          /// </summary>
         public TimeSpan StopTimeout
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "stoptimeout", TimeSpan.FromSeconds(15));
+                return SingleTimeSpanElement(dom.FirstChild, "stoptimeout", Defaults.StopTimeout);
             }
         }
 
@@ -689,7 +717,7 @@ namespace winsw
                 {
                     return result;
                 }
-                return false;
+                return Defaults.StopParentProcessFirst;
             }
         }
 
@@ -701,7 +729,7 @@ namespace winsw
             get
             {
                 var p = SingleElement("priority",true);
-                if (p == null) return ProcessPriorityClass.Normal;  // default value
+                if (p == null) return Defaults.Priority;
 
                 return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);
             }

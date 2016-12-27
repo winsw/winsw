@@ -1,0 +1,41 @@
+<!--
+    Copyright (c) 2016 Oleg Nenashev and other contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this 
+    software and associated documentation files (the "Software"), to deal in the Software without
+    restriction, including without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or 
+    substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
+    BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+    DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<!--
+ This is an example of a minimal Windows Service Wrapper configuration, which includes only mandatiory options.
+ 
+ This configuration file should be placed near the WinSW executable, the name should be the same.
+ E.g. for myapp.exe the configuration file name should be myapp.xml
+ 
+ You can find more information about the configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
+ Full example: https://github.com/kohsuke/winsw/blob/sample-config-file/examples/allOptions.xml
+-->
+<configuration>
+  
+  <!-- ID of the service. It should be unique accross the Windows system-->
+  <id>myapp</id>
+  <!-- Display name of the service -->
+  <name>MyApp Service (powered by WinSW)</name>
+  <!-- Service description -->
+  <description>This service is a service cratead from a minimal configuration</description>
+  
+  <!-- Path to the executable, which should be started -->
+  <executable>%BASE%\myExecutable.exe</executable>
+
+</configuration>

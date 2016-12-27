@@ -3,6 +3,9 @@ WinSW XML Configuration File
 
 This page describes the configuration file, which controls the behavior of the Jenkins service.
 
+You can find configuration file samples in the `examples` directory of the source code repository.
+Actual samples are being also published as a part of releases in GitHub and NuGet.
+
 ## File structure
 
 The root element of this XML file must be `<service>`, and it supports the following child element.

@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ExamplesTest.cs" />
     <Compile Include="Extensions\ExtensionTestBase.cs" />
     <Compile Include="Extensions\RunawayProcessKillerTest.cs" />
     <Compile Include="Extensions\SharedDirectoryMapperTest.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceDescriptorTests.cs" />
     <Compile Include="Util\CLITestHelper.cs" />
+    <Compile Include="Util\ServiceDescriptorAssert.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\ServiceWrapper\winsw.csproj">

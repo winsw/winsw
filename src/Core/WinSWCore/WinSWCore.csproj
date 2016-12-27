@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\DefaultSettings.cs" />
     <Compile Include="Download.cs" />
     <Compile Include="DynamicProxy.cs" />
     <Compile Include="Extensions\AbstractWinSWExtension.cs" />
@@ -53,6 +54,7 @@
     <Compile Include="Extensions\IWinSWExtension.cs" />
     <Compile Include="Extensions\WinSWExtensionDescriptor.cs" />
     <Compile Include="Extensions\WinSWExtensionManager.cs" />
+    <Compile Include="Configuration\IWinSWConfiguration.cs" />
     <Compile Include="LogAppenders.cs" />
     <Compile Include="Logging\ServiceEventLogAppender.cs" />
     <Compile Include="Logging\IServiceEventLogProvider.cs" />
