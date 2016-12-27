@@ -210,10 +210,13 @@ namespace winsw
         protected override void OnStart(string[] _)
         {
             _envs = _descriptor.EnvironmentVariables;
+            // TODO: Disabled according to security concerns in https://github.com/kohsuke/winsw/issues/54
+            // Could be restored, but unlikely it's required in event logs at all
+            /**
             foreach (string key in _envs.Keys)
             {
                 LogEvent("envar " + key + '=' + _envs[key]);
-            }
+            }*/
 
             HandleFileCopies();
 
