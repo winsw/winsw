@@ -7,6 +7,7 @@ namespace winswTests
 {
     using System;
     using WMI;
+    using winswTests.Util;
 
     [TestFixture]
     public class ServiceDescriptorTests
@@ -249,6 +250,34 @@ namespace winswTests
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void VerifyWaitHint()
+        {
+            var sd = ConfigXmlBuilder.create().WithTag("waithint", "20 min").ToServiceDescriptor(true);
+            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(20)));
+        }
+
+        [Test]
+        public void VerifySleepTime()
+        {
+            var sd = ConfigXmlBuilder.create().WithTag("sleeptime", "3 hrs").ToServiceDescriptor(true);
+            Assert.That(sd.SleepTime, Is.EqualTo(TimeSpan.FromHours(3)));
+        }
+
+        [Test]
+        public void VerifyResetFailureAfter()
+        {
+            var sd = ConfigXmlBuilder.create().WithTag("resetfailure", "75 sec").ToServiceDescriptor(true);
+            Assert.That(sd.ResetFailureAfter, Is.EqualTo(TimeSpan.FromSeconds(75)));
+        }
+
+        [Test]
+        public void VerifyStopTimeout()
+        {
+            var sd = ConfigXmlBuilder.create().WithTag("stoptimeout", "35 secs").ToServiceDescriptor(true);
+            Assert.That(sd.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(35)));
         }
     }
 }
