@@ -27,7 +27,7 @@ More info about the wrapper is available in the projects GitHub repository.
   <files>
     <file src="src\Core\ServiceWrapper\bin\Release\WinSW.NET2.exe" target="lib\net20-full" />
     <file src="src\Core\ServiceWrapper_dotNET4\bin\Release\WinSW.NET4.exe" target="lib\net40-full" />
-	<file src="examples\sample-allOptions.xml" target="lib\net20-full\WinSW.NET2.xml">
-	<file src="examples\sample-allOptions.xml" target="lib\net40-full\WinSW.NET4.xml">
+	<file src="examples\sample-allOptions.xml" target="lib\net20-full\WinSW.NET2.xml" />
+	<file src="examples\sample-allOptions.xml" target="lib\net40-full\WinSW.NET4.xml" />
   </files>
 </package>
