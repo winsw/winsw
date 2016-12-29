@@ -126,16 +126,8 @@ namespace winsw
 
         private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
         {
-            var e = parent.SelectSingleNode(tagName);
-
-            if (e == null)
-            {
-                return defaultValue;
-            }
-            else
-            {
-                return ParseTimeSpan(e.InnerText);
-            }
+            var value = SingleElement(tagName, true);
+            return (value != null) ? ParseTimeSpan(value) : defaultValue;
         }
 
         private TimeSpan ParseTimeSpan(string v)
@@ -505,7 +497,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "waithint", Defaults.WaitHint);
+                return SingleTimeSpanElement(dom, "waithint", Defaults.WaitHint);
             }
         }
 
@@ -519,7 +511,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "sleeptime", Defaults.SleepTime);
+                return SingleTimeSpanElement(dom, "sleeptime", Defaults.SleepTime);
             }
         }
 
@@ -615,7 +607,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "resetfailure", Defaults.ResetFailureAfter);
+                return SingleTimeSpanElement(dom, "resetfailure", Defaults.ResetFailureAfter);
             }
         }
 
@@ -703,7 +695,7 @@ namespace winsw
         {
             get
             {
-                return SingleTimeSpanElement(dom.FirstChild, "stoptimeout", Defaults.StopTimeout);
+                return SingleTimeSpanElement(dom, "stoptimeout", Defaults.StopTimeout);
             }
         }
 
