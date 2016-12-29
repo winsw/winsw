@@ -253,10 +253,42 @@ namespace winswTests
         }
 
         [Test]
-        public void VerifyWaitHint()
+        public void VerifyWaitHint_FullXML()
         {
-            var sd = ConfigXmlBuilder.create().WithTag("waithint", "20 min").ToServiceDescriptor(true);
+            var sd = ConfigXmlBuilder.create()
+                .WithTag("waithint", "20 min")
+                .ToServiceDescriptor(true);
             Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(20)));
+        }
+
+        /// <summary>
+        /// Test for https://github.com/kohsuke/winsw/issues/159
+        /// </summary>
+        [Test]
+        public void VerifyWaitHint_XMLWithoutVersion()
+        {
+            var sd = ConfigXmlBuilder.create(printXMLVersion: false)
+                .WithTag("waithint", "21 min")
+                .ToServiceDescriptor(true);
+            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(21)));
+        }
+
+        [Test]
+        public void VerifyWaitHint_XMLWithoutComment()
+        {
+            var sd = ConfigXmlBuilder.create(xmlComment: null)
+                .WithTag("waithint", "22 min")
+                .ToServiceDescriptor(true);
+            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(22)));
+        }
+        
+        [Test]
+        public void VerifyWaitHint_XMLWithoutVersionAndComment()
+        {
+            var sd = ConfigXmlBuilder.create(xmlComment: null, printXMLVersion: false)
+                .WithTag("waithint", "23 min")
+                .ToServiceDescriptor(true);
+            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(23)));
         }
 
         [Test]
