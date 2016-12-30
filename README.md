@@ -69,12 +69,13 @@ Naming and download sources for these binaries are currently in flux.
 
 #### WinSW 2.x
 
-This is a new release line under active development.
-
-Major changes since 1.x:
+This is a new baseline of WinSW with several major changes:
+* Major documentation rework and update
 * New executable package targeting the .NET Framework `4.0`. .NET Framework `2.0` is still supported.
-* Migration of the logging subsystem to `Apache log4net`
-* Internal [extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
+* [Extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior. And a couple of extensions for it (Shared Directory Mapper, Runaway Process Killer)
+* New release hosting: GitHub and NuGet
+* Migration of the logging subsystem to Apache log4net
+* Bugfixes
 
 See the full changelog in the [release notes](CHANGELOG.md#20).
 
