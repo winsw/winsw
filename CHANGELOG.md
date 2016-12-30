@@ -5,19 +5,26 @@ Below you can find release notes for the trunk version of WinSW.
 
 ##### 2.0
 
-Release date: Coming Soon
+Release date: Dec 30, 2016
 
 Improvements:
-* Provide the executable for `.NET Framework 4.0`.
+* [Issue #103](https://github.com/kohsuke/winsw/issues/103) -
+Provide the executable for `.NET Framework 4.0`.
 ([PR #147](https://github.com/kohsuke/winsw/pull/147))
  * With this binary patching of `exe.config` is no longer required to get WinSW running on newest systems.
-* Introduce the [WinSW extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior.
+* [Issue #154](https://github.com/kohsuke/winsw/issues/154) -
+ Provide WinSW configuration file samples.
+ ([PR #170](https://github.com/kohsuke/winsw/pull/170)) 
+  * Samples are available within release packages
+* Introduce the new [WinSW Extension Engine](doc/extensions/extensions.md).
 ([PR #42](https://github.com/kohsuke/winsw/pull/42))
 * Add new `SharedDirectoriesMapper` extension. See the docs [here](doc/extensions/sharedDirectoryMapper.md)
 ([PR #42](https://github.com/kohsuke/winsw/pull/42)).
-* Add new `RunawayProcessKiller` extension. See the docs [here](doc/extensions/runawayProcessKiller.md).
+* [Issue #125](https://github.com/kohsuke/winsw/issues/125) - 
+Add new `RunawayProcessKiller` extension. See the docs [here](doc/extensions/runawayProcessKiller.md).
 ([PR #133](https://github.com/kohsuke/winsw/pull/133))
-* Migrate event logging to [Apache log4net](https://logging.apache.org/log4net/). 
+* [Issue #69](https://github.com/kohsuke/winsw/issues/69) - 
+Migrate event logging to [Apache log4net](https://logging.apache.org/log4net/). 
 ([PR #145](https://github.com/kohsuke/winsw/pull/145), [PR #73](https://github.com/kohsuke/winsw/pull/73) and others).
 * [Issue #85](https://github.com/kohsuke/winsw/issues/85) -
 Use `FileStream#SafeFileHandle` the deprecated `FileStream#Handle` in the CLI `redirect` mode.
@@ -28,7 +35,7 @@ Fixed issues:
 Prevent CPU overutilization when waiting for the process to exit.
 ([PR #135](https://github.com/kohsuke/winsw/pull/135))
 * [Issue #159](https://github.com/kohsuke/winsw/issues/159) -
-Fix reading of `waithint`, `sleeptime`, `resetfailure`, and `stoptimeout` options from configuration files with XML metadata before `settings`.
+Properly retrieve `waithint`, `sleeptime`, `resetfailure`, and `stoptimeout` options from XML configs with metadata before `settings`.
 ([PR #175](https://github.com/kohsuke/winsw/pull/175))
 * [Issue #164](https://github.com/kohsuke/winsw/issues/164) - 
 Print warnings in the `uninstall` command when the service cannot be uninstalled immediately.
@@ -46,19 +53,20 @@ Security: Do not dump WinSW environment variables to the Event log.
 ([PR #166](https://github.com/kohsuke/winsw/pull/166))
 
 Non-code changes:
-* Major documentation refactoring and update
-* [Issue #154](https://github.com/kohsuke/winsw/issues/154) -
-Provide WinSW configuration file samples.
-([PR #170](https://github.com/kohsuke/winsw/pull/170)) 
- * Samples are available within release packages
-* Introduce the CI flow being hosted on AppVeyor. The project page is [here](https://ci.appveyor.com/project/oleg-nenashev/winsw).
-* [GitHub](https://github.com/kohsuke/winsw/releases) 
-and [NuGet](https://www.nuget.org/packages/WinSW/) are the main release repositories now
- * Jenkins [Maven repository](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/) will be periodically updated on-demand
+* Major documentation refactoring and update.
+* Use [GitHub Releases](https://github.com/kohsuke/winsw/releases) as a main release source.
+ * Jenkins [Maven repository](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/) is no longer the main release source
+ * It will be periodically updated on-demand
+* [Issue #65](https://github.com/kohsuke/winsw/issues/65) -
+Introduce NuGet packaging and publishing.
+ * Releases are being published on `www.nuget.org`.
+[Package page](https://www.nuget.org/packages/WinSW/) 
 * [Issue #80](https://github.com/kohsuke/winsw/issues/80) - 
 Maven releases now pick releases from GitHub Releases. 
 The package version is guaranteed to be same as the assembly version. 
 ([PR #162](https://github.com/kohsuke/winsw/pull/162))
+* [Issue #142](https://github.com/kohsuke/winsw/issues/142) - 
+Introduce the CI/CD flow being hosted on AppVeyor. The project page is [here](https://ci.appveyor.com/project/oleg-nenashev/winsw).
 
 Compatibility notes:
 * WinSW `2.x` is **fully compatible** with WinSW `1.x` in terms of the command-line interface and configuration files.
