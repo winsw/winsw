@@ -186,7 +186,7 @@ namespace winsw
         {
             get
             {
-                string arguments = AppendTags("argument", Defaults.Arguments);
+                string arguments = AppendTags("argument", null);
 
                 if (arguments == null)
                 {
