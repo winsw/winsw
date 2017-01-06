@@ -43,13 +43,18 @@ Your renamed `winsw.exe` binary also accepts the following commands:
 
 ### Supported .NET versions
 
+#### WinSW 2.x
+
+WinSW `2.x` offers two executables, which declare .NET Frameworks `2.0` and `4.0` as targets.
+More executables can be added on-demand.
+Please create an issue if you need such executables.
+
+#### WinSW 1.x
+
 WinSW `1.x` Executable is being built with a .NET Framework `2.0` target, and by defaut it will work only for .NET Framework versions below `3.5`.
 On the other hand, the code is known to be compatible with .NET Framework `4.0` and above.
 It is possible to declare the support of this framework via the `exe.config` file.
 See the [Installation Guide](doc/installation.md) for more details.
-
-WinSW `2.x` offers two executables, which declare .NET Frameworks `2.0` and `4.0` as targets.
-Naming and download sources for these binaries are currently in flux.
 
 ### Documentation
 
