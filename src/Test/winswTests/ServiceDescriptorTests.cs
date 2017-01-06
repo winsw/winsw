@@ -311,5 +311,49 @@ namespace winswTests
             var sd = ConfigXmlBuilder.create().WithTag("stoptimeout", "35 secs").ToServiceDescriptor(true);
             Assert.That(sd.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(35)));
         }
+
+        /// <summary>
+        /// https://github.com/kohsuke/winsw/issues/178
+        /// </summary>
+        [Test]
+        public void Arguments_LegacyParam()
+        {
+            var sd = ConfigXmlBuilder.create().WithTag("arguments", "arg").ToServiceDescriptor(true);
+            Assert.That(sd.Arguments, Is.EqualTo("arg"));
+        }
+
+        [Test]
+        public void Arguments_NewParam_Single()
+        {
+            var sd = ConfigXmlBuilder.create()
+                .WithTag("argument", "--arg1=2")
+                .ToServiceDescriptor(true);
+            Assert.That(sd.Arguments, Is.EqualTo(" --arg1=2"));
+        }
+
+        [Test]
+        public void Arguments_NewParam_MultipleArgs()
+        {
+            var sd = ConfigXmlBuilder.create()
+                .WithTag("argument", "--arg1=2")
+                .WithTag("argument", "--arg2=123")
+                .WithTag("argument", "--arg3=null")
+                .ToServiceDescriptor(true);
+            Assert.That(sd.Arguments, Is.EqualTo(" --arg1=2 --arg2=123 --arg3=null"));
+        }
+
+        /// <summary>
+        /// Ensures that the new single-argument field has a higher priority.
+        /// </summary>
+        [Test]
+        public void Arguments_Bothparam_Priorities()
+        {
+            var sd = ConfigXmlBuilder.create()
+                .WithTag("arguments", "--arg1=2 --arg2=3")
+                .WithTag("argument", "--arg2=123")
+                .WithTag("argument", "--arg3=null")
+                .ToServiceDescriptor(true);
+            Assert.That(sd.Arguments, Is.EqualTo(" --arg2=123 --arg3=null"));
+        }
     }
 }
