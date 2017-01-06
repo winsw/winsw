@@ -3,6 +3,16 @@ Release Notes
 
 Below you can find release notes for the trunk version of WinSW.
 
+##### 2.0.1
+
+Release date: Jan 06, 2017
+
+Fixed issues:
+* [Issue #178](https://github.com/kohsuke/winsw/issues/178) - 
+Fix processing of the legacy `arguments` parameter.
+Regression in `2.0`.
+([PR #179](https://github.com/kohsuke/winsw/pull/179))
+
 ##### 2.0
 
 Release date: Dec 30, 2016
