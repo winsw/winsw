@@ -3,7 +3,7 @@
   <groupId>com.sun.winsw</groupId>
   <artifactId>winsw</artifactId>
   <packaging>pom</packaging>
-  <version>2.0.2-SNAPSHOT</version>
+  <version>2.0-SNAPSHOT</version>
   <name>Windows Service Wrapper (WinSW)</name>
   <url>https://github.com/kohsuke/winsw/</url>
    
@@ -70,8 +70,9 @@
             </goals>
             <configuration>
               <tasks>
-                <mkdir dir="${project.build.directory}/bin/" />
-                <get src="https://github.com/kohsuke/winsw/releases/download/winsw-v${winsw.version}/WinSW.NET2.exe" dest="${project.build.directory}/bin/winsw.exe" />
+                <mkdir dir="${project.build.directory}/bin/"/>
+                <get src="https://github.com/kohsuke/winsw/releases/download/winsw-v${winsw.version}/WinSW.NET2.exe" 
+                     dest="${project.build.directory}/bin/winsw.exe"/>
                 <attachArtifact file="${project.build.directory}/bin/bin/winsw.exe" type="exe" classifier="bin" />
               </tasks>
             </configuration>
@@ -99,13 +100,14 @@
                 </goals>
                 <configuration>
                   <tasks>
-                    <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="maven.plugin.classpath" />
+                    <taskdef resource="net/sf/antcontrib/antcontrib.properties"
+                             classpathref="maven.plugin.classpath" />
                     <if>
                       <not>
-                        <equals arg1="${project.version}" arg2="${winsw.version}" />
+                        <equals arg1="${project.version}" arg2="${winsw.version}"/>
                       </not>
                       <then>
-                        <fail message="Project version ${project.version} is different from the WinSW version ${winsw.version}." />
+                        <fail message="Project version ${project.version} is different from the WinSW version ${winsw.version}."/>
                       </then>
                     </if>
                   </tasks>
