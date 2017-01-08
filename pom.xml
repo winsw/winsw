@@ -73,7 +73,7 @@
                 <mkdir dir="${project.build.directory}/bin/"/>
                 <get src="https://github.com/kohsuke/winsw/releases/download/winsw-v${winsw.version}/WinSW.NET2.exe" 
                      dest="${project.build.directory}/bin/winsw.exe"/>
-                <attachArtifact file="${project.build.directory}/bin/bin/winsw.exe" type="exe" classifier="bin" />
+                <attachArtifact file="${project.build.directory}/bin/winsw.exe" type="exe" classifier="bin" />
               </tasks>
             </configuration>
           </execution>
