@@ -8,7 +8,7 @@
   <url>https://github.com/kohsuke/winsw/</url>
    
   <properties>
-    <winsw.version>2.0.3</winsw.version>
+    <winsw.version>2.0.1</winsw.version>
   </properties>
   
   <licenses>
@@ -71,7 +71,7 @@
             <configuration>
               <tasks>
                 <mkdir dir="${project.build.directory}/bin/"/>
-                <get src="https://github.com/kohsuke/winsw/releases/download/winsw-draft-v${winsw.version}/WinSW.NET2.exe" 
+                <get src="https://github.com/kohsuke/winsw/releases/download/winsw-v${winsw.version}/WinSW.NET2.exe" 
                      dest="${project.build.directory}/bin/winsw.exe"/>
                 <attachArtifact file="${project.build.directory}/bin/bin/winsw.exe" type="exe" classifier="bin" />
               </tasks>
