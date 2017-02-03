@@ -4,6 +4,8 @@ WinSW can be managed using Puppet.
 
 Please checkout the [Puppet Forge Page](http://forge.puppet.com/kenmaglio/winsw) for more information about specifics of this module. 
 
+# winsw
+
 ### Table of Contents
 
 1. [Important](#important)
@@ -11,6 +13,7 @@ Please checkout the [Puppet Forge Page](http://forge.puppet.com/kenmaglio/winsw)
 1. [Setup - The basics of getting started with winsw](#setup)
     * [Beginning with winsw](#beginning-with-winsw)
 1. [Usage - Configuration options and additional functionality](#usage)
+    * [Additional Configurations](#additional-configuration-parameters)
 1. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
 1. [Limitations - OS compatibility, etc.](#limitations)
 1. [Development - Guide for contributing to the module](#development)
@@ -54,31 +57,49 @@ You can take two approaches:
 ## Usage
 
 Usage Pattern for Installing and Configuring
+Title = name of executable / service
+
 <pre><code>
-  winsw::install { 'install_myservice':
+  winsw::install { 'MyService':
     ensure                  => present,
-    winsw_binary_version    => $winsw_binary_version,
-    install_path            => $install_path,
-    service_id              => $service_id,
     service_name            => $service_name,
     service_executable      => $service_executable,
     service_argument_string => $service_argument_string,
+  } ->
+  winsw::service { 'MyService':
+    ensure => running,
+  }
+</code></pre>
+
+Optional Parameters
+<pre><code>
+    winsw_binary_version    => $winsw_binary_version,
+    install_path            => $install_path,
     service_description     => $service_description,
     service_env_variables   => $service_env_variables,
     service_logmode         => $service_logmode,
-  } ->
-  winsw::service { 'run_myservice':
-    ensure     => running,
-    service_id => $service_id,
-  }
 </code></pre>
 
 Usage Pattern for Uninstalling
 <pre><code>
-  winsw::install { 'uninstall_myservice':
-    ensure     => absent,
-    service_id => $service_id,
+  winsw::install { 'MyService':
+    ensure => absent,
   }
+</code></pre>
+
+### Additional Configuration Parameters
+
+
+To Specify Service Account to run service as
+<pre><code>
+    service_user            => 'your_serviceaccount',
+    service_pass            => 'your_serviceaccount_password',
+    service_domain          => 'your_serviceaccount_domain'
+</code></pre>
+
+To Run Interactively (not service account cannot be used - only local system)
+<pre><code>
+    service_interactive     => $true
 </code></pre>
 
 ## Reference
@@ -109,8 +130,20 @@ See: [https://github.com/kohsuke/winsw](https://github.com/kohsuke/winsw)
 
 ## Development
 
-While using --modulepath does work, this approach I found easier
-From directory  C:\ProgramData\PuppetLabs\code\environments\production\modules
-mklink /D winsw D:\[your git root dir]\winsw 
+#### Please fork and submit pull requests
 
-Then from D:\[your git root dir] in teminal:  puppet apply .\winsw\
+To setup local environment:
+<pre><code>
+puppet module install puppetlabs-powershell --version 2.1.0 --modulepath=[your path to modules here]
+puppet apply -v -e 'include winsw' --modulepath=[your path to modules here]
+</code></pre>
+You can include --noop if you don't want to apply, however service actions will fail as it won't actually install.
+
+If you run an elevated command prompt, you can navigate to the service executable directory.
+Then you can use these to test states of your service and the module. (note MyService is your servie name)
+<pre><code>
+MyService.exe stop
+MyService.exe uninstall
+MyService.exe start
+MyService.exe install
+</code></pre>
