@@ -1,11 +1,15 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using winsw.Native;
 
 namespace winsw.Util
 {
     public static class SigIntHelper
     {
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(SigIntHelper));
+
         private const string KERNEL32 = "kernel32.dll";
 
         [DllImport(KERNEL32, SetLastError = true)]
@@ -48,6 +52,14 @@ namespace winsw.Util
                 GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
                 process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
+
+                // Detach from console. Causes child console process to be automatically closed.
+                bool success = FreeConsole();
+                if (!success)
+                {
+                    long errorCode = Kernel32.GetLastError();
+                    Logger.Warn("Failed to detach from console. Error code: " + errorCode);
+                }
 
                 return process.HasExited;    
             }
