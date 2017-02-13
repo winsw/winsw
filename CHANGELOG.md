@@ -3,6 +3,19 @@ Release Notes
 
 Below you can find release notes for the trunk version of WinSW.
 
+##### 2.0.2
+
+Release date: Feb 13, 2017
+
+Fixed issues:
+* [Issue #181](https://github.com/kohsuke/winsw/issues/181) - 
+Fix metadata of the `WinSW.NET2.exe` exutable to make it really running on .NET Framework 2.
+([PR #188](https://github.com/kohsuke/winsw/pull/188))
+* [Issue #95](https://github.com/kohsuke/winsw/issues/95) - 
+During process tree termination rebuild the child process tree after the termination if `stopparentprocessfirst` is set.
+Enhances the fix of [Issue #59](https://github.com/kohsuke/winsw/issues/59) in WinSW 2.0. 
+([PR #186](https://github.com/kohsuke/winsw/pull/186))
+
 ##### 2.0.1
 
 Release date: Jan 06, 2017
