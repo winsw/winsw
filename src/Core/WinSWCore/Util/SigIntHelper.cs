@@ -49,9 +49,6 @@ namespace winsw.Util
 
                 process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
 
-                // Detach from console. Causes child console process to be automatically closed.
-                FreeConsole();
-				
                 return process.HasExited;    
             }
          

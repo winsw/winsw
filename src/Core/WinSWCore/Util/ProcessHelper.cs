@@ -22,23 +22,15 @@ namespace winsw.Util
         /// <returns>List of child process PIDs</returns>
         public static List<int> GetChildPids(int pid)
         {
-			var childPids = new List<int>();
-			
-			try {
-				var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-				foreach (var mo in searcher.Get())
-				{
-					var childProcessId = mo["ProcessID"];
-					Logger.Info("Found child process: " + childProcessId + " Name: " + mo["Name"]);
-					childPids.Add(Convert.ToInt32(childProcessId));
-				}
-			}
-			catch (Exception ex)
+            var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+            var childPids = new List<int>();
+            foreach (var mo in searcher.Get())
             {
-                Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
+                var childProcessId = mo["ProcessID"];
+                Logger.Info("Found child process: " + childProcessId + " Name: " + mo["Name"]);
+                childPids.Add(Convert.ToInt32(childProcessId));
             }
-            
-			return childPids;
+            return childPids;
         }
 
         /// <summary>
@@ -98,9 +90,19 @@ namespace winsw.Util
         /// <param name="stopParentProcessFirst">If enabled, the perent process will be terminated before its children on all levels</param>
         public static void StopProcessAndChildren(int pid, TimeSpan stopTimeout, bool stopParentProcessFirst)
         {
-			if (!stopParentProcessFirst)
-            {         
-                foreach (var childPid in GetChildPids(pid))
+            List<int> childPids = null;
+            try
+            {
+                childPids = GetChildPids(pid);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
+            }
+
+            if (!stopParentProcessFirst && childPids != null)
+            {  
+                foreach (var childPid in childPids)
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
                 }
@@ -108,9 +110,9 @@ namespace winsw.Util
 
             StopProcess(pid, stopTimeout);
 
-            if (stopParentProcessFirst)
+            if (stopParentProcessFirst && childPids != null)
             {
-                foreach (var childPid in GetChildPids(pid))
+                foreach (var childPid in childPids)
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
                 }
