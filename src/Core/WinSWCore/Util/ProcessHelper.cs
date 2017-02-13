@@ -22,23 +22,23 @@ namespace winsw.Util
         /// <returns>List of child process PIDs</returns>
         public static List<int> GetChildPids(int pid)
         {
-			var childPids = new List<int>();
-			
-			try {
-				var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-				foreach (var mo in searcher.Get())
-				{
-					var childProcessId = mo["ProcessID"];
-					Logger.Info("Found child process: " + childProcessId + " Name: " + mo["Name"]);
-					childPids.Add(Convert.ToInt32(childProcessId));
-				}
-			}
-			catch (Exception ex)
+            var childPids = new List<int>();
+            
+            try {
+                var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+                foreach (var mo in searcher.Get())
+                {
+                    var childProcessId = mo["ProcessID"];
+                    Logger.Info("Found child process: " + childProcessId + " Name: " + mo["Name"]);
+                    childPids.Add(Convert.ToInt32(childProcessId));
+                }
+            }
+            catch (Exception ex)
             {
                 Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
             }
             
-			return childPids;
+            return childPids;
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace winsw.Util
         /// <param name="stopParentProcessFirst">If enabled, the perent process will be terminated before its children on all levels</param>
         public static void StopProcessAndChildren(int pid, TimeSpan stopTimeout, bool stopParentProcessFirst)
         {
-			if (!stopParentProcessFirst)
+            if (!stopParentProcessFirst)
             {         
                 foreach (var childPid in GetChildPids(pid))
                 {
