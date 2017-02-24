@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Xml;
@@ -23,6 +23,10 @@ namespace winsw
         public void Perform()
         {
             WebRequest req = WebRequest.Create(From);
+            req.UseDefaultCredentials = true;
+            req.PreAuthenticate = true;
+            req.Credentials = CredentialCache.DefaultCredentials;
+
             WebResponse rsp = req.GetResponse();
             FileStream tmpstream = new FileStream(To + ".tmp", FileMode.Create);
             CopyStream(rsp.GetResponseStream(), tmpstream);
