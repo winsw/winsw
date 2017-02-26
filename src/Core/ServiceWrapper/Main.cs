@@ -223,16 +223,25 @@ namespace winsw
             // handle downloads
             foreach (Download d in _descriptor.Downloads)
             {
-                LogEvent("Downloading: " + d.From+ " to "+d.To);
+                String downloadMsg = "Downloading: " + d.From + " to " + d.To + ". failOnError=" + d.FailOnError;
+                LogEvent(downloadMsg);
+                Log.Info(downloadMsg);
                 try
                 {
                     d.Perform();
                 }
                 catch (Exception e)
                 {
-                    LogEvent("Failed to download " + d.From + " to " + d.To + "\n" + e.Message);
-                    Log.Error("Failed to download " + d.From +" to "+d.To, e);
-                    // but just keep going
+                    string errorMessage = "Failed to download " + d.From + " to " + d.To;
+                    LogEvent(errorMessage + ". " + e.Message);
+                    Log.Error(errorMessage, e);
+                    // TODO: move this code into the download logic
+                    if (d.FailOnError)
+                    {
+                        throw new IOException(errorMessage, e);
+                    }
+                    
+                    // Else just keep going
                 }
             }
 

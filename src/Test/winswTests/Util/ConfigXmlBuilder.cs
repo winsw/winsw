@@ -88,5 +88,10 @@ namespace winswTests.Util
         { 
             return WithRawEntry(String.Format("<{0}>{1}</{0}>", tagName, value));
         }
+
+        public ConfigXmlBuilder WithDownload(Download download)
+        {
+            return WithRawEntry(download.toXMLConfig());
+        }
     }
 }
