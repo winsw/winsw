@@ -147,8 +147,33 @@ This feature should be used only for debugging, as some operating systems and ha
 This optional element can be specified multiple times to have the service wrapper retrieve resources from URL and place it locally as a file.
 This operation runs when the service is started, before the application specified by `<executable>` is launched.
 
+For servers requiring authentication some parameters must be specified depending on the type of authentication. Only the basic authentication requires additional sub-parameters. Supported authentication types are:
+
+* `none`:  default, must not be specified
+* `sspi`: Microsoft [authentication](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) including Kerberos, NTLM etc. 
+* `basic`: Basic authentication, sub-parameters:
+	* `username=“UserName”`
+	* `password=“Passw0rd”`
+    * `unsecureAuth=“enabled”: default=“disabled"`
+
+The parameter “unsecureAuth” is only effective when the transfer protocol is http - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
 ```
-    <download from="http://example.com/some.dat" to="%BASE%\some.dat"/>
+    <download from="https://example.com/some.dat" to="%BASE%\some.dat"
+              auth="sspi"
+              />
+
+    <download from="https://example.com/some.dat" to="%BASE%\some.dat"
+              auth="basic"
+              username="aUser"
+              password="aPassw0rd"
+              />
+
+    <download from="http://example.com/some.dat" to="%BASE%\some.dat"
+              auth="basic"
+              username="aUser"
+              password=“aPassw0rd"
+              unsecureAuth=“enabled”
+              />
 ```
 
 This is another useful building block for developing a self-updating service.
