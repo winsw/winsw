@@ -157,6 +157,8 @@ For servers requiring authentication some parameters must be specified depending
 	* `unsecureAuth=“enabled”: default=“disabled"`
 
 The parameter “unsecureAuth” is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
+
+For target servers using the HTTPS transfer protocol it is necessary, that the CA which issued the server certificate is trusted by the client. This is normally the situation when the server ist located in the Internet. When an organisation is using a self issued CA for the intranet this probably is not the case. In this case it is necessary to import the CA to the Certificate MMC of the Windows client. Have a look to the  instructions on this [site](https://msdn.microsoft.com/de-de/library/system.net.credentialcache.defaultcredentials(v=vs.85).aspx). The self issued CA must be imported to the Trusted Root Certification Authorities for the computer.
 ```
     <download from="http://example.com/some.dat" to="%BASE%\some.dat" />
 
