@@ -67,7 +67,7 @@ namespace winsw
             {
                 if (From.StartsWith("http:") && UnsecureAuth == false)
                 {
-                    throw new Exception("Warning: you're sendig your credentials in clear text to the server. If you really want this you must enable this in the configuration!");
+                    throw new Exception("Warning: you're sending your credentials in clear text to the server. If you really want this you must enable this in the configuration!");
                 }
             }
         }
