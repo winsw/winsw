@@ -154,26 +154,20 @@ For servers requiring authentication some parameters must be specified depending
 * `basic`: Basic authentication, sub-parameters:
 	* `username=“UserName”`
 	* `password=“Passw0rd”`
-    * `unsecureAuth=“enabled”: default=“disabled"`
+	* `unsecureAuth=“enabled”: default=“disabled"`
 
-The parameter “unsecureAuth” is only effective when the transfer protocol is http - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
+The parameter “unsecureAuth” is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
 ```
-    <download from="https://example.com/some.dat" to="%BASE%\some.dat"
-              auth="sspi"
-              />
+    <download from="http://example.com/some.dat" to="%BASE%\some.dat" />
+
+    <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
 
     <download from="https://example.com/some.dat" to="%BASE%\some.dat"
-              auth="basic"
-              username="aUser"
-              password="aPassw0rd"
-              />
+              auth="basic" username="aUser" password="aPassw0rd" />
 
     <download from="http://example.com/some.dat" to="%BASE%\some.dat"
-              auth="basic"
-              username="aUser"
-              password=“aPassw0rd"
-              unsecureAuth=“enabled”
-              />
+              auth="basic" unsecureAuth=“enabled”
+              username="aUser" password=“aPassw0rd" />
 ```
 
 This is another useful building block for developing a self-updating service.
