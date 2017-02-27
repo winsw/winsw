@@ -61,7 +61,7 @@ namespace winsw
             catch (Exception)
             {
             }
-            UnsecureAuth = tmpStr == "enable" ? true : false;
+            UnsecureAuth = tmpStr == "enabled" ? true : false;
 
             if (Auth == AuthType.basic)
             {
