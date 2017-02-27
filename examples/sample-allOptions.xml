@@ -252,6 +252,18 @@ SECTION: Environment setup
   <!--
   <download from="http://www.google.com/" to="%BASE%\index.html" />
   <download from="http://www.nosuchhostexists.com/" to="%BASE%\dummy.html" />
+
+  An example for unsecure Basic authentication because the connection is not encrypted:
+  <download from="http://example.com/some.dat" to="%BASE%\some.dat"
+            auth="basic" unsecureAuth=“enabled”
+            username="aUser" password=“aPassw0rd" />
+
+  Secure Basic authentication via HTTPS:
+  <download from="https://example.com/some.dat" to="%BASE%\some.dat"
+            auth="basic" username="aUser" password="aPassw0rd" />
+
+  Secure authentication when the target server and the client are members of domain:
+  <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
   -->
 
 <!-- 
