@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -12,11 +13,8 @@ namespace winsw
     /// </summary>
     public class Download
     {
-        public enum AuthType { none = 0, sspi, basic }
-
         public readonly string From;
         public readonly string To;
-        public readonly AuthType Auth = AuthType.none;
         public readonly string Username;
         public readonly string Password;
         public readonly bool UnsecureAuth = false;
@@ -27,15 +25,6 @@ namespace winsw
             To = Environment.ExpandEnvironmentVariables(n.Attributes["to"].Value);
 
             string tmpStr = "";
-            try
-            {
-                tmpStr = Environment.ExpandEnvironmentVariables(n.Attributes["auth"].Value);
-            }
-            catch (Exception)
-            {
-            }
-            Auth = tmpStr != "" ? (AuthType)Enum.Parse(typeof(AuthType), tmpStr) : AuthType.none;
-
             try
             {
                 tmpStr = Environment.ExpandEnvironmentVariables(n.Attributes["username"].Value);
@@ -63,41 +52,56 @@ namespace winsw
             }
             UnsecureAuth = tmpStr == "enable" ? true : false;
 
-            if (Auth == AuthType.basic)
+            if (From.StartsWith("http:") && Username != String.Empty && Password != String.Empty && UnsecureAuth == false)
             {
-                if (From.StartsWith("http:") && UnsecureAuth == false)
-                {
-                    throw new Exception("Warning: you're sending your credentials in clear text to the server. If you really want this you must enable this in the configuration!");
-                }
+                throw new Exception("Warning: you're sending your credentials in clear text to the server. If you really want this you must enable this in the configuration!");
             }
-        }
-
-        // Source: http://stackoverflow.com/questions/2764577/forcing-basic-authentication-in-webrequest
-        public void SetBasicAuthHeader(WebRequest request, String username, String password)
-        {
-            string authInfo = username + ":" + password;
-            authInfo = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(authInfo));
-            request.Headers["Authorization"] = "Basic " + authInfo;
         }
 
         public void Perform()
         {
             WebRequest req = WebRequest.Create(From);
 
-            switch (Auth)
-            {
-                case AuthType.sspi:
-                    req.UseDefaultCredentials = true;
-                    req.PreAuthenticate = true;
-                    req.Credentials = CredentialCache.DefaultCredentials;
-                    break;
+            WebResponse rsp = null;
+            bool trySSPI = true;
+            bool basicFailed = false;
 
-                case AuthType.basic:
-                    SetBasicAuthHeader(req, Username, Password);
-                    break;
+            // when credential specified by the user we assume that a Basic auth. is required
+            if (Username != String.Empty && Password != String.Empty)
+            {
+                req.Credentials = new NetworkCredential(Username, Password);
+
+                try
+                {
+                    rsp = req.GetResponse();
+                    trySSPI = false;
+                }
+                catch (Exception)
+                {
+                    // the connection was not sucessful - reset the request for a SSPI auth.
+                    basicFailed = true;
+                    req.Abort();
+                    req = null;
+                }
             }
 
-            WebResponse rsp = req.GetResponse();
+            // try SSPI, this also works for server without authentication!
+            if (trySSPI == true)
+            {
+                // try to authenticate via SSPI, when a previous Basic auth. was not sucessfull a new
+                // request needs to be created!
+                if (basicFailed == true)
+                {
+                    req = WebRequest.Create(From);
+                }
+
+                req.UseDefaultCredentials = true;
+                req.PreAuthenticate = true;
+                req.Credentials = CredentialCache.DefaultCredentials;
+
+                rsp = req.GetResponse();
+            }
+
             FileStream tmpstream = new FileStream(To + ".tmp", FileMode.Create);
             CopyStream(rsp.GetResponseStream(), tmpstream);
             // only after we successfully downloaded a file, overwrite the existing one
