@@ -89,8 +89,11 @@ namespace winswTests.Extensions
             try
             {
                 // Generate extension and ensure that the roundtrip is correct
+                //TODO: checkWinSWEnvironmentVariable should be true, but it does not work due to proc.StartInfo.EnvironmentVariables
                 var pidfile = Path.Combine(tmpDir, "process.pid");
-                var sd = ConfigXmlBuilder.create(id: winswId).WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile), extensionId).ToServiceDescriptor();
+                var sd = ConfigXmlBuilder.create(id: winswId)
+                    .WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile, checkWinSWEnvironmentVariable: false), extensionId)
+                    .ToServiceDescriptor();
                 WinSWExtensionManager manager = new WinSWExtensionManager(sd);
                 manager.LoadExtensions();
                 var extension = manager.Extensions[extensionId] as RunawayProcessKillerExtension;

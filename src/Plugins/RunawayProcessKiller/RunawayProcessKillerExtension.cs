@@ -27,6 +27,12 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// </summary>
         public bool StopParentProcessFirst { get; private set; }
 
+        /// <summary>
+        /// If true, the runaway process will be checked for the WinSW environment variable before termination.
+        /// This option is not documented AND not supposed to be used by users.
+        /// </summary>
+        public bool CheckWinSWEnvironmentVariable { get; private set; }
+
         public override String DisplayName { get { return "Runaway Process Killer"; } }
 
         private String ServiceId { get; set; }
@@ -38,11 +44,12 @@ namespace winsw.Plugins.RunawayProcessKiller
             // Default initializer
         }
 
-        public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false)
+        public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
         {
             this.Pidfile = pidfile;
             this.StopTimeout = TimeSpan.FromMilliseconds(5000);
             this.StopParentProcessFirst = stopParentFirst;
+            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable;
         }
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
@@ -53,6 +60,9 @@ namespace winsw.Plugins.RunawayProcessKiller
             StopTimeout = TimeSpan.FromMilliseconds(Int32.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
             StopParentProcessFirst = Boolean.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
             ServiceId = descriptor.Id;
+            //TODO: Consider making it documented
+            var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
+            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? Boolean.Parse(checkWinSWEnvironmentVariable) : true;
         }
 
         /// <summary>
@@ -113,7 +123,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             {
                 affiliatedServiceId = previousProcessEnvVars[expectedEnvVarName];
             }
-            else
+            else if (CheckWinSWEnvironmentVariable)
             {
                 Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. " 
                     + "The process has not been started by WinSW, hence it won't be terminated.");
@@ -125,9 +135,14 @@ namespace winsw.Plugins.RunawayProcessKiller
                 }
                 return;
             }
+            else
+            {
+                // We just skip this check
+                affiliatedServiceId = null;
+            }
 
             // Check the service ID value
-            if (!ServiceId.Equals(affiliatedServiceId))
+            if (CheckWinSWEnvironmentVariable && !ServiceId.Equals(affiliatedServiceId))
             {
                 Logger.Warn("The process " + pid + " has been started by Windows service with ID='" + affiliatedServiceId + "'. "
                     + "It is another service (current service id is '" + ServiceId + "'), hence the process won't be terminated.");
