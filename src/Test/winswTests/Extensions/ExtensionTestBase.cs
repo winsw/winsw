@@ -15,7 +15,7 @@ namespace winswTests.Extensions
         /// </summary>
         /// <param name="type">Type of the extension</param>
         /// <returns>String for Type locator, which includes class and assembly names</returns>
-        protected static String getExtensionClassNameWithAssembly(Type type)
+        public static String getExtensionClassNameWithAssembly(Type type)
         {
             return type.ToString() + ", " + type.Assembly;
         }
