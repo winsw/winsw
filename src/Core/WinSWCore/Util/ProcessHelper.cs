@@ -118,7 +118,6 @@ namespace winsw.Util
             }
         }
 
-        //TODO: generalize API
         /// <summary>
         /// Starts a process and asynchronosly waits for its termination.
         /// Once the process exits, the callback will be invoked.
@@ -129,24 +128,27 @@ namespace winsw.Util
         /// <param name="envVars">Additional environment variables</param>
         /// <param name="workingDirectory">Working directory</param>
         /// <param name="priority">Priority</param>
-        /// <param name="callback">Completion callback</param>
-        public static void StartProcessAndCallbackForExit(Process processToStart, String executable, string arguments, Dictionary<string, string> envVars,
-            string workingDirectory, ProcessPriorityClass priority, ProcessCompletionCallback callback)
+        /// <param name="callback">Completion callback. If null, the completion won't be monitored</param>
+        public static void StartProcessAndCallbackForExit(Process processToStart, String executable = null, string arguments = null, Dictionary<string, string> envVars = null,
+            string workingDirectory = null, ProcessPriorityClass? priority = null, ProcessCompletionCallback callback = null)
         {
             var ps = processToStart.StartInfo;
-            ps.FileName = executable;
-            ps.Arguments = arguments;
-            ps.WorkingDirectory = workingDirectory;
+            ps.FileName = executable ?? ps.FileName;
+            ps.Arguments = arguments ?? ps.Arguments;
+            ps.WorkingDirectory = workingDirectory ?? ps.WorkingDirectory;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
             ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
             ps.RedirectStandardOutput = true;
             ps.RedirectStandardError = true;
 
-            foreach (string key in envVars.Keys)
+            if (envVars != null)
             {
-                Environment.SetEnvironmentVariable(key, envVars[key]);
-                // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
+                foreach (string key in envVars.Keys)
+                {
+                    Environment.SetEnvironmentVariable(key, envVars[key]);
+                    // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
+                }
             }
 
             //TODO: move outside, stubbed to reproduce the issue
@@ -157,15 +159,20 @@ namespace winsw.Util
             processToStart.Start();
             Logger.Info("Started process " + processToStart.Id);
 
-            if (priority != ProcessPriorityClass.Normal)
-                processToStart.PriorityClass = priority;
+            if (priority != null && priority.Value != ProcessPriorityClass.Normal) 
+            { 
+                processToStart.PriorityClass = priority.Value;
+            }
 
             // monitor the completion of the process
-            StartThread(delegate
+            if (callback != null)
             {
-                processToStart.WaitForExit();
-                callback(processToStart);
-            });
+                StartThread(delegate
+                {
+                    processToStart.WaitForExit();
+                    callback(processToStart);
+                });
+            }
         }
 
         /// <summary>
