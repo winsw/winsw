@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -29,7 +30,15 @@ namespace winswTests.Util
             Dictionary<string, string> res = new Dictionary<string, string>();
             var lines = File.ReadAllLines(filePath);
             foreach(var line in lines) {
-                line.Split("=".ToCharArray(), 2);
+                var parsed = line.Split("=".ToCharArray(), 2);
+                if (parsed.Length == 2)
+                {
+                    res.Add(parsed[0], parsed[1]);
+                }
+                else
+                {
+                    Assert.Fail("Wrong line in the parsed Set output file: " + line);
+                }
             }
             return res;
         }

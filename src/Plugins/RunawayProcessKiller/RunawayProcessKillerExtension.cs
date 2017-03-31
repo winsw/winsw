@@ -38,9 +38,11 @@ namespace winsw.Plugins.RunawayProcessKiller
             // Default initializer
         }
 
-        public RunawayProcessKillerExtension(String pidfile)
+        public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false)
         {
             this.Pidfile = pidfile;
+            this.StopTimeout = TimeSpan.FromMilliseconds(5000);
+            this.StopParentProcessFirst = stopParentFirst;
         }
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
@@ -89,6 +91,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Now check the process
+            Logger.DebugFormat("Checking the potentially runaway process with PID={0}", pid);
             Process proc;
             try
             {
@@ -113,11 +116,12 @@ namespace winsw.Plugins.RunawayProcessKiller
             else
             {
                 Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. " 
-                    + "The process has not been started by this service, hence it won't be terminated.");
+                    + "The process has not been started by WinSW, hence it won't be terminated.");
                 if (Logger.IsDebugEnabled) {
-                    foreach (string key in previousProcessEnvVars.Keys) {
-                        Logger.Debug("Env var of " + pid + ": " + key + "=" + previousProcessEnvVars[key]);
-                    }
+                    //TODO replace by String.Join() in .NET 4
+                    String[] keys = new String[previousProcessEnvVars.Count];
+                    previousProcessEnvVars.Keys.CopyTo(keys, 0);
+                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new Object[] {pid, String.Join(",", keys)});
                 }
                 return;
             }
