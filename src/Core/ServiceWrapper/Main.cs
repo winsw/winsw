@@ -400,11 +400,11 @@ namespace winsw
 
         private void StartProcess(Process processToStart, string arguments, String executable)
         {
-            string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
-
+            
             // Define handler of the completed process
             ProcessCompletionCallback processCompletionCallback = delegate(Process proc)
             {
+                string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
                 try
                 {
                     if (_orderlyShutdown)
