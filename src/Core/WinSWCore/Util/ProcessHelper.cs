@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
 using System.Text;
+using System.Threading;
 
 namespace winsw.Util
 {
@@ -117,6 +118,76 @@ namespace winsw.Util
             }
         }
 
-        // TODO: Also move StartProcess methods once LogEvent()/WriteEvent() mess gets solved
+        //TODO: generalize API
+        /// <summary>
+        /// Starts a process and asynchronosly waits for its termination.
+        /// Once the process exits, the callback will be invoked.
+        /// </summary>
+        /// <param name="processToStart">Process object to be used</param>
+        /// <param name="arguments">Arguments to be passed</param>
+        /// <param name="executable">Executable, which should be invoked</param>
+        /// <param name="envVars">Additional environment variables</param>
+        /// <param name="workingDirectory">Working directory</param>
+        /// <param name="priority">Priority</param>
+        /// <param name="callback">Completion callback</param>
+        public static void StartProcessAndCallbackForExit(Process processToStart, String executable, string arguments, Dictionary<string, string> envVars,
+            string workingDirectory, ProcessPriorityClass priority, ProcessCompletionCallback callback)
+        {
+            var ps = processToStart.StartInfo;
+            ps.FileName = executable;
+            ps.Arguments = arguments;
+            ps.WorkingDirectory = workingDirectory;
+            ps.CreateNoWindow = false;
+            ps.UseShellExecute = false;
+            ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
+            ps.RedirectStandardOutput = true;
+            ps.RedirectStandardError = true;
+
+            foreach (string key in envVars.Keys)
+            {
+                Environment.SetEnvironmentVariable(key, envVars[key]);
+                // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
+            }
+
+            //TODO: move outside, stubbed to reproduce the issue
+            // TODO: Make it generic via extension points. The issue mentioned above should be ideally worked around somehow
+            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower()] = "myapp";// _descriptor.Id;
+            // Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower(), _descriptor.Id);
+
+            processToStart.Start();
+            Logger.Info("Started process " + processToStart.Id);
+
+            if (priority != ProcessPriorityClass.Normal)
+                processToStart.PriorityClass = priority;
+
+            // monitor the completion of the process
+            StartThread(delegate
+            {
+                processToStart.WaitForExit();
+                callback(processToStart);
+            });
+        }
+
+        /// <summary>
+        /// Starts a thread that protects the execution with a try/catch block.
+        /// It appears that in .NET, unhandled exception in any thread causes the app to terminate
+        /// http://msdn.microsoft.com/en-us/library/ms228965.aspx
+        /// </summary>
+        public static void StartThread(ThreadStart main)
+        {
+            new Thread(delegate()
+            {
+                try
+                {
+                    main();
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Thread failed unexpectedly", e);
+                }
+            }).Start();
+        }
     }
+
+    public delegate void ProcessCompletionCallback(Process process);
 }
