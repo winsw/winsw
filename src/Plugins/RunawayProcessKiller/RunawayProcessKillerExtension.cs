@@ -118,9 +118,10 @@ namespace winsw.Plugins.RunawayProcessKiller
             // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
             // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
             StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;
-            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower();
+            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             if (previousProcessEnvVars.ContainsKey(expectedEnvVarName))
             {
+                // StringDictionary is case-insensitive, hence it will fetch variable definitions in any case
                 affiliatedServiceId = previousProcessEnvVars[expectedEnvVarName];
             }
             else if (CheckWinSWEnvironmentVariable)

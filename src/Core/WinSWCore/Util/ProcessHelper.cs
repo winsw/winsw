@@ -147,14 +147,10 @@ namespace winsw.Util
                 foreach (string key in envVars.Keys)
                 {
                     Environment.SetEnvironmentVariable(key, envVars[key]);
-                    // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
+                    // DONTDO: ps.EnvironmentVariables[key] = envs[key]; 
+                    // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
                 }
             }
-
-            //TODO: move outside, stubbed to reproduce the issue
-            // TODO: Make it generic via extension points. The issue mentioned above should be ideally worked around somehow
-            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower()] = "myapp";// _descriptor.Id;
-            // Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower(), _descriptor.Id);
 
             processToStart.Start();
             Logger.Info("Started process " + processToStart.Id);
