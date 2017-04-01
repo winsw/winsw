@@ -134,25 +134,6 @@ namespace winsw
         }
 
         /// <summary>
-        /// Starts a thread that protects the execution with a try/catch block.
-        /// It appears that in .NET, unhandled exception in any thread causes the app to terminate
-        /// http://msdn.microsoft.com/en-us/library/ms228965.aspx
-        /// </summary>
-        private void StartThread(ThreadStart main)
-        {
-            new Thread(delegate() {
-                try
-                {
-                    main();
-                }
-                catch (Exception e)
-                {
-                    Log.Error("Thread failed unexpectedly",e);
-                }
-            }).Start();
-        }
-
-        /// <summary>
         /// Handle the creation of the logfiles based on the optional logmode setting.
         /// </summary>
         private void HandleLogfiles()
@@ -419,53 +400,26 @@ namespace winsw
 
         private void StartProcess(Process processToStart, string arguments, String executable)
         {
-            var ps = processToStart.StartInfo;
-            ps.FileName = executable;
-            ps.Arguments = arguments;
-            ps.WorkingDirectory = _descriptor.WorkingDirectory;
-            ps.CreateNoWindow = false;
-            ps.UseShellExecute = false;
-            ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
-            ps.RedirectStandardOutput = true;
-            ps.RedirectStandardError = true;
-
-            foreach (string key in _envs.Keys)
-            {
-                Environment.SetEnvironmentVariable(key, _envs[key]);
-                // ps.EnvironmentVariables[key] = envs[key]; // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
-            }
-
-            // TODO: Make it generic via extension points. The issue mentioned above should be ideally worked around somehow
-            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower()] = _descriptor.Id;
-
-            processToStart.Start();
-            Log.Info("Started " + processToStart.Id);
-
-            var priority = _descriptor.Priority;
-            if (priority != ProcessPriorityClass.Normal)
-                processToStart.PriorityClass = priority;
-
-            // monitor the completion of the process
-            StartThread(delegate
+            
+            // Define handler of the completed process
+            ProcessCompletionCallback processCompletionCallback = delegate(Process proc)
             {
                 string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
-                processToStart.WaitForExit();
-
                 try
                 {
                     if (_orderlyShutdown)
                     {
-                        LogEvent("Child process [" + msg + "] terminated with " + processToStart.ExitCode, EventLogEntryType.Information);
+                        LogEvent("Child process [" + msg + "] terminated with " + proc.ExitCode, EventLogEntryType.Information);
                     }
                     else
                     {
-                        LogEvent("Child process [" + msg + "] finished with " + processToStart.ExitCode, EventLogEntryType.Warning);
+                        LogEvent("Child process [" + msg + "] finished with " + proc.ExitCode, EventLogEntryType.Warning);
                         // if we finished orderly, report that to SCM.
                         // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
                         // restart the service automatically
-                        if (processToStart.ExitCode == 0)
+                        if (proc.ExitCode == 0)
                             SignalShutdownComplete();
-                        Environment.Exit(processToStart.ExitCode);
+                        Environment.Exit(proc.ExitCode);
                     }
                 }
                 catch (InvalidOperationException ioe)
@@ -475,13 +429,23 @@ namespace winsw
 
                 try
                 {
-                    processToStart.Dispose();
+                    proc.Dispose();
                 }
                 catch (InvalidOperationException ioe)
                 {
                     LogEvent("Dispose " + ioe.Message);
                 }
-            });
+            };
+
+            // Invoke process and exit
+            ProcessHelper.StartProcessAndCallbackForExit(
+                processToStart: processToStart,
+                executable: executable,
+                arguments: arguments,
+                envVars: _envs,
+                workingDirectory: _descriptor.WorkingDirectory,
+                priority: _descriptor.Priority,
+                callback: processCompletionCallback);
         }
 
         public static int Main(string[] args)

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using winsw;
+using winsw.Plugins.RunawayProcessKiller;
+using winswTests.Extensions;
 
 namespace winswTests.Util
 {
@@ -16,6 +18,7 @@ namespace winswTests.Util
         public string Executable { get; set; }
         public bool PrintXMLVersion { get; set; }
         public string XMLComment  { get; set; }
+        public List<string> ExtensionXmls { get; private set; }
 
         private List<String> configEntries;
 
@@ -23,6 +26,7 @@ namespace winswTests.Util
         private ConfigXmlBuilder()
         {
             configEntries = new List<string>();
+            ExtensionXmls = new List<string>();
         }
 
         public static ConfigXmlBuilder create(string id = null, string name = null, 
@@ -63,6 +67,18 @@ namespace winswTests.Util
                 // We do not care much about pretty formatting here
                 str.AppendFormat("  {0}\n", entry);
             }
+
+            // Extensions
+            if (ExtensionXmls.Count > 0) 
+            {
+                str.Append("  <extensions>\n");
+                foreach (string xml in ExtensionXmls) 
+                {
+                    str.Append(xml);
+                }
+                str.Append("  </extensions>\n");
+            }
+
             str.Append("</service>\n");
             string res = str.ToString();
             if (dumpConfig)
@@ -87,6 +103,21 @@ namespace winswTests.Util
         public ConfigXmlBuilder WithTag(string tagName, string value)
         { 
             return WithRawEntry(String.Format("<{0}>{1}</{0}>", tagName, value));
+        }
+
+        public ConfigXmlBuilder WithRunawayProcessKiller(RunawayProcessKillerExtension ext, string extensionId = "killRunawayProcess", bool enabled = true)
+        {
+            var fullyQualifiedExtensionName = ExtensionTestBase.getExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
+            StringBuilder str = new StringBuilder();
+            str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new Object[] { enabled, fullyQualifiedExtensionName, extensionId});  
+            str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.Pidfile);
+            str.AppendFormat("      <stopTimeout>{0}</stopTimeout>\n", ext.StopTimeout.TotalMilliseconds);
+            str.AppendFormat("      <stopParentFirst>{0}</stopParentFirst>\n", ext.StopParentProcessFirst);
+            str.AppendFormat("      <checkWinSWEnvironmentVariable>{0}</checkWinSWEnvironmentVariable>\n", ext.CheckWinSWEnvironmentVariable);
+            str.Append(      "    </extension>\n");
+            ExtensionXmls.Add(str.ToString());
+
+            return this;
         }
     }
 }
