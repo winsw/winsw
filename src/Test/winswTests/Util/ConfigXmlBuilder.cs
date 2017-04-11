@@ -119,5 +119,10 @@ namespace winswTests.Util
 
             return this;
         }
+
+        public ConfigXmlBuilder WithDownload(Download download)
+        {
+            return WithRawEntry(download.toXMLConfig());
+        }
     }
 }

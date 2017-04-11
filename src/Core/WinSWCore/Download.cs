@@ -20,11 +20,22 @@ namespace winsw
         public readonly string Username;
         public readonly string Password;
         public readonly bool UnsecureAuth = false;
+        public readonly bool FailOnError;
+
+        public Download(string from, string to, bool failOnError = false)
+        {
+            From = from;
+            To = to;
+            FailOnError = failOnError;
+        }
 
         internal Download(XmlNode n)
         {
             From = Environment.ExpandEnvironmentVariables(n.Attributes["from"].Value);
             To = Environment.ExpandEnvironmentVariables(n.Attributes["to"].Value);
+            
+            var failOnErrorNode = n.Attributes["failOnError"];
+            FailOnError = failOnErrorNode != null ? Boolean.Parse(failOnErrorNode.Value) : false;
 
             string tmpStr = "";
             try
@@ -80,6 +91,12 @@ namespace winsw
             request.Headers["Authorization"] = "Basic " + authInfo;
         }
 
+        /// <summary>
+        ///     Downloads the requested file and puts it to the specified target.
+        /// </summary>
+        /// <exception cref="System.Net.WebException">
+        ///     Download failure. FailOnError flag should be processed outside.
+        /// </exception>
         public void Perform()
         {
             WebRequest req = WebRequest.Create(From);
@@ -104,6 +121,15 @@ namespace winsw
             if (File.Exists(To))
                 File.Delete(To);
             File.Move(To + ".tmp", To);
+        }
+
+        /// <summary>
+        /// Produces the XML configuuration entry.
+        /// </summary>
+        /// <returns>XML String for the configuration file</returns>
+        public String toXMLConfig()
+        {
+            return "<download from=\"" + From + "\" to=\"" + To + "\" failOnError=\"" + FailOnError + "\"/>";
         }
 
         private static void CopyStream(Stream i, Stream o)
