@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Xml;
+using winsw.Util;
 
 namespace winsw
 {
@@ -19,8 +20,10 @@ namespace winsw
         public readonly AuthType Auth = AuthType.none;
         public readonly string Username;
         public readonly string Password;
-        public readonly bool UnsecureAuth = false;
+        public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
+
+        public string ShortId { get { return String.Format("(download from {0})", From); } }
 
         public Download(string from, string to, bool failOnError = false)
         {
@@ -29,62 +32,47 @@ namespace winsw
             FailOnError = failOnError;
         }
 
-        internal Download(XmlNode n)
+        /// <summary>
+        /// Constructs the download setting sfrom the XML entry
+        /// </summary>
+        /// <param name="n">XML element</param>
+        /// <exception cref="InvalidDataException">The required attribute is missing or the configuration is invalid</exception>
+        internal Download(XmlElement n)
         {
-            From = Environment.ExpandEnvironmentVariables(n.Attributes["from"].Value);
-            To = Environment.ExpandEnvironmentVariables(n.Attributes["to"].Value);
-            
-            var failOnErrorNode = n.Attributes["failOnError"];
-            FailOnError = failOnErrorNode != null ? Boolean.Parse(failOnErrorNode.Value) : false;
+            From = XmlHelper.SingleAttribute<String>(n, "from");
+            To = XmlHelper.SingleAttribute<String>(n, "to");
 
-            string tmpStr = "";
-            try
-            {
-                tmpStr = Environment.ExpandEnvironmentVariables(n.Attributes["auth"].Value);
-            }
-            catch (Exception)
-            {
-            }
-            Auth = tmpStr != "" ? (AuthType)Enum.Parse(typeof(AuthType), tmpStr) : AuthType.none;
+            // All arguments below are optional
+            FailOnError = XmlHelper.SingleAttribute<bool>(n, "failOnError", false);
 
-            try
-            {
-                tmpStr = Environment.ExpandEnvironmentVariables(n.Attributes["username"].Value);
-            }
-            catch (Exception)
-            {
-            }
-            Username = tmpStr;
-
-            try
-            {
-                tmpStr = Environment.ExpandEnvironmentVariables(n.Attributes["password"].Value);
-            }
-            catch (Exception)
-            {
-            }
-            Password = tmpStr;
-
-            try
-            {
-                tmpStr = Environment.ExpandEnvironmentVariables(n.Attributes["unsecureAuth"].Value);
-            }
-            catch (Exception)
-            {
-            }
-            UnsecureAuth = tmpStr == "enabled" ? true : false;
+            Auth = XmlHelper.EnumAttribute<AuthType>(n, "auth", AuthType.none);
+            Username = XmlHelper.SingleAttribute<String>(n, "user", null);
+            Password = XmlHelper.SingleAttribute<String>(n, "password", null);
+            UnsecureAuth = XmlHelper.SingleAttribute<String>(n, "unsecureAuth", "null").Equals("enabled");
 
             if (Auth == AuthType.basic)
             {
-                if (From.StartsWith("http:") && UnsecureAuth == false)
+                // Allow it only for HTTPS or for UnsecureAuth 
+                if (!From.StartsWith("https:") && !UnsecureAuth)
                 {
-                    throw new Exception("Warning: you're sending your credentials in clear text to the server. If you really want this you must enable this in the configuration!");
+                    throw new InvalidDataException("Warning: you're sending your credentials in clear text to the server " + ShortId + 
+                                                   "If you really want this you must enable 'unsecureAuth' in the configuration");
+                }
+
+                // Also fail if there is no user/password
+                if (Username == null)
+                {
+                    throw new InvalidDataException("Basic Auth is enabled, but username is not specified " + ShortId);
+                }
+                if (Password == null)
+                {
+                    throw new InvalidDataException("Basic Auth is enabled, but password is not specified " + ShortId);
                 }
             }
         }
 
         // Source: http://stackoverflow.com/questions/2764577/forcing-basic-authentication-in-webrequest
-        public void SetBasicAuthHeader(WebRequest request, String username, String password)
+        private void SetBasicAuthHeader(WebRequest request, String username, String password)
         {
             string authInfo = username + ":" + password;
             authInfo = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(authInfo));
@@ -103,6 +91,10 @@ namespace winsw
 
             switch (Auth)
             {
+                case AuthType.none:
+                    // Do nothing
+                    break;
+
                 case AuthType.sspi:
                     req.UseDefaultCredentials = true;
                     req.PreAuthenticate = true;
@@ -112,6 +104,9 @@ namespace winsw
                 case AuthType.basic:
                     SetBasicAuthHeader(req, Username, Password);
                     break;
+
+                default:
+                    throw new WebException("Code defect. Unsupported authentication type: " + Auth);
             }
 
             WebResponse rsp = req.GetResponse();

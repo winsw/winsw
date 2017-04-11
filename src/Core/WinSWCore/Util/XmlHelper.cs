@@ -71,5 +71,23 @@ namespace winsw.Util
              var value = (TAttributeType)Convert.ChangeType(substitutedValue, typeof(TAttributeType));
              return value;
         }
+
+        /// <summary>
+        /// Retireves a single enum attribute
+        /// </summary>
+        /// <typeparam name="TAttributeType">Type of the enum</typeparam>
+        /// <param name="node">Parent node</param>
+        /// <param name="attributeName">Attribute name</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <returns>Attribute value (or default)</returns>
+        public static TAttributeType EnumAttribute<TAttributeType>(XmlElement node, string attributeName, TAttributeType defaultValue)
+        {
+            if (!node.HasAttribute(attributeName)) return defaultValue;
+
+            string rawValue = node.GetAttribute(attributeName);
+            string substitutedValue = Environment.ExpandEnvironmentVariables(rawValue);
+            var value =Enum.Parse(typeof(TAttributeType), substitutedValue);
+            return (TAttributeType)value;
+        }
     }
 }
