@@ -27,6 +27,12 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// </summary>
         public bool StopParentProcessFirst { get; private set; }
 
+        /// <summary>
+        /// If true, the runaway process will be checked for the WinSW environment variable before termination.
+        /// This option is not documented AND not supposed to be used by users.
+        /// </summary>
+        public bool CheckWinSWEnvironmentVariable { get; private set; }
+
         public override String DisplayName { get { return "Runaway Process Killer"; } }
 
         private String ServiceId { get; set; }
@@ -38,9 +44,12 @@ namespace winsw.Plugins.RunawayProcessKiller
             // Default initializer
         }
 
-        public RunawayProcessKillerExtension(String pidfile)
+        public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
         {
             this.Pidfile = pidfile;
+            this.StopTimeout = TimeSpan.FromMilliseconds(5000);
+            this.StopParentProcessFirst = stopParentFirst;
+            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable;
         }
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
@@ -51,6 +60,9 @@ namespace winsw.Plugins.RunawayProcessKiller
             StopTimeout = TimeSpan.FromMilliseconds(Int32.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
             StopParentProcessFirst = Boolean.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
             ServiceId = descriptor.Id;
+            //TODO: Consider making it documented
+            var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
+            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? Boolean.Parse(checkWinSWEnvironmentVariable) : true;
         }
 
         /// <summary>
@@ -89,6 +101,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Now check the process
+            Logger.DebugFormat("Checking the potentially runaway process with PID={0}", pid);
             Process proc;
             try
             {
@@ -105,25 +118,32 @@ namespace winsw.Plugins.RunawayProcessKiller
             // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
             // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
             StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;
-            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID.ToLower();
+            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             if (previousProcessEnvVars.ContainsKey(expectedEnvVarName))
             {
+                // StringDictionary is case-insensitive, hence it will fetch variable definitions in any case
                 affiliatedServiceId = previousProcessEnvVars[expectedEnvVarName];
             }
-            else
+            else if (CheckWinSWEnvironmentVariable)
             {
                 Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. " 
-                    + "The process has not been started by this service, hence it won't be terminated.");
+                    + "The process has not been started by WinSW, hence it won't be terminated.");
                 if (Logger.IsDebugEnabled) {
-                    foreach (string key in previousProcessEnvVars.Keys) {
-                        Logger.Debug("Env var of " + pid + ": " + key + "=" + previousProcessEnvVars[key]);
-                    }
+                    //TODO replace by String.Join() in .NET 4
+                    String[] keys = new String[previousProcessEnvVars.Count];
+                    previousProcessEnvVars.Keys.CopyTo(keys, 0);
+                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new Object[] {pid, String.Join(",", keys)});
                 }
                 return;
             }
+            else
+            {
+                // We just skip this check
+                affiliatedServiceId = null;
+            }
 
             // Check the service ID value
-            if (!ServiceId.Equals(affiliatedServiceId))
+            if (CheckWinSWEnvironmentVariable && !ServiceId.Equals(affiliatedServiceId))
             {
                 Logger.Warn("The process " + pid + " has been started by Windows service with ID='" + affiliatedServiceId + "'. "
                     + "It is another service (current service id is '" + ServiceId + "'), hence the process won't be terminated.");

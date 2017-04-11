@@ -147,8 +147,29 @@ This feature should be used only for debugging, as some operating systems and ha
 This optional element can be specified multiple times to have the service wrapper retrieve resources from URL and place it locally as a file.
 This operation runs when the service is started, before the application specified by `<executable>` is launched.
 
+For servers requiring authentication some parameters must be specified depending on the type of authentication. Only the basic authentication requires additional sub-parameters. Supported authentication types are:
+
+* `none`:  default, must not be specified
+* `sspi`: Microsoft [authentication](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) including Kerberos, NTLM etc. 
+* `basic`: Basic authentication, sub-parameters:
+	* `username=“UserName”`
+	* `password=“Passw0rd”`
+	* `unsecureAuth=“enabled”: default=“disabled"`
+
+The parameter “unsecureAuth” is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
+
+For target servers using the HTTPS transfer protocol it is necessary, that the CA which issued the server certificate is trusted by the client. This is normally the situation when the server ist located in the Internet. When an organisation is using a self issued CA for the intranet this probably is not the case. In this case it is necessary to import the CA to the Certificate MMC of the Windows client. Have a look to the  instructions on this [site](https://msdn.microsoft.com/de-de/library/system.net.credentialcache.defaultcredentials(v=vs.85).aspx). The self issued CA must be imported to the Trusted Root Certification Authorities for the computer.
 ```
-    <download from="http://example.com/some.dat" to="%BASE%\some.dat"/>
+    <download from="http://example.com/some.dat" to="%BASE%\some.dat" />
+
+    <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
+
+    <download from="https://example.com/some.dat" to="%BASE%\some.dat"
+              auth="basic" username="aUser" password="aPassw0rd" />
+
+    <download from="http://example.com/some.dat" to="%BASE%\some.dat"
+              auth="basic" unsecureAuth=“enabled”
+              username="aUser" password=“aPassw0rd" />
 ```
 
 This is another useful building block for developing a self-updating service.
