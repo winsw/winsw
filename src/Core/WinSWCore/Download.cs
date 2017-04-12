@@ -25,11 +25,16 @@ namespace winsw
 
         public string ShortId { get { return String.Format("(download from {0})", From); } }
 
-        public Download(string from, string to, bool failOnError = false)
+        public Download(string from, string to, bool failOnError = false, AuthType auth = AuthType.none, 
+            string username = null, string password = null, bool unsecureAuth = false)
         {
             From = from;
             To = to;
             FailOnError = failOnError;
+            Auth = auth;
+            Username = username;
+            Password = password;
+            UnsecureAuth = unsecureAuth;
         }
 
         /// <summary>
@@ -116,15 +121,6 @@ namespace winsw
             if (File.Exists(To))
                 File.Delete(To);
             File.Move(To + ".tmp", To);
-        }
-
-        /// <summary>
-        /// Produces the XML configuuration entry.
-        /// </summary>
-        /// <returns>XML String for the configuration file</returns>
-        public String toXMLConfig()
-        {
-            return "<download from=\"" + From + "\" to=\"" + To + "\" failOnError=\"" + FailOnError + "\"/>";
         }
 
         private static void CopyStream(Stream i, Stream o)
