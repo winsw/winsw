@@ -264,7 +264,8 @@ SECTION: Environment setup
   <download from="https://example.com/some.dat" to="%BASE%\some.dat"
             auth="basic" username="aUser" password="aPassw0rd" />
 
-  Secure authentication when the target server and the client are members of the same domain:
+  Secure authentication when the target server and the client are members of the same domain or 
+  the server domain and the client domain belong to the same forest with a trust:
   <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
   -->
 
