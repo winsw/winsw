@@ -48,7 +48,7 @@ namespace winsw
             Auth = XmlHelper.EnumAttribute<AuthType>(n, "auth", AuthType.none);
             Username = XmlHelper.SingleAttribute<String>(n, "user", null);
             Password = XmlHelper.SingleAttribute<String>(n, "password", null);
-            UnsecureAuth = XmlHelper.SingleAttribute<String>(n, "unsecureAuth", "null").Equals("enabled");
+            UnsecureAuth = XmlHelper.SingleAttribute<bool>(n, "unsecureAuth", false);
 
             if (Auth == AuthType.basic)
             {
