@@ -251,18 +251,20 @@ SECTION: Environment setup
   -->
   <!--
   <download from="http://www.google.com/" to="%BASE%\index.html" />
-  <download from="http://www.nosuchhostexists.com/" to="%BASE%\dummy.html" />
+  
+  Download and fail the service startup on Error:
+  <download from="http://www.nosuchhostexists.com/" to="%BASE%\dummy.html" failOnError="true"/>
 
   An example for unsecure Basic authentication because the connection is not encrypted:
   <download from="http://example.com/some.dat" to="%BASE%\some.dat"
-            auth="basic" unsecureAuth=“enabled”
+            auth="basic" unsecureAuth=“true”
             username="aUser" password=“aPassw0rd" />
 
   Secure Basic authentication via HTTPS:
   <download from="https://example.com/some.dat" to="%BASE%\some.dat"
             auth="basic" username="aUser" password="aPassw0rd" />
 
-  Secure authentication when the target server and the client are members of domain:
+  Secure authentication when the target server and the client are members of the same domain:
   <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
   -->
 
