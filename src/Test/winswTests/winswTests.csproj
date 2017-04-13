@@ -61,6 +61,7 @@
     <Compile Include="Extensions\RunawayProcessKillerTest.cs" />
     <Compile Include="Extensions\SharedDirectoryMapperTest.cs" />
     <Compile Include="MainTest.cs" />
+    <Compile Include="Util\ExceptionHelper.cs" />
     <Compile Include="Util\FilesystemTestHelper.cs" />
     <Compile Include="Util\ProcessHelperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -563,7 +563,11 @@ namespace winsw
                 List<Download> r = new List<Download>();
                 foreach (XmlNode n in xmlNodeList)
                 {
-                    r.Add(new Download(n));
+                    XmlElement el = n as XmlElement;
+                    if (el != null)
+                    {
+                        r.Add(new Download(el));
+                    }
                 }
                 return r;
             }
