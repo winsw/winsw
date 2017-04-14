@@ -355,5 +355,17 @@ namespace winswTests
                 .ToServiceDescriptor(true);
             Assert.That(sd.Arguments, Is.EqualTo(" --arg2=123 --arg3=null"));
         }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void DelayedStart_RoundTrip(bool enabled)
+        {
+            var bldr = ConfigXmlBuilder.create();
+            if (enabled) { 
+                bldr = bldr.WithDelayedStart();
+            }
+             var sd = bldr.ToServiceDescriptor();
+            Assert.That(sd.DelayedStart, Is.EqualTo(enabled));
+        }
     }
 }
