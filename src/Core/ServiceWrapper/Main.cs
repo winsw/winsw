@@ -605,6 +605,13 @@ namespace winsw
                     Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
                         .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
 
+                    if (d.StartMode == StartMode.Automatic && d.DelayedStart)
+                    {
+                        //TODO: replace by a better API after migrating to .NET 4
+                        Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
+                            .OpenSubKey(d.Id, true).SetValue("DelayedAutoStart", 1);
+                    }
+
                     var actions = d.FailureActions;
                     if (actions.Count > 0)
                     {// set the failure actions

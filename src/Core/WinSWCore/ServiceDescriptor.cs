@@ -476,6 +476,19 @@ namespace winsw
         }
 
         /// <summary>
+        /// True if the service should be installed with the DelayedAutoStart flag.
+        /// This setting will be applyed only during the install command and only when the Automatic start mode is configured.
+        /// It does not get reliably applied in Services and MMC UI, see https://social.msdn.microsoft.com/Forums/en-US/e5dbfe02-5125-4833-8e6b-3aa3d8518fc8/delayed-start-registry-setting?forum=biztalkgeneral
+        /// </summary>
+        public bool DelayedStart
+        {
+            get
+            {
+                return dom.SelectSingleNode("//delayedstart") != null;
+            }
+        }
+
+        /// <summary>
         /// True if the service should beep when finished on shutdown.
         /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx
         /// </summary>

@@ -49,6 +49,7 @@ namespace winsw.Configuration
 
         // Service management
         public StartMode StartMode { get { return StartMode.Automatic; } }
+        public bool DelayedStart { get { return false; } }
         public string[] ServiceDependencies { get { return new string[0]; } }
         public TimeSpan WaitHint { get { return TimeSpan.FromSeconds(15); } }
         public TimeSpan SleepTime { get { return TimeSpan.FromSeconds(1); } }
