@@ -69,10 +69,6 @@ Please note that this startup mode will not take affect on old Windows versions 
   <delayedstart/>
 ```
 
-Note that modern versions of Windows do not correctly reflect the modification of the `DelayedAutoStart` field in _Service Manager_ and _MMC_. 
-After the installation of the service with the `delayedstart` flag, the option will be displayed there only after the system restart. 
-See [this article](https://social.msdn.microsoft.com/Forums/en-US/e5dbfe02-5125-4833-8e6b-3aa3d8518fc8/delayed-start-registry-setting?forum=biztalkgeneral) for more info about this issue.
-
 ### depend
 Specify IDs of other services that this service depends on. 
 When service `X` depends on service `Y`, `X` can only run if `Y` is running.

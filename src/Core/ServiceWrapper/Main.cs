@@ -605,21 +605,25 @@ namespace winsw
                     Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
                         .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
 
-                    if (d.StartMode == StartMode.Automatic && d.DelayedStart)
-                    {
-                        //TODO: replace by a better API after migrating to .NET 4
-                        Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
-                            .OpenSubKey(d.Id, true).SetValue("DelayedAutoStart", 1);
-                    }
-
                     var actions = d.FailureActions;
-                    if (actions.Count > 0)
-                    {// set the failure actions
+                    var isDelayedAutoStart = d.StartMode == StartMode.Automatic && d.DelayedStart;
+                    if (actions.Count > 0 || isDelayedAutoStart)
+                    {
                         using (ServiceManager scm = new ServiceManager())
                         {
                             using (Service sc = scm.Open(d.Id))
                             {
-                                sc.ChangeConfig(d.ResetFailureAfter, actions);
+                                // Delayed auto start
+                                if (isDelayedAutoStart) 
+                                {
+                                    sc.SetDelayedAutoStart(true);
+                                }
+
+                                // Set the failure actions
+                                if (actions.Count > 0)
+                                {
+                                    sc.ChangeConfig(d.ResetFailureAfter, actions);
+                                }
                             }
                         }
                     }
