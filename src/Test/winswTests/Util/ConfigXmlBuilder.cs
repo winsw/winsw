@@ -145,9 +145,9 @@ namespace winswTests.Util
             return WithRawEntry(str.ToString());
         }
 
-        public ConfigXmlBuilder WithDelayedStart()
+        public ConfigXmlBuilder WithDelayedAutoStart()
         {
-            return WithRawEntry("<delayedstart/>");
+            return WithRawEntry("<delayedAutoStart/>");
         }
     }
 }

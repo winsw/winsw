@@ -163,11 +163,11 @@ SECTION: Service management
     <startmode>Automatic</startmode>
     
     <!--
-      OPTION: delayedstart
+      OPTION: delayedAutoStart
       Enables the Delayed Automatic Start if 'Automatic' is specified in the 'startmode' field.
       See the WinSW documentation to get info about supported platform versions and limitations.
     -->
-    <!--<delayedstart/>-->
+    <!--<delayedAutoStart/>-->
     
     <!-- 
       OPTION: depend

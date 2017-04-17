@@ -362,10 +362,10 @@ namespace winswTests
         {
             var bldr = ConfigXmlBuilder.create();
             if (enabled) { 
-                bldr = bldr.WithDelayedStart();
+                bldr = bldr.WithDelayedAutoStart();
             }
              var sd = bldr.ToServiceDescriptor();
-            Assert.That(sd.DelayedStart, Is.EqualTo(enabled));
+            Assert.That(sd.DelayedAutoStart, Is.EqualTo(enabled));
         }
     }
 }

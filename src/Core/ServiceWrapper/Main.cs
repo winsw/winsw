@@ -606,7 +606,7 @@ namespace winsw
                         .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
 
                     var actions = d.FailureActions;
-                    var isDelayedAutoStart = d.StartMode == StartMode.Automatic && d.DelayedStart;
+                    var isDelayedAutoStart = d.StartMode == StartMode.Automatic && d.DelayedAutoStart;
                     if (actions.Count > 0 || isDelayedAutoStart)
                     {
                         using (ServiceManager scm = new ServiceManager())

@@ -479,11 +479,11 @@ namespace winsw
         /// True if the service should be installed with the DelayedAutoStart flag.
         /// This setting will be applyed only during the install command and only when the Automatic start mode is configured.
         /// </summary>
-        public bool DelayedStart
+        public bool DelayedAutoStart
         {
             get
             {
-                return dom.SelectSingleNode("//delayedstart") != null;
+                return dom.SelectSingleNode("//delayedAutoStart") != null;
             }
         }
 

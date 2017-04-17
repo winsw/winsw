@@ -59,14 +59,16 @@ It can be one of the following values: Boot, System, Automatic, or Manual.
 See [MSDN](https://msdn.microsoft.com/en-us/library/aa384896%28v=vs.85%29.aspx) for details.
 The default value is `Automatic`.
 
-### dalayedstart
+### delayedAutoStart
 
 This Boolean option enables the delayed start mode if the `Automatic` start mode is defined.
 More information about this mode is provided [here](https://blogs.technet.microsoft.com/askperf/2008/02/02/ws2008-startup-processes-and-delayed-automatic-start/).
+
 Please note that this startup mode will not take affect on old Windows versions older than Windows 7 and Windows Server 2008.
+Windows service installation may fail in such case.
 
 ```xml
-  <delayedstart/>
+  <delayedAutoStart/>
 ```
 
 ### depend
