@@ -3,6 +3,23 @@ Release Notes
 
 Below you can find release notes for the trunk version of WinSW.
 
+##### 2.1.0
+
+Release date: April 19, 2017
+
+Improvements:
+* [Issue #183](https://github.com/kohsuke/winsw/issues/183) -
+Add support of the Delayed Automatic Start mode definition in config XML.
+[More Info](doc/xmlConfigFile.md#delayedautostart).
+([PR #205](https://github.com/kohsuke/winsw/pull/205))
+* [Issue #126](https://github.com/kohsuke/winsw/issues/126) - 
+Add support of BASIC and [SSPI](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) authentication in the `<download>` action.
+[More Info](https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md#download).
+([PR #194](https://github.com/kohsuke/winsw/pull/194), [PR #203](https://github.com/kohsuke/winsw/pull/203))
+* Introduce the `failOnError` option in the `<download>` action.
+[More Info](https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md#download).
+([PR #195](https://github.com/kohsuke/winsw/pull/195))
+
 ##### 2.0.3
 
 Release date: Apr 01, 2017
