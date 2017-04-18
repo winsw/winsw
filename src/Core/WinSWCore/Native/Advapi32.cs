@@ -79,6 +79,26 @@ namespace winsw.Native
             }
         }
 
+        /// <summary>
+        /// Sets the DelayedAutoStart flag.
+        /// It will be applioed to services with Automatic startup mode only.
+        /// If the platform does not support this flag, an exception may be thrown.
+        /// </summary>
+        /// <param name="enabled">Value to set</param>
+        /// <exception cref="Exception">Operation failure, e.g. the OS does not support this flag</exception>
+        public void SetDelayedAutoStart(bool enabled)
+        {
+            SERVICE_DELAYED_AUTO_START settings = new SERVICE_DELAYED_AUTO_START
+            {
+                fDelayedAutostart = enabled
+            };
+
+            if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, ref settings))
+            {
+                throw new Exception("Failed to change the DelayedAutoStart setting", new Win32Exception());
+            }
+        }
+
         public void Dispose()
         {
             if (Handle!=IntPtr.Zero)
@@ -260,6 +280,10 @@ namespace winsw.Native
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_FAILURE_ACTIONS sfa);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_DELAYED_AUTO_START sfa);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenSCManager(string machineName, string databaseName, uint dwAccess);
@@ -568,5 +592,13 @@ namespace winsw.Native
         public string lpCommand;
         public int cActions;
         public IntPtr/*SC_ACTION[]*/ lpsaActions;
+    }
+
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms685155(v=vs.85).aspx
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct SERVICE_DELAYED_AUTO_START
+    {
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool fDelayedAutostart;
     }
 }

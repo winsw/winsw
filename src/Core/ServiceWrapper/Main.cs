@@ -606,13 +606,24 @@ namespace winsw
                         .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
 
                     var actions = d.FailureActions;
-                    if (actions.Count > 0)
-                    {// set the failure actions
+                    var isDelayedAutoStart = d.StartMode == StartMode.Automatic && d.DelayedAutoStart;
+                    if (actions.Count > 0 || isDelayedAutoStart)
+                    {
                         using (ServiceManager scm = new ServiceManager())
                         {
                             using (Service sc = scm.Open(d.Id))
                             {
-                                sc.ChangeConfig(d.ResetFailureAfter, actions);
+                                // Delayed auto start
+                                if (isDelayedAutoStart) 
+                                {
+                                    sc.SetDelayedAutoStart(true);
+                                }
+
+                                // Set the failure actions
+                                if (actions.Count > 0)
+                                {
+                                    sc.ChangeConfig(d.ResetFailureAfter, actions);
+                                }
                             }
                         }
                     }

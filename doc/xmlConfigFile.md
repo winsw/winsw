@@ -53,11 +53,23 @@ This gets displayed in Windows service manager when the service is selected.
 This element specifies the executable to be launched. 
 It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
 
-### startmode - Optional Element
+### startmode
 This element specifies the start mode of the Windows service. 
 It can be one of the following values: Boot, System, Automatic, or Manual. 
 See [MSDN](https://msdn.microsoft.com/en-us/library/aa384896%28v=vs.85%29.aspx) for details.
 The default value is `Automatic`.
+
+### delayedAutoStart
+
+This Boolean option enables the delayed start mode if the `Automatic` start mode is defined.
+More information about this mode is provided [here](https://blogs.technet.microsoft.com/askperf/2008/02/02/ws2008-startup-processes-and-delayed-automatic-start/).
+
+Please note that this startup mode will not take affect on old Windows versions older than Windows 7 and Windows Server 2008.
+Windows service installation may fail in such case.
+
+```xml
+  <delayedAutoStart/>
+```
 
 ### depend
 Specify IDs of other services that this service depends on. 
