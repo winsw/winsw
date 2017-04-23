@@ -755,10 +755,9 @@ namespace winsw
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
         {
             // Ensure that the logging config is not passed from the log4net config file
-            LogHandler handler = d.LogHandler;
-            if (handler is ConfigDefinedLog4NetHandler)
+            if (d.LogHandlerType == LogHandlerType.ConfigDefinedLog4Net)
             {
-                string configPath = ((ConfigDefinedLog4NetHandler)handler).ConfigPath;
+                string configPath = d.Log4NetConfigFilePath;
                 XmlConfigurator.Configure(new System.IO.FileInfo(configPath));
                 return;
             }
