@@ -754,6 +754,16 @@ namespace winsw
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
         {
+            // Ensure that the logging config is not passed from the log4net config file
+            LogHandler handler = d.LogHandler;
+            if (handler is ConfigDefinedLog4NetHandler)
+            {
+                string configPath = ((ConfigDefinedLog4NetHandler)handler).ConfigPath;
+                XmlConfigurator.Configure(new System.IO.FileInfo(configPath));
+                return;
+            }
+
+
             // TODO: Make logging levels configurable
             Level logLevel = Level.Debug;
             Level eventLogLevel = Level.Warn;

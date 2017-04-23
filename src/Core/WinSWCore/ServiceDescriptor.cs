@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using winsw.Configuration;
+using winsw.Logging;
 using winsw.Native;
 using winsw.Util;
 using WMI;
@@ -398,6 +399,12 @@ namespace winsw
                     case "append":
                         return new DefaultLogAppender(LogDirectory, BaseName);
 
+                    case "log4net":
+                        string configPath = SingleElement("configPath", true);
+                        // Depending on the config file specification, select proper handler
+                        LogHandler h = (configPath != null) ? (LogHandler) new ConfigDefinedLog4NetHandler(true, configPath) : new ProcessOnlyLog4NetHandler(true);
+                        return h;
+                    
                     default:
                         throw new InvalidDataException("Undefined logging mode: " + LogMode);
                 }
