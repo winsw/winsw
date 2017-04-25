@@ -44,5 +44,15 @@ namespace winswTests
             // ReSharper disable once PossibleNullReferenceException
             StringAssert.Contains(expectedMessage, res.Exception.Message, "Expected the message about unknown command");
         }
+
+        /// <summary>
+        /// https://github.com/kohsuke/winsw/issues/206
+        /// </summary>
+        [Test]
+        public void ShouldNotPrintLogsForStatusCommand()
+        {
+            string cliOut = CLITestHelper.CLITest(new[] { "status" });
+            StringAssert.AreEqualIgnoringCase("NonExistent\r\n", cliOut);
+        }
     }
 }

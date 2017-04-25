@@ -463,7 +463,7 @@ namespace winsw
             try
             {
                 Run(args);
-                Log.Info("Completed. Exit code is 0");
+                Log.Debug("Completed. Exit code is 0");
                 return 0;
             }
             catch (WmiException e)
@@ -509,7 +509,7 @@ namespace winsw
             
             if (isCLIMode) // CLI mode, in-service mode otherwise
             {               
-                Log.Info("Starting ServiceWrapper in the CLI mode");
+                Log.Debug("Starting ServiceWrapper in the CLI mode");
 
                 // Get service info for the future use
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
@@ -541,6 +541,8 @@ namespace winsw
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
                 {
+                    Log.Info("Installing the service with id '" + d.Id + "'");
+
                     // Check if the service exists
                     if (s != null)
                     {
@@ -668,18 +670,21 @@ namespace winsw
                 }
                 if (args[0] == "start")
                 {
+                    Log.Info("Starting the service with id '" + d.Id + "'");
                     if (s == null) ThrowNoSuchService();
                     s.StartService();
                     return;
                 }
                 if (args[0] == "stop")
                 {
+                    Log.Info("Stopping the service with id '" + d.Id + "'");
                     if (s == null) ThrowNoSuchService();
                     s.StopService();
                     return;
                 }
                 if (args[0] == "restart")
                 {
+                    Log.Info("Restarting the service with id '" + d.Id + "'");
                     if (s == null) 
                         ThrowNoSuchService();
 
@@ -697,6 +702,8 @@ namespace winsw
                 }
                 if (args[0] == "restart!")
                 {
+                    Log.Info("Restarting the service with id '" + d.Id + "'");
+
                     // run restart from another process group. see README.md for why this is useful.
 
                     STARTUPINFO si = new STARTUPINFO();
@@ -711,7 +718,7 @@ namespace winsw
                 }
                 if (args[0] == "status")
                 {
-                    Log.Warn("User requested the status");
+                    Log.Debug("User requested the status of the process with id '" + d.Id + "'");
                     if (s == null)
                         Console.WriteLine("NonExistent");
                     else if (s.Started)
@@ -756,6 +763,9 @@ namespace winsw
         {
             // TODO: Make logging levels configurable
             Level logLevel = Level.Debug;
+            // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted
+            // This is a workaround till there is a better command line parsing, which will allow determining
+            Level consoleLogLevel = Level.Info; 
             Level eventLogLevel = Level.Warn;
 
             // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
@@ -784,8 +794,8 @@ namespace winsw
             {
                 var consoleAppender = new ConsoleAppender
                 {
-                    Name = "Wrapper console log", 
-                    Threshold = logLevel,
+                    Name = "Wrapper console log",
+                    Threshold = consoleLogLevel,
                     Layout = pl,
                 };
                 consoleAppender.ActivateOptions();
