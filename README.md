@@ -58,6 +58,8 @@ See the [Installation Guide](doc/installation.md) for more details.
 
 ### Documentation
 
+User documentation:
+
 * [Installation Guide](doc/installation.md) - Describes the installation process for different systems and .NET versions
 * [Release notes](CHANGELOG.md)
 * Configuration:
@@ -70,6 +72,10 @@ See the [Installation Guide](doc/installation.md) for more details.
  * [Deferred File Operations](doc/deferredFileOperations.md)
 * Configuration Management:
  * [Puppet Forge Module](doc/puppetWinSW.md)
+
+Developer documentation:
+
+* [Developer Guide](DEVELOPER.md)
 
 ### Release lines
 
@@ -94,9 +100,3 @@ This is an old baseline of WinSW.
 Currently it is in the maintenance-only state.
 New versions with fixes may be released on-demand.
 
-### Build Environment
-
-* IDE: [Visual Studio Community 2013](http://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx) (free for open-source projects)
-* `winsw_key.snk` should be available in the project's root in order to build the executable
- * You can generate the certificate in "Project Settings/Signing"
- * The certificate is in <code>.gitignore</code> list. Please do not add it to the repository
