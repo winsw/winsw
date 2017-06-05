@@ -4,6 +4,7 @@ using NUnit.Framework;
 using winsw;
 using System.IO;
 using winsw.Util;
+using System.Collections.Generic;
 
 namespace winswTests.Util
 {
@@ -46,6 +47,36 @@ namespace winswTests.Util
             // And just ensure that the parsing logic is case-sensitive
             Assert.That(!envVars.ContainsKey("computername"), "Test error: the environment parsing logic is case-insensitive");
 
+        }
+
+        [Test]
+        public void ShouldNotHangWhenWritingLargeStringToStdOut()
+        {
+            var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
+            String scriptFile = Path.Combine(tmpDir, "print_lots_to_stdout.bat");
+            var lotsOfStdOut = string.Join("", _Range(1,1000));
+            File.WriteAllText(scriptFile, string.Format("echo \"{0}\"", lotsOfStdOut));
+
+            Process proc = new Process();
+            var ps = proc.StartInfo;
+            ps.FileName = scriptFile;
+
+            ProcessHelper.StartProcessAndCallbackForExit(proc);
+            var exited = proc.WaitForExit(5000);
+            if (!exited)
+            {
+                Assert.Fail("Process " + proc + " didn't exit after 5 seconds");
+            }
+        }
+
+        private string[] _Range(int start, int limit)
+        {
+            var range = new List<string>();
+            for(var i = start; i<limit; i++)
+            {
+                range.Add(i.ToString());
+            }
+            return range.ToArray();
         }
     }
 }

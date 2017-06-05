@@ -138,9 +138,9 @@ namespace winsw.Util
             ps.WorkingDirectory = workingDirectory ?? ps.WorkingDirectory;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
-            ps.RedirectStandardInput = true; // this creates a pipe for stdin to the new process, instead of having it inherit our stdin.
-            ps.RedirectStandardOutput = true;
-            ps.RedirectStandardError = true;
+            ps.RedirectStandardInput = false; 
+            ps.RedirectStandardOutput = false;
+            ps.RedirectStandardError = false;
 
             if (envVars != null)
             {
