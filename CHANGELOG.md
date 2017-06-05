@@ -3,6 +3,19 @@ Release Notes
 
 Below you can find release notes for the trunk version of WinSW.
 
+##### 2.1.1
+
+Release date: Coming soon
+
+Fixed issues:
+
+* [Issue #206](https://github.com/kohsuke/winsw/issues/206) - 
+Prevent printing of log entries in the `status` command.
+([PR #214](https://github.com/kohsuke/winsw/pull/214))
+* [Issue #218](https://github.com/kohsuke/winsw/issues/218) - 
+Prevent hanging of the `stopexecutable` when its logs are not being drained do the parent process.
+([PR #220](https://github.com/kohsuke/winsw/pull/220), TODO)
+
 ##### 2.1.0
 
 Release date: April 19, 2017
