@@ -136,7 +136,8 @@ namespace winsw
         /// <summary>
         /// Handle the creation of the logfiles based on the optional logmode setting.
         /// </summary>
-        private void HandleLogfiles()
+        /// <returns>Log Handler, which should be used for the spawned process</returns>
+        private LogHandler CreateExecutableLogHandler()
         {
             string logDirectory = _descriptor.LogDirectory;
 
@@ -147,7 +148,7 @@ namespace winsw
 
             LogHandler logAppender = _descriptor.LogHandler;
             logAppender.EventLogger = this;
-            logAppender.log(_process.StandardOutput.BaseStream, _process.StandardError.BaseStream);
+            return logAppender;
         }
 
         public void LogEvent(String message)
@@ -247,11 +248,9 @@ namespace winsw
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
 
-            StartProcess(_process, startarguments, _descriptor.Executable);
+            LogHandler executableLogHandler = CreateExecutableLogHandler();
+            StartProcess(_process, startarguments, _descriptor.Executable, executableLogHandler);
             ExtensionManager.FireOnProcessStarted(_process);
-
-            // send stdout and stderr to its respective output file.
-            HandleLogfiles();
 
             _process.StandardInput.Close(); // nothing for you to read!
         }
@@ -322,7 +321,8 @@ namespace winsw
                     executable = _descriptor.Executable;
                 }
 
-                StartProcess(stopProcess, stoparguments, executable);
+                // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated 
+                StartProcess(stopProcess, stoparguments, executable, null);
 
                 Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(_process);
@@ -407,7 +407,7 @@ namespace winsw
             Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
 
-        private void StartProcess(Process processToStart, string arguments, String executable)
+        private void StartProcess(Process processToStart, string arguments, String executable, LogHandler logHandler)
         {
             
             // Define handler of the completed process
@@ -454,7 +454,8 @@ namespace winsw
                 envVars: _envs,
                 workingDirectory: _descriptor.WorkingDirectory,
                 priority: _descriptor.Priority,
-                callback: processCompletionCallback);
+                callback: processCompletionCallback,
+                logHandler: logHandler);
         }
 
         public static int Main(string[] args)

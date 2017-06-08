@@ -129,8 +129,9 @@ namespace winsw.Util
         /// <param name="workingDirectory">Working directory</param>
         /// <param name="priority">Priority</param>
         /// <param name="callback">Completion callback. If null, the completion won't be monitored</param>
+        /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         public static void StartProcessAndCallbackForExit(Process processToStart, String executable = null, string arguments = null, Dictionary<string, string> envVars = null,
-            string workingDirectory = null, ProcessPriorityClass? priority = null, ProcessCompletionCallback callback = null)
+            string workingDirectory = null, ProcessPriorityClass? priority = null, ProcessCompletionCallback callback = null, LogHandler logHandler = null)
         {
             var ps = processToStart.StartInfo;
             ps.FileName = executable ?? ps.FileName;
@@ -138,9 +139,9 @@ namespace winsw.Util
             ps.WorkingDirectory = workingDirectory ?? ps.WorkingDirectory;
             ps.CreateNoWindow = false;
             ps.UseShellExecute = false;
-            ps.RedirectStandardInput = false; 
-            ps.RedirectStandardOutput = false;
-            ps.RedirectStandardError = false;
+            ps.RedirectStandardInput = false;
+            ps.RedirectStandardOutput = logHandler != null;
+            ps.RedirectStandardError = logHandler != null;
 
             if (envVars != null)
             {
@@ -158,6 +159,13 @@ namespace winsw.Util
             if (priority != null && priority.Value != ProcessPriorityClass.Normal) 
             { 
                 processToStart.PriorityClass = priority.Value;
+            }
+
+            // Redirect logs if required
+            if (logHandler != null)
+            {
+                Logger.Debug("Forwarding logs of the process " + processToStart + " to " + logHandler);
+                logHandler.log(processToStart.StandardOutput.BaseStream, processToStart.StandardError.BaseStream);
             }
 
             // monitor the completion of the process
