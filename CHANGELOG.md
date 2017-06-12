@@ -5,7 +5,7 @@ Below you can find release notes for the trunk version of WinSW.
 
 ##### 2.1.1
 
-Release date: Coming soon
+Release date: June 12, 2017
 
 Fixed issues:
 
