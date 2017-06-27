@@ -224,7 +224,7 @@ namespace winsw
         {
             get
             {
-                return AppendTags("stopargument", Defaults.Startarguments);
+                return AppendTags("stopargument", Defaults.Stoparguments);
             }
         }
 
