@@ -47,7 +47,7 @@ namespace winsw.Plugins.RunawayProcessKiller
         public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
         {
             this.Pidfile = pidfile;
-            this.StopTimeout = TimeSpan.FromMilliseconds(5000);
+            this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
             this.StopParentProcessFirst = stopParentFirst;
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable;
         }
