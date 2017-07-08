@@ -3,6 +3,15 @@ Release Notes
 
 Below you can find release notes for the trunk version of WinSW.
 
+##### 2.1.2
+
+Release date: July 8, 2017
+
+Fixed issues:
+
+* [PR #228](https://github.com/kohsuke/winsw/pull/228) - 
+Runaway Process Killer extension was not using the `stopTimeoutMs` parameter.
+
 ##### 2.1.1
 
 Release date: June 12, 2017
