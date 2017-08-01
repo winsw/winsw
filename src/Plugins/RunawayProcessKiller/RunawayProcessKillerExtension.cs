@@ -6,6 +6,7 @@ using winsw.Extensions;
 using winsw.Util;
 using log4net;
 using System.Collections.Specialized;
+using System.Text;
 
 namespace winsw.Plugins.RunawayProcessKiller
 {
@@ -151,7 +152,16 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Kill the runaway process
-            Logger.Warn("Stopping the runaway process (pid=" + pid + ") and its children.");
+            StringBuilder bldr = new StringBuilder("Stopping the runaway process (pid=");
+            bldr.Append(pid);
+            bldr.Append(") and its children. Environment was ");
+            if (!CheckWinSWEnvironmentVariable) {
+                bldr.Append("not ");
+            }
+            bldr.Append("checked, affiliated service ID: ");
+            bldr.Append(affiliatedServiceId != null ? affiliatedServiceId : "undefined");
+
+            Logger.Warn(bldr.ToString());
             ProcessHelper.StopProcessAndChildren(pid, this.StopTimeout, this.StopParentProcessFirst);
         }
 
