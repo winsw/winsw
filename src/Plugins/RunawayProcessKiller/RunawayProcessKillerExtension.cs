@@ -160,6 +160,8 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
             bldr.Append("checked, affiliated service ID: ");
             bldr.Append(affiliatedServiceId != null ? affiliatedServiceId : "undefined");
+            bldr.Append(", process to kill: ");
+            bldr.Append(proc);
 
             Logger.Warn(bldr.ToString());
             ProcessHelper.StopProcessAndChildren(pid, this.StopTimeout, this.StopParentProcessFirst);
