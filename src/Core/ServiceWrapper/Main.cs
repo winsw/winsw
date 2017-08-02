@@ -124,6 +124,13 @@ namespace winsw
         {
             try
             {
+                if (!File.Exists(sourceFileName))
+                {
+                    throw new IOException("Source file does not exist");
+                }
+
+                //TODO: This logic is still not atomic, temp directory is required for
+                // File.Replace(sourceFileName, destFileName, TODO);
                 File.Delete(destFileName);
                 File.Move(sourceFileName, destFileName);
             }
