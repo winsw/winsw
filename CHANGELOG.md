@@ -23,7 +23,7 @@ Prevent printing of log entries in the `status` command.
 ([PR #214](https://github.com/kohsuke/winsw/pull/214))
 * [Issue #218](https://github.com/kohsuke/winsw/issues/218) - 
 Prevent hanging of the `stopexecutable` when its logs are not being drained do the parent process.
-([PR #220](https://github.com/kohsuke/winsw/pull/220), TODO)
+([PR #220](https://github.com/kohsuke/winsw/pull/220), [PR #224](https://github.com/kohsuke/winsw/pull/224))
 
 ##### 2.1.0
 
