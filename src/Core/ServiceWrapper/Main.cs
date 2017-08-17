@@ -763,6 +763,15 @@ namespace winsw
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
         {
+            // Ensure that the logging config is not passed from the log4net config file
+            if (d.LogHandlerType == LogHandlerType.ConfigDefinedLog4Net)
+            {
+                string configPath = d.Log4NetConfigFilePath;
+                XmlConfigurator.Configure(new System.IO.FileInfo(configPath));
+                return;
+            }
+
+
             // TODO: Make logging levels configurable
             Level logLevel = Level.Debug;
             // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted

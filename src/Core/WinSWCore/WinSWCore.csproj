@@ -56,6 +56,8 @@
     <Compile Include="Extensions\WinSWExtensionManager.cs" />
     <Compile Include="Configuration\IWinSWConfiguration.cs" />
     <Compile Include="LogAppenders.cs" />
+    <Compile Include="Logging\Log4NetLogHandler.cs" />
+    <Compile Include="Logging\LogHandlerType.cs" />
     <Compile Include="Logging\ServiceEventLogAppender.cs" />
     <Compile Include="Logging\IServiceEventLogProvider.cs" />
     <Compile Include="Native\Advapi32.cs" />

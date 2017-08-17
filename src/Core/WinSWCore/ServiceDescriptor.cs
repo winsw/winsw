@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using winsw.Configuration;
+using winsw.Logging;
 using winsw.Native;
 using winsw.Util;
 using WMI;
@@ -53,6 +54,8 @@ namespace winsw
             //Get the first parent to go into the recursive loop
             string p = ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(p);
+            BaseName = baseName;
+
             if (baseName.EndsWith(".vshost")) baseName = baseName.Substring(0, baseName.Length - 7);
             DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
@@ -66,7 +69,6 @@ namespace winsw
                 d = d.Parent;
             }
 
-            BaseName = baseName;
             BasePath = Path.Combine(d.FullName, BaseName);
 
             dom.Load(BasePath + ".xml");
@@ -355,9 +357,9 @@ namespace winsw
             }
         }
 
-        public LogHandler LogHandler
+        // TODO: refactor and move outside
+        public LogHandlerType LogHandlerType
         {
-            
             get
             {
                 XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
@@ -369,18 +371,71 @@ namespace winsw
                 switch (LogMode)
                 {
                     case "rotate":
-                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
+                        return Logging.LogHandlerType.Rotate;
 
                     case "none":
-                        return new IgnoreLogAppender();
+                        return Logging.LogHandlerType.None;
 
                     case "reset":
-                        return new ResetLogAppender(LogDirectory, BaseName);
+                        return Logging.LogHandlerType.Reset;
 
                     case "roll":
-                        return new RollingLogAppender(LogDirectory, BaseName);
+                        return Logging.LogHandlerType.Roll;
 
                     case "roll-by-time":
+                        return Logging.LogHandlerType.RollByTime;
+
+                    case "roll-by-size":
+                        return Logging.LogHandlerType.RollBySize;
+
+                    case "append":
+                        return Logging.LogHandlerType.Append;
+
+                    case "log4net":
+                        var configPath = e.SelectSingleNode("configPath");
+                        // Depending on the config file specification, select proper handler
+                        return (configPath != null) ? Logging.LogHandlerType.ConfigDefinedLog4Net : Logging.LogHandlerType.RedirectToLog4Net;
+
+                    default:
+                        throw new InvalidDataException("Undefined logging mode: " + LogMode);
+                }
+            }
+        }
+
+        public string Log4NetConfigFilePath
+        {
+            get
+            {
+                // TODO: ensure the parent is correct
+                return SingleElement("configPath", true);
+            }
+        }
+
+        public LogHandler LogHandler
+        {
+            get
+            {
+                XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
+                if (e == null)
+                {
+                    // this is more modern way, to support nested elements as configuration
+                    e = (XmlElement)dom.SelectSingleNode("//log");
+                }
+                switch (LogHandlerType)
+                {
+                    case Logging.LogHandlerType.Rotate:
+                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
+
+                    case Logging.LogHandlerType.None:
+                        return new IgnoreLogAppender();
+
+                    case Logging.LogHandlerType.Reset:
+                        return new ResetLogAppender(LogDirectory, BaseName);
+
+                    case Logging.LogHandlerType.Roll:
+                        return new RollingLogAppender(LogDirectory, BaseName);
+
+                    case Logging.LogHandlerType.RollByTime:
                         XmlNode patternNode = e.SelectSingleNode("pattern");
                         if (patternNode == null)
                         {
@@ -390,14 +445,22 @@ namespace winsw
                         int period = SingleIntElement(e,"period",1);
                         return new TimeBasedRollingLogAppender(LogDirectory, BaseName, pattern, period);
 
-                    case "roll-by-size":
+                    case Logging.LogHandlerType.RollBySize:
                         int sizeThreshold = SingleIntElement(e,"sizeThreshold",10*1024)  * SizeBasedRollingLogAppender.BYTES_PER_KB;
                         int keepFiles = SingleIntElement(e,"keepFiles",SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP);
                         return new SizeBasedRollingLogAppender(LogDirectory, BaseName, sizeThreshold, keepFiles);
 
-                    case "append":
+                    case Logging.LogHandlerType.Append:
                         return new DefaultLogAppender(LogDirectory, BaseName);
 
+                    case Logging.LogHandlerType.RedirectToLog4Net:
+                        return new ProcessOnlyLog4NetHandler(true);
+
+                    case Logging.LogHandlerType.ConfigDefinedLog4Net:
+                        // TODO: ensure the parent is correct
+                        string configPath = SingleElement("configPath", true);
+                        return new ConfigDefinedLog4NetHandler(true, configPath);
+                    
                     default:
                         throw new InvalidDataException("Undefined logging mode: " + LogMode);
                 }
