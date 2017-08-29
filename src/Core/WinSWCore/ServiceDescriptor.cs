@@ -372,9 +372,18 @@ namespace winsw
             }
         }
 
-        public bool OutFileDisabled => SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+        public bool OutFileDisabled
+        {
+            get { return SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled); }
+        }
 
-        public bool ErrFileDisabled => SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+        public bool ErrFileDisabled
+        {
+            get
+            {
+                return SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+            }
+        }
 
         public string OutFilePattern
         {
