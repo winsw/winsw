@@ -62,7 +62,7 @@ namespace winsw.Configuration
         public bool OutFileDisabled { get { return false; } }
         public bool ErrFileDisabled { get { return false; } }
         public string OutFilePattern { get { return ".out.log"; } }
-        public string ErrFilePattern { get { return ".out.log"; } }
+        public string ErrFilePattern { get { return ".err.log"; } }
 
         // Environment
         public List<Download> Downloads { get { return new List<Download>(); } }
