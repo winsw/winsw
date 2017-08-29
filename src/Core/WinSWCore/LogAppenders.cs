@@ -64,10 +64,18 @@ namespace winsw
     public abstract class AbstractFileLogAppender : LogHandler
     {
         protected string BaseLogFileName { private set; get; }
+        protected bool OutFileDisabled { private set; get; }
+        protected bool ErrFileDisabled { private set; get; }
+        protected string OutFilePattern { private set; get; }
+        protected string ErrFilePattern { private set; get; }
 
-        public AbstractFileLogAppender(string logDirectory, string baseName)
+        public AbstractFileLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
         {
             BaseLogFileName = Path.Combine(logDirectory, baseName);
+            OutFileDisabled = outFileDisabled;
+            OutFilePattern = outFilePattern;
+            ErrFileDisabled = errFileDisabled;
+            ErrFilePattern = errFilePattern;
         }
     }
 
@@ -77,8 +85,8 @@ namespace winsw
         public string OutputLogFileName { private set; get; }
         public string ErrorLogFileName { private set; get; }
 
-        public SimpleLogAppender(string logDirectory, string baseName, FileMode fileMode)
-            : base(logDirectory, baseName)
+        public SimpleLogAppender(string logDirectory, string baseName, FileMode fileMode, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
+            : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             FileMode = fileMode;
             OutputLogFileName = BaseLogFileName + ".out.log";
@@ -87,23 +95,23 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(delegate() { CopyStream(outputStream, new FileStream(OutputLogFileName, FileMode)); }).Start();
-            new Thread(delegate() { CopyStream(errorStream, new FileStream(ErrorLogFileName, FileMode)); }).Start();
+            if (!OutFileDisabled) new Thread(delegate() { CopyStream(outputStream, new FileStream(OutputLogFileName, FileMode)); }).Start();
+            if (!ErrFileDisabled) new Thread(delegate() { CopyStream(errorStream, new FileStream(ErrorLogFileName, FileMode)); }).Start();
         }
     }
 
     public class DefaultLogAppender : SimpleLogAppender
     {
-        public DefaultLogAppender(string logDirectory, string baseName)
-            : base(logDirectory, baseName, FileMode.Append)
+        public DefaultLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
+            : base(logDirectory, baseName, FileMode.Append, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
         }
     }
 
     public class ResetLogAppender : SimpleLogAppender
     {
-        public ResetLogAppender(string logDirectory, string baseName)
-            : base(logDirectory, baseName, FileMode.Create)
+        public ResetLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
+            : base(logDirectory, baseName, FileMode.Create, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
         }
     }
@@ -125,8 +133,8 @@ namespace winsw
         public string Pattern { get; private set; }
         public int Period { get; private set; }
 
-        public TimeBasedRollingLogAppender(string logDirectory, string baseName, string pattern, int period)
-            : base(logDirectory, baseName)
+        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period)
+            : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             Pattern = pattern;
             Period = period;
@@ -134,8 +142,8 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(delegate() { CopyStreamWithDateRotation(outputStream, ".out.log"); }).Start();
-            new Thread(delegate() { CopyStreamWithDateRotation(errorStream, ".err.log"); }).Start();
+            if (!OutFileDisabled) new Thread(delegate() { CopyStreamWithDateRotation(outputStream, OutFilePattern); }).Start();
+            if (!ErrFileDisabled) new Thread(delegate() { CopyStreamWithDateRotation(errorStream, ErrFilePattern); }).Start();
         }
 
         /// <summary>
@@ -213,20 +221,20 @@ namespace winsw
 
         public int FilesToKeep { private set; get; }
 
-        public SizeBasedRollingLogAppender(string logDirectory, string baseName, int sizeThreshold, int filesToKeep)
-            : base(logDirectory, baseName)
+        public SizeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, int filesToKeep)
+            : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             SizeTheshold = sizeThreshold;
             FilesToKeep = filesToKeep;
         }
 
-        public SizeBasedRollingLogAppender(string logDirectory, string baseName)
-            : this(logDirectory, baseName, DEFAULT_SIZE_THRESHOLD, DEFAULT_FILES_TO_KEEP) { }
+        public SizeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
+            : this(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern, DEFAULT_SIZE_THRESHOLD, DEFAULT_FILES_TO_KEEP) { }
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(delegate() { CopyStreamWithRotation(outputStream, ".out.log"); }).Start();
-            new Thread(delegate() { CopyStreamWithRotation(errorStream, ".err.log"); }).Start();
+            if (!OutFileDisabled) new Thread(delegate() { CopyStreamWithRotation(outputStream, OutFilePattern); }).Start();
+            if (!ErrFileDisabled) new Thread(delegate() { CopyStreamWithRotation(errorStream, ErrFilePattern); }).Start();
         }
 
         /// <summary>
@@ -299,15 +307,15 @@ namespace winsw
     /// </summary>
     public class RollingLogAppender : SimpleLogAppender
     {
-        public RollingLogAppender(string logDirectory, string baseName)
-            : base(logDirectory, baseName, FileMode.Append)
+        public RollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
+            : base(logDirectory, baseName, FileMode.Append, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
         }
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            CopyFile(OutputLogFileName, OutputLogFileName + ".old");
-            CopyFile(ErrorLogFileName, ErrorLogFileName + ".old");
+            if (!OutFileDisabled) CopyFile(OutputLogFileName, OutputLogFileName + ".old");
+            if (!ErrFileDisabled) CopyFile(ErrorLogFileName, ErrorLogFileName + ".old");
             base.log(outputStream, errorStream);
         }
     }

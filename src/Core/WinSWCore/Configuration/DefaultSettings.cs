@@ -58,6 +58,10 @@ namespace winsw.Configuration
         // Logging
         public string LogDirectory { get { return Path.GetDirectoryName(ExecutablePath); } }
         public string LogMode { get { return "append"; } }
+        public bool OutFileDisabled => false;
+        public bool ErrFileDisabled => false;
+        public string OutFilePattern => ".out.log";
+        public string ErrFilePattern => ".err.log";
 
         // Environment
         public List<Download> Downloads { get { return new List<Download>(); } }

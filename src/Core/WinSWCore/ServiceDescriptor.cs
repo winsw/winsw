@@ -103,11 +103,18 @@ namespace winsw
             return SingleElement(tagName, false);
         }
 
-        private string SingleElement(string tagName, Boolean optional)
+        private string SingleElement(string tagName, bool optional)
         {
             var n = dom.SelectSingleNode("//" + tagName);
             if (n == null && !optional) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
             return n == null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
+        }
+
+        private bool SingleBoolElement(string tagName, bool defaultValue)
+        {
+            var e = dom.SelectSingleNode("//" + tagName);
+
+            return e == null ? defaultValue : bool.Parse(e.InnerText);
         }
 
         private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
@@ -355,6 +362,40 @@ namespace winsw
             }
         }
 
+        public string LogName
+        {
+            get
+            {
+                XmlNode loggingName = dom.SelectSingleNode("//logname");
+
+                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : BaseName;
+            }
+        }
+
+        public bool OutFileDisabled => SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+
+        public bool ErrFileDisabled => SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+
+        public string OutFilePattern
+        {
+            get
+            {
+                XmlNode loggingName = dom.SelectSingleNode("//outfilepattern");
+
+                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : Defaults.OutFilePattern;
+            }
+        }
+
+        public string ErrFilePattern
+        {
+            get
+            {
+                XmlNode loggingName = dom.SelectSingleNode("//errfilepattern");
+
+                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : Defaults.ErrFilePattern;
+            }
+        }
+
         public LogHandler LogHandler
         {
             
@@ -369,16 +410,16 @@ namespace winsw
                 switch (LogMode)
                 {
                     case "rotate":
-                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
+                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "none":
                         return new IgnoreLogAppender();
 
                     case "reset":
-                        return new ResetLogAppender(LogDirectory, BaseName);
+                        return new ResetLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "roll":
-                        return new RollingLogAppender(LogDirectory, BaseName);
+                        return new RollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "roll-by-time":
                         XmlNode patternNode = e.SelectSingleNode("pattern");
@@ -388,15 +429,15 @@ namespace winsw
                         }
                         string pattern = patternNode.InnerText;
                         int period = SingleIntElement(e,"period",1);
-                        return new TimeBasedRollingLogAppender(LogDirectory, BaseName, pattern, period);
+                        return new TimeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, pattern, period);
 
                     case "roll-by-size":
                         int sizeThreshold = SingleIntElement(e,"sizeThreshold",10*1024)  * SizeBasedRollingLogAppender.BYTES_PER_KB;
                         int keepFiles = SingleIntElement(e,"keepFiles",SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP);
-                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName, sizeThreshold, keepFiles);
+                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, keepFiles);
 
                     case "append":
-                        return new DefaultLogAppender(LogDirectory, BaseName);
+                        return new DefaultLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     default:
                         throw new InvalidDataException("Undefined logging mode: " + LogMode);
