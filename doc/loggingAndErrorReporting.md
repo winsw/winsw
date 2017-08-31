@@ -48,7 +48,22 @@ This configuration must accompany a nested `<pattern>` element, which specifies 
 The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). 
 For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
 
+### Rotate by size and time mode
+Works in a combination of rotate size mode and rotate time mode, if the log file gets bigger than a set size, it gets rotated using `<pattern>` provided.
 
+```
+    <log mode="roll-by-size-time">
+      <sizeThreshold>10240</sizeThreshold>
+      <pattern>yyyyMMdd</pattern>
+      <autoRollAtTime>00:00:00</autoRollAtTime>
+    </log>
+```
+
+The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). 
+For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
+
+The syntax of the autoRollAtTime is specified by [TimeSpan.ToString()](https://msdn.microsoft.com/en-us/library/1ecy8h51(v=vs.110).aspx).
+For example, in the above example, at the start of the day it will roll the file over.
 
 ### Error reporting
 
