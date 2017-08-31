@@ -298,7 +298,7 @@ namespace winswTests
             Assert.NotNull(logHandler);
             Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
             Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
-            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo("00:00:00"));
+            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0,0,0)));
         }
 
         [Test]
