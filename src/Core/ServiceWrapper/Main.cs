@@ -737,6 +737,15 @@ namespace winsw
                     wsvc.OnStop();
                     return;
                 }
+                if (args[0] == "testwait")
+                {
+                    WrapperService wsvc = new WrapperService();
+                    wsvc.OnStart(args.ToArray());
+                    Console.WriteLine("Press any key to stop the service...");
+                    Console.Read();
+                    wsvc.OnStop();
+                    return;
+                }
                 if (args[0] == "help" || args[0] == "--help" || args[0] == "-h" 
                     || args[0] == "-?" || args[0] == "/?")
                 {
@@ -869,7 +878,8 @@ namespace winsw
             Console.WriteLine("- 'restart'   - restart the service");
             Console.WriteLine("- 'restart!'  - self-restart (can be called from child processes)");
             Console.WriteLine("- 'status'    - check the current status of the service");
-            Console.WriteLine("- 'test'      - check if the service can be started and then stopped");  
+            Console.WriteLine("- 'test'      - check if the service can be started and then stopped");
+            Console.WriteLine("- 'testwait'  - starts the service and waits until a key is pressed then stops the service");
             Console.WriteLine("- 'version'   - print the version info");
             Console.WriteLine("- 'help'      - print the help info (aliases: -h,--help,-?,/?)");
         }
