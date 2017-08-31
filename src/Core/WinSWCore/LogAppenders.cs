@@ -352,7 +352,7 @@ namespace winsw
 
             var baseDirectory = Path.GetDirectoryName(BaseLogFileName);
             var baseFileName = Path.GetFileName(BaseLogFileName);
-            var logFile = $"{BaseLogFileName}{ext}";
+            var logFile = string.Format("{0}{1}", BaseLogFileName, ext);
 
             var w = new FileStream(logFile, FileMode.Append);
             var sz = new FileInfo(logFile).Length;
