@@ -372,7 +372,7 @@ namespace winsw
                             w.Close();
 
                             var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName);
-                            var nextFileName =  Path.Combine(baseDirectory, $"{baseFileName}.{DateTime.UtcNow.ToString(FilePattern)}.#{nextFileNumber:D4}{ext}");
+                            var nextFileName =  Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, DateTime.UtcNow.ToString(FilePattern), nextFileNumber, ext));
                             File.Move(logFile, nextFileName);
 
                             w = new FileStream(logFile, FileMode.Create);
@@ -381,7 +381,7 @@ namespace winsw
                     }
                     catch (Exception et)
                     {
-                        EventLogger.LogEvent($"Failed to to trigger auto roll at time event due to: {et.Message}");
+                        EventLogger.LogEvent(string.Format("Failed to to trigger auto roll at time event due to: {0}", et.Message));
                     }
                     finally
                     {
@@ -425,7 +425,7 @@ namespace winsw
                                 var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName);
                                 var nextFileName =
                                     Path.Combine(baseDirectory,
-                                        $"{baseFileName}.{DateTime.UtcNow.ToString(FilePattern)}.#{nextFileNumber:D4}{ext}");
+                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, DateTime.UtcNow.ToString(FilePattern), nextFileNumber, ext));
                                 File.Move(logFile, nextFileName);
 
                                 // even if the log rotation fails, create a new one, or else
@@ -436,7 +436,7 @@ namespace winsw
                         }
                         catch (Exception e)
                         {
-                            EventLogger.LogEvent($"Failed to roll size time log: {e.Message}");
+                            EventLogger.LogEvent(string.Format("Failed to roll size time log: {0}", e.Message));
                         }
                     }
                     w.Flush();
@@ -461,7 +461,7 @@ namespace winsw
         private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName)
         {
             var nextFileNumber = 0;
-            var files = Directory.GetFiles(baseDirectory, $"{baseFileName}.{DateTime.UtcNow.ToString(FilePattern)}.#*{ext}");
+            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, DateTime.UtcNow.ToString(FilePattern), ext));
             if (files.Length == 0)
             {
                 nextFileNumber = 1;
@@ -481,11 +481,11 @@ namespace winsw
                                 nextFileNumber = lastNumber;
                         }
                         else
-                            throw new IOException($"File {f} does not follow the pattern provided");
+                            throw new IOException(string.Format("File {0} does not follow the pattern provided",f));
                     }
                     catch (Exception e)
                     {
-                        throw new IOException($"Failed to process file {f} due to error {e.Message}", e);
+                        throw new IOException(string.Format("Failed to process file {0} due to error {1}",f, e.Message), e);
                     }
                 }
                 if (nextFileNumber == 0) throw new IOException("Cannot roll the file because matching pattern not found");
