@@ -182,8 +182,63 @@ namespace winswTests
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
-        }   
-        
+        }
+
+        [Test]
+        public void CanParseLogname()
+        {
+            const string seedXml = "<service>"
+                                   + "<logname>MyTestApp</logname>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            Assert.That(serviceDescriptor.LogName, Is.EqualTo("MyTestApp"));
+        }
+
+        [Test]
+        public void CanParseOutfileDisabled()
+        {
+            const string seedXml = "<service>"
+                                   + "<outfiledisabled>true</outfiledisabled>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            Assert.That(serviceDescriptor.OutFileDisabled, Is.EqualTo(true));
+        }
+
+        [Test]
+        public void CanParseErrfileDisabled()
+        {
+            const string seedXml = "<service>"
+                                   + "<errfiledisabled>true</errfiledisabled>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            Assert.That(serviceDescriptor.ErrFileDisabled, Is.EqualTo(true));
+        }
+
+        [Test]
+        public void CanParseOutfilePattern()
+        {
+            const string seedXml = "<service>"
+                                   + "<outfilepattern>.out.test.log</outfilepattern>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            Assert.That(serviceDescriptor.OutFilePattern, Is.EqualTo(".out.test.log"));
+        }
+
+        [Test]
+        public void CanParseErrfilePattern()
+        {
+            const string seedXml = "<service>"
+                                   + "<errfilepattern>.err.test.log</errfilepattern>"
+                                   + "</service>";
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            Assert.That(serviceDescriptor.ErrFilePattern, Is.EqualTo(".err.test.log"));
+        }
+
         [Test]
         public void LogModeRollBySize()
         {
@@ -222,6 +277,28 @@ namespace winswTests
             Assert.NotNull(logHandler);
             Assert.That(logHandler.Period, Is.EqualTo(7));
             Assert.That(logHandler.Pattern, Is.EqualTo("log pattern"));
+        }
+
+        [Test]
+        public void LogModeRollBySizeTime()
+        {
+            const string seedXml = "<service>"
+                                   + "<logpath>c:\\</logpath>"
+                                   + "<log mode=\"roll-by-size-time\">"
+                                   + "<sizeThreshold>10240</sizeThreshold>"
+                                   + "<pattern>yyyy-MM-dd</pattern>"
+                                   + "<autoRollAtTime>00:00:00</autoRollAtTime>"
+                                   + "</log>"
+                                   + "</service>";
+
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            serviceDescriptor.BaseName = "service";
+
+            var logHandler = serviceDescriptor.LogHandler as RollingSizeTimeLogAppender;
+            Assert.NotNull(logHandler);
+            Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
+            Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
+            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0,0,0)));
         }
 
         [Test]

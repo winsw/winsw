@@ -103,11 +103,18 @@ namespace winsw
             return SingleElement(tagName, false);
         }
 
-        private string SingleElement(string tagName, Boolean optional)
+        private string SingleElement(string tagName, bool optional)
         {
             var n = dom.SelectSingleNode("//" + tagName);
             if (n == null && !optional) throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
             return n == null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
+        }
+
+        private bool SingleBoolElement(string tagName, bool defaultValue)
+        {
+            var e = dom.SelectSingleNode("//" + tagName);
+
+            return e == null ? defaultValue : bool.Parse(e.InnerText);
         }
 
         private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
@@ -355,6 +362,49 @@ namespace winsw
             }
         }
 
+        public string LogName
+        {
+            get
+            {
+                XmlNode loggingName = dom.SelectSingleNode("//logname");
+
+                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : BaseName;
+            }
+        }
+
+        public bool OutFileDisabled
+        {
+            get { return SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled); }
+        }
+
+        public bool ErrFileDisabled
+        {
+            get
+            {
+                return SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+            }
+        }
+
+        public string OutFilePattern
+        {
+            get
+            {
+                XmlNode loggingName = dom.SelectSingleNode("//outfilepattern");
+
+                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : Defaults.OutFilePattern;
+            }
+        }
+
+        public string ErrFilePattern
+        {
+            get
+            {
+                XmlNode loggingName = dom.SelectSingleNode("//errfilepattern");
+
+                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : Defaults.ErrFilePattern;
+            }
+        }
+
         public LogHandler LogHandler
         {
             
@@ -366,19 +416,20 @@ namespace winsw
                     // this is more modern way, to support nested elements as configuration
                     e = (XmlElement)dom.SelectSingleNode("//log");
                 }
+                int sizeThreshold;
                 switch (LogMode)
                 {
                     case "rotate":
-                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName);
+                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "none":
                         return new IgnoreLogAppender();
 
                     case "reset":
-                        return new ResetLogAppender(LogDirectory, BaseName);
+                        return new ResetLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "roll":
-                        return new RollingLogAppender(LogDirectory, BaseName);
+                        return new RollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "roll-by-time":
                         XmlNode patternNode = e.SelectSingleNode("pattern");
@@ -386,17 +437,37 @@ namespace winsw
                         {
                             throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
                         }
-                        string pattern = patternNode.InnerText;
+                        var pattern = patternNode.InnerText;
                         int period = SingleIntElement(e,"period",1);
-                        return new TimeBasedRollingLogAppender(LogDirectory, BaseName, pattern, period);
+                        return new TimeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, pattern, period);
 
                     case "roll-by-size":
-                        int sizeThreshold = SingleIntElement(e,"sizeThreshold",10*1024)  * SizeBasedRollingLogAppender.BYTES_PER_KB;
+                        sizeThreshold = SingleIntElement(e,"sizeThreshold",10*1024)  * SizeBasedRollingLogAppender.BYTES_PER_KB;
                         int keepFiles = SingleIntElement(e,"keepFiles",SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP);
-                        return new SizeBasedRollingLogAppender(LogDirectory, BaseName, sizeThreshold, keepFiles);
+                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, keepFiles);
 
                     case "append":
-                        return new DefaultLogAppender(LogDirectory, BaseName);
+                        return new DefaultLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+
+                    case "roll-by-size-time":
+                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BYTES_PER_KB;
+                        XmlNode filePatternNode = e.SelectSingleNode("pattern");
+                        if (filePatternNode == null)
+                        {
+                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+                        }
+                        XmlNode autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
+                        TimeSpan? autoRollAtTime = null;
+                        if (autoRollAtTimeNode != null)
+                        {
+                            TimeSpan autoRollAtTimeValue;
+                            // validate it
+                            if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out autoRollAtTimeValue))
+                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
+                            autoRollAtTime = autoRollAtTimeValue;
+                        }
+
+                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime);
 
                     default:
                         throw new InvalidDataException("Undefined logging mode: " + LogMode);
