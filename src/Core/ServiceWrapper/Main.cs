@@ -731,7 +731,7 @@ namespace winsw
                 }
                 if (args[0] == "test")
                 {
-                    WrapperService wsvc = new WrapperService();
+                    WrapperService wsvc = new WrapperService(d);
                     wsvc.OnStart(args.ToArray());
                     Thread.Sleep(1000);
                     wsvc.OnStop();
@@ -739,7 +739,7 @@ namespace winsw
                 }
                 if (args[0] == "testwait")
                 {
-                    WrapperService wsvc = new WrapperService();
+                    WrapperService wsvc = new WrapperService(d);
                     wsvc.OnStart(args.ToArray());
                     Console.WriteLine("Press any key to stop the service...");
                     Console.Read();
@@ -767,7 +767,7 @@ namespace winsw
             {
                 Log.Info("Starting ServiceWrapper in the service mode");
             }
-            Run(new WrapperService());
+            Run(new WrapperService(d));
         }
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)

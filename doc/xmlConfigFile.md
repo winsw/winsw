@@ -164,7 +164,7 @@ For servers requiring authentication some parameters must be specified depending
 * `none`:  default, must not be specified
 * `sspi`: Microsoft [authentication](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) including Kerberos, NTLM etc. 
 * `basic`: Basic authentication, sub-parameters:
-	* `username=“UserName”`
+	* `user=“UserName”`
 	* `password=“Passw0rd”`
 	* `unsecureAuth=“true”: default=“false"`
 
@@ -185,11 +185,11 @@ Examples:
     <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
 
     <download from="https://example.com/some.dat" to="%BASE%\some.dat" failOnError="true"
-              auth="basic" username="aUser" password="aPassw0rd" />
+              auth="basic" user="aUser" password="aPassw0rd" />
 
     <download from="http://example.com/some.dat" to="%BASE%\some.dat"
               auth="basic" unsecureAuth="true"
-              username="aUser" password="aPassw0rd" />
+              user="aUser" password="aPassw0rd" />
 ```
 
 This is another useful building block for developing a self-updating service.
