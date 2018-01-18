@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Timers;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace winsw
 {
@@ -328,13 +329,17 @@ namespace winsw
         public int SizeTheshold { private set; get; }
         public string FilePattern { private set; get; }
         public TimeSpan? AutoRollAtTime { private set; get; }
+        public int? ZipOlderTthanNumDays { private set; get; }
+        public string ZipDateFormat { private set; get; }
 
-        public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime)
+        public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime, int? zipolderthannumdays, string zipdateformat)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             SizeTheshold = sizeThreshold;
             FilePattern = filePattern;
             AutoRollAtTime = autoRollAtTime;
+            ZipOlderTthanNumDays = zipolderthannumdays;
+            ZipDateFormat = zipdateformat;
         }
 
         public override void log(Stream outputStream, Stream errorStream)
@@ -360,6 +365,9 @@ namespace winsw
             // We auto roll at time is configured then we need to create a timer and wait until time is elasped and roll the file over
             if (AutoRollAtTime != null)
             {
+                // Run at start
+                ZipFiles(baseDirectory, ext, baseFileName);
+
                 var tickTime = SetupRollTimer();
                 var timer = new System.Timers.Timer(tickTime);
                 timer.Elapsed += (s, e) =>
@@ -378,6 +386,9 @@ namespace winsw
                             w = new FileStream(logFile, FileMode.Create);
                             sz = new FileInfo(logFile).Length;
                         }
+
+                        // Next day so check if file can be zipped
+                        ZipFiles(baseDirectory, ext, baseFileName);
                     }
                     catch (Exception et)
                     {
@@ -444,6 +455,64 @@ namespace winsw
             }
             data.Close();
             w.Close();
+        }
+
+        private void ZipFiles(string path, string fileExt, string baseZipfilename)
+        {
+            if (ZipOlderTthanNumDays == null || !(ZipOlderTthanNumDays > 0)) return;
+
+            try
+            {
+                var files = Directory.GetFiles(path, "*" + fileExt);
+                foreach (var file in files)
+                {
+                    var fi = new FileInfo(file);
+                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderTthanNumDays.Value)) continue;
+
+                    // lets archive this bugger
+                    ZipTheFile(file, path, fi.LastWriteTimeUtc.ToString(ZipDateFormat), baseZipfilename);
+                    File.Delete(file);
+                }
+            }
+            catch (Exception e)
+            {
+                EventLogger.LogEvent(string.Format("Failed to Zip File. Error {0}", e.Message));
+            }
+        }
+
+        private void ZipTheFile(string filename, string zipPath, string zipFilePattern, string baseZipfilename)
+        {
+            var zipfilename = Path.Combine(zipPath, string.Format("{0}.{1}.zip", baseZipfilename, zipFilePattern));
+            ZipFile zipFile;
+            if (File.Exists(zipfilename))
+            {
+                zipFile = new ZipFile(zipfilename);
+                TestZipfile(zipFile, zipfilename);
+            }
+            else
+            {
+                zipFile = ZipFile.Create(zipfilename);
+            }
+            zipFile.BeginUpdate();
+            zipFile.NameTransform = new ZipNameTransform(zipPath);
+            var relFile = Path.GetFileName(filename);
+            if (zipFile.FindEntry(relFile, true) == -1)
+            {
+                zipFile.Add(filename);
+            }
+            zipFile.CommitUpdate();
+            TestZipfile(zipFile, zipfilename);
+            zipFile.Close();
+        }
+
+        static void TestZipfile(ZipFile zipFile, string zipArchive)
+        {
+            var testResult = zipFile.TestArchive(true);
+            if (!testResult)
+            {
+                var em = string.Format("Bad zip file \"{0}\"", zipArchive);
+                throw new ApplicationException(em);
+            }
         }
 
         private double SetupRollTimer()

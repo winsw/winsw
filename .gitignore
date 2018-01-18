@@ -8,3 +8,4 @@ obj
 /winsw_key.pfx
 /src/.vs/winsw/v15/sqlite3/storage.ide
 /src/Core/WinSWCore/WinSWCore.csproj.DotSettings
+/src/.vs/winsw/v15/Server/sqlite3
