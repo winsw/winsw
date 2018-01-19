@@ -483,26 +483,46 @@ namespace winsw
         private void ZipTheFile(string filename, string zipPath, string zipFilePattern, string baseZipfilename)
         {
             var zipfilename = Path.Combine(zipPath, string.Format("{0}.{1}.zip", baseZipfilename, zipFilePattern));
-            ZipFile zipFile;
-            if (File.Exists(zipfilename))
+            ZipFile zipFile = null;
+            bool commited = false;
+            try
             {
-                zipFile = new ZipFile(zipfilename);
+
+                if (File.Exists(zipfilename))
+                {
+                    zipFile = new ZipFile(zipfilename);
+                    TestZipfile(zipFile, zipfilename);
+                }
+                else
+                {
+                    zipFile = ZipFile.Create(zipfilename);
+                }
+
+                zipFile.BeginUpdate();
+                zipFile.NameTransform = new ZipNameTransform(zipPath);
+                var relFile = Path.GetFileName(filename);
+                if (zipFile.FindEntry(relFile, true) == -1)
+                {
+                    zipFile.Add(filename);
+                }
+
+                zipFile.CommitUpdate();
+                commited = true;
                 TestZipfile(zipFile, zipfilename);
             }
-            else
+            catch (Exception e)
             {
-                zipFile = ZipFile.Create(zipfilename);
+                EventLogger.LogEvent(string.Format("Failed to Zip the File {0}. Error {1}", filename, e.Message));
+                if (zipFile != null && !commited)
+                    zipFile.AbortUpdate();
             }
-            zipFile.BeginUpdate();
-            zipFile.NameTransform = new ZipNameTransform(zipPath);
-            var relFile = Path.GetFileName(filename);
-            if (zipFile.FindEntry(relFile, true) == -1)
+            finally
             {
-                zipFile.Add(filename);
+                if (zipFile != null)
+                {
+                    zipFile.Close();
+                }
             }
-            zipFile.CommitUpdate();
-            TestZipfile(zipFile, zipfilename);
-            zipFile.Close();
         }
 
         static void TestZipfile(ZipFile zipFile, string zipArchive)
