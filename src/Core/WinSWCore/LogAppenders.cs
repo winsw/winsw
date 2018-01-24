@@ -366,8 +366,6 @@ namespace winsw
             if (AutoRollAtTime != null)
             {
                 // Run at start
-                ZipFiles(baseDirectory, ext, baseFileName);
-
                 var tickTime = SetupRollTimer();
                 var timer = new System.Timers.Timer(tickTime);
                 timer.Elapsed += (s, e) =>
