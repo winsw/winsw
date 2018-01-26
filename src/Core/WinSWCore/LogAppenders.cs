@@ -377,8 +377,9 @@ namespace winsw
                         {
                             w.Close();
 
-                            var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName);
-                            var nextFileName =  Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, DateTime.UtcNow.ToString(FilePattern), nextFileNumber, ext));
+                            var now = DateTime.Now.AddDays(-1);
+                            var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
+                            var nextFileName =  Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
                             File.Move(logFile, nextFileName);
 
                             w = new FileStream(logFile, FileMode.Create);
@@ -431,10 +432,11 @@ namespace winsw
                                 s = i + 1;
 
                                 // rotate file
-                                var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName);
+                                var now = DateTime.Now;
+                                var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
                                 var nextFileName =
                                     Path.Combine(baseDirectory,
-                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, DateTime.UtcNow.ToString(FilePattern), nextFileNumber, ext));
+                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
                                 File.Move(logFile, nextFileName);
 
                                 // even if the log rotation fails, create a new one, or else
@@ -545,10 +547,10 @@ namespace winsw
             return tickTime;
         }
 
-        private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName)
+        private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName, DateTime now)
         {
             var nextFileNumber = 0;
-            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, DateTime.UtcNow.ToString(FilePattern), ext));
+            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(FilePattern), ext));
             if (files.Length == 0)
             {
                 nextFileNumber = 1;
