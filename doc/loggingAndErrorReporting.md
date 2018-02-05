@@ -56,8 +56,8 @@ Works in a combination of rotate size mode and rotate time mode, if the log file
       <sizeThreshold>10240</sizeThreshold>
       <pattern>yyyyMMdd</pattern>
       <autoRollAtTime>00:00:00</autoRollAtTime>
-  	  <zipolderthannumdays>5</zipolderthannumdays>
-	  <zipdateformat>yyyyMM</zipdateformat>
+      <zipolderthannumdays>5</zipolderthannumdays>
+      <zipdateformat>yyyyMM</zipdateformat>
     </log>
 ```
 
