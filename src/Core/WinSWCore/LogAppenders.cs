@@ -329,7 +329,7 @@ namespace winsw
         public int SizeTheshold { private set; get; }
         public string FilePattern { private set; get; }
         public TimeSpan? AutoRollAtTime { private set; get; }
-        public int? ZipOlderTthanNumDays { private set; get; }
+        public int? ZipOlderThanNumDays { private set; get; }
         public string ZipDateFormat { private set; get; }
 
         public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime, int? zipolderthannumdays, string zipdateformat)
@@ -338,7 +338,7 @@ namespace winsw
             SizeTheshold = sizeThreshold;
             FilePattern = filePattern;
             AutoRollAtTime = autoRollAtTime;
-            ZipOlderTthanNumDays = zipolderthannumdays;
+            ZipOlderThanNumDays = zipolderthannumdays;
             ZipDateFormat = zipdateformat;
         }
 
@@ -459,7 +459,7 @@ namespace winsw
 
         private void ZipFiles(string path, string fileExt, string baseZipfilename)
         {
-            if (ZipOlderTthanNumDays == null || !(ZipOlderTthanNumDays > 0)) return;
+            if (ZipOlderThanNumDays == null || !(ZipOlderThanNumDays > 0)) return;
 
             try
             {
@@ -467,7 +467,7 @@ namespace winsw
                 foreach (var file in files)
                 {
                     var fi = new FileInfo(file);
-                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderTthanNumDays.Value)) continue;
+                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderThanNumDays.Value)) continue;
 
                     // lets archive this bugger
                     ZipTheFile(file, path, fi.LastWriteTimeUtc.ToString(ZipDateFormat), baseZipfilename);

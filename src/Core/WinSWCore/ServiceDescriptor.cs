@@ -466,18 +466,18 @@ namespace winsw
                                 throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
                             autoRollAtTime = autoRollAtTimeValue;
                         }
-                        XmlNode zipolderthannumdaysNode = e.SelectSingleNode("zipolderthannumdays");
+                        XmlNode zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
                         int? zipolderthannumdays = null;
                         if (zipolderthannumdaysNode != null)
                         {
                             int zipolderthannumdaysValue;
                             // validate it
                             if (!int.TryParse(zipolderthannumdaysNode.InnerText, out zipolderthannumdaysValue))
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipolderthannumdays does not match the int format found in configuration XML.");
+                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
                             zipolderthannumdays = zipolderthannumdaysValue;
                         }
 
-                        XmlNode zipdateformatNode = e.SelectSingleNode("zipdateformat");
+                        XmlNode zipdateformatNode = e.SelectSingleNode("zipDateFormat");
                         string zipdateformat = null;
                         if (zipdateformatNode == null)
                         {
