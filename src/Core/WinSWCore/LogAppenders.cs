@@ -537,13 +537,13 @@ namespace winsw
 
         private double SetupRollTimer()
         {
-            var nowTime = DateTime.Now.ToUniversalTime();
+            var nowTime = DateTime.Now;
             var scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, AutoRollAtTime.Value.Hours,
-                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0).ToUniversalTime(); //Specify your time HH,MM,SS
+                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0); //Specify your time HH,MM,SS
             if (nowTime > scheduledTime)
                 scheduledTime = scheduledTime.AddDays(1);
 
-            double tickTime = (double) (scheduledTime - DateTime.Now.ToUniversalTime()).TotalMilliseconds;
+            double tickTime = (double) (scheduledTime - DateTime.Now).TotalMilliseconds;
             return tickTime;
         }
 
