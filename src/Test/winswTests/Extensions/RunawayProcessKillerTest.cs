@@ -75,7 +75,7 @@ namespace winswTests.Extensions
             // Prepare the env var
             String varName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             var env = new Dictionary<string, string>();
-            env.Add("varName", winswId);
+            env.Add(varName, winswId);
 
             // Spawn the test process
             var scriptFile = Path.Combine(tmpDir, "dosleep.bat");
@@ -89,10 +89,9 @@ namespace winswTests.Extensions
             try
             {
                 // Generate extension and ensure that the roundtrip is correct
-                //TODO: checkWinSWEnvironmentVariable should be true, but it does not work due to proc.StartInfo.EnvironmentVariables
                 var pidfile = Path.Combine(tmpDir, "process.pid");
                 var sd = ConfigXmlBuilder.create(id: winswId)
-                    .WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile, checkWinSWEnvironmentVariable: false), extensionId)
+                    .WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile), extensionId)
                     .ToServiceDescriptor();
                 WinSWExtensionManager manager = new WinSWExtensionManager(sd);
                 manager.LoadExtensions();
