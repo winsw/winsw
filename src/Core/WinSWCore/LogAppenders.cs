@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Timers;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace winsw
 {
@@ -328,13 +329,17 @@ namespace winsw
         public int SizeTheshold { private set; get; }
         public string FilePattern { private set; get; }
         public TimeSpan? AutoRollAtTime { private set; get; }
+        public int? ZipOlderThanNumDays { private set; get; }
+        public string ZipDateFormat { private set; get; }
 
-        public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime)
+        public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime, int? zipolderthannumdays, string zipdateformat)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             SizeTheshold = sizeThreshold;
             FilePattern = filePattern;
             AutoRollAtTime = autoRollAtTime;
+            ZipOlderThanNumDays = zipolderthannumdays;
+            ZipDateFormat = zipdateformat;
         }
 
         public override void log(Stream outputStream, Stream errorStream)
@@ -360,6 +365,7 @@ namespace winsw
             // We auto roll at time is configured then we need to create a timer and wait until time is elasped and roll the file over
             if (AutoRollAtTime != null)
             {
+                // Run at start
                 var tickTime = SetupRollTimer();
                 var timer = new System.Timers.Timer(tickTime);
                 timer.Elapsed += (s, e) =>
@@ -371,13 +377,17 @@ namespace winsw
                         {
                             w.Close();
 
-                            var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName);
-                            var nextFileName =  Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, DateTime.UtcNow.ToString(FilePattern), nextFileNumber, ext));
+                            var now = DateTime.Now.AddDays(-1);
+                            var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
+                            var nextFileName =  Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
                             File.Move(logFile, nextFileName);
 
                             w = new FileStream(logFile, FileMode.Create);
                             sz = new FileInfo(logFile).Length;
                         }
+
+                        // Next day so check if file can be zipped
+                        ZipFiles(baseDirectory, ext, baseFileName);
                     }
                     catch (Exception et)
                     {
@@ -422,10 +432,11 @@ namespace winsw
                                 s = i + 1;
 
                                 // rotate file
-                                var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName);
+                                var now = DateTime.Now;
+                                var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
                                 var nextFileName =
                                     Path.Combine(baseDirectory,
-                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, DateTime.UtcNow.ToString(FilePattern), nextFileNumber, ext));
+                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
                                 File.Move(logFile, nextFileName);
 
                                 // even if the log rotation fails, create a new one, or else
@@ -446,22 +457,100 @@ namespace winsw
             w.Close();
         }
 
+        private void ZipFiles(string path, string fileExt, string baseZipfilename)
+        {
+            if (ZipOlderThanNumDays == null || !(ZipOlderThanNumDays > 0)) return;
+
+            try
+            {
+                var files = Directory.GetFiles(path, "*" + fileExt);
+                foreach (var file in files)
+                {
+                    var fi = new FileInfo(file);
+                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderThanNumDays.Value)) continue;
+
+                    // lets archive this bugger
+                    ZipTheFile(file, path, fi.LastWriteTimeUtc.ToString(ZipDateFormat), baseZipfilename);
+                    File.Delete(file);
+                }
+            }
+            catch (Exception e)
+            {
+                EventLogger.LogEvent(string.Format("Failed to Zip File. Error {0}", e.Message));
+            }
+        }
+
+        private void ZipTheFile(string filename, string zipPath, string zipFilePattern, string baseZipfilename)
+        {
+            var zipfilename = Path.Combine(zipPath, string.Format("{0}.{1}.zip", baseZipfilename, zipFilePattern));
+            ZipFile zipFile = null;
+            bool commited = false;
+            try
+            {
+
+                if (File.Exists(zipfilename))
+                {
+                    zipFile = new ZipFile(zipfilename);
+                    TestZipfile(zipFile, zipfilename);
+                }
+                else
+                {
+                    zipFile = ZipFile.Create(zipfilename);
+                }
+
+                zipFile.BeginUpdate();
+                zipFile.NameTransform = new ZipNameTransform(zipPath);
+                var relFile = Path.GetFileName(filename);
+                if (zipFile.FindEntry(relFile, true) == -1)
+                {
+                    zipFile.Add(filename);
+                }
+
+                zipFile.CommitUpdate();
+                commited = true;
+                TestZipfile(zipFile, zipfilename);
+            }
+            catch (Exception e)
+            {
+                EventLogger.LogEvent(string.Format("Failed to Zip the File {0}. Error {1}", filename, e.Message));
+                if (zipFile != null && !commited)
+                    zipFile.AbortUpdate();
+            }
+            finally
+            {
+                if (zipFile != null)
+                {
+                    zipFile.Close();
+                }
+            }
+        }
+
+        static void TestZipfile(ZipFile zipFile, string zipArchive)
+        {
+            var testResult = zipFile.TestArchive(true);
+            if (!testResult)
+            {
+                var em = string.Format("Bad zip file \"{0}\"", zipArchive);
+                throw new ApplicationException(em);
+            }
+        }
+
         private double SetupRollTimer()
         {
-            var nowTime = DateTime.Now.ToUniversalTime();
+            var nowTime = DateTime.Now;
             var scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, AutoRollAtTime.Value.Hours,
-                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0).ToUniversalTime(); //Specify your time HH,MM,SS
+                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0); //Specify your time HH,MM,SS
             if (nowTime > scheduledTime)
                 scheduledTime = scheduledTime.AddDays(1);
 
-            double tickTime = (double) (scheduledTime - DateTime.Now.ToUniversalTime()).TotalMilliseconds;
+            double tickTime = (double) (scheduledTime - DateTime.Now).TotalMilliseconds;
             return tickTime;
         }
 
-        private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName)
+        private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName, DateTime now)
         {
             var nextFileNumber = 0;
-            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, DateTime.UtcNow.ToString(FilePattern), ext));
+            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(FilePattern), ext));
             if (files.Length == 0)
             {
                 nextFileNumber = 1;

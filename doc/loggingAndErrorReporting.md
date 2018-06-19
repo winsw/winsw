@@ -56,6 +56,8 @@ Works in a combination of rotate size mode and rotate time mode, if the log file
       <sizeThreshold>10240</sizeThreshold>
       <pattern>yyyyMMdd</pattern>
       <autoRollAtTime>00:00:00</autoRollAtTime>
+      <zipOlderThanNumDays>5</zipOlderThanNumDays>
+      <zipDateFormat>yyyyMM</zipDateFormat>
     </log>
 ```
 
@@ -64,6 +66,21 @@ For example, in the above example, the log of Jan 1, 2013 gets written to `myapp
 
 The syntax of the autoRollAtTime is specified by [TimeSpan.ToString()](https://msdn.microsoft.com/en-us/library/1ecy8h51(v=vs.110).aspx).
 For example, in the above example, at the start of the day it will roll the file over.
+
+The zipOlderThanNumDays can only be used in conjection with autoRollAtTime, provide the number of days of files to keep.
+```
+    <log mode="roll-by-size-time">
+      <autoRollAtTime>00:00:00</autoRollAtTime>
+      <zipOlderThanNumDays>5</zipOlderThanNumDays>
+    </log>
+```
+The zipDateFormat can only be used in conjection with autoRollAtTime, provide the zip file format using the [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx).
+```
+    <log mode="roll-by-size-time">
+      <autoRollAtTime>00:00:00</autoRollAtTime>
+      <zipDateFormat>yyyyMM</zipDateFormat>
+    </log>
+```
 
 ### Error reporting
 

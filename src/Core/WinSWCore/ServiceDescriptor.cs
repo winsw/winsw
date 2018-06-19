@@ -466,8 +466,29 @@ namespace winsw
                                 throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
                             autoRollAtTime = autoRollAtTimeValue;
                         }
+                        XmlNode zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
+                        int? zipolderthannumdays = null;
+                        if (zipolderthannumdaysNode != null)
+                        {
+                            int zipolderthannumdaysValue;
+                            // validate it
+                            if (!int.TryParse(zipolderthannumdaysNode.InnerText, out zipolderthannumdaysValue))
+                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+                            zipolderthannumdays = zipolderthannumdaysValue;
+                        }
 
-                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime);
+                        XmlNode zipdateformatNode = e.SelectSingleNode("zipDateFormat");
+                        string zipdateformat = null;
+                        if (zipdateformatNode == null)
+                        {
+                            zipdateformat = "yyyyMM";
+                        }
+                        else
+                        {
+                            zipdateformat = zipdateformatNode.InnerText;
+                        }
+
+                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
 
                     default:
                         throw new InvalidDataException("Undefined logging mode: " + LogMode);
