@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using winsw.Util;
+using log4net;
 
 namespace winsw
 {
@@ -22,6 +23,8 @@ namespace winsw
         public readonly string Password;
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
+
+        private static readonly ILog Log = LogManager.GetLogger("WinSW");
 
         public string ShortId { get { return String.Format("(download from {0})", From); } }
 
@@ -90,7 +93,7 @@ namespace winsw
         /// <exception cref="System.Net.WebException">
         ///     Download failure. FailOnError flag should be processed outside.
         /// </exception>
-        public void Perform()
+        public void Perform(EventLogger logger)
         {
             WebRequest req = WebRequest.Create(From);
 
@@ -114,13 +117,30 @@ namespace winsw
                     throw new WebException("Code defect. Unsupported authentication type: " + Auth);
             }
 
-            WebResponse rsp = req.GetResponse();
-            FileStream tmpstream = new FileStream(To + ".tmp", FileMode.Create);
-            CopyStream(rsp.GetResponseStream(), tmpstream);
-            // only after we successfully downloaded a file, overwrite the existing one
-            if (File.Exists(To))
-                File.Delete(To);
-            File.Move(To + ".tmp", To);
+            //
+            if (req is HttpWebRequest && File.Exists(To)) {
+                ((HttpWebRequest)req).IfModifiedSince = File.GetLastWriteTime(To);
+            }
+
+            try {
+                WebResponse rsp = req.GetResponse();
+                FileStream tmpstream = new FileStream(To + ".tmp", FileMode.Create);
+                CopyStream(rsp.GetResponseStream(), tmpstream);
+
+                // only after we successfully downloaded a file, overwrite the existing one
+                if (File.Exists(To))
+                    File.Delete(To);
+                File.Move(To + ".tmp", To);
+            } catch(System.Net.WebException ex) {
+                if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response is HttpWebResponse && ((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotModified) {
+                    String upToDateMsg = "Resource: " + To + " wasn't modified since last update. Skip downloading.";
+
+                    logger.LogEvent(upToDateMsg);
+                    Log.Info(upToDateMsg);
+                } else {
+                    throw;
+                }
+            }        
         }
 
         private static void CopyStream(Stream i, Stream o)

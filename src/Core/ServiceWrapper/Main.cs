@@ -210,7 +210,7 @@ namespace winsw
                 Log.Info(downloadMsg);
                 try
                 {
-                    d.Perform();
+                    d.Perform(this);
                 }
                 catch (Exception e)
                 {
