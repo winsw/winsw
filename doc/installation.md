@@ -40,7 +40,7 @@ The example below is a primitive example being used in the Jenkins project:
 
 The full specification of the configuration file is available [here](xmlConfigFile.md).
 
-#### Step 4. Service registration
+#### Step 3. Service registration
  
 You can then install the service like:
 
@@ -55,7 +55,7 @@ Beyond these error codes, all the non-zero exit code should be assumed as a fail
 The Installer can be also started with the `/p` option.
 In such case it will prompt for an account name and password, which should be used as a service account.
 
-#### Step 5. Windows Service Manager
+#### Step 4. Windows Service Manager
 
 Once the service is installed, you can start it from Windows Service Manager.
 If you open `Properties` for the service, you can also configure how the service should be launched. 
