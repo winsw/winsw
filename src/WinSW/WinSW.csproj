@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="1.0.0-alpha-*" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
   </ItemGroup>
 
@@ -57,7 +58,7 @@
   <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0' and '$(IncludeNativeLibrariesInSingleFile)' == 'true'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
-    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).exe" />
+    <Copy SourceFiles="$(OutputPath)native\$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).exe" />
 
   </Target>
 

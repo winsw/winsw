@@ -41,9 +41,6 @@ jobs:
       arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
   - script: |
       dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0 -r win-x64 -p:Version=$(BuildVersion)
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0 -r win-x86 -p:Version=$(BuildVersion)
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0 -r win-x64 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesInSingleFile=true
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0 -r win-x86 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesInSingleFile=true
     displayName: Build
   - task: DotNetCoreCLI@2
     displayName: Test
@@ -65,18 +62,9 @@ jobs:
   - publish: artifacts\publish\WinSW.NET461.exe
     artifact: WinSW.NET461.exe_$(BuildConfiguration)
     displayName: Publish .NET 4.6.1
-  - publish: artifacts\publish\WinSW.NETCore.x64.zip
-    artifact: WinSW.NETCore.x64.zip_$(BuildConfiguration)
-    displayName: Publish .NET Core x64 .zip
-  - publish: artifacts\publish\WinSW.NETCore.x86.zip
-    artifact: WinSW.NETCore.x86.zip_$(BuildConfiguration)
-    displayName: Publish .NET Core x86 .zip
   - publish: artifacts\publish\WinSW.NETCore.x64.exe
     artifact: WinSW.NETCore.x64.exe_$(BuildConfiguration)
     displayName: Publish .NET Core x64 .exe
-  - publish: artifacts\publish\WinSW.NETCore.x86.exe
-    artifact: WinSW.NETCore.x86.exe_$(BuildConfiguration)
-    displayName: Publish .NET Core x86 .exe
   - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
     artifact: WinSW.nupkg_$(BuildConfiguration)
     displayName: Publish Nuget
