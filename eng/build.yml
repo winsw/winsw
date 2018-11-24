@@ -47,16 +47,6 @@ jobs:
   - script: dotnet test -c $(BuildConfiguration) --no-build src\Test\winswTests\winswTests.csproj
     displayName: Test
   - task: PublishBuildArtifacts@1
-    displayName: Publish .NET 2.0
-    inputs:
-      PathtoPublish: artifacts\WinSW.NET2.exe
-      ArtifactName: WinSW.NET2.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
-    displayName: Publish .NET 4.0
-    inputs:
-      PathtoPublish: artifacts\WinSW.NET4.exe
-      ArtifactName: WinSW.NET4.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
     displayName: Publish .NET 4.6.1
     inputs:
       PathtoPublish: artifacts\WinSW.NET461.exe

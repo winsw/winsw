@@ -1,13 +1,8 @@
 using System;
 using System.IO;
 using System.Net;
-#if !VNEXT
-using System.Reflection;
-#endif
 using System.Text;
-#if VNEXT
 using System.Threading.Tasks;
-#endif
 using System.Xml;
 using log4net;
 using winsw.Util;
@@ -40,33 +35,13 @@ namespace winsw
 
         public string ShortId => $"(download from {From})";
 
+#if NET461
         static Download()
         {
-#if NET461
             // If your app runs on .NET Framework 4.7 or later versions, but targets an earlier version
             AppContext.SetSwitch("Switch.System.Net.DontEnableSystemDefaultTlsVersions", false);
-#elif !VNEXT
-            // If your app runs on .NET Framework 4.6, but targets an earlier version
-            Type.GetType("System.AppContext")?.InvokeMember("SetSwitch", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static, null, null, new object[] { "Switch.System.Net.DontEnableSchUseStrongCrypto", false });
-
-            const SecurityProtocolType Tls12 = (SecurityProtocolType)0x00000C00;
-            const SecurityProtocolType Tls11 = (SecurityProtocolType)0x00000300;
-
-            // Windows 7 and Windows Server 2008 R2
-            if (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor == 1)
-            {
-                try
-                {
-                    ServicePointManager.SecurityProtocol |= Tls11 | Tls12;
-                    Logger.Info("TLS 1.1/1.2 enabled");
-                }
-                catch (NotSupportedException)
-                {
-                    Logger.Info("TLS 1.1/1.2 disabled");
-                }
-            }
-#endif
         }
+#endif
 
         // internal
         public Download(
@@ -144,11 +119,7 @@ namespace winsw
         /// <exception cref="WebException">
         ///     Download failure. FailOnError flag should be processed outside.
         /// </exception>
-#if VNEXT
         public async Task PerformAsync()
-#else
-        public void Perform()
-#endif
         {
             WebRequest request = WebRequest.Create(From);
             if (!string.IsNullOrEmpty(Proxy))
@@ -195,11 +166,7 @@ namespace winsw
             string tmpFilePath = To + ".tmp";
             try
             {
-#if VNEXT
                 using (WebResponse response = await request.GetResponseAsync())
-#else
-                using (WebResponse response = request.GetResponse())
-#endif
                 using (Stream responseStream = response.GetResponseStream())
                 using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
                 {
@@ -208,13 +175,7 @@ namespace winsw
                         lastModified = ((HttpWebResponse)response).LastModified;
                     }
 
-#if VNEXT
                     await responseStream.CopyToAsync(tmpStream);
-#elif NET20
-                    CopyStream(responseStream, tmpStream);
-#else
-                    responseStream.CopyTo(tmpStream);
-#endif
                 }
 
                 FileHelper.MoveOrReplaceFile(To + ".tmp", To);
@@ -236,18 +197,6 @@ namespace winsw
                 }
             }
         }
-
-#if NET20
-        private static void CopyStream(Stream source, Stream destination)
-        {
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = source.Read(buffer, 0, buffer.Length)) != 0)
-            {
-                destination.Write(buffer, 0, read);
-            }
-        }
-#endif
     }
 
     public class CustomProxyInformation

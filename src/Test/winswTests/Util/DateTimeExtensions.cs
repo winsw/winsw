@@ -1,5 +1,4 @@
-﻿#if VNEXT
-using System;
+﻿using System;
 
 namespace winswTests.Util
 {
@@ -9,4 +8,3 @@ namespace winswTests.Util
             dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerSecond));
     }
 }
-#endif

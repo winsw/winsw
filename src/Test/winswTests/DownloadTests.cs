@@ -1,5 +1,4 @@
-﻿#if VNEXT
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -228,4 +227,3 @@ namespace winswTests
         }
     }
 }
-#endif

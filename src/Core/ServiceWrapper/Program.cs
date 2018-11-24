@@ -649,10 +649,8 @@ namespace winsw
                     FileName = current.MainModule.FileName,
 #if NETCOREAPP
                     Arguments = "/elevated " + string.Join(' ', args),
-#elif !NET20
-                    Arguments = "/elevated " + string.Join(" ", args),
 #else
-                    Arguments = "/elevated " + string.Join(" ", args.ToArray()),
+                    Arguments = "/elevated " + string.Join(" ", args),
 #endif
                     WindowStyle = ProcessWindowStyle.Hidden,
                 };
