@@ -24,11 +24,35 @@ namespace winsw.Native
         [DllImport(Libraries.Kernel32)]
         internal static extern IntPtr GetCurrentProcess();
 
+        [DllImport(Libraries.NtDll)]
+        internal static extern int NtQueryInformationProcess(
+            IntPtr processHandle,
+            PROCESSINFOCLASS processInformationClass,
+            out PROCESS_BASIC_INFORMATION processInformation,
+            int processInformationLength,
+            IntPtr returnLength = default);
+
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool OpenProcessToken(
             IntPtr processHandle,
             TokenAccessLevels desiredAccess,
             out IntPtr tokenHandle);
+
+        internal enum PROCESSINFOCLASS
+        {
+            ProcessBasicInformation = 0,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal unsafe struct PROCESS_BASIC_INFORMATION
+        {
+            private readonly IntPtr Reserved1;
+            private readonly IntPtr PebBaseAddress;
+            private readonly IntPtr Reserved2_1;
+            private readonly IntPtr Reserved2_2;
+            internal readonly IntPtr UniqueProcessId;
+            internal readonly IntPtr InheritedFromUniqueProcessId;
+        }
 
         internal struct PROCESS_INFORMATION
         {
