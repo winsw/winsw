@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Management;
 using System.Threading;
 using log4net;
+using static winsw.Native.ProcessApis;
 
 namespace winsw.Util
 {
@@ -18,30 +19,48 @@ namespace winsw.Util
         /// <summary>
         /// Gets all children of the specified process.
         /// </summary>
-        /// <param name="pid">Process PID</param>
+        /// <param name="processId">Process PID</param>
         /// <returns>List of child process PIDs</returns>
-        public static List<int> GetChildPids(int pid)
+        private static unsafe List<Process> GetChildProcesses(int processId)
         {
-            var childPids = new List<int>();
+            var children = new List<Process>();
 
-            try
+            foreach (Process process in Process.GetProcesses())
             {
-                string query = "SELECT * FROM Win32_Process WHERE ParentProcessID = " + pid;
-                using ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                using ManagementObjectCollection results = searcher.Get();
-                foreach (ManagementBaseObject wmiObject in results)
+                IntPtr handle;
+                try
                 {
-                    var childProcessId = wmiObject["ProcessID"];
-                    Logger.Info("Found child process: " + childProcessId + " Name: " + wmiObject["Name"]);
-                    childPids.Add(Convert.ToInt32(childProcessId));
+                    handle = process.Handle;
+                }
+                catch (Win32Exception)
+                {
+                    process.Dispose();
+                    continue;
+                }
+
+                if (NtQueryInformationProcess(
+                    handle,
+                    PROCESSINFOCLASS.ProcessBasicInformation,
+                    out PROCESS_BASIC_INFORMATION information,
+                    sizeof(PROCESS_BASIC_INFORMATION)) != 0)
+                {
+                    Logger.Warn("Failed to locate children of the process with PID=" + processId + ". Child processes won't be terminated");
+                    process.Dispose();
+                    continue;
+                }
+
+                if ((int)information.InheritedFromUniqueProcessId == processId)
+                {
+                    Logger.Info("Found child process: " + process.Id + " Name: " + process.ProcessName);
+                    children.Add(process);
+                }
+                else
+                {
+                    process.Dispose();
                 }
             }
-            catch (Exception ex)
-            {
-                Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
-            }
 
-            return childPids;
+            return children;
         }
 
         /// <summary>
@@ -50,22 +69,18 @@ namespace winsw.Util
         /// </summary>
         /// <param name="pid">PID of the process</param>
         /// <param name="stopTimeout">Stop timeout</param>
-        public static void StopProcess(int pid, TimeSpan stopTimeout)
+        public static void StopProcess(Process process, TimeSpan stopTimeout)
         {
-            Logger.Info("Stopping process " + pid);
-            Process proc;
-            try
+            Logger.Info("Stopping process " + process.Id);
+
+            if (process.HasExited)
             {
-                proc = Process.GetProcessById(pid);
-            }
-            catch (ArgumentException ex)
-            {
-                Logger.Info("Process " + pid + " is already stopped", ex);
+                Logger.Info("Process " + process.Id + " is already stopped");
                 return;
             }
 
             // (bool sent, bool exited)
-            KeyValuePair<bool, bool> result = SignalHelper.SendCtrlCToProcess(proc, stopTimeout);
+            KeyValuePair<bool, bool> result = SignalHelper.SendCtrlCToProcess(process, stopTimeout);
             bool exited = result.Value;
             if (!exited)
             {
@@ -74,13 +89,13 @@ namespace winsw.Util
                     bool sent = result.Key;
                     if (sent)
                     {
-                        Logger.Warn("Process " + pid + " did not respond to Ctrl+C signal - Killing as fallback");
+                        Logger.Warn("Process " + process.Id + " did not respond to Ctrl+C signal - Killing as fallback");
                     }
-                    proc.Kill();
+                    process.Kill();
                 }
                 catch (Exception ex)
                 {
-                    if (!proc.HasExited)
+                    if (!process.HasExited)
                     {
                         throw;
                     }
@@ -100,23 +115,23 @@ namespace winsw.Util
         /// <param name="pid">Process PID</param>
         /// <param name="stopTimeout">Stop timeout (for each process)</param>
         /// <param name="stopParentProcessFirst">If enabled, the perent process will be terminated before its children on all levels</param>
-        public static void StopProcessAndChildren(int pid, TimeSpan stopTimeout, bool stopParentProcessFirst)
+        public static void StopProcessAndChildren(Process process, TimeSpan stopTimeout, bool stopParentProcessFirst)
         {
             if (!stopParentProcessFirst)
             {
-                foreach (var childPid in GetChildPids(pid))
+                foreach (Process child in GetChildProcesses(process.Id))
                 {
-                    StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
+                    StopProcessAndChildren(child, stopTimeout, stopParentProcessFirst);
                 }
             }
 
-            StopProcess(pid, stopTimeout);
+            StopProcess(process, stopTimeout);
 
             if (stopParentProcessFirst)
             {
-                foreach (var childPid in GetChildPids(pid))
+                foreach (Process child in GetChildProcesses(process.Id))
                 {
-                    StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
+                    StopProcessAndChildren(child, stopTimeout, stopParentProcessFirst);
                 }
             }
         }

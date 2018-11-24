@@ -276,7 +276,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             bldr.Append(proc);
 
             Logger.Warn(bldr.ToString());
-            ProcessHelper.StopProcessAndChildren(pid, this.StopTimeout, this.StopParentProcessFirst);
+            ProcessHelper.StopProcessAndChildren(proc, this.StopTimeout, this.StopParentProcessFirst);
         }
 
         /// <summary>
