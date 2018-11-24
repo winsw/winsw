@@ -1,5 +1,4 @@
-﻿#if VNEXT
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
@@ -26,4 +25,3 @@ namespace winswTests.Util
         }
     }
 }
-#endif

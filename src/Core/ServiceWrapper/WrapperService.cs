@@ -6,9 +6,7 @@ using System.Reflection;
 using System.ServiceProcess;
 using System.Text;
 using System.Text.RegularExpressions;
-#if VNEXT
 using System.Threading.Tasks;
-#endif
 using log4net;
 using winsw.Extensions;
 using winsw.Logging;
@@ -190,7 +188,6 @@ namespace winsw
             HandleFileCopies();
 
             // handle downloads
-#if VNEXT
             List<Download> downloads = _descriptor.Downloads;
             Task[] tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
@@ -229,32 +226,6 @@ namespace winsw
 
                 throw new AggregateException(exceptions);
             }
-#else
-            foreach (Download download in _descriptor.Downloads)
-            {
-                string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
-                LogEvent(downloadMessage);
-                Log.Info(downloadMessage);
-                try
-                {
-                    download.Perform();
-                }
-                catch (Exception e)
-                {
-                    string errorMessage = $"Failed to download {download.From} to {download.To}";
-                    LogEvent($"{errorMessage}. {e.Message}");
-                    Log.Error(errorMessage, e);
-
-                    // TODO: move this code into the download logic
-                    if (download.FailOnError)
-                    {
-                        throw new IOException(errorMessage, e);
-                    }
-
-                    // Else just keep going
-                }
-            }
-#endif
 
             string? startArguments = _descriptor.StartArguments;
 

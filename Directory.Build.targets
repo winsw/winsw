@@ -1,7 +1,0 @@
-﻿<Project>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'netcoreapp3.1'">
-    <DefineConstants>VNEXT</DefineConstants>
-  </PropertyGroup>
-
-</Project>

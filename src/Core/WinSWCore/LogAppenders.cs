@@ -1,13 +1,8 @@
 using System;
 using System.Diagnostics;
-#if VNEXT
 using System.IO.Compression;
-#endif
 using System.IO;
 using System.Threading;
-#if !VNEXT
-using ICSharpCode.SharpZipLib.Zip;
-#endif
 using winsw.Util;
 
 namespace winsw
@@ -481,7 +476,6 @@ namespace winsw
             }
         }
 
-#if VNEXT
         private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
             ZipArchive? zipArchive = null;
@@ -503,33 +497,6 @@ namespace winsw
                 zipArchive?.Dispose();
             }
         }
-#else
-        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
-        {
-            ZipFile? zipFile = null;
-            try
-            {
-                zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate));
-                zipFile.BeginUpdate();
-
-                if (zipFile.FindEntry(entryName, false) < 0)
-                {
-                    zipFile.Add(sourceFilePath, entryName);
-                }
-
-                zipFile.CommitUpdate();
-            }
-            catch (Exception e)
-            {
-                EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
-                zipFile?.AbortUpdate();
-            }
-            finally
-            {
-                zipFile?.Close();
-            }
-        }
-#endif
 
         private double SetupRollTimer(TimeSpan autoRollAtTime)
         {
