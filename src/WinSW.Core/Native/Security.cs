@@ -7,6 +7,7 @@ namespace WinSW.Native
 {
     internal static class Security
     {
+        /// <exception cref="CommandException" />
         /// <exception cref="Win32Exception" />
         internal static void AddServiceLogonRight(string userName)
         {
@@ -23,7 +24,7 @@ namespace WinSW.Native
             }
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         private static IntPtr GetAccountSid(string accountName)
         {
             int sidSize = 0;
@@ -43,7 +44,7 @@ namespace WinSW.Native
             {
                 if (!LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref domainNameLength, out _))
                 {
-                    Throw.Win32Exception("Failed to find the account.");
+                    Throw.Command.Win32Exception("Failed to find the account.");
                 }
 
                 return sid;
