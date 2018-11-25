@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace WinSW.Tests.Util
 {
@@ -12,8 +11,7 @@ namespace WinSW.Tests.Util
         public static string CreateTmpDirectory(string testName = null)
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), "winswTests_" + (testName ?? string.Empty) + Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDirectory);
-            Console.Out.WriteLine("Created the temporary directory: {0}", tempDirectory);
+            _ = Directory.CreateDirectory(tempDirectory);
             return tempDirectory;
         }
     }
