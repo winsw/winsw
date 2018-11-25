@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.ServiceProcess;
 using WinSW.Tests.Util;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WinSW.Tests
 {
@@ -14,10 +16,14 @@ namespace WinSW.Tests
         private const string Domain = "Domain";
         private const string AllowServiceAccountLogonRight = "true";
 
+        private readonly ITestOutputHelper output;
+        
         private ServiceDescriptor extendedServiceDescriptor;
 
-        public ServiceDescriptorTests()
+        public ServiceDescriptorTests(ITestOutputHelper output)
         {
+            this.output = output;
+
             string seedXml =
 $@"<service>
   <id>service.exe</id>
@@ -65,7 +71,7 @@ $@"<service>
 </service>";
 
             this.extendedServiceDescriptor = ServiceDescriptor.FromXml(seedXml);
-            Assert.Throws<ArgumentException>(() => this.extendedServiceDescriptor.StartMode);
+            _ = Assert.Throws<InvalidDataException>(() => this.extendedServiceDescriptor.StartMode);
         }
 
         [Fact]
@@ -304,7 +310,7 @@ $@"<service>
         [Fact]
         public void VerifyWaitHint_FullXML()
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithTag("waithint", "20 min")
                 .ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromMinutes(20), sd.WaitHint);
@@ -316,7 +322,7 @@ $@"<service>
         [Fact]
         public void VerifyWaitHint_XMLWithoutVersion()
         {
-            var sd = ConfigXmlBuilder.Create(printXMLVersion: false)
+            var sd = ConfigXmlBuilder.Create(this.output, printXmlVersion: false)
                 .WithTag("waithint", "21 min")
                 .ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromMinutes(21), sd.WaitHint);
@@ -325,7 +331,7 @@ $@"<service>
         [Fact]
         public void VerifyWaitHint_XMLWithoutComment()
         {
-            var sd = ConfigXmlBuilder.Create(xmlComment: null)
+            var sd = ConfigXmlBuilder.Create(this.output, xmlComment: null)
                 .WithTag("waithint", "22 min")
                 .ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromMinutes(22), sd.WaitHint);
@@ -334,7 +340,7 @@ $@"<service>
         [Fact]
         public void VerifyWaitHint_XMLWithoutVersionAndComment()
         {
-            var sd = ConfigXmlBuilder.Create(xmlComment: null, printXMLVersion: false)
+            var sd = ConfigXmlBuilder.Create(this.output, xmlComment: null, printXmlVersion: false)
                 .WithTag("waithint", "23 min")
                 .ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromMinutes(23), sd.WaitHint);
@@ -343,21 +349,21 @@ $@"<service>
         [Fact]
         public void VerifySleepTime()
         {
-            var sd = ConfigXmlBuilder.Create().WithTag("sleeptime", "3 hrs").ToServiceDescriptor(true);
+            var sd = ConfigXmlBuilder.Create(this.output).WithTag("sleeptime", "3 hrs").ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromHours(3), sd.SleepTime);
         }
 
         [Fact]
         public void VerifyResetFailureAfter()
         {
-            var sd = ConfigXmlBuilder.Create().WithTag("resetfailure", "75 sec").ToServiceDescriptor(true);
+            var sd = ConfigXmlBuilder.Create(this.output).WithTag("resetfailure", "75 sec").ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromSeconds(75), sd.ResetFailureAfter);
         }
 
         [Fact]
         public void VerifyStopTimeout()
         {
-            var sd = ConfigXmlBuilder.Create().WithTag("stoptimeout", "35 secs").ToServiceDescriptor(true);
+            var sd = ConfigXmlBuilder.Create(this.output).WithTag("stoptimeout", "35 secs").ToServiceDescriptor(true);
             Assert.Equal(TimeSpan.FromSeconds(35), sd.StopTimeout);
         }
 
@@ -367,14 +373,14 @@ $@"<service>
         [Fact]
         public void Arguments_LegacyParam()
         {
-            var sd = ConfigXmlBuilder.Create().WithTag("arguments", "arg").ToServiceDescriptor(true);
+            var sd = ConfigXmlBuilder.Create(this.output).WithTag("arguments", "arg").ToServiceDescriptor(true);
             Assert.Equal("arg", sd.Arguments);
         }
 
         [Fact]
         public void Arguments_NewParam_Single()
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithTag("argument", "--arg1=2")
                 .ToServiceDescriptor(true);
             Assert.Equal(" --arg1=2", sd.Arguments);
@@ -383,7 +389,7 @@ $@"<service>
         [Fact]
         public void Arguments_NewParam_MultipleArgs()
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithTag("argument", "--arg1=2")
                 .WithTag("argument", "--arg2=123")
                 .WithTag("argument", "--arg3=null")
@@ -397,7 +403,7 @@ $@"<service>
         [Fact]
         public void Arguments_Bothparam_Priorities()
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithTag("arguments", "--arg1=2 --arg2=3")
                 .WithTag("argument", "--arg2=123")
                 .WithTag("argument", "--arg3=null")
@@ -410,7 +416,7 @@ $@"<service>
         [InlineData(false)]
         public void DelayedStart_RoundTrip(bool enabled)
         {
-            var bldr = ConfigXmlBuilder.Create();
+            var bldr = ConfigXmlBuilder.Create(this.output);
             if (enabled)
             {
                 bldr = bldr.WithDelayedAutoStart();

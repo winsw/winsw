@@ -533,15 +533,16 @@ namespace WinSW
                 {
                     return (ServiceStartMode)Enum.Parse(typeof(ServiceStartMode), p, true);
                 }
-                catch
+                catch (ArgumentException e)
                 {
-                    Console.WriteLine("Start mode in XML must be one of the following:");
+                    StringBuilder builder = new StringBuilder();
+                    builder.AppendLine("Start mode in XML must be one of the following:");
                     foreach (string sm in Enum.GetNames(typeof(ServiceStartMode)))
                     {
-                        Console.WriteLine(sm);
+                        builder.AppendLine(sm);
                     }
 
-                    throw;
+                    throw new InvalidDataException(builder.ToString(), e);
                 }
             }
         }

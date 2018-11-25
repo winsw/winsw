@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using WinSW.Tests.Util;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WinSW.Tests
 {
@@ -9,12 +10,19 @@ namespace WinSW.Tests
         private const string From = "https://www.nosuchhostexists.foo.myorg/foo.xml";
         private const string To = "%BASE%\\foo.xml";
 
+        private readonly ITestOutputHelper output;
+
+        public DownloadConfigTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         [Fact]
         public void Roundtrip_Defaults()
         {
             // Roundtrip data
             Download d = new Download(From, To);
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
             var loaded = this.GetSingleEntry(sd);
@@ -32,7 +40,7 @@ namespace WinSW.Tests
         {
             // Roundtrip data
             Download d = new Download(From, To, true, Download.AuthType.Basic, "aUser", "aPassword", true);
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
             var loaded = this.GetSingleEntry(sd);
@@ -50,7 +58,7 @@ namespace WinSW.Tests
         {
             // Roundtrip data
             Download d = new Download(From, To, false, Download.AuthType.Sspi);
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
             var loaded = this.GetSingleEntry(sd);
@@ -99,7 +107,7 @@ namespace WinSW.Tests
         {
             Download d = new Download(From, To, failOnError);
 
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
 
@@ -115,7 +123,7 @@ namespace WinSW.Tests
         [Fact]
         public void Download_FailOnError_Undefined()
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\"/>")
                 .ToServiceDescriptor(true);
 
@@ -130,7 +138,7 @@ namespace WinSW.Tests
         [InlineData("Sspi")]
         public void AuthType_Is_CaseInsensitive(string authType)
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"" + authType + "\"/>")
                     .ToServiceDescriptor(true);
             var loaded = this.GetSingleEntry(sd);
@@ -141,7 +149,7 @@ namespace WinSW.Tests
         public void Should_Fail_On_Unsupported_AuthType()
         {
             // TODO: will need refactoring once all fields are being parsed on startup
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"digest\"/>")
                     .ToServiceDescriptor(true);
 
@@ -187,7 +195,7 @@ namespace WinSW.Tests
 
         private void AssertInitializationFails(Download download, string expectedMessagePart = null)
         {
-            var sd = ConfigXmlBuilder.Create()
+            var sd = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(download)
                 .ToServiceDescriptor(true);
 
