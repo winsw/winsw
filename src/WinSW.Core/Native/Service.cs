@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
@@ -55,19 +54,19 @@ namespace WinSW.Native
 
         private ServiceManager(IntPtr handle) => this.handle = handle;
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal static ServiceManager Open()
         {
             IntPtr handle = OpenSCManager(null, null, ServiceManagerAccess.ALL_ACCESS);
             if (handle == IntPtr.Zero)
             {
-                Throw.Win32Exception("Failed to open the service control manager database.");
+                Throw.Command.Win32Exception("Failed to open the service control manager database.");
             }
 
             return new ServiceManager(handle);
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal Service CreateService(
             string serviceName,
             string displayName,
@@ -111,19 +110,19 @@ namespace WinSW.Native
                 password);
             if (handle == IntPtr.Zero)
             {
-                Throw.Win32Exception("Failed to create service.");
+                Throw.Command.Win32Exception("Failed to create service.");
             }
 
             return new Service(handle);
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal Service OpenService(string serviceName)
         {
             IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
             if (serviceHandle == IntPtr.Zero)
             {
-                Throw.Win32Exception("Failed to open the service.");
+                Throw.Command.Win32Exception("Failed to open the service.");
             }
 
             return new Service(serviceHandle);
@@ -158,30 +157,30 @@ namespace WinSW.Native
 
         internal Service(IntPtr handle) => this.handle = handle;
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal ServiceControllerStatus Status
         {
             get
             {
                 if (!QueryServiceStatus(this.handle, out SERVICE_STATUS status))
                 {
-                    Throw.Win32Exception("Failed to query service status.");
+                    Throw.Command.Win32Exception("Failed to query service status.");
                 }
 
                 return status.CurrentState;
             }
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal void Delete()
         {
             if (!DeleteService(this.handle))
             {
-                Throw.Win32Exception("Failed to delete service.");
+                Throw.Command.Win32Exception("Failed to delete service.");
             }
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal void SetDescription(string description)
         {
             if (!ChangeServiceConfig2(
@@ -189,11 +188,11 @@ namespace WinSW.Native
                 ServiceConfigInfoLevels.DESCRIPTION,
                 new SERVICE_DESCRIPTION { Description = description }))
             {
-                Throw.Win32Exception("Failed to configure the description.");
+                Throw.Command.Win32Exception("Failed to configure the description.");
             }
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal unsafe void SetFailureActions(TimeSpan failureResetPeriod, SC_ACTION[] actions)
         {
             fixed (SC_ACTION* actionsPtr = actions)
@@ -210,12 +209,12 @@ namespace WinSW.Native
                         Actions = actionsPtr,
                     }))
                 {
-                    Throw.Win32Exception("Failed to configure the failure actions.");
+                    Throw.Command.Win32Exception("Failed to configure the failure actions.");
                 }
             }
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal void SetDelayedAutoStart(bool enabled)
         {
             if (!ChangeServiceConfig2(
@@ -223,18 +222,18 @@ namespace WinSW.Native
                 ServiceConfigInfoLevels.DELAYED_AUTO_START_INFO,
                 new SERVICE_DELAYED_AUTO_START_INFO { DelayedAutostart = enabled }))
             {
-                Throw.Win32Exception("Failed to configure the delayed auto-start setting.");
+                Throw.Command.Win32Exception("Failed to configure the delayed auto-start setting.");
             }
         }
 
-        /// <exception cref="Win32Exception" />
+        /// <exception cref="CommandException" />
         internal void SetSecurityDescriptor(RawSecurityDescriptor securityDescriptor)
         {
             byte[] securityDescriptorBytes = new byte[securityDescriptor.BinaryLength];
             securityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
             if (!SetServiceObjectSecurity(this.handle, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes))
             {
-                Throw.Win32Exception("Failed to configure the security descriptor.");
+                Throw.Command.Win32Exception("Failed to configure the security descriptor.");
             }
         }
 

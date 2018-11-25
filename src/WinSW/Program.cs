@@ -40,19 +40,26 @@ namespace WinSW
                 Console.Error.WriteLine(message);
                 return -1;
             }
+            catch (CommandException e)
+            {
+                string message = e.Message;
+                Log.Fatal(message);
+                Console.Error.WriteLine(message);
+                return e.InnerException is Win32Exception inner ? inner.NativeErrorCode : -1;
+            }
+            catch (InvalidOperationException e) when (e.InnerException is Win32Exception inner)
+            {
+                string message = e.Message;
+                Log.Fatal(message, e);
+                Console.Error.WriteLine(message);
+                return inner.NativeErrorCode;
+            }
             catch (Win32Exception e)
             {
                 string message = e.Message;
                 Log.Fatal(message, e);
                 Console.Error.WriteLine(message);
                 return e.NativeErrorCode;
-            }
-            catch (UserException e)
-            {
-                string message = e.Message;
-                Log.Fatal(message, e);
-                Console.Error.WriteLine(message);
-                return -1;
             }
             catch (Exception e)
             {
@@ -186,7 +193,7 @@ namespace WinSW
                 {
                     Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
                     Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                    throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+                    throw new CommandException("Installation failure: Service with id '" + descriptor.Id + "' already exists");
                 }
 
                 string? username = null;
@@ -292,7 +299,7 @@ namespace WinSW
                             inBuffer,
                             ref inBufferSize))
                         {
-                            Throw.Win32Exception("Failed to pack auth buffer.");
+                            Throw.Command.Win32Exception("Failed to pack auth buffer.");
                         }
 
                         CredentialApis.CREDUI_INFO info = new CredentialApis.CREDUI_INFO
@@ -348,7 +355,7 @@ namespace WinSW
                                 password,
                                 ref passwordLength))
                             {
-                                Throw.Win32Exception("Failed to unpack auth buffer.");
+                                Throw.Command.Win32Exception("Failed to unpack auth buffer.");
                             }
                         }
                         finally
@@ -404,9 +411,9 @@ namespace WinSW
 
                     sc.Delete();
                 }
-                catch (Win32Exception e)
+                catch (CommandException e) when (e.InnerException is Win32Exception inner)
                 {
-                    switch (e.NativeErrorCode)
+                    switch (inner.NativeErrorCode)
                     {
                         case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
                             Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
@@ -420,8 +427,8 @@ namespace WinSW
                             break; // it's already uninstalled, so consider it a success
 
                         default:
-                            Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
-                            throw e;
+                            Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. Error code is '" + inner.NativeErrorCode + "'");
+                            throw;
                     }
                 }
             }
@@ -588,7 +595,7 @@ namespace WinSW
 
                 if (!ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _))
                 {
-                    throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
+                    throw new CommandException("Failed to invoke restart: " + Marshal.GetLastWin32Error());
                 }
             }
 
@@ -668,10 +675,10 @@ namespace WinSW
             }
         }
 
-        /// <exception cref="UserException" />
+        /// <exception cref="CommandException" />
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowNoSuchService(Win32Exception inner) => throw new UserException(null, inner);
+        private static void ThrowNoSuchService(Win32Exception inner) => throw new CommandException(inner);
 
         private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
         {
@@ -733,12 +740,13 @@ namespace WinSW
                 appenders.ToArray());
         }
 
+        /// <exception cref="CommandException" />
         internal static bool IsProcessElevated()
         {
             IntPtr process = ProcessApis.GetCurrentProcess();
             if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
             {
-                Throw.Win32Exception("Failed to open process token.");
+                Throw.Command.Win32Exception("Failed to open process token.");
             }
 
             try
@@ -752,7 +760,7 @@ namespace WinSW
                         sizeof(SecurityApis.TOKEN_ELEVATION),
                         out _))
                     {
-                        Throw.Win32Exception("Failed to get token information.");
+                        Throw.Command.Win32Exception("Failed to get token information.");
                     }
 
                     return elevation.TokenIsElevated != 0;
