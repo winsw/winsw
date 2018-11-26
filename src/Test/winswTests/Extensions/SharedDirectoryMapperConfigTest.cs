@@ -1,19 +1,17 @@
-﻿using NUnit.Framework;
-using winsw;
+﻿using winsw;
 using winsw.Extensions;
 using winsw.Plugins.SharedDirectoryMapper;
+using Xunit;
 
 namespace winswTests.Extensions
 {
-    [TestFixture]
-    class SharedDirectoryMapperConfigTest : ExtensionTestBase
+    public class SharedDirectoryMapperConfigTest : ExtensionTestBase
     {
-        ServiceDescriptor _testServiceDescriptor;
+        readonly ServiceDescriptor _testServiceDescriptor;
 
         readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
-        [SetUp]
-        public void SetUp()
+        public SharedDirectoryMapperConfigTest()
         {
             string seedXml =
 $@"<service>
@@ -41,15 +39,15 @@ $@"<service>
             _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
-        [Test]
+        [Fact]
         public void LoadExtensions()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
             manager.LoadExtensions();
-            Assert.AreEqual(2, manager.Extensions.Count, "Two extensions should be loaded");
+            Assert.Equal(2, manager.Extensions.Count);
         }
 
-        [Test]
+        [Fact]
         public void StartStopExtension()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);

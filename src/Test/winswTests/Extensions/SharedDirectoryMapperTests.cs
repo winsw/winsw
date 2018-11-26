@@ -3,16 +3,15 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 using winsw.Plugins.SharedDirectoryMapper;
+using Xunit;
 
 namespace winswTests.Extensions
 {
-    // TODO: Throws.TypeOf<ExtensionException>()
-    [TestFixture]
+    // TODO: Assert.Throws<ExtensionException>
     public class SharedDirectoryMapperTests
     {
-        [Test]
+        [ElevatedFact]
         public void TestMap()
         {
             using TestData data = TestData.Create();
@@ -21,12 +20,12 @@ namespace winswTests.Extensions
             SharedDirectoryMapper mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
 
             mapper.OnWrapperStarted();
-            Assert.That($@"{label}\", Does.Exist);
+            Assert.True(Directory.Exists($@"{label}\"));
             mapper.BeforeWrapperStopped();
-            Assert.That($@"{label}\", Does.Not.Exist);
+            Assert.False(Directory.Exists($@"{label}\"));
         }
 
-        [Test]
+        [ElevatedFact]
         public void TestDisableMapping()
         {
             using TestData data = TestData.Create();
@@ -35,11 +34,11 @@ namespace winswTests.Extensions
             SharedDirectoryMapper mapper = new SharedDirectoryMapper(enableMapping: false, $@"\\{Environment.MachineName}\{data.name}", label);
 
             mapper.OnWrapperStarted();
-            Assert.That($@"{label}\", Does.Not.Exist);
+            Assert.False(Directory.Exists($@"{label}\"));
             mapper.BeforeWrapperStopped();
         }
 
-        [Test]
+        [ElevatedFact]
         public void TestMap_PathEndsWithSlash_Throws()
         {
             using TestData data = TestData.Create();
@@ -47,12 +46,12 @@ namespace winswTests.Extensions
             const string label = "W:";
             SharedDirectoryMapper mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}\", label);
 
-            Assert.That(() => mapper.OnWrapperStarted(), Throws.Exception);
-            Assert.That($@"{label}\", Does.Not.Exist);
-            Assert.That(() => mapper.BeforeWrapperStopped(), Throws.Exception);
+            _ = Assert.ThrowsAny<Exception>(() => mapper.OnWrapperStarted());
+            Assert.False(Directory.Exists($@"{label}\"));
+            _ = Assert.ThrowsAny<Exception>(() => mapper.BeforeWrapperStopped());
         }
 
-        [Test]
+        [ElevatedFact]
         public void TestMap_LabelDoesNotEndWithColon_Throws()
         {
             using TestData data = TestData.Create();
@@ -60,9 +59,9 @@ namespace winswTests.Extensions
             const string label = "W";
             SharedDirectoryMapper mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
 
-            Assert.That(() => mapper.OnWrapperStarted(), Throws.Exception);
-            Assert.That($@"{label}\", Does.Not.Exist);
-            Assert.That(() => mapper.BeforeWrapperStopped(), Throws.Exception);
+            _ = Assert.ThrowsAny<Exception>(() => mapper.OnWrapperStarted());
+            Assert.False(Directory.Exists($@"{label}\"));
+            _ = Assert.ThrowsAny<Exception>(() => mapper.BeforeWrapperStopped());
         }
 
         private readonly ref struct TestData
@@ -92,7 +91,7 @@ namespace winswTests.Extensions
                     };
 
                     uint error = NativeMethods.NetShareAdd(null, 2, shareInfo, out _);
-                    Assert.That(error, Is.Zero);
+                    Assert.Equal(0u, error);
 
                     return new TestData(name, path);
                 }
@@ -108,7 +107,7 @@ namespace winswTests.Extensions
                 try
                 {
                     uint error = NativeMethods.NetShareDel(null, this.name);
-                    Assert.That(error, Is.Zero);
+                    Assert.Equal(0u, error);
                 }
                 finally
                 {
