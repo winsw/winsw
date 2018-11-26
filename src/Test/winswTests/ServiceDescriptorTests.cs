@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.ServiceProcess;
-using NUnit.Framework;
 using winsw;
 using winswTests.Util;
+using Xunit;
 
 namespace winswTests
 {
-    [TestFixture]
     public class ServiceDescriptorTests
     {
         private ServiceDescriptor _extendedServiceDescriptor;
@@ -18,8 +17,7 @@ namespace winswTests
         private const string Domain = "Domain";
         private const string AllowServiceAccountLogonRight = "true";
 
-        [SetUp]
-        public void SetUp()
+        public ServiceDescriptorTests()
         {
             string seedXml =
 $@"<service>
@@ -40,13 +38,13 @@ $@"<service>
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
-        [Test]
+        [Fact]
         public void DefaultStartMode()
         {
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Automatic));
+            Assert.Equal(ServiceStartMode.Automatic, _extendedServiceDescriptor.StartMode);
         }
 
-        [Test]
+        [Fact]
         public void IncorrectStartMode()
         {
             string seedXml =
@@ -68,10 +66,10 @@ $@"<service>
 </service>";
 
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(() => _extendedServiceDescriptor.StartMode, Throws.ArgumentException);
+            Assert.Throws<ArgumentException>(() => _extendedServiceDescriptor.StartMode);
         }
 
-        [Test]
+        [Fact]
         public void ChangedStartMode()
         {
             string seedXml =
@@ -93,50 +91,50 @@ $@"<service>
 </service>";
 
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Manual));
+            Assert.Equal(ServiceStartMode.Manual, _extendedServiceDescriptor.StartMode);
         }
 
-        [Test]
+        [Fact]
         public void VerifyWorkingDirectory()
         {
             Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+            Assert.Equal(ExpectedWorkingDirectory, _extendedServiceDescriptor.WorkingDirectory);
         }
 
-        [Test]
+        [Fact]
         public void VerifyServiceLogonRight()
         {
-            Assert.That(_extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.True);
+            Assert.True(_extendedServiceDescriptor.AllowServiceAcountLogonRight);
         }
 
-        [Test]
+        [Fact]
         public void VerifyUsername()
         {
             Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountUserName, Is.EqualTo(Domain + "\\" + Username));
+            Assert.Equal(Domain + "\\" + Username, _extendedServiceDescriptor.ServiceAccountUserName);
         }
 
-        [Test]
+        [Fact]
         public void VerifyPassword()
         {
             Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
+            Assert.Equal(Password, _extendedServiceDescriptor.ServiceAccountPassword);
         }
 
-        [Test]
+        [Fact]
         public void Priority()
         {
             var sd = ServiceDescriptor.FromXML("<service><id>test</id><priority>normal</priority></service>");
-            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
+            Assert.Equal(ProcessPriorityClass.Normal, sd.Priority);
 
             sd = ServiceDescriptor.FromXML("<service><id>test</id><priority>idle</priority></service>");
-            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Idle));
+            Assert.Equal(ProcessPriorityClass.Idle, sd.Priority);
 
             sd = ServiceDescriptor.FromXML("<service><id>test</id></service>");
-            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
+            Assert.Equal(ProcessPriorityClass.Normal, sd.Priority);
         }
 
-        [Test]
+        [Fact]
         public void CanParseStopTimeout()
         {
             const string seedXml = "<service>"
@@ -144,10 +142,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(60)));
+            Assert.Equal(TimeSpan.FromSeconds(60), serviceDescriptor.StopTimeout);
         }
 
-        [Test]
+        [Fact]
         public void CanParseStopTimeoutFromMinutes()
         {
             const string seedXml = "<service>"
@@ -155,10 +153,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
+            Assert.Equal(TimeSpan.FromMinutes(10), serviceDescriptor.StopTimeout);
         }
 
-        [Test]
+        [Fact]
         public void CanParseLogname()
         {
             const string seedXml = "<service>"
@@ -166,10 +164,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.LogName, Is.EqualTo("MyTestApp"));
+            Assert.Equal("MyTestApp", serviceDescriptor.LogName);
         }
 
-        [Test]
+        [Fact]
         public void CanParseOutfileDisabled()
         {
             const string seedXml = "<service>"
@@ -177,10 +175,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.OutFileDisabled, Is.True);
+            Assert.True(serviceDescriptor.OutFileDisabled);
         }
 
-        [Test]
+        [Fact]
         public void CanParseErrfileDisabled()
         {
             const string seedXml = "<service>"
@@ -188,10 +186,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.ErrFileDisabled, Is.True);
+            Assert.True(serviceDescriptor.ErrFileDisabled);
         }
 
-        [Test]
+        [Fact]
         public void CanParseOutfilePattern()
         {
             const string seedXml = "<service>"
@@ -199,10 +197,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.OutFilePattern, Is.EqualTo(".out.test.log"));
+            Assert.Equal(".out.test.log", serviceDescriptor.OutFilePattern);
         }
 
-        [Test]
+        [Fact]
         public void CanParseErrfilePattern()
         {
             const string seedXml = "<service>"
@@ -210,10 +208,10 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.ErrFilePattern, Is.EqualTo(".err.test.log"));
+            Assert.Equal(".err.test.log", serviceDescriptor.ErrFilePattern);
         }
 
-        [Test]
+        [Fact]
         public void LogModeRollBySize()
         {
             const string seedXml = "<service>"
@@ -228,12 +226,12 @@ $@"<service>
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as SizeBasedRollingLogAppender;
-            Assert.That(logHandler, Is.Not.Null);
-            Assert.That(logHandler.SizeTheshold, Is.EqualTo(112 * 1024));
-            Assert.That(logHandler.FilesToKeep, Is.EqualTo(113));
+            Assert.NotNull(logHandler);
+            Assert.Equal(112 * 1024, logHandler.SizeTheshold);
+            Assert.Equal(113, logHandler.FilesToKeep);
         }
 
-        [Test]
+        [Fact]
         public void LogModeRollByTime()
         {
             const string seedXml = "<service>"
@@ -248,12 +246,12 @@ $@"<service>
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as TimeBasedRollingLogAppender;
-            Assert.That(logHandler, Is.Not.Null);
-            Assert.That(logHandler.Period, Is.EqualTo(7));
-            Assert.That(logHandler.Pattern, Is.EqualTo("log pattern"));
+            Assert.NotNull(logHandler);
+            Assert.Equal(7, logHandler.Period);
+            Assert.Equal("log pattern", logHandler.Pattern);
         }
 
-        [Test]
+        [Fact]
         public void LogModeRollBySizeTime()
         {
             const string seedXml = "<service>"
@@ -269,13 +267,13 @@ $@"<service>
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as RollingSizeTimeLogAppender;
-            Assert.That(logHandler, Is.Not.Null);
-            Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
-            Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
-            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0, 0, 0)));
+            Assert.NotNull(logHandler);
+            Assert.Equal(10240 * 1024, logHandler.SizeTheshold);
+            Assert.Equal("yyyy-MM-dd", logHandler.FilePattern);
+            Assert.Equal((TimeSpan?)new TimeSpan(0, 0, 0), logHandler.AutoRollAtTime);
         }
 
-        [Test]
+        [Fact]
         public void VerifyServiceLogonRightGraceful()
         {
             const string seedXml = "<service>"
@@ -287,10 +285,10 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.False);
+            Assert.False(serviceDescriptor.AllowServiceAcountLogonRight);
         }
 
-        [Test]
+        [Fact]
         public void VerifyServiceLogonRightOmitted()
         {
             const string seedXml = "<service>"
@@ -301,89 +299,89 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.False);
+            Assert.False(serviceDescriptor.AllowServiceAcountLogonRight);
         }
 
-        [Test]
+        [Fact]
         public void VerifyWaitHint_FullXML()
         {
             var sd = ConfigXmlBuilder.create()
                 .WithTag("waithint", "20 min")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(20)));
+            Assert.Equal(TimeSpan.FromMinutes(20), sd.WaitHint);
         }
 
         /// <summary>
         /// Test for https://github.com/kohsuke/winsw/issues/159
         /// </summary>
-        [Test]
+        [Fact]
         public void VerifyWaitHint_XMLWithoutVersion()
         {
             var sd = ConfigXmlBuilder.create(printXMLVersion: false)
                 .WithTag("waithint", "21 min")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(21)));
+            Assert.Equal(TimeSpan.FromMinutes(21), sd.WaitHint);
         }
 
-        [Test]
+        [Fact]
         public void VerifyWaitHint_XMLWithoutComment()
         {
             var sd = ConfigXmlBuilder.create(xmlComment: null)
                 .WithTag("waithint", "22 min")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(22)));
+            Assert.Equal(TimeSpan.FromMinutes(22), sd.WaitHint);
         }
 
-        [Test]
+        [Fact]
         public void VerifyWaitHint_XMLWithoutVersionAndComment()
         {
             var sd = ConfigXmlBuilder.create(xmlComment: null, printXMLVersion: false)
                 .WithTag("waithint", "23 min")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(23)));
+            Assert.Equal(TimeSpan.FromMinutes(23), sd.WaitHint);
         }
 
-        [Test]
+        [Fact]
         public void VerifySleepTime()
         {
             var sd = ConfigXmlBuilder.create().WithTag("sleeptime", "3 hrs").ToServiceDescriptor(true);
-            Assert.That(sd.SleepTime, Is.EqualTo(TimeSpan.FromHours(3)));
+            Assert.Equal(TimeSpan.FromHours(3), sd.SleepTime);
         }
 
-        [Test]
+        [Fact]
         public void VerifyResetFailureAfter()
         {
             var sd = ConfigXmlBuilder.create().WithTag("resetfailure", "75 sec").ToServiceDescriptor(true);
-            Assert.That(sd.ResetFailureAfter, Is.EqualTo(TimeSpan.FromSeconds(75)));
+            Assert.Equal(TimeSpan.FromSeconds(75), sd.ResetFailureAfter);
         }
 
-        [Test]
+        [Fact]
         public void VerifyStopTimeout()
         {
             var sd = ConfigXmlBuilder.create().WithTag("stoptimeout", "35 secs").ToServiceDescriptor(true);
-            Assert.That(sd.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(35)));
+            Assert.Equal(TimeSpan.FromSeconds(35), sd.StopTimeout);
         }
 
         /// <summary>
         /// https://github.com/kohsuke/winsw/issues/178
         /// </summary>
-        [Test]
+        [Fact]
         public void Arguments_LegacyParam()
         {
             var sd = ConfigXmlBuilder.create().WithTag("arguments", "arg").ToServiceDescriptor(true);
-            Assert.That(sd.Arguments, Is.EqualTo("arg"));
+            Assert.Equal("arg", sd.Arguments);
         }
 
-        [Test]
+        [Fact]
         public void Arguments_NewParam_Single()
         {
             var sd = ConfigXmlBuilder.create()
                 .WithTag("argument", "--arg1=2")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.Arguments, Is.EqualTo(" --arg1=2"));
+            Assert.Equal(" --arg1=2", sd.Arguments);
         }
 
-        [Test]
+        [Fact]
         public void Arguments_NewParam_MultipleArgs()
         {
             var sd = ConfigXmlBuilder.create()
@@ -391,13 +389,13 @@ $@"<service>
                 .WithTag("argument", "--arg2=123")
                 .WithTag("argument", "--arg3=null")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.Arguments, Is.EqualTo(" --arg1=2 --arg2=123 --arg3=null"));
+            Assert.Equal(" --arg1=2 --arg2=123 --arg3=null", sd.Arguments);
         }
 
         /// <summary>
         /// Ensures that the new single-argument field has a higher priority.
         /// </summary>
-        [Test]
+        [Fact]
         public void Arguments_Bothparam_Priorities()
         {
             var sd = ConfigXmlBuilder.create()
@@ -405,11 +403,12 @@ $@"<service>
                 .WithTag("argument", "--arg2=123")
                 .WithTag("argument", "--arg3=null")
                 .ToServiceDescriptor(true);
-            Assert.That(sd.Arguments, Is.EqualTo(" --arg2=123 --arg3=null"));
+            Assert.Equal(" --arg2=123 --arg3=null", sd.Arguments);
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public void DelayedStart_RoundTrip(bool enabled)
         {
             var bldr = ConfigXmlBuilder.create();
@@ -419,7 +418,7 @@ $@"<service>
             }
 
             var sd = bldr.ToServiceDescriptor();
-            Assert.That(sd.DelayedAutoStart, Is.EqualTo(enabled));
+            Assert.Equal(enabled, sd.DelayedAutoStart);
         }
     }
 }

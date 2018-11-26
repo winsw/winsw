@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using NUnit.Framework;
 using winsw;
+using Xunit;
 
 namespace winswTests.Util
 {
@@ -54,7 +54,7 @@ $@"<service>
                 Console.SetError(tmpErr);
             }
 
-            Assert.That(swErr.GetStringBuilder().Length, Is.Zero);
+            Assert.Equal(0, swErr.GetStringBuilder().Length);
             Console.Write(swOut.ToString());
             return swOut.ToString();
         }

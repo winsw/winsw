@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using NUnit.Framework;
 using winsw;
 using winsw.Configuration;
+using Xunit;
 
 namespace winswTests.Util
 {
@@ -14,12 +14,12 @@ namespace winswTests.Util
         public static void AssertPropertyIsDefault(ServiceDescriptor desc, string property)
         {
             PropertyInfo actualProperty = typeof(ServiceDescriptor).GetProperty(property);
-            Assert.That(actualProperty, Is.Not.Null);
+            Assert.NotNull(actualProperty);
 
             PropertyInfo defaultProperty = typeof(DefaultWinSWSettings).GetProperty(property);
-            Assert.That(defaultProperty, Is.Not.Null);
+            Assert.NotNull(defaultProperty);
 
-            Assert.That(actualProperty.GetValue(desc, null), Is.EqualTo(defaultProperty.GetValue(ServiceDescriptor.Defaults, null)));
+            Assert.Equal(defaultProperty.GetValue(ServiceDescriptor.Defaults, null), actualProperty.GetValue(desc, null));
         }
 
         public static void AssertPropertyIsDefault(ServiceDescriptor desc, List<string> properties)

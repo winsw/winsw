@@ -1,9 +1,9 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System;
+using System.IO;
 using System.Xml;
-using NUnit.Framework;
 using winsw;
 using winswTests.Util;
+using Xunit;
 
 namespace winswTests.Configuration
 {
@@ -11,38 +11,37 @@ namespace winswTests.Configuration
     /// Tests example configuration files.
     /// The test uses a relative path to example files, which is based on the current project structure.
     /// </summary>
-    [TestFixture]
     public class ExamplesTest
     {
-        [Test]
+        [Fact]
         public void AllOptionsConfigShouldDeclareDefaults()
         {
             ServiceDescriptor desc = Load("complete");
 
-            Assert.That(desc.Id, Is.EqualTo("myapp"));
-            Assert.That(desc.Caption, Is.EqualTo("MyApp Service (powered by WinSW)"));
-            Assert.That(desc.Description, Is.EqualTo("This service is a service created from a sample configuration"));
-            Assert.That(desc.Executable, Is.EqualTo("%BASE%\\myExecutable.exe"));
+            Assert.Equal("myapp", desc.Id);
+            Assert.Equal("MyApp Service (powered by WinSW)", desc.Caption);
+            Assert.Equal("This service is a service created from a sample configuration", desc.Description);
+            Assert.Equal("%BASE%\\myExecutable.exe", desc.Executable);
 
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
         }
 
-        [Test]
+        [Fact]
         public void MinimalConfigShouldDeclareDefaults()
         {
             ServiceDescriptor desc = Load("minimal");
 
-            Assert.That(desc.Id, Is.EqualTo("myapp"));
-            Assert.That(desc.Caption, Is.EqualTo("MyApp Service (powered by WinSW)"));
-            Assert.That(desc.Description, Is.EqualTo("This service is a service created from a minimal configuration"));
-            Assert.That(desc.Executable, Is.EqualTo("%BASE%\\myExecutable.exe"));
+            Assert.Equal("myapp", desc.Id);
+            Assert.Equal("MyApp Service (powered by WinSW)", desc.Caption);
+            Assert.Equal("This service is a service created from a minimal configuration", desc.Description);
+            Assert.Equal("%BASE%\\myExecutable.exe", desc.Executable);
 
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
         }
 
         private static ServiceDescriptor Load(string exampleName)
         {
-            string directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string directory = Environment.CurrentDirectory;
             while (true)
             {
                 if (File.Exists(Path.Combine(directory, ".gitignore")))
@@ -51,11 +50,11 @@ namespace winswTests.Configuration
                 }
 
                 directory = Path.GetDirectoryName(directory);
-                Assert.That(directory, Is.Not.Null);
+                Assert.NotNull(directory);
             }
 
             string path = Path.Combine(directory, $@"samples\sample-{exampleName}.xml");
-            Assert.That(path, Does.Exist);
+            Assert.True(File.Exists(path));
 
             XmlDocument dom = new XmlDocument();
             dom.Load(path);

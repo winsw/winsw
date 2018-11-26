@@ -1,25 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using NUnit.Framework;
 using winsw;
 using winsw.Extensions;
 using winsw.Plugins.RunawayProcessKiller;
 using winsw.Util;
 using winswTests.Util;
+using Xunit;
 
 namespace winswTests.Extensions
 {
-    [TestFixture]
-    class RunawayProcessKillerExtensionTest : ExtensionTestBase
+    public class RunawayProcessKillerExtensionTest : ExtensionTestBase
     {
-        ServiceDescriptor _testServiceDescriptor;
+        readonly ServiceDescriptor _testServiceDescriptor;
 
         readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
 
-        [SetUp]
-        public void SetUp()
+        public RunawayProcessKillerExtensionTest()
         {
             string seedXml =
 $@"<service>
@@ -39,21 +36,21 @@ $@"<service>
             _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
-        [Test]
+        [Fact]
         public void LoadExtensions()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
             manager.LoadExtensions();
-            Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
+            _ = Assert.Single(manager.Extensions);
 
             // Check the file is correct
             var extension = manager.Extensions["killRunawayProcess"] as RunawayProcessKillerExtension;
-            Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
-            Assert.AreEqual("foo/bar/pid.txt", extension.Pidfile, "Loaded PID file path is not equal to the expected one");
-            Assert.AreEqual(5000, extension.StopTimeout.TotalMilliseconds, "Loaded Stop Timeout is not equal to the expected one");
+            Assert.NotNull(extension);
+            Assert.Equal("foo/bar/pid.txt", extension.Pidfile);
+            Assert.Equal(5000, extension.StopTimeout.TotalMilliseconds);
         }
 
-        [Test]
+        [Fact]
         public void StartStopExtension()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
@@ -62,11 +59,8 @@ $@"<service>
             manager.FireBeforeWrapperStopped();
         }
 
-        [Test]
-        public void ShouldKillTheSpawnedProcess()
+        internal void ShouldKillTheSpawnedProcess()
         {
-            Assert.Ignore();
-
             var winswId = "myAppWithRunaway";
             var extensionId = "runaway-process-killer";
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
@@ -91,17 +85,17 @@ $@"<service>
                 WinSWExtensionManager manager = new WinSWExtensionManager(sd);
                 manager.LoadExtensions();
                 var extension = manager.Extensions[extensionId] as RunawayProcessKillerExtension;
-                Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
-                Assert.AreEqual(pidfile, extension.Pidfile, "PidFile should have been retained during the config roundtrip");
+                Assert.NotNull(extension);
+                Assert.Equal(pidfile, extension.Pidfile);
 
                 // Inject PID
                 File.WriteAllText(pidfile, proc.Id.ToString());
 
                 // Try to terminate
-                Assert.That(!proc.HasExited, "Process " + proc + " has exited before the RunawayProcessKiller extension invocation");
+                Assert.False(proc.HasExited, "Process " + proc + " has exited before the RunawayProcessKiller extension invocation");
                 _ = proc.StandardOutput.Read();
                 extension.OnWrapperStarted();
-                Assert.That(proc.HasExited, "Process " + proc + " should have been terminated by RunawayProcessKiller");
+                Assert.True(proc.HasExited, "Process " + proc + " should have been terminated by RunawayProcessKiller");
             }
             finally
             {

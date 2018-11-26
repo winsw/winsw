@@ -4,23 +4,21 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using winsw;
 using winswTests.Util;
+using Xunit;
 
 namespace winswTests
 {
-    [TestFixture]
-    public class DownloadTests
+    public class DownloadTests : IDisposable
     {
         private readonly HttpListener globalListener = new HttpListener();
 
         private readonly byte[] contents = { 0x57, 0x69, 0x6e, 0x53, 0x57 };
 
-        private string globalPrefix;
+        private readonly string globalPrefix;
 
-        [OneTimeSetUp]
-        public void SetUp()
+        public DownloadTests()
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
@@ -34,8 +32,7 @@ namespace winswTests
             }
         }
 
-        [OneTimeTearDown]
-        public void TearDown()
+        public void Dispose()
         {
             this.globalListener.Stop();
             this.globalListener.Close();
@@ -88,14 +85,14 @@ namespace winswTests
             }
         }
 
-        [Test]
+        [Fact]
         public async Task TestHttpAsync()
         {
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
                     await new Download(source, dest).PerformAsync();
-                    Assert.That(File.ReadAllBytes(dest), Is.EqualTo(this.contents));
+                    Assert.Equal(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>
                 {
@@ -104,14 +101,14 @@ namespace winswTests
                 });
         }
 
-        [Test]
+        [Fact]
         public async Task TestHttp_NoAuthAsync()
         {
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
                     await new Download(source, dest, false, Download.AuthType.none).PerformAsync();
-                    Assert.That(File.ReadAllBytes(dest), Is.EqualTo(this.contents));
+                    Assert.Equal(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>
                 {
@@ -126,7 +123,7 @@ namespace winswTests
                 });
         }
 
-        [Test]
+        [Fact]
         public async Task TestHttp_BasicAuthAsync()
         {
             const string username = nameof(username);
@@ -136,7 +133,7 @@ namespace winswTests
                 async (source, dest) =>
                 {
                     await new Download(source, dest, false, Download.AuthType.basic, username, password, true).PerformAsync();
-                    Assert.That(File.ReadAllBytes(dest), Is.EqualTo(this.contents));
+                    Assert.Equal(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>
                 {
@@ -153,7 +150,7 @@ namespace winswTests
                 AuthenticationSchemes.Basic);
         }
 
-        [Test]
+        [Fact]
         public async Task TestHttp_IfModifiedSince_ModifiedAsync()
         {
             DateTime lastModified = DateTime.Now.TrimToSeconds();
@@ -165,8 +162,8 @@ namespace winswTests
                     File.WriteAllBytes(dest, this.contents);
                     File.SetLastWriteTime(dest, prevModified);
                     await new Download(source, dest).PerformAsync();
-                    Assert.That(File.GetLastWriteTime(dest), Is.EqualTo(lastModified));
-                    Assert.That(File.ReadAllBytes(dest), Is.Not.EqualTo(this.contents));
+                    Assert.Equal(lastModified, File.GetLastWriteTime(dest));
+                    Assert.NotEqual(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>
                 {
@@ -181,7 +178,7 @@ namespace winswTests
                 });
         }
 
-        [Test]
+        [Fact]
         public async Task TestHttp_IfModifiedSince_NotModifiedAsync()
         {
             DateTime lastModified = DateTime.Now.TrimToSeconds();
@@ -192,8 +189,8 @@ namespace winswTests
                     File.WriteAllBytes(dest, this.contents);
                     File.SetLastWriteTime(dest, lastModified);
                     await new Download(source, dest).PerformAsync();
-                    Assert.That(File.GetLastWriteTime(dest), Is.EqualTo(lastModified));
-                    Assert.That(File.ReadAllBytes(dest), Is.EqualTo(this.contents));
+                    Assert.Equal(lastModified, File.GetLastWriteTime(dest));
+                    Assert.Equal(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>
                 {
@@ -208,16 +205,16 @@ namespace winswTests
                 });
         }
 
-        [Test]
+        [Fact]
         public async Task TestHttp_NotFound_ThrowsAsync()
         {
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    WebException exception = await AsyncAssert.ThrowsAsync<WebException>(
+                    WebException exception = await Assert.ThrowsAsync<WebException>(
                         async () => await new Download(source, dest).PerformAsync());
 
-                    Assert.That(exception.Status, Is.EqualTo(WebExceptionStatus.ProtocolError));
+                    Assert.Equal(WebExceptionStatus.ProtocolError, exception.Status);
                 },
                 context =>
                 {
