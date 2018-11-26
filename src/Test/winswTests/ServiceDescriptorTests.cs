@@ -30,8 +30,7 @@ $@"<service>
   <arguments>My Arguments</arguments>
   <log mode=""roll""></log>
   <serviceaccount>
-    <domain>{Domain}</domain>
-    <user>{Username}</user>
+    <username>{Domain}\{Username}</username>
     <password>{Password}</password>
     <allowservicelogon>{AllowServiceAccountLogonRight}</allowservicelogon>
   </serviceaccount>
@@ -60,8 +59,7 @@ $@"<service>
   <startmode>roll</startmode>
   <log mode=""roll""></log>
   <serviceaccount>
-    <domain>{Domain}</domain>
-    <user>{Username}</user>
+    <username>{Domain}\{Username}</username>
     <password>{Password}</password>
     <allowservicelogon>{AllowServiceAccountLogonRight}</allowservicelogon>
   </serviceaccount>
@@ -86,8 +84,7 @@ $@"<service>
   <startmode>manual</startmode>
   <log mode=""roll""></log>
   <serviceaccount>
-    <domain>{Domain}</domain>
-    <user>{Username}</user>
+    <username>{Domain}\{Username}</username>
     <password>{Password}</password>
     <allowservicelogon>{AllowServiceAccountLogonRight}</allowservicelogon>
   </serviceaccount>
@@ -116,7 +113,7 @@ $@"<service>
         public void VerifyUsername()
         {
             Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
+            Assert.That(_extendedServiceDescriptor.ServiceAccountUserName, Is.EqualTo(Domain + "\\" + Username));
         }
 
         [Test]

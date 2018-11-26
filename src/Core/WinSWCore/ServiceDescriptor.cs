@@ -645,17 +645,13 @@ namespace winsw
 
         protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
-        protected internal string? ServiceAccountDomain => GetServiceAccountPart("domain");
-
-        protected internal string? ServiceAccountName => GetServiceAccountPart("user");
-
         public string? ServiceAccountPassword => GetServiceAccountPart("password");
 
-        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
+        public string? ServiceAccountUserName => GetServiceAccountPart("username");
 
         public bool HasServiceAccount()
         {
-            return !string.IsNullOrEmpty(ServiceAccountName);
+            return !string.IsNullOrEmpty(ServiceAccountUserName);
         }
 
         public bool AllowServiceAcountLogonRight

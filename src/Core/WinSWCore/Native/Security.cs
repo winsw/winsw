@@ -8,9 +8,9 @@ namespace winsw.Native
     internal static class Security
     {
         /// <exception cref="Win32Exception" />
-        internal static void AddServiceLogonRight(string domain, string user)
+        internal static void AddServiceLogonRight(string userName)
         {
-            IntPtr sid = GetAccountSid(domain, user);
+            IntPtr sid = GetAccountSid(userName);
 
             try
             {
@@ -24,17 +24,16 @@ namespace winsw.Native
         }
 
         /// <exception cref="Win32Exception" />
-        private static IntPtr GetAccountSid(string domain, string user)
+        private static IntPtr GetAccountSid(string accountName)
         {
             int sidSize = 0;
             int domainNameLength = 0;
 
-            if (domain == ".")
+            if (accountName.StartsWith(".\\"))
             {
-                domain = Environment.MachineName;
+                accountName = Environment.MachineName + accountName.Substring(1);
             }
 
-            string accountName = domain + "\\" + user;
             _ = LookupAccountName(null, accountName, IntPtr.Zero, ref sidSize, IntPtr.Zero, ref domainNameLength, out _);
 
             IntPtr sid = Marshal.AllocHGlobal(sidSize);
