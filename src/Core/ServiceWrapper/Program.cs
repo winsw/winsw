@@ -211,7 +211,7 @@ namespace winsw
                 {
                     if (descriptor.HasServiceAccount())
                     {
-                        username = descriptor.ServiceAccountUser;
+                        username = descriptor.ServiceAccountUserName;
                         password = descriptor.ServiceAccountPassword;
                         allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
                     }
@@ -219,7 +219,7 @@ namespace winsw
 
                 if (allowServiceLogonRight)
                 {
-                    Security.AddServiceLogonRight(descriptor.ServiceAccountDomain!, descriptor.ServiceAccountName!);
+                    Security.AddServiceLogonRight(descriptor.ServiceAccountUserName!);
                 }
 
                 using Service sc = scm.CreateService(
