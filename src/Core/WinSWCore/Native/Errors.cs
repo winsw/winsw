@@ -2,6 +2,7 @@
 {
     internal static class Errors
     {
+        internal const int ERROR_SUCCESS = 0;
         internal const int ERROR_ACCESS_DENIED = 5;
         internal const int ERROR_INVALID_HANDLE = 6;
         internal const int ERROR_INVALID_PARAMETER = 7;

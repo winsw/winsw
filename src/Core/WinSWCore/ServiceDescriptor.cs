@@ -643,6 +643,8 @@ namespace winsw
             return null;
         }
 
+        public string? ServiceAccountPrompt => GetServiceAccountPart("prompt")?.ToLowerInvariant();
+
         protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
         public string? ServiceAccountPassword => GetServiceAccountPart("password");
@@ -651,7 +653,7 @@ namespace winsw
 
         public bool HasServiceAccount()
         {
-            return !string.IsNullOrEmpty(ServiceAccountUserName);
+            return this.dom.SelectSingleNode("//serviceaccount") != null;
         }
 
         public bool AllowServiceAcountLogonRight
