@@ -207,13 +207,24 @@ namespace winsw
                         allowServiceLogonRight = true;
                     }
                 }
-                else
+                else if (descriptor.HasServiceAccount())
                 {
-                    if (descriptor.HasServiceAccount())
+                    username = descriptor.ServiceAccountUserName;
+                    password = descriptor.ServiceAccountPassword;
+                    allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
+
+                    if (username is null || password is null)
                     {
-                        username = descriptor.ServiceAccountUserName;
-                        password = descriptor.ServiceAccountPassword;
-                        allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
+                        switch (descriptor.ServiceAccountPrompt)
+                        {
+                            case "dialog":
+                                PropmtForCredentialsDialog();
+                                break;
+
+                            case "console":
+                                PromptForCredentialsConsole();
+                                break;
+                        }
                     }
                 }
 
@@ -256,6 +267,116 @@ namespace winsw
                 if (!EventLog.SourceExists(eventLogSource))
                 {
                     EventLog.CreateEventSource(eventLogSource, "Application");
+                }
+
+                void PropmtForCredentialsDialog()
+                {
+                    username ??= string.Empty;
+                    password ??= string.Empty;
+
+                    int inBufferSize = 0;
+                    _ = CredentialApis.CredPackAuthenticationBuffer(
+                        0,
+                        username,
+                        password,
+                        IntPtr.Zero,
+                        ref inBufferSize);
+
+                    IntPtr inBuffer = Marshal.AllocCoTaskMem(inBufferSize);
+                    try
+                    {
+                        if (!CredentialApis.CredPackAuthenticationBuffer(
+                            0,
+                            username,
+                            password,
+                            inBuffer,
+                            ref inBufferSize))
+                        {
+                            Throw.Win32Exception("Failed to pack auth buffer.");
+                        }
+
+                        CredentialApis.CREDUI_INFO info = new CredentialApis.CREDUI_INFO
+                        {
+                            Size = Marshal.SizeOf(typeof(CredentialApis.CREDUI_INFO)),
+                            CaptionText = "Windows Service Wrapper", // TODO
+                            MessageText = "service account credentials", // TODO
+                        };
+                        uint authPackage = 0;
+                        bool save = false;
+                        int error = CredentialApis.CredUIPromptForWindowsCredentials(
+                            info,
+                            0,
+                            ref authPackage,
+                            inBuffer,
+                            inBufferSize,
+                            out IntPtr outBuffer,
+                            out uint outBufferSize,
+                            ref save,
+                            CredentialApis.CREDUIWIN_GENERIC);
+
+                        if (error != Errors.ERROR_SUCCESS)
+                        {
+                            throw new Win32Exception(error);
+                        }
+
+                        try
+                        {
+                            int userNameLength = 0;
+                            int passwordLength = 0;
+                            _ = CredentialApis.CredUnPackAuthenticationBuffer(
+                                0,
+                                outBuffer,
+                                outBufferSize,
+                                null,
+                                ref userNameLength,
+                                default,
+                                default,
+                                null,
+                                ref passwordLength);
+
+                            username = userNameLength == 0 ? null : new string('\0', userNameLength - 1);
+                            password = passwordLength == 0 ? null : new string('\0', passwordLength - 1);
+
+                            if (!CredentialApis.CredUnPackAuthenticationBuffer(
+                                0,
+                                outBuffer,
+                                outBufferSize,
+                                username,
+                                ref userNameLength,
+                                default,
+                                default,
+                                password,
+                                ref passwordLength))
+                            {
+                                Throw.Win32Exception("Failed to unpack auth buffer.");
+                            }
+                        }
+                        finally
+                        {
+                            Marshal.FreeCoTaskMem(outBuffer);
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.FreeCoTaskMem(inBuffer);
+                    }
+                }
+
+                void PromptForCredentialsConsole()
+                {
+                    if (username is null)
+                    {
+                        Console.Write("Username: ");
+                        username = Console.ReadLine();
+                    }
+
+                    if (password is null)
+                    {
+                        Console.Write("Password: ");
+                        password = ReadPassword();
+                    }
+
+                    Console.WriteLine();
                 }
             }
 
