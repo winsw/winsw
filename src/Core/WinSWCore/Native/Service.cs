@@ -1,5 +1,8 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Security.AccessControl;
+using System.ServiceProcess;
+using System.Text;
 using static winsw.Native.ServiceApis;
 
 namespace winsw.Native
@@ -52,6 +55,7 @@ namespace winsw.Native
 
         private ServiceManager(IntPtr handle) => this.handle = handle;
 
+        /// <exception cref="Win32Exception" />
         internal static ServiceManager Open()
         {
             IntPtr handle = OpenSCManager(null, null, ServiceManagerAccess.ALL_ACCESS);
@@ -63,6 +67,57 @@ namespace winsw.Native
             return new ServiceManager(handle);
         }
 
+        /// <exception cref="Win32Exception" />
+        internal Service CreateService(
+            string serviceName,
+            string displayName,
+            ServiceStartMode startMode,
+            string executablePath,
+            string[] dependencies,
+            string? username,
+            string? password)
+        {
+            int arrayLength = 1;
+            for (int i = 0; i < dependencies.Length; i++)
+            {
+                arrayLength += dependencies[i].Length + 1;
+            }
+
+            StringBuilder? array = null;
+            if (dependencies.Length != 0)
+            {
+                array = new StringBuilder(arrayLength);
+                for (int i = 0; i < dependencies.Length; i++)
+                {
+                    _ = array.Append(dependencies[i]).Append('\0');
+                }
+
+                _ = array.Append('\0');
+            }
+
+            IntPtr handle = ServiceApis.CreateService(
+                this.handle,
+                serviceName,
+                displayName,
+                ServiceAccess.ALL_ACCESS,
+                ServiceType.Win32OwnProcess,
+                startMode,
+                ServiceErrorControl.Normal,
+                executablePath,
+                default,
+                default,
+                array,
+                username,
+                password);
+            if (handle == IntPtr.Zero)
+            {
+                Throw.Win32Exception("Failed to create service.");
+            }
+
+            return new Service(handle);
+        }
+
+        /// <exception cref="Win32Exception" />
         internal Service OpenService(string serviceName)
         {
             IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
@@ -72,6 +127,18 @@ namespace winsw.Native
             }
 
             return new Service(serviceHandle);
+        }
+
+        internal bool ServiceExists(string serviceName)
+        {
+            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
+            if (serviceHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            _ = CloseServiceHandle(this.handle);
+            return true;
         }
 
         public void Dispose()
@@ -91,6 +158,30 @@ namespace winsw.Native
 
         internal Service(IntPtr handle) => this.handle = handle;
 
+        /// <exception cref="Win32Exception" />
+        internal ServiceControllerStatus Status
+        {
+            get
+            {
+                if (!QueryServiceStatus(this.handle, out SERVICE_STATUS status))
+                {
+                    Throw.Win32Exception("Failed to query service status.");
+                }
+
+                return status.CurrentState;
+            }
+        }
+
+        /// <exception cref="Win32Exception" />
+        internal void Delete()
+        {
+            if (!DeleteService(this.handle))
+            {
+                Throw.Win32Exception("Failed to delete service.");
+            }
+        }
+
+        /// <exception cref="Win32Exception" />
         internal void SetDescription(string description)
         {
             if (!ChangeServiceConfig2(
@@ -102,6 +193,7 @@ namespace winsw.Native
             }
         }
 
+        /// <exception cref="Win32Exception" />
         internal unsafe void SetFailureActions(TimeSpan failureResetPeriod, SC_ACTION[] actions)
         {
             fixed (SC_ACTION* actionsPtr = actions)
@@ -122,6 +214,7 @@ namespace winsw.Native
             }
         }
 
+        /// <exception cref="Win32Exception" />
         internal void SetDelayedAutoStart(bool enabled)
         {
             if (!ChangeServiceConfig2(
@@ -133,6 +226,7 @@ namespace winsw.Native
             }
         }
 
+        /// <exception cref="Win32Exception" />
         internal void SetSecurityDescriptor(RawSecurityDescriptor securityDescriptor)
         {
             byte[] securityDescriptorBytes = new byte[securityDescriptor.BinaryLength];

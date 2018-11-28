@@ -428,7 +428,7 @@ namespace winsw
             IntPtr handle = ServiceHandle;
             _wrapperServiceStatus.CheckPoint++;
             // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            _wrapperServiceStatus.CurrentState = ServiceApis.ServiceState.STOPPED;
+            _wrapperServiceStatus.CurrentState = ServiceControllerStatus.Stopped;
             ServiceApis.SetServiceStatus(handle, _wrapperServiceStatus);
         }
 

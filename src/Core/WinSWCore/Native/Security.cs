@@ -7,6 +7,7 @@ namespace winsw.Native
 {
     internal static class Security
     {
+        /// <exception cref="Win32Exception" />
         internal static void AddServiceLogonRight(string domain, string user)
         {
             IntPtr sid = GetAccountSid(domain, user);
@@ -22,6 +23,7 @@ namespace winsw.Native
             }
         }
 
+        /// <exception cref="Win32Exception" />
         private static IntPtr GetAccountSid(string domain, string user)
         {
             int sidSize = 0;
@@ -53,6 +55,7 @@ namespace winsw.Native
             }
         }
 
+        /// <exception cref="Win32Exception" />
         private static void AddAccountRight(IntPtr sid, string rightName)
         {
             uint status = LsaOpenPolicy(IntPtr.Zero, default, PolicyAccess.ALL_ACCESS, out IntPtr policyHandle);
