@@ -3,18 +3,9 @@ WinSW Developer Information
 
 ### Build Environment
 
-* IDE: [Visual Studio Community 2019](https://visualstudio.microsoft.com/vs/) (free for open-source projects)
 * *winsw_key.snk* should be available in the project's root in order to build the executable
 * You can generate the certificate by running *generate-key.ps1*
 * The certificate is in *.gitignore* list. Please do not add it to the repository
-
-### Testing
-
-WinSW includes a set of tests powered by the [NUnit](https://www.nunit.org/) test framework.
-In order to run tests you can install [NUnit Console](https://github.com/nunit/nunit-console) on the build machine.
-
-Once you build the solution, you will be able to find the test DLL with dependencies in the `src/Test/winswTests/bin` directory.
-In NUnit Console you can just import projects from this directory and then run tests.
  
 ### Continuous Integration
 
