@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.ServiceProcess;
 using System.Xml;
-using WMI;
 
 namespace winsw.Configuration
 {
@@ -38,7 +38,7 @@ namespace winsw.Configuration
         public bool StopParentProcessFirst => false;
 
         // Service management
-        public StartMode StartMode => StartMode.Automatic;
+        public ServiceStartMode StartMode => ServiceStartMode.Automatic;
         public bool DelayedAutoStart => false;
         public string[] ServiceDependencies => new string[0];
         public TimeSpan WaitHint => TimeSpan.FromSeconds(15);

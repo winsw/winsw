@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.ServiceProcess;
 using System.Xml;
-using WMI;
 
 namespace winsw.Configuration
 {
@@ -35,7 +35,7 @@ namespace winsw.Configuration
         bool StopParentProcessFirst { get; }
 
         // Service management
-        StartMode StartMode { get; }
+        ServiceStartMode StartMode { get; }
         string[] ServiceDependencies { get; }
         TimeSpan WaitHint { get; }
         TimeSpan SleepTime { get; }

@@ -1,10 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace winsw.Native
 {
     internal static class Throw
     {
+        /// <exception cref="System.ComponentModel.Win32Exception" />
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void Win32Exception(string message)
         {
             Win32Exception inner = new Win32Exception();

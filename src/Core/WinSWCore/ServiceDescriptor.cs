@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.ServiceProcess;
 using System.Text;
 using System.Xml;
 using winsw.Configuration;
 using winsw.Native;
 using winsw.Util;
-using WMI;
 
 namespace winsw
 {
@@ -507,7 +507,7 @@ namespace winsw
         /// <summary>
         /// Start mode of the Service
         /// </summary>
-        public StartMode StartMode
+        public ServiceStartMode StartMode
         {
             get
             {
@@ -517,12 +517,12 @@ namespace winsw
 
                 try
                 {
-                    return (StartMode)Enum.Parse(typeof(StartMode), p, true);
+                    return (ServiceStartMode)Enum.Parse(typeof(ServiceStartMode), p, true);
                 }
                 catch
                 {
                     Console.WriteLine("Start mode in XML must be one of the following:");
-                    foreach (string sm in Enum.GetNames(typeof(StartMode)))
+                    foreach (string sm in Enum.GetNames(typeof(ServiceStartMode)))
                     {
                         Console.WriteLine(sm);
                     }

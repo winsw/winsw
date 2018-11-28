@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.ServiceProcess;
+using System.Text;
 
 namespace winsw.Native
 {
@@ -18,11 +20,33 @@ namespace winsw.Native
         [DllImport(Libraries.Advapi32)]
         internal static extern bool CloseServiceHandle(IntPtr objectHandle);
 
+        [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "CreateServiceW")]
+        internal static extern IntPtr CreateService(
+            IntPtr databaseHandle,
+            string serviceName,
+            string displayName,
+            ServiceAccess desiredAccess,
+            ServiceType serviceType,
+            ServiceStartMode startType,
+            ServiceErrorControl errorControl,
+            string binaryPath,
+            string? loaderOrderGroup,
+            IntPtr tagId,
+            StringBuilder? dependencies, // TODO
+            string? serviceStartName,
+            string? password);
+
+        [DllImport(Libraries.Advapi32, SetLastError = true)]
+        internal static extern bool DeleteService(IntPtr serviceHandle);
+
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenSCManagerW")]
         internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, ServiceManagerAccess desiredAccess);
 
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenServiceW")]
         internal static extern IntPtr OpenService(IntPtr databaseHandle, string serviceName, ServiceAccess desiredAccess);
+
+        [DllImport(Libraries.Advapi32, SetLastError = true)]
+        internal static extern bool QueryServiceStatus(IntPtr serviceHandle, out SERVICE_STATUS serviceStatus);
 
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool SetServiceObjectSecurity(IntPtr serviceHandle, SecurityInfos securityInformation, byte[] securityDescriptor);
@@ -73,17 +97,13 @@ namespace winsw.Native
             PREFERRED_NODE = 9,
         }
 
-        // SERVICE_
-        // https://docs.microsoft.com/windows/win32/api/winsvc/ns-winsvc-service_status
-        internal enum ServiceState : uint
+        // SERVICE_ERROR_
+        internal enum ServiceErrorControl : uint
         {
-            STOPPED = 0x00000001,
-            START_PENDING = 0x00000002,
-            STOP_PENDING = 0x00000003,
-            RUNNING = 0x00000004,
-            CONTINUE_PENDING = 0x00000005,
-            PAUSE_PENDING = 0x00000006,
-            PAUSED = 0x00000007,
+            Ignore = 0x00000000,
+            Normal = 0x00000001,
+            Severe = 0x00000002,
+            Critical = 0x00000003,
         }
 
         // SC_MANAGER_
@@ -121,19 +141,19 @@ namespace winsw.Native
 
         // https://docs.microsoft.com/windows/win32/api/winsvc/ns-winsvc-service_failure_actionsw
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal unsafe struct SERVICE_FAILURE_ACTIONS
+        internal struct SERVICE_FAILURE_ACTIONS
         {
             public int ResetPeriod;
             public string RebootMessage;
             public string Command;
             public int ActionsCount;
-            public SC_ACTION* Actions;
+            public unsafe SC_ACTION* Actions;
         }
 
         internal struct SERVICE_STATUS
         {
             public int ServiceType;
-            public ServiceState CurrentState;
+            public ServiceControllerStatus CurrentState;
             public int ControlsAccepted;
             public int Win32ExitCode;
             public int ServiceSpecificExitCode;
