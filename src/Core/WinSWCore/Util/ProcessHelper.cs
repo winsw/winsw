@@ -21,12 +21,18 @@ namespace winsw.Util
         /// </summary>
         /// <param name="processId">Process PID</param>
         /// <returns>List of child process PIDs</returns>
-        private static unsafe List<Process> GetChildProcesses(int processId)
+        private static unsafe List<Process> GetChildProcesses(DateTime startTime, int processId)
         {
             var children = new List<Process>();
 
             foreach (Process process in Process.GetProcesses())
             {
+                if (process.StartTime <= startTime)
+                {
+                    process.Dispose();
+                    continue;
+                }
+
                 IntPtr handle;
                 try
                 {
@@ -118,7 +124,7 @@ namespace winsw.Util
         {
             StopProcess(process, stopTimeout);
 
-            foreach (Process child in GetChildProcesses(process.Id))
+            foreach (Process child in GetChildProcesses(process.StartTime, process.Id))
             {
                 StopProcessTree(child, stopTimeout);
             }
