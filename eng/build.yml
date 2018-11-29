@@ -1,21 +1,20 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-name: $(Major).$(Minor).$(Patch).$(Revision)
+name: 3.0.0-alpha.$(Revision)
 
 trigger:
-- master
+- v3
 
 pr:
-- master
+- v3
 
 variables:
-- group: Version
 - name: Revision
-  value: $[counter(format('{0}.{1}.{2}', variables.Major, variables.Minor, variables.Patch), 1)]
+  value: $[counter(3.0.0, 1)]
 - name: BuildVersion
-  value: $(Major).$(Minor).$(Patch)
+  value: 3.0.0
 - name: InformationalVersion # do not rename (MSBuild property)
-  value: $(Major).$(Minor).$(Patch)+$(Build.SourceVersion)
+  value: 3.0.0+$(Build.SourceVersion)
 
 jobs:
 - job: Build
@@ -82,15 +81,3 @@ jobs:
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
       ArtifactName: WinSW.nupkg_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
-    displayName: Publish full sample
-    condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
-    inputs:
-      PathtoPublish: examples\sample-allOptions.xml
-      ArtifactName: sample-allOptions.xml
-  - task: PublishBuildArtifacts@1
-    displayName: Publish minimal sample
-    condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
-    inputs:
-      PathtoPublish: examples\sample-minimal.xml
-      ArtifactName: sample-minimal.xml
