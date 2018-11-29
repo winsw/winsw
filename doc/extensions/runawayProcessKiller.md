@@ -1,5 +1,4 @@
-Runaway Process Killer Extension
-===
+# Runaway Process Killer Extension
 
 In particular cases Windows service wrapper may leak the process after the service completion.
 It happens when WinSW gets terminated without executing the shutdown logic.

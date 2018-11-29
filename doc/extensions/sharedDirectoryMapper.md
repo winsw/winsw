@@ -1,5 +1,4 @@
-Shared Directory Mapper extension
-====
+# Shared Directory Mapper extension
 
 By default Windows does not establish shared drive mapping for services even if it is configured in the Windows service profile.
 And sometimes it is impossible to workaround it due to the domain policies.
