@@ -586,7 +586,14 @@ namespace WinSW
 
             if (this.config.Priority is ProcessPriorityClass priority)
             {
-                process.PriorityClass = priority;
+                try
+                {
+                    process.PriorityClass = priority;
+                }
+                catch (InvalidOperationException)
+                {
+                    // exited
+                }
             }
 
             if (logHandler != null)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net471;netcoreapp5.0</TargetFrameworks>
+    <TargetFrameworks>net471;net5.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -20,7 +20,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp5.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">
     <PackageReference Include="System.Reflection.Metadata" Version="1.8.1" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -39,11 +39,11 @@
 
   <Target Name="Copy" BeforeTargets="AfterBuild">
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp5.0'">
+    <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
       <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net5.0\WinSW.runtimeconfig*.json" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp5.0'">
+    <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">
       <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net461\System.ValueTuple.dll" />
     </ItemGroup>
 

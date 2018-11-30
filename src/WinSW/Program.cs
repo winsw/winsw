@@ -102,7 +102,15 @@ namespace WinSW
 
                     AutoRefresh(config);
 
-                    ServiceBase.Run(new WrapperService(config));
+                    using var service = new WrapperService(config);
+                    try
+                    {
+                        ServiceBase.Run(service);
+                    }
+                    catch
+                    {
+                        // handled in OnStart
+                    }
                 }),
             };
 
