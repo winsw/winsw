@@ -3,6 +3,7 @@
   <PropertyGroup>
     <DebugType>full</DebugType>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)winsw_key.snk</AssemblyOriginatorKeyFile>
+    <ArtifactsDir>$(MSBuildThisFileDirectory)artifacts\</ArtifactsDir>
   </PropertyGroup>
 
 </Project>

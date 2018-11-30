@@ -46,19 +46,45 @@
     <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj" />
   </ItemGroup>
 
+  <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' == ''">
+
+    <MakeDir Directories="$(ArtifactsDir)" />
+    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsDir)WinSW.NETCore31.zip" Overwrite="true" />
+
+  </Target>
+
+  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' != ''">
+
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+      <IdentifierSuffix>x64</IdentifierSuffix>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x86'">
+      <IdentifierSuffix>x86</IdentifierSuffix>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(ArtifactsDir)" />
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsDir)WinSW.NETCore31.$(IdentifierSuffix).exe" />
+
+  </Target>
+
   <!-- Merge plugins and other DLLs into the executable -->
   <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
       <TargetPlatform>v2</TargetPlatform>
+      <IdentifierSuffix>NET2</IdentifierSuffix>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
       <TargetPlatform>v4</TargetPlatform>
+      <IdentifierSuffix>NET4</IdentifierSuffix>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+      <!-- v4.5+ -->
       <TargetPlatform>v4.5</TargetPlatform>
+      <IdentifierSuffix>NET461</IdentifierSuffix>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -67,7 +93,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)SharedDirectoryMapper.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)RunawayProcessKiller.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
-      <OutputAssembly>"$(OutDir)WinSW.exe"</OutputAssembly>
+      <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
@@ -80,6 +106,7 @@
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
 
+    <MakeDir Directories="$(ArtifactsDir)" />
     <Message Text="$(ILMergeCommand)" Importance="high" />
     <Exec Command="$(ILMergeCommand)" />
 
