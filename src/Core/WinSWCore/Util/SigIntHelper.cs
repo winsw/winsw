@@ -9,15 +9,15 @@ namespace winsw.Util
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SigIntHelper));
 
-        private const string KERNEL32 = "kernel32.dll";
+        private const string Kernel32LibraryName = "kernel32.dll";
 
-        [DllImport(KERNEL32, SetLastError = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         private static extern bool AttachConsole(uint dwProcessId);
 
-        [DllImport(KERNEL32, SetLastError = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         private static extern bool FreeConsole();
 
-        [DllImport(KERNEL32)]
+        [DllImport(Kernel32LibraryName)]
         private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate? HandlerRoutine, bool Add);
 
         // Delegate type to be used as the Handler Routine for SCCH
@@ -33,7 +33,7 @@ namespace winsw.Util
             CTRL_SHUTDOWN_EVENT
         }
 
-        [DllImport(KERNEL32)]
+        [DllImport(Kernel32LibraryName)]
         private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
 
         /// <summary>

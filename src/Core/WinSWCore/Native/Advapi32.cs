@@ -273,48 +273,50 @@ namespace winsw.Native
     /// </summary>
     public class Advapi32
     {
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private const string Advapi32LibraryName = "advapi32.dll";
+
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, IntPtr lpInfo);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_FAILURE_ACTIONS sfa);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_DELAYED_AUTO_START sfa);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, uint dwAccess);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
         internal static extern bool CloseServiceHandle(IntPtr hSCObject);
 
-        [DllImport("advapi32.DLL")]
+        [DllImport(Advapi32LibraryName)]
         public static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
-        [DllImport("advapi32.dll")]
+        [DllImport(Advapi32LibraryName)]
         internal static extern uint LsaOpenPolicy(ref LSA_UNICODE_STRING SystemName, ref LSA_OBJECT_ATTRIBUTES ObjectAttributes, int DesiredAccess,
             out IntPtr PolicyHandle);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
         internal static extern uint LsaAddAccountRights(IntPtr PolicyHandle, IntPtr AccountSid, LSA_UNICODE_STRING[] UserRights, uint CountOfRights);
 
-        [DllImport("advapi32")]
+        [DllImport(Advapi32LibraryName)]
         internal static extern void FreeSid(IntPtr pSid);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(Advapi32LibraryName, CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern bool LookupAccountName(string lpSystemName, string lpAccountName, IntPtr psid, ref int cbsid, StringBuilder domainName,
             ref int cbdomainLength, ref int use);
 
-        [DllImport("advapi32.dll")]
+        [DllImport(Advapi32LibraryName)]
         internal static extern bool IsValidSid(IntPtr pSid);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
         internal static extern uint LsaClose(IntPtr ObjectHandle);
 
-        [DllImport("advapi32.dll", SetLastError = false)]
+        [DllImport(Advapi32LibraryName, SetLastError = false)]
         internal static extern uint LsaNtStatusToWinError(uint status);
     }
 

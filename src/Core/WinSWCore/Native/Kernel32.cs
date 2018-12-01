@@ -9,10 +9,12 @@ namespace winsw.Native
     /// </summary>
     public class Kernel32
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
+        private const string Kernel32LibraryName = "kernel32.dll";
+
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         public static extern bool SetStdHandle(int nStdHandle, SafeFileHandle handle);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         public static extern bool CreateProcess(
             string? lpApplicationName,
             string lpCommandLine,
