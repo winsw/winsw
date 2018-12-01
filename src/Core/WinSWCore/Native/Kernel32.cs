@@ -14,7 +14,7 @@ namespace winsw.Native
         [DllImport(Kernel32LibraryName, SetLastError = true)]
         public static extern bool SetStdHandle(int nStdHandle, SafeFileHandle handle);
 
-        [DllImport(Kernel32LibraryName, SetLastError = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "CreateProcessW")]
         public static extern bool CreateProcess(
             string? lpApplicationName,
             string lpCommandLine,

@@ -275,19 +275,19 @@ namespace winsw.Native
     {
         private const string Advapi32LibraryName = "advapi32.dll";
 
-        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, IntPtr lpInfo);
 
-        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_FAILURE_ACTIONS sfa);
 
-        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_DELAYED_AUTO_START sfa);
 
-        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenSCManagerW")]
         internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, uint dwAccess);
 
-        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenServiceW")]
         internal static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);
 
         [DllImport(Advapi32LibraryName, SetLastError = true)]
@@ -306,7 +306,7 @@ namespace winsw.Native
         [DllImport(Advapi32LibraryName)]
         internal static extern void FreeSid(IntPtr pSid);
 
-        [DllImport(Advapi32LibraryName, CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "LookupAccountNameW")]
         internal static extern bool LookupAccountName(string lpSystemName, string lpAccountName, IntPtr psid, ref int cbsid, StringBuilder domainName,
             ref int cbdomainLength, ref int use);
 
