@@ -195,7 +195,7 @@ namespace winsw.Native
 
             if (!result)
             {
-                winErrorCode = Kernel32.GetLastError();
+                winErrorCode = Marshal.GetLastWin32Error();
                 Console.WriteLine("LookupAccountName failed: " + winErrorCode);
             }
             else

@@ -24,9 +24,6 @@ namespace winsw.Native
             string? lpCurrentDirectory,
             [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
-
-        [DllImport("kernel32.dll")]
-        public static extern int GetLastError();
     }
 
     [StructLayout(LayoutKind.Sequential)]

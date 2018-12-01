@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using log4net;
-using winsw.Native;
 
 namespace winsw.Util
 {
@@ -57,7 +56,7 @@ namespace winsw.Util
                 bool success = FreeConsole();
                 if (!success)
                 {
-                    long errorCode = Kernel32.GetLastError();
+                    long errorCode = Marshal.GetLastWin32Error();
                     Logger.Warn("Failed to detach from console. Error code: " + errorCode);
                 }
 
