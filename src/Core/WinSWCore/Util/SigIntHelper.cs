@@ -15,7 +15,7 @@ namespace winsw.Util
         [DllImport(KERNEL32, SetLastError = true)]
         private static extern bool AttachConsole(uint dwProcessId);
 
-        [DllImport(KERNEL32, SetLastError = true, ExactSpelling = true)]
+        [DllImport(KERNEL32, SetLastError = true)]
         private static extern bool FreeConsole();
 
         [DllImport(KERNEL32)]
@@ -35,7 +35,6 @@ namespace winsw.Util
         }
 
         [DllImport(KERNEL32)]
-        [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
 
         /// <summary>
