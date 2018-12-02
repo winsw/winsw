@@ -47,8 +47,8 @@ namespace winsw.Util
             if (AttachConsole((uint)process.Id))
             {
                 // Disable Ctrl-C handling for our program
-                SetConsoleCtrlHandler(null, true);
-                GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
+                _ = SetConsoleCtrlHandler(null, true);
+                _ = GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
                 process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
 

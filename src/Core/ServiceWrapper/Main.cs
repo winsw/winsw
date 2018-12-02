@@ -426,7 +426,7 @@ namespace winsw
             _wrapperServiceStatus.waitHint = effectiveWaitHint;
             // WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             _wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
-            Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
+            Advapi32.SetServiceStatus(handle, _wrapperServiceStatus);
         }
 
         private void SignalShutdownComplete()
@@ -435,7 +435,7 @@ namespace winsw
             _wrapperServiceStatus.checkPoint++;
             // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             _wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
-            Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
+            Advapi32.SetServiceStatus(handle, _wrapperServiceStatus);
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
@@ -796,8 +796,7 @@ namespace winsw
 
                 // run restart from another process group. see README.md for why this is useful.
 
-                STARTUPINFO si = default;
-                bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out _);
+                bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, Kernel32.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
