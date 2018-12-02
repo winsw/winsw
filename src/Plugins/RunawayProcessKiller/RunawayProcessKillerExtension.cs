@@ -7,10 +7,11 @@ using System.Xml;
 using log4net;
 using winsw.Extensions;
 using winsw.Util;
+using static winsw.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
 
 namespace winsw.Plugins.RunawayProcessKiller
 {
-    public class RunawayProcessKillerExtension : AbstractWinSWExtension
+    public partial class RunawayProcessKillerExtension : AbstractWinSWExtension
     {
         /// <summary>
         /// Absolute path to the PID file, which stores ID of the previously launched process.
@@ -55,6 +56,127 @@ namespace winsw.Plugins.RunawayProcessKiller
             this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
             this.StopParentProcessFirst = stopParentFirst;
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable;
+        }
+
+        private static unsafe string? ReadEnvironmentVariable(IntPtr processHandle, string variable)
+        {
+            if (Environment.Is64BitOperatingSystem)
+            {
+                if (Environment.Is64BitProcess)
+                {
+                    return SearchEnvironmentVariable(
+                        processHandle,
+                        variable,
+                        GetEnvironmentAddress64(processHandle).ToInt64(),
+                        (handle, address, buffer, size) => NtReadVirtualMemory(handle, new IntPtr(address), buffer, new IntPtr(size)));
+                }
+                
+                if (IsWow64Process(processHandle, out int isWow64) == 0 || isWow64 == 0)
+                {
+                    return SearchEnvironmentVariable(
+                        processHandle,
+                        variable,
+                        GetEnvironmentAddressWow64(processHandle),
+                        (handle, address, buffer, size) => NtWow64ReadVirtualMemory64(handle, address, buffer, size));
+                }
+            }
+
+            return SearchEnvironmentVariable(
+                processHandle,
+                variable,
+                GetEnvironmentAddress32(processHandle).ToInt64(),
+                (handle, address, buffer, size) => NtReadVirtualMemory(handle, new IntPtr(address), buffer, new IntPtr(size)));
+        }
+
+        private unsafe delegate int ReadMemoryCallback(IntPtr processHandle, long baseAddress, void* buffer, int bufferSize);
+
+        private static unsafe string? SearchEnvironmentVariable(IntPtr processHandle, string variable, long address, ReadMemoryCallback reader)
+        {
+            const int BaseBufferSize = 0x1000;
+            string variableKey = '\0' + variable + '=';
+            string buffer = new string('\0', BaseBufferSize + variableKey.Length);
+            fixed (char* bufferPtr = buffer)
+            {
+                long startAddress = address;
+                for (; ; )
+                {
+                    int status = reader(processHandle, address, bufferPtr, buffer.Length * sizeof(char));
+                    int index = buffer.IndexOf("\0\0");
+                    if (index >= 0)
+                    {
+                        break;
+                    }
+
+                    address += BaseBufferSize * sizeof(char);
+                }
+
+                for (; ; )
+                {
+                    int variableIndex = buffer.IndexOf(variableKey);
+                    if (variableIndex >= 0)
+                    {
+                        int valueStartIndex = variableIndex + variableKey.Length;
+                        int valueEndIndex = buffer.IndexOf('\0', valueStartIndex);
+                        string value = buffer.Substring(valueStartIndex, valueEndIndex - valueStartIndex);
+                        return value;
+                    }
+
+                    address -= BaseBufferSize * sizeof(char);
+                    if (address < startAddress)
+                    {
+                        break;
+                    }
+
+                    int status = reader(processHandle, address, bufferPtr, buffer.Length * sizeof(char));
+                }
+            }
+
+            return null;
+        }
+
+        private static unsafe IntPtr GetEnvironmentAddress32(IntPtr processHandle)
+        {
+            _ = NtQueryInformationProcess(
+                processHandle,
+                PROCESSINFOCLASS.ProcessBasicInformation,
+                out PROCESS_BASIC_INFORMATION32 information,
+                sizeof(PROCESS_BASIC_INFORMATION32));
+
+            PEB32 peb;
+            _ = NtReadVirtualMemory(processHandle, new IntPtr(information.PebBaseAddress), &peb, new IntPtr(sizeof(PEB32)));
+            RTL_USER_PROCESS_PARAMETERS32 parameters;
+            _ = NtReadVirtualMemory(processHandle, new IntPtr(peb.ProcessParameters), &parameters, new IntPtr(sizeof(RTL_USER_PROCESS_PARAMETERS32)));
+            return new IntPtr(parameters.Environment);
+        }
+
+        private static unsafe IntPtr GetEnvironmentAddress64(IntPtr processHandle)
+        {
+            _ = NtQueryInformationProcess(
+                processHandle,
+                PROCESSINFOCLASS.ProcessBasicInformation,
+                out PROCESS_BASIC_INFORMATION64 information,
+                sizeof(PROCESS_BASIC_INFORMATION64));
+
+            PEB64 peb;
+            _ = NtReadVirtualMemory(processHandle, new IntPtr(information.PebBaseAddress), &peb, new IntPtr(sizeof(PEB64)));
+            RTL_USER_PROCESS_PARAMETERS64 parameters;
+            _ = NtReadVirtualMemory(processHandle, new IntPtr(peb.ProcessParameters), &parameters, new IntPtr(sizeof(RTL_USER_PROCESS_PARAMETERS64)));
+            return new IntPtr(parameters.Environment);
+        }
+
+        private static unsafe long GetEnvironmentAddressWow64(IntPtr processHandle)
+        {
+            _ = NtWow64QueryInformationProcess64(
+                processHandle,
+                PROCESSINFOCLASS.ProcessBasicInformation,
+                out PROCESS_BASIC_INFORMATION64 information,
+                sizeof(PROCESS_BASIC_INFORMATION64));
+
+            PEB64 peb;
+            _ = NtWow64ReadVirtualMemory64(processHandle, information.PebBaseAddress, &peb, sizeof(PEB64));
+            RTL_USER_PROCESS_PARAMETERS64 parameters;
+            _ = NtWow64ReadVirtualMemory64(processHandle, peb.ProcessParameters, &parameters, sizeof(RTL_USER_PROCESS_PARAMETERS64));
+            return parameters.Environment;
         }
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
@@ -121,34 +243,14 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Ensure the process references the service
-            string? affiliatedServiceId;
-            // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
-            // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
-            StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;
             string expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
-            if (previousProcessEnvVars.ContainsKey(expectedEnvVarName))
-            {
-                // StringDictionary is case-insensitive, hence it will fetch variable definitions in any case
-                affiliatedServiceId = previousProcessEnvVars[expectedEnvVarName];
-            }
-            else if (CheckWinSWEnvironmentVariable)
+            string? affiliatedServiceId = ReadEnvironmentVariable(proc.Handle, expectedEnvVarName);
+            if (affiliatedServiceId is null && CheckWinSWEnvironmentVariable)
             {
                 Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. "
                     + "The process has not been started by WinSW, hence it won't be terminated.");
-                if (Logger.IsDebugEnabled)
-                {
-                    // TODO replace by String.Join() in .NET 4
-                    string[] keys = new string[previousProcessEnvVars.Count];
-                    previousProcessEnvVars.Keys.CopyTo(keys, 0);
-                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new object[] { pid, string.Join(",", keys) });
-                }
 
                 return;
-            }
-            else
-            {
-                // We just skip this check
-                affiliatedServiceId = null;
             }
 
             // Check the service ID value

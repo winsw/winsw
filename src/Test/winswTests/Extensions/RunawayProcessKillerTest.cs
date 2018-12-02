@@ -65,7 +65,6 @@ namespace winswTests.Extensions
         }
 
         [Test]
-        [Ignore(nameof(RunawayProcessKillerExtension) + "isn't working.")]
         public void ShouldKillTheSpawnedProcess()
         {
             var winswId = "myAppWithRunaway";
