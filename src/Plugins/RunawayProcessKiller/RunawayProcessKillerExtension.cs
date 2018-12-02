@@ -60,25 +60,22 @@ namespace winsw.Plugins.RunawayProcessKiller
 
         private static unsafe string? ReadEnvironmentVariable(IntPtr processHandle, string variable)
         {
-            if (Environment.Is64BitOperatingSystem)
+            if (IntPtr.Size == sizeof(long))
             {
-                if (Environment.Is64BitProcess)
-                {
-                    return SearchEnvironmentVariable(
-                        processHandle,
-                        variable,
-                        GetEnvironmentAddress64(processHandle).ToInt64(),
-                        (handle, address, buffer, size) => NtReadVirtualMemory(handle, new IntPtr(address), buffer, new IntPtr(size)));
-                }
-                
-                if (IsWow64Process(processHandle, out int isWow64) == 0 || isWow64 == 0)
-                {
-                    return SearchEnvironmentVariable(
-                        processHandle,
-                        variable,
-                        GetEnvironmentAddressWow64(processHandle),
-                        (handle, address, buffer, size) => NtWow64ReadVirtualMemory64(handle, address, buffer, size));
-                }
+                return SearchEnvironmentVariable(
+                    processHandle,
+                    variable,
+                    GetEnvironmentAddress64(processHandle).ToInt64(),
+                    (handle, address, buffer, size) => NtReadVirtualMemory(handle, new IntPtr(address), buffer, new IntPtr(size)));
+            }
+
+            if (Is64BitOSWhen32BitProcess(Process.GetCurrentProcess().Handle) && !Is64BitOSWhen32BitProcess(processHandle))
+            {
+                return SearchEnvironmentVariable(
+                    processHandle,
+                    variable,
+                    GetEnvironmentAddressWow64(processHandle),
+                    (handle, address, buffer, size) => NtWow64ReadVirtualMemory64(handle, address, buffer, size));
             }
 
             return SearchEnvironmentVariable(
@@ -87,6 +84,9 @@ namespace winsw.Plugins.RunawayProcessKiller
                 GetEnvironmentAddress32(processHandle).ToInt64(),
                 (handle, address, buffer, size) => NtReadVirtualMemory(handle, new IntPtr(address), buffer, new IntPtr(size)));
         }
+
+        private static bool Is64BitOSWhen32BitProcess(IntPtr processHandle) =>
+            IsWow64Process(processHandle, out int isWow64) != 0 && isWow64 != 0;
 
         private unsafe delegate int ReadMemoryCallback(IntPtr processHandle, long baseAddress, void* buffer, int bufferSize);
 
