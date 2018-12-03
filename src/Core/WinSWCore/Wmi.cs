@@ -289,7 +289,7 @@ namespace WMI
                     // TODO: support collections
                     foreach (CimInstance cimInstance in this.cimSession.QueryInstances(CimNamespace, "WQL", query))
                     {
-                        return ProxyFactory.GetInstance().Create(new InstanceHandler(this.cimSession, cimInstance), method.ReturnType, true);
+                        return ProxyFactory.Create(new InstanceHandler(this.cimSession, cimInstance), method.ReturnType, true);
                     }
 #else
                     using ManagementObjectSearcher searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query));
@@ -297,7 +297,7 @@ namespace WMI
                     // TODO: support collections
                     foreach (ManagementObject wmiObject in results)
                     {
-                        return ProxyFactory.GetInstance().Create(new InstanceHandler(wmiObject), method.ReturnType, true);
+                        return ProxyFactory.Create(new InstanceHandler(wmiObject), method.ReturnType, true);
                     }
 #endif
 
@@ -327,7 +327,7 @@ namespace WMI
         {
             WmiClassName className = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
 
-            return (T)ProxyFactory.GetInstance().Create(
+            return (T)ProxyFactory.Create(
 #if FEATURE_CIM
                 new ClassHandler(this.cimSession, className.Name),
 #else
