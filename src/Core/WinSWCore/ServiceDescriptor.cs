@@ -81,7 +81,9 @@ namespace winsw
         /// <summary>
         /// Loads descriptor from existing DOM
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ServiceDescriptor(XmlDocument dom)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
         }
