@@ -9,18 +9,17 @@ namespace winswTests.Util
     /// </summary>
     public static class CLITestHelper
     {
-        private const string SeedXml = "<service>"
-                                    + "<id>service.exe</id>"
-                                    + "<name>Service</name>"
-                                    + "<description>The service.</description>"
-                                    + "<executable>node.exe</executable>"
-                                    + "<arguments>My Arguments</arguments>"
-                                    + "<logmode>rotate</logmode>"
-                                    + "<workingdirectory>"
-                                    + @"C:\winsw\workdir"
-                                    + "</workingdirectory>"
-                                    + @"<logpath>C:\winsw\logs</logpath>"
-                                    + "</service>";
+        private const string SeedXml =
+@"<service>
+  <id>service.exe</id>
+  <name>Service</name>
+  <description>The service.</description>
+  <executable>node.exe</executable>
+  <arguments>My Arguments</arguments>
+  <logmode>rotate</logmode>
+  <workingdirectory>C:\winsw\workdir</workingdirectory>
+  <logpath>C:\winsw\logs</logpath>
+</service>";
 
         private static readonly ServiceDescriptor DefaultServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
 
@@ -33,15 +32,13 @@ namespace winswTests.Util
         /// <exception cref="Exception">Command failure</exception>
         public static string CLITest(string[] args, ServiceDescriptor descriptor = null)
         {
-            using (StringWriter sw = new StringWriter())
-            {
-                TextWriter tmp = Console.Out;
-                Console.SetOut(sw);
-                WrapperService.Run(args, descriptor ?? DefaultServiceDescriptor);
-                Console.SetOut(tmp);
-                Console.Write(sw.ToString());
-                return sw.ToString();
-            }
+            using StringWriter sw = new StringWriter();
+            TextWriter tmp = Console.Out;
+            Console.SetOut(sw);
+            WrapperService.Run(args, descriptor ?? DefaultServiceDescriptor);
+            Console.SetOut(tmp);
+            Console.Write(sw.ToString());
+            return sw.ToString();
         }
 
         /// <summary>

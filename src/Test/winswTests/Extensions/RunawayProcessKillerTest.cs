@@ -16,27 +16,27 @@ namespace winswTests.Extensions
     {
         ServiceDescriptor _testServiceDescriptor;
 
-        string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
+        readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
 
         [SetUp]
         public void SetUp()
         {
-            string seedXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-                + "<service>                                                                                                        "
-                + "  <id>SERVICE_NAME</id>                                                                                          "
-                + "  <name>Jenkins Slave</name>                                                                                     "
-                + "  <description>This service runs a slave for Jenkins continuous integration system.</description>                "
-                + "  <executable>C:\\Program Files\\Java\\jre7\\bin\\java.exe</executable>                                               "
-                + "  <arguments>-Xrs  -jar \\\"%BASE%\\slave.jar\\\" -jnlpUrl ...</arguments>                                              "
-                + "  <logmode>rotate</logmode>                                                                                      "
-                + "  <extensions>                                                                                                   "
-                + "    <extension enabled=\"true\" className=\"" + testExtension + "\" id=\"killRunawayProcess\"> "
-                + "      <pidfile>foo/bar/pid.txt</pidfile>"
-                + "      <stopTimeout>5000</stopTimeout> "
-                + "      <stopParentFirst>true</stopParentFirst>"
-                + "    </extension>         "
-                + "  </extensions>                                                                                                  "
-                + "</service>";
+            string seedXml =
+$@"<service>
+  <id>SERVICE_NAME</id>
+  <name>Jenkins Slave</name>
+  <description>This service runs a slave for Jenkins continuous integration system.</description>
+  <executable>C:\Program Files\Java\jre7\bin\java.exe</executable>
+  <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
+  <logmode>rotate</logmode>
+  <extensions>
+    <extension enabled=""true"" className=""{testExtension}"" id=""killRunawayProcess"">
+      <pidfile>foo/bar/pid.txt</pidfile>
+      <stopTimeout>5000</stopTimeout>
+      <stopParentFirst>true</stopParentFirst>
+    </extension>
+  </extensions>
+</service>";
             _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 

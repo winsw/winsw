@@ -91,21 +91,19 @@ namespace winsw
 
             try
             {
-                using (var tr = new StreamReader(file, Encoding.UTF8))
+                using var tr = new StreamReader(file, Encoding.UTF8);
+                string? line;
+                while ((line = tr.ReadLine()) != null)
                 {
-                    string? line;
-                    while ((line = tr.ReadLine()) != null)
+                    LogEvent("Handling copy: " + line);
+                    string[] tokens = line.Split('>');
+                    if (tokens.Length > 2)
                     {
-                        LogEvent("Handling copy: " + line);
-                        string[] tokens = line.Split('>');
-                        if (tokens.Length > 2)
-                        {
-                            LogEvent("Too many delimiters in " + line);
-                            continue;
-                        }
-
-                        CopyFile(tokens[0], tokens[1]);
+                        LogEvent("Too many delimiters in " + line);
+                        continue;
                     }
+
+                    CopyFile(tokens[0], tokens[1]);
                 }
             }
             finally
@@ -186,7 +184,7 @@ namespace winsw
             }
         }
 
-        protected override void OnStart(string[] _)
+        protected override void OnStart(string[] args)
         {
             _envs = _descriptor.EnvironmentVariables;
             // TODO: Disabled according to security concerns in https://github.com/kohsuke/winsw/issues/54
@@ -490,11 +488,11 @@ namespace winsw
             bool isCLIMode = _args.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            var d = descriptor ?? new ServiceDescriptor();
+            descriptor ??= new ServiceDescriptor();
 
             // Configure the wrapper-internal logging.
             // STDIN and STDOUT of the child process will be handled independently.
-            InitLoggers(d, isCLIMode);
+            InitLoggers(descriptor, isCLIMode);
 
             if (isCLIMode) // CLI mode, in-service mode otherwise
             {
@@ -502,7 +500,7 @@ namespace winsw
 
                 // Get service info for the future use
                 Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
-                Win32Service s = svc.Select(d.Id);
+                Win32Service s = svc.Select(descriptor.Id);
 
                 var args = new List<string>(Array.AsReadOnly(_args));
                 if (args[0] == "/redirect")
@@ -530,14 +528,14 @@ namespace winsw
                 args[0] = args[0].ToLower();
                 if (args[0] == "install")
                 {
-                    Log.Info("Installing the service with id '" + d.Id + "'");
+                    Log.Info("Installing the service with id '" + descriptor.Id + "'");
 
                     // Check if the service exists
                     if (s != null)
                     {
-                        Console.WriteLine("Service with id '" + d.Id + "' already exists");
+                        Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
                         Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                        throw new Exception("Installation failure: Service with id '" + d.Id + "' already exists");
+                        throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
                     }
 
                     string? username = null;
@@ -561,11 +559,11 @@ namespace winsw
                     }
                     else
                     {
-                        if (d.HasServiceAccount())
+                        if (descriptor.HasServiceAccount())
                         {
-                            username = d.ServiceAccountUser;
-                            password = d.ServiceAccountPassword;
-                            setallowlogonasaserviceright = d.AllowServiceAcountLogonRight;
+                            username = descriptor.ServiceAccountUser;
+                            password = descriptor.ServiceAccountPassword;
+                            setallowlogonasaserviceright = descriptor.AllowServiceAcountLogonRight;
                         }
                     }
 
@@ -575,16 +573,16 @@ namespace winsw
                     }
 
                     svc.Create(
-                        d.Id,
-                        d.Caption,
-                        "\"" + d.ExecutablePath + "\"",
+                        descriptor.Id,
+                        descriptor.Caption,
+                        "\"" + descriptor.ExecutablePath + "\"",
                         ServiceType.OwnProcess,
                         ErrorControl.UserNotified,
-                        d.StartMode,
-                        d.Interactive,
+                        descriptor.StartMode,
+                        descriptor.Interactive,
                         username,
                         password,
-                        d.ServiceDependencies);
+                        descriptor.ServiceDependencies);
 
                     // update the description
                     /* Somehow this doesn't work, even though it doesn't report an error
@@ -594,29 +592,30 @@ namespace winsw
                      */
 
                     // so using a classic method to set the description. Ugly.
-                    Registry.LocalMachine.OpenSubKey("System").OpenSubKey("CurrentControlSet").OpenSubKey("Services")
-                        .OpenSubKey(d.Id, true).SetValue("Description", d.Description);
+                    Registry.LocalMachine
+                        .OpenSubKey("System")
+                        .OpenSubKey("CurrentControlSet")
+                        .OpenSubKey("Services")
+                        .OpenSubKey(descriptor.Id, true)
+                        .SetValue("Description", descriptor.Description);
 
-                    var actions = d.FailureActions;
-                    var isDelayedAutoStart = d.StartMode == StartMode.Automatic && d.DelayedAutoStart;
+                    var actions = descriptor.FailureActions;
+                    var isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
                     if (actions.Count > 0 || isDelayedAutoStart)
                     {
-                        using (ServiceManager scm = new ServiceManager())
-                        {
-                            using (Service sc = scm.Open(d.Id))
-                            {
-                                // Delayed auto start
-                                if (isDelayedAutoStart)
-                                {
-                                    sc.SetDelayedAutoStart(true);
-                                }
+                        using ServiceManager scm = new ServiceManager();
+                        using Service sc = scm.Open(descriptor.Id);
 
-                                // Set the failure actions
-                                if (actions.Count > 0)
-                                {
-                                    sc.ChangeConfig(d.ResetFailureAfter, actions);
-                                }
-                            }
+                        // Delayed auto start
+                        if (isDelayedAutoStart)
+                        {
+                            sc.SetDelayedAutoStart(true);
+                        }
+
+                        // Set the failure actions
+                        if (actions.Count > 0)
+                        {
+                            sc.ChangeConfig(descriptor.ResetFailureAfter, actions);
                         }
                     }
 
@@ -625,10 +624,10 @@ namespace winsw
 
                 if (args[0] == "uninstall")
                 {
-                    Log.Info("Uninstalling the service with id '" + d.Id + "'");
+                    Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
                     if (s == null)
                     {
-                        Log.Warn("The service with id '" + d.Id + "' does not exist. Nothing to uninstall");
+                        Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
                         return; // there's no such service, so consider it already uninstalled
                     }
 
@@ -636,7 +635,7 @@ namespace winsw
                     {
                         // We could fail the opeartion here, but it would be an incompatible change.
                         // So it is just a warning
-                        Log.Warn("The service with id '" + d.Id + "' is running. It may be impossible to uninstall it");
+                        Log.Warn("The service with id '" + descriptor.Id + "' is running. It may be impossible to uninstall it");
                     }
 
                     try
@@ -647,7 +646,7 @@ namespace winsw
                     {
                         if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
                         {
-                            Log.Error("Failed to uninstall the service with id '" + d.Id + "'"
+                            Log.Error("Failed to uninstall the service with id '" + descriptor.Id + "'"
                                + ". It has been marked for deletion.");
 
                             // TODO: change the default behavior to Error?
@@ -655,7 +654,7 @@ namespace winsw
                         }
                         else
                         {
-                            Log.Fatal("Failed to uninstall the service with id '" + d.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
+                            Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
                         }
 
                         throw e;
@@ -666,7 +665,7 @@ namespace winsw
 
                 if (args[0] == "start")
                 {
-                    Log.Info("Starting the service with id '" + d.Id + "'");
+                    Log.Info("Starting the service with id '" + descriptor.Id + "'");
                     if (s == null)
                         ThrowNoSuchService();
 
@@ -676,7 +675,7 @@ namespace winsw
 
                 if (args[0] == "stop")
                 {
-                    Log.Info("Stopping the service with id '" + d.Id + "'");
+                    Log.Info("Stopping the service with id '" + descriptor.Id + "'");
                     if (s == null)
                         ThrowNoSuchService();
 
@@ -686,7 +685,7 @@ namespace winsw
 
                 if (args[0] == "restart")
                 {
-                    Log.Info("Restarting the service with id '" + d.Id + "'");
+                    Log.Info("Restarting the service with id '" + descriptor.Id + "'");
                     if (s == null)
                         ThrowNoSuchService();
 
@@ -696,7 +695,7 @@ namespace winsw
                     while (s.Started)
                     {
                         Thread.Sleep(1000);
-                        s = svc.Select(d.Id);
+                        s = svc.Select(descriptor.Id);
                     }
 
                     s.StartService();
@@ -705,12 +704,12 @@ namespace winsw
 
                 if (args[0] == "restart!")
                 {
-                    Log.Info("Restarting the service with id '" + d.Id + "'");
+                    Log.Info("Restarting the service with id '" + descriptor.Id + "'");
 
                     // run restart from another process group. see README.md for why this is useful.
 
                     STARTUPINFO si = default;
-                    bool result = Kernel32.CreateProcess(null, d.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out _);
+                    bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out _);
                     if (!result)
                     {
                         throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
@@ -721,7 +720,7 @@ namespace winsw
 
                 if (args[0] == "status")
                 {
-                    Log.Debug("User requested the status of the process with id '" + d.Id + "'");
+                    Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
                     if (s == null)
                         Console.WriteLine("NonExistent");
                     else if (s.Started)
@@ -734,7 +733,7 @@ namespace winsw
 
                 if (args[0] == "test")
                 {
-                    WrapperService wsvc = new WrapperService(d);
+                    WrapperService wsvc = new WrapperService(descriptor);
                     wsvc.OnStart(args.ToArray());
                     Thread.Sleep(1000);
                     wsvc.OnStop();
@@ -743,7 +742,7 @@ namespace winsw
 
                 if (args[0] == "testwait")
                 {
-                    WrapperService wsvc = new WrapperService(d);
+                    WrapperService wsvc = new WrapperService(descriptor);
                     wsvc.OnStart(args.ToArray());
                     Console.WriteLine("Press any key to stop the service...");
                     Console.Read();
@@ -773,7 +772,7 @@ namespace winsw
                 Log.Info("Starting ServiceWrapper in the service mode");
             }
 
-            Run(new WrapperService(d));
+            Run(new WrapperService(descriptor));
         }
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
@@ -839,10 +838,9 @@ namespace winsw
         private static string ReadPassword()
         {
             StringBuilder buf = new StringBuilder();
-            ConsoleKeyInfo key;
             while (true)
             {
-                key = Console.ReadKey(true);
+                ConsoleKeyInfo key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Enter)
                 {
                     return buf.ToString();
@@ -870,7 +868,7 @@ namespace winsw
             printAvailableCommandsInfo();
             Console.WriteLine();
             Console.WriteLine("Extra options:");
-            Console.WriteLine("- '/redirect' - redirect the wrapper's STDOUT and STDERR to the specified file");
+            Console.WriteLine("  /redirect   redirect the wrapper's STDOUT and STDERR to the specified file");
             Console.WriteLine();
             printVersion();
             Console.WriteLine("More info: https://github.com/kohsuke/winsw");
@@ -880,18 +878,19 @@ namespace winsw
         // TODO: Rework to enum in winsw-2.0
         private static void printAvailableCommandsInfo()
         {
-            Console.WriteLine("Available commands:");
-            Console.WriteLine("- 'install'   - install the service to Windows Service Controller");
-            Console.WriteLine("- 'uninstall' - uninstall the service");
-            Console.WriteLine("- 'start'     - start the service (must be installed before)");
-            Console.WriteLine("- 'stop'      - stop the service");
-            Console.WriteLine("- 'restart'   - restart the service");
-            Console.WriteLine("- 'restart!'  - self-restart (can be called from child processes)");
-            Console.WriteLine("- 'status'    - check the current status of the service");
-            Console.WriteLine("- 'test'      - check if the service can be started and then stopped");
-            Console.WriteLine("- 'testwait'  - starts the service and waits until a key is pressed then stops the service");
-            Console.WriteLine("- 'version'   - print the version info");
-            Console.WriteLine("- 'help'      - print the help info (aliases: -h,--help,-?,/?)");
+            Console.WriteLine(
+@"Available commands:
+  install     install the service to Windows Service Controller
+  uninstall   uninstall the service
+  start       start the service (must be installed before)
+  stop        stop the service
+  restart     restart the service
+  restart!    self-restart (can be called from child processes)
+  status      check the current status of the service
+  test        check if the service can be started and then stopped
+  testwait    starts the service and waits until a key is pressed then stops the service
+  version     print the version info
+  help        print the help info (aliases: -h,--help,-?,/?)");
         }
 
         private static void printVersion()

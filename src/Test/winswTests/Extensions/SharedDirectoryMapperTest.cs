@@ -10,34 +10,34 @@ namespace winswTests.Extensions
     {
         ServiceDescriptor _testServiceDescriptor;
 
-        string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
+        readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
         [SetUp]
         public void SetUp()
         {
-            string seedXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
-                + "<service>                                                                                                        "
-                + "  <id>SERVICE_NAME</id>                                                                                          "
-                + "  <name>Jenkins Slave</name>                                                                                     "
-                + "  <description>This service runs a slave for Jenkins continuous integration system.</description>                "
-                + "  <executable>C:\\Program Files\\Java\\jre7\\bin\\java.exe</executable>                                               "
-                + "  <arguments>-Xrs  -jar \\\"%BASE%\\slave.jar\\\" -jnlpUrl ...</arguments>                                              "
-                + "  <logmode>rotate</logmode>                                                                                      "
-                + "  <extensions>                                                                                                   "
-                + "    <extension enabled=\"true\" className=\"" + testExtension + "\" id=\"mapNetworDirs\"> "
-                + "      <mapping>                                                                                                  "
-                + "        <map enabled=\"false\" label=\"N:\" uncpath=\"\\\\UNC\"/>                                                        "
-                + "        <map enabled=\"false\" label=\"M:\" uncpath=\"\\\\UNC2\"/>                                                       "
-                + "      </mapping>                                                                                                 "
-                + "    </extension>         "
-                + "    <extension enabled=\"true\" className=\"" + testExtension + "\" id=\"mapNetworDirs2\"> "
-                + "      <mapping>                                                                                                  "
-                + "        <map enabled=\"false\" label=\"X:\" uncpath=\"\\\\UNC\"/>                                                        "
-                + "        <map enabled=\"false\" label=\"Y:\" uncpath=\"\\\\UNC2\"/>                                                       "
-                + "      </mapping>                                                                                                 "
-                + "    </extension>         "
-                + "  </extensions>                                                                                                  "
-                + "</service>";
+            string seedXml =
+$@"<service>
+  <id>SERVICE_NAME</id>
+  <name>Jenkins Slave</name>
+  <description>This service runs a slave for Jenkins continuous integration system.</description>
+  <executable>C:\Program Files\Java\jre7\bin\java.exe</executable>
+  <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
+  <logmode>rotate</logmode>
+  <extensions>
+    <extension enabled=""true"" className=""{testExtension}"" id=""mapNetworDirs"">
+      <mapping>
+        <map enabled=""false"" label=""N:"" uncpath=""\\UNC""/>
+        <map enabled=""false"" label=""M:"" uncpath=""\\UNC2""/>
+      </mapping>
+    </extension>
+    <extension enabled=""true"" className=""{testExtension}"" id=""mapNetworDirs2"">
+      <mapping>
+        <map enabled=""false"" label=""X:"" uncpath=""\\UNC""/>
+        <map enabled=""false"" label=""Y:"" uncpath=""\\UNC2""/>
+      </mapping>
+    </extension>
+  </extensions>
+</service>";
             _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 

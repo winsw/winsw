@@ -245,7 +245,6 @@ namespace winsw.Native
 
                     // initialize an unicode-string for the privilege name
                     LSA_UNICODE_STRING[] userRights = new LSA_UNICODE_STRING[1];
-                    userRights[0] = default;
                     userRights[0].Buffer = Marshal.StringToHGlobalUni(privilegeName);
                     userRights[0].Length = (ushort)(privilegeName.Length * UnicodeEncoding.CharSize);
                     userRights[0].MaximumLength = (ushort)((privilegeName.Length + 1) * UnicodeEncoding.CharSize);

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net40;net461;netcoreapp3.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <Version><!-- Populated by AppVeyor --></Version>
     <RootNamespace>winswTests</RootNamespace>
   </PropertyGroup>

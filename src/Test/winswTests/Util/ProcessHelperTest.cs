@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using winsw.Util;
 
@@ -38,12 +38,11 @@ namespace winswTests.Util
             var envVars = FilesystemTestHelper.parseSetOutput(envFile);
             string[] keys = new string[envVars.Count];
             envVars.Keys.CopyTo(keys, 0);
-            String availableVars = "[" + string.Join(",", keys) + "]";
+            string availableVars = "[" + string.Join(",", keys) + "]";
             Assert.That(envVars.ContainsKey("TEST_KEY"), "No TEST_KEY in the injected vars: " + availableVars);
 
             // And just ensure that the parsing logic is case-sensitive
             Assert.That(!envVars.ContainsKey("test_key"), "Test error: the environment parsing logic is case-insensitive");
-
         }
 
         [Test]
@@ -51,8 +50,8 @@ namespace winswTests.Util
         {
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
             string scriptFile = Path.Combine(tmpDir, "print_lots_to_stdout.bat");
-            var lotsOfStdOut = string.Join(string.Empty, _Range(1, 1000));
-            File.WriteAllText(scriptFile, string.Format("echo \"{0}\"", lotsOfStdOut));
+            var lotsOfStdOut = string.Join(string.Empty, Enumerable.Range(1, 1000));
+            File.WriteAllText(scriptFile, $"echo \"{lotsOfStdOut}\"");
 
             Process proc = new Process();
             var ps = proc.StartInfo;
@@ -64,17 +63,6 @@ namespace winswTests.Util
             {
                 Assert.Fail("Process " + proc + " didn't exit after 5 seconds");
             }
-        }
-
-        private string[] _Range(int start, int limit)
-        {
-            var range = new List<string>();
-            for (var i = start; i < limit; i++)
-            {
-                range.Add(i.ToString());
-            }
-
-            return range.ToArray();
         }
     }
 }
