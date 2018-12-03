@@ -28,12 +28,12 @@ namespace winsw.Plugins.SharedDirectoryMapper
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
         {
-            var nodes = XmlHelper.SingleNode(node, "mapping", false).SelectNodes("map");
-            if (nodes != null)
+            var mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
+            if (mapNodes != null)
             {
-                foreach (XmlNode mapNode in nodes)
+                for (int i = 0; i < mapNodes.Count; i++)
                 {
-                    if (mapNode is XmlElement mapElement)
+                    if (mapNodes[i] is XmlElement mapElement)
                     {
                         var config = SharedDirectoryMapperConfig.FromXml(mapElement);
                         _entries.Add(config);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -28,7 +29,7 @@ namespace winsw
 
         private readonly Process _process = new Process();
         private readonly ServiceDescriptor _descriptor;
-        private Dictionary<string, string> _envs;
+        private Dictionary<string, string>? _envs;
 
         internal WinSWExtensionManager ExtensionManager { get; private set; }
 
@@ -52,7 +53,7 @@ namespace winsw
         /// <remarks>
         /// The version will be taken from <see cref="AssemblyInfo"/>
         /// </remarks>
-        public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+        public static Version Version => Assembly.GetExecutingAssembly().GetName().Version!;
 
         /// <summary>
         /// Indicates that the system is shutting down.
@@ -92,7 +93,7 @@ namespace winsw
             {
                 using (var tr = new StreamReader(file, Encoding.UTF8))
                 {
-                    string line;
+                    string? line;
                     while ((line = tr.ReadLine()) != null)
                     {
                         LogEvent("Handling copy: " + line);
@@ -223,7 +224,7 @@ namespace winsw
                 }
             }
 
-            string startarguments = _descriptor.Startarguments;
+            string? startarguments = _descriptor.Startarguments;
 
             if (startarguments == null)
             {
@@ -282,7 +283,7 @@ namespace winsw
         /// </summary>
         private void StopIt()
         {
-            string stoparguments = _descriptor.Stoparguments;
+            string? stoparguments = _descriptor.Stoparguments;
             LogEvent("Stopping " + _descriptor.Id);
             Log.Info("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
@@ -307,7 +308,7 @@ namespace winsw
                 stoparguments += " " + _descriptor.Arguments;
 
                 Process stopProcess = new Process();
-                string executable = _descriptor.StopExecutable;
+                string? executable = _descriptor.StopExecutable;
 
                 if (executable == null)
                 {
@@ -399,7 +400,7 @@ namespace winsw
             Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
 
-        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler logHandler, bool redirectStdin)
+        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
         {
             // Define handler of the completed process
             void OnProcessCompleted(Process proc)
@@ -470,6 +471,7 @@ namespace winsw
             }
         }
 
+        [DoesNotReturn]
         private static void ThrowNoSuchService()
         {
             throw new WmiException(ReturnValue.NoSuchService);
@@ -483,7 +485,7 @@ namespace winsw
         /// <param name="descriptor">Service descriptor. If null, it will be initialized within the method.
         ///                          In such case configs will be loaded from the XML Configuration File.</param>
         /// <exception cref="Exception">Any unhandled exception</exception>
-        public static void Run(string[] _args, ServiceDescriptor descriptor = null)
+        public static void Run(string[] _args, ServiceDescriptor? descriptor = null)
         {
             bool isCLIMode = _args.Length > 0;
 
@@ -538,8 +540,9 @@ namespace winsw
                         throw new Exception("Installation failure: Service with id '" + d.Id + "' already exists");
                     }
 
-                    string username = null, password = null;
-                    bool setallowlogonasaserviceright = false;
+                    string? username = null;
+                    string? password = null;
+                    bool setallowlogonasaserviceright = false; // This variable is very readable.
                     if (args.Count > 1 && args[1] == "/p")
                     {
                         // we expected username/password on stdin
@@ -568,7 +571,7 @@ namespace winsw
 
                     if (setallowlogonasaserviceright)
                     {
-                        LogonAsAService.AddLogonAsAServiceRight(username);
+                        LogonAsAService.AddLogonAsAServiceRight(username!);
                     }
 
                     svc.Create(

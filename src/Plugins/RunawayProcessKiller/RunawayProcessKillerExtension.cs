@@ -40,12 +40,16 @@ namespace winsw.Plugins.RunawayProcessKiller
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(RunawayProcessKillerExtension));
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public RunawayProcessKillerExtension()
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             // Default initializer
         }
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public RunawayProcessKillerExtension(string pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.Pidfile = pidfile;
             this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
@@ -57,9 +61,9 @@ namespace winsw.Plugins.RunawayProcessKiller
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
-            Pidfile = XmlHelper.SingleElement(node, "pidfile", false);
-            StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
-            StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
+            Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
+            StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
+            StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
             ServiceId = descriptor.Id;
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
@@ -117,7 +121,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Ensure the process references the service
-            string affiliatedServiceId;
+            string? affiliatedServiceId;
             // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
             // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
             StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;

@@ -11,6 +11,6 @@ namespace winsw.Logging
         /// Locates Event Log for the service.
         /// </summary>
         /// <returns>Event Log or null if it is not avilable</returns>
-        EventLog locate();
+        EventLog? locate();
     }
 }
