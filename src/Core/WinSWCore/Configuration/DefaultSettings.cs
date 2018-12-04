@@ -13,10 +13,10 @@ namespace winsw.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
-        public string Id => null;
-        public string Caption => null;
-        public string Description => null;
-        public string Executable => null;
+        public string Id => throw new InvalidOperationException(nameof(Id) + " must be specified.");
+        public string Caption => throw new InvalidOperationException(nameof(Caption) + " must be specified.");
+        public string Description => throw new InvalidOperationException(nameof(Description) + " must be specified.");
+        public string Executable => throw new InvalidOperationException(nameof(Executable) + " must be specified.");
         public bool HideWindow => false;
 
         // this returns the executable name as given by the calling process, so
@@ -27,7 +27,7 @@ namespace winsw.Configuration
         public bool AllowServiceAcountLogonRight => false;
         public string? ServiceAccountPassword => null;
         public string ServiceAccountUser => "NULL\\NULL";
-        public List<Native.SC_ACTION> FailureActions => new List<Native.SC_ACTION>();
+        public List<Native.SC_ACTION> FailureActions => new List<Native.SC_ACTION>(0);
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
         // Executable management
@@ -58,8 +58,8 @@ namespace winsw.Configuration
         public string ErrFilePattern => ".err.log";
 
         // Environment
-        public List<Download> Downloads => new List<Download>();
-        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>();
+        public List<Download> Downloads => new List<Download>(0);
+        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(0);
 
         // Misc
         public bool BeepOnShutdown => false;
