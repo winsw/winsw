@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -21,16 +21,6 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
-  </ItemGroup>
-
-  <!-- error NU1605: Detected package downgrade: log4net 2.0.8 -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="System.Threading" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
