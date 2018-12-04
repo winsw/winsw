@@ -28,6 +28,7 @@ dotnet_csproj:
 
 build_script:
   - dotnet.exe build src\winsw.sln
+  - dotnet.exe publish -f netcoreapp3.1 src\Core\ServiceWrapper\winsw.csproj
   - dotnet.exe publish -f netcoreapp3.1 -r win-x64 src\Core\ServiceWrapper\winsw.csproj /p:PublishSingleFile=true /p:PublishTrimmed=true
   - dotnet.exe publish -f netcoreapp3.1 -r win-x86 src\Core\ServiceWrapper\winsw.csproj /p:PublishSingleFile=true /p:PublishTrimmed=true
 
@@ -46,7 +47,7 @@ artifacts:
     name: WinSW.NET4.exe
   - path: 'src\Core\ServiceWrapper\bin\Release\net45\WinSW.exe'
     name: WinSW.NET45.exe
-  - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\'
+  - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\publish\'
     name: WinSW.NETCore31
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\win-x64\publish\WindowsService.exe'
     name: WinSW.NETCore31.x64
