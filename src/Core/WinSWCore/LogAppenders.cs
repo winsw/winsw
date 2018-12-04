@@ -403,7 +403,7 @@ namespace winsw
 
             var buf = new byte[1024];
 
-            var baseDirectory = Path.GetDirectoryName(BaseLogFileName);
+            var baseDirectory = Path.GetDirectoryName(BaseLogFileName)!;
             var baseFileName = Path.GetFileName(BaseLogFileName);
             var logFile = BaseLogFileName + extension;
 
@@ -411,10 +411,10 @@ namespace winsw
             var sz = new FileInfo(logFile).Length;
 
             // We auto roll at time is configured then we need to create a timer and wait until time is elasped and roll the file over
-            if (AutoRollAtTime != null)
+            if (AutoRollAtTime is TimeSpan autoRollAtTime)
             {
                 // Run at start
-                var tickTime = SetupRollTimer();
+                var tickTime = SetupRollTimer(autoRollAtTime);
                 var timer = new System.Timers.Timer(tickTime);
                 timer.Elapsed += (s, e) =>
                 {
@@ -444,7 +444,7 @@ namespace winsw
                     finally
                     {
                         // Recalculate the next interval
-                        timer.Interval = SetupRollTimer();
+                        timer.Interval = SetupRollTimer(autoRollAtTime);
                         timer.Start();
                     }
                 };
@@ -543,7 +543,7 @@ namespace winsw
 #if VNEXT
         private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
-            ZipArchive zipArchive = null;
+            ZipArchive? zipArchive = null;
             try
             {
                 zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Update);
@@ -565,7 +565,7 @@ namespace winsw
 #else
         private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
-            ZipFile zipFile = null;
+            ZipFile? zipFile = null;
             try
             {
                 zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate));
@@ -590,11 +590,17 @@ namespace winsw
         }
 #endif
 
-        private double SetupRollTimer()
+        private double SetupRollTimer(TimeSpan autoRollAtTime)
         {
             var nowTime = DateTime.Now;
-            var scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, AutoRollAtTime.Value.Hours,
-                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0); // Specify your time HH,MM,SS
+            var scheduledTime = new DateTime(
+                nowTime.Year,
+                nowTime.Month,
+                nowTime.Day,
+                autoRollAtTime.Hours,
+                autoRollAtTime.Minutes,
+                autoRollAtTime.Seconds,
+                0);
             if (nowTime > scheduledTime)
                 scheduledTime = scheduledTime.AddDays(1);
 

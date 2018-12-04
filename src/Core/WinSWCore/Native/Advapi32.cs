@@ -133,7 +133,7 @@ namespace winsw.Native
             }
         }
 
-        private static string GetDomain(string s)
+        private static string? GetDomain(string s)
         {
             int stop = s.IndexOf("\\", StringComparison.Ordinal);
             if (stop >= 0)
@@ -151,7 +151,7 @@ namespace winsw.Native
         private static string GetLocalAccountIfLocalAccount(string username)
         {
             var machinename = Environment.MachineName;
-            string domain = GetDomain(username);
+            string? domain = GetDomain(username);
             if (domain == null || domain.ToLower() == machinename.ToLower() || domain == ".")
             {
                 return GetLogin(username);
@@ -287,7 +287,7 @@ namespace winsw.Native
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_DELAYED_AUTO_START sfa);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr OpenSCManager(string machineName, string databaseName, uint dwAccess);
+        internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, uint dwAccess);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);

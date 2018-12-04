@@ -19,30 +19,23 @@ namespace winsw.Configuration
         public string Executable => null;
         public bool HideWindow => false;
 
-        public string ExecutablePath
-        {
-            get
-            {
-                // this returns the executable name as given by the calling process, so
-                // it needs to be absolutized.
-                string p = Environment.GetCommandLineArgs()[0];
-                return Path.GetFullPath(p);
-            }
-        }
+        // this returns the executable name as given by the calling process, so
+        // it needs to be absolutized.
+        public string ExecutablePath => Path.GetFullPath(Environment.GetCommandLineArgs()[0]);
 
         // Installation
         public bool AllowServiceAcountLogonRight => false;
-        public string ServiceAccountPassword => null;
+        public string? ServiceAccountPassword => null;
         public string ServiceAccountUser => "NULL\\NULL";
         public List<Native.SC_ACTION> FailureActions => new List<Native.SC_ACTION>();
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
         // Executable management
         public string Arguments => string.Empty;
-        public string Startarguments => null;
-        public string StopExecutable => null;
-        public string Stoparguments => null;
-        public string WorkingDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        public string? Startarguments => null;
+        public string? StopExecutable => null;
+        public string? Stoparguments => null;
+        public string WorkingDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
         public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
         public bool StopParentProcessFirst => false;
@@ -56,7 +49,7 @@ namespace winsw.Configuration
         public bool Interactive => false;
 
         // Logging
-        public string LogDirectory => Path.GetDirectoryName(ExecutablePath);
+        public string LogDirectory => Path.GetDirectoryName(ExecutablePath)!;
         public string LogMode => "append";
 
         public bool OutFileDisabled => false;
@@ -72,6 +65,6 @@ namespace winsw.Configuration
         public bool BeepOnShutdown => false;
 
         // Extensions
-        public XmlNode ExtensionsConfiguration => null;
+        public XmlNode? ExtensionsConfiguration => null;
     }
 }

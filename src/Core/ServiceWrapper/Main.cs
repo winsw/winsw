@@ -402,7 +402,7 @@ namespace winsw
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler logHandler, bool redirectStdin)
         {
             // Define handler of the completed process
-            ProcessCompletionCallback processCompletionCallback = proc =>
+            void OnProcessCompleted(Process proc)
             {
                 string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
                 try
@@ -427,16 +427,11 @@ namespace winsw
                 {
                     LogEvent("WaitForExit " + ioe.Message);
                 }
-
-                try
+                finally
                 {
                     proc.Dispose();
                 }
-                catch (InvalidOperationException ioe)
-                {
-                    LogEvent("Dispose " + ioe.Message);
-                }
-            };
+            }
 
             // Invoke process and exit
             ProcessHelper.StartProcessAndCallbackForExit(
@@ -446,7 +441,7 @@ namespace winsw
                 envVars: _envs,
                 workingDirectory: _descriptor.WorkingDirectory,
                 priority: _descriptor.Priority,
-                callback: processCompletionCallback,
+                callback: OnProcessCompleted,
                 logHandler: logHandler,
                 redirectStdin: redirectStdin,
                 hideWindow: _descriptor.HideWindow);
@@ -712,8 +707,7 @@ namespace winsw
                     // run restart from another process group. see README.md for why this is useful.
 
                     STARTUPINFO si = default;
-
-                    bool result = Kernel32.CreateProcess(null, d.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out PROCESS_INFORMATION pi);
+                    bool result = Kernel32.CreateProcess(null, d.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out _);
                     if (!result)
                     {
                         throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
@@ -731,6 +725,7 @@ namespace winsw
                         Console.WriteLine("Started");
                     else
                         Console.WriteLine("Stopped");
+
                     return;
                 }
 

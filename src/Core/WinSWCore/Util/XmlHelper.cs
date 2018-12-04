@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml;
 
@@ -11,10 +12,10 @@ namespace winsw.Util
         /// </summary>
         /// <param name="node">Parent node</param>
         /// <param name="tagName">Element name</param>
-        /// <param name="optional">If optional, don't throw an exception if the elemen is missing</param>
+        /// <param name="optional">If optional, don't throw an exception if the element is missing</param>
         /// <returns>String value or null</returns>
         /// <exception cref="InvalidDataException">The required element is missing</exception>
-        public static string SingleElement(XmlNode node, string tagName, bool optional)
+        public static string? SingleElement(XmlNode node, string tagName, bool optional)
         {
             var n = node.SelectSingleNode(tagName);
             if (n == null && !optional)
@@ -28,10 +29,10 @@ namespace winsw.Util
         /// </summary>
         /// <param name="node">Parent node</param>
         /// <param name="tagName">Element name</param>
-        /// <param name="optional">If otional, don't throw an exception if the elemen is missing</param>
+        /// <param name="optional">If otional, don't throw an exception if the element is missing</param>
         /// <returns>String value or null</returns>
         /// <exception cref="InvalidDataException">The required element is missing</exception>
-        public static XmlNode SingleNode(XmlNode node, string tagName, bool optional)
+        public static XmlNode? SingleNode(XmlNode node, string tagName, bool optional)
         {
             var n = node.SelectSingleNode(tagName);
             if (n == null && !optional)
@@ -54,7 +55,7 @@ namespace winsw.Util
                 throw new InvalidDataException("Attribute <" + attributeName + "> is missing in configuration XML");
             }
 
-            return SingleAttribute(node, attributeName, default(TAttributeType));
+            return SingleAttribute<TAttributeType>(node, attributeName, default);
         }
 
         /// <summary>
@@ -64,7 +65,8 @@ namespace winsw.Util
         /// <param name="attributeName">Attribute name</param>
         /// <param name="defaultValue">Default value</param>
         /// <returns>Attribute value (or default)</returns>
-        public static TAttributeType SingleAttribute<TAttributeType>(XmlElement node, string attributeName, TAttributeType defaultValue)
+        [return: MaybeNull]
+        public static TAttributeType SingleAttribute<TAttributeType>(XmlElement node, string attributeName, [AllowNull] TAttributeType defaultValue)
         {
             if (!node.HasAttribute(attributeName))
                 return defaultValue;

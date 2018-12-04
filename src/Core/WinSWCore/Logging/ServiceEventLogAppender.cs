@@ -14,12 +14,10 @@ namespace winsw.Logging
 
         override protected void Append(LoggingEvent loggingEvent)
         {
-            EventLog eventLog = provider.locate();
-            if (eventLog != null)
-            {
-                // We write the event iff the provider is ready
-                eventLog.WriteEntry(loggingEvent.RenderedMessage, toEventLogEntryType(loggingEvent.Level));
-            }
+            EventLog? eventLog = provider.locate();
+
+            // We write the event iff the provider is ready
+            eventLog?.WriteEntry(loggingEvent.RenderedMessage, toEventLogEntryType(loggingEvent.Level));
         }
 
         private static EventLogEntryType toEventLogEntryType(Level level)
