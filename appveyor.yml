@@ -4,7 +4,7 @@ skip_branch_with_pr: true
 
 # Project configuration
 image: Visual Studio 2019
-platform: Any CPU
+# platform: Any CPU
 configuration: Release
 version: 2.0.{build}
 
@@ -17,13 +17,13 @@ nuget:
 before_build:
   # Check SDKs
   - ECHO "Installed SDKs:"
-  - ps: "ls \"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\\""
+  - ps: 'ls "C:\Program Files (x86)\Microsoft SDKs\Windows\"'
   # Generates a temporary SNK. Not for real signing
-  - cmd: "\"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools\\sn.exe\" -k winsw_key.snk"
+  - cmd: '"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\sn.exe" -k winsw_key.snk'
 
 dotnet_csproj:
   patch: true
-  file: "**\\*.csproj"
+  file: '**\*.csproj'
   version: $(appveyor_build_version)
 
 build_script:
@@ -33,8 +33,9 @@ after_build:
   - ps: nuget pack WinSW.nuspec -Version $env:APPVEYOR_BUILD_VERSION
 
 test_script:
-# Runner for NUnit2
-- ps: nunit-console 'src\Test\winswTests\bin\Release\net40\winswTests.dll' 'src\Test\winswTests\bin\Release\net40\SharedDirectoryMapper.dll' 'src\Test\winswTests\bin\Release\net40\RunawayProcessKiller.dll'
+  - dotnet.exe test -f net40 --no-build src\Test\winswTests\winswTests.csproj
+  - dotnet.exe test -f net45 --no-build src\Test\winswTests\winswTests.csproj
+  - dotnet.exe test -f netcoreapp3.1 --no-build src\Test\winswTests\winswTests.csproj
 
 artifacts:
   - path: 'src\Core\ServiceWrapper\bin\Release\net20\WinSW.exe'
@@ -44,7 +45,7 @@ artifacts:
   - path: 'src\Core\ServiceWrapper\bin\Release\net45\WinSW.exe'
     name: WinSW.NET45.exe
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\'
-    name: WinSW.NETCore
+    name: WinSW.NETCore31
   - path: 'WinSW.$(appveyor_build_version).nupkg'
     name: WinSW.nupkg
   - path: 'examples\sample-allOptions.xml'

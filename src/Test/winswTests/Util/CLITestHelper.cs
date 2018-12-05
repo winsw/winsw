@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using JetBrains.Annotations;
 using winsw;
 
 namespace winswTests.Util
@@ -32,7 +31,6 @@ namespace winswTests.Util
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>STDOUT if there's no exceptions</returns>
         /// <exception cref="Exception">Command failure</exception>
-        [NotNull]
         public static string CLITest(string[] args, ServiceDescriptor descriptor = null)
         {
             using (StringWriter sw = new StringWriter())
@@ -52,7 +50,6 @@ namespace winswTests.Util
         /// <param name="args">CLI arguments to be passed</param>
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>Test results</returns>
-        [NotNull]
         public static CLITestResult CLIErrorTest(string[] args, ServiceDescriptor descriptor = null)
         {
             StringWriter swOut, swErr;
@@ -98,13 +95,10 @@ namespace winswTests.Util
     /// </summary>
     public class CLITestResult
     {
-        [NotNull]
         public string Out { get; private set; }
 
-        [NotNull]
         public string Err { get; private set; }
 
-        [CanBeNull]
         public Exception Exception { get; private set; }
 
         public bool HasException => Exception != null;
