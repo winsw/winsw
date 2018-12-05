@@ -78,6 +78,10 @@
       <OutputAssembly>"$(OutDir)WinSW.exe"</OutputAssembly>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)ICSharpCode.SharpZipLib.dll"</InputAssemblies>
+    </PropertyGroup>
+
     <PropertyGroup>
       <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
       <ILMergeArgs>/keyfile:"$(AssemblyOriginatorKeyFile)" /targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
