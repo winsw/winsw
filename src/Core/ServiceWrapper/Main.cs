@@ -32,7 +32,11 @@ namespace winsw
 
         internal WinSWExtensionManager ExtensionManager { get; private set; }
 
-        private static readonly ILog Log = LogManager.GetLogger("WinSW");
+        private static readonly ILog Log = LogManager.GetLogger(
+#if NETCOREAPP
+            Assembly.GetExecutingAssembly(),
+#endif
+            "WinSW");
         private static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
 
         /// <summary>
@@ -827,7 +831,11 @@ namespace winsw
             systemEventLogger.ActivateOptions();
             appenders.Add(systemEventLogger);
 
-            BasicConfigurator.Configure(appenders.ToArray());
+            BasicConfigurator.Configure(
+#if NETCOREAPP
+                LogManager.GetRepository(Assembly.GetExecutingAssembly()),
+#endif
+                appenders.ToArray());
         }
 
         private static string ReadPassword()

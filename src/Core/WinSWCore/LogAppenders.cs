@@ -1,8 +1,13 @@
 using System;
 using System.Diagnostics;
+#if VNEXT
+using System.IO.Compression;
+#endif
 using System.IO;
 using System.Threading;
+#if !VNEXT
 using ICSharpCode.SharpZipLib.Zip;
+#endif
 
 namespace winsw
 {
@@ -522,9 +527,34 @@ namespace winsw
             }
         }
 
+#if VNEXT
+        private void ZipTheFile(string sourceFilePath, string zipDirectory, string zipFilePattern, string baseZipFileName)
+        {
+            string zipFilePath = Path.Combine(zipDirectory, $"{baseZipFileName}.{zipFilePattern}.zip");
+            ZipArchive zipArchive = null;
+            try
+            {
+                zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Update);
+
+                string fileName = Path.GetFileName(sourceFilePath);
+                if (zipArchive.GetEntry(fileName) is null)
+                {
+                    zipArchive.CreateEntryFromFile(sourceFilePath, fileName);
+                }
+            }
+            catch (Exception e)
+            {
+                EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+            }
+            finally
+            {
+                zipArchive?.Dispose();
+            }
+        }
+#else
         private void ZipTheFile(string filename, string zipPath, string zipFilePattern, string baseZipfilename)
         {
-            var zipfilename = Path.Combine(zipPath, string.Format("{0}.{1}.zip", baseZipfilename, zipFilePattern));
+            var zipfilename = Path.Combine(zipPath, $"{baseZipfilename}.{zipFilePattern}.zip");
             ZipFile zipFile = null;
             bool commited = false;
             try
@@ -559,10 +589,7 @@ namespace winsw
             }
             finally
             {
-                if (zipFile != null)
-                {
-                    zipFile.Close();
-                }
+                zipFile?.Close();
             }
         }
 
@@ -575,6 +602,7 @@ namespace winsw
                 throw new ApplicationException(em);
             }
         }
+#endif
 
         private double SetupRollTimer()
         {

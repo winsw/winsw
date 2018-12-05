@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading;
 
 namespace DynamicProxy
 {
@@ -174,15 +173,18 @@ namespace DynamicProxy
                 Type objType = typeof(object);
                 Type handlerType = typeof(IProxyInvocationHandler);
 
-                AppDomain domain = Thread.GetDomain();
                 AssemblyName assemblyName = new AssemblyName();
                 assemblyName.Name = ASSEMBLY_NAME;
                 assemblyName.Version = new Version(1, 0, 0, 0);
 
                 // create a new assembly for this proxy, one that isn't presisted on the file system
-                AssemblyBuilder assemblyBuilder = domain.DefineDynamicAssembly(
-                    assemblyName, AssemblyBuilderAccess.Run);
-                // assemblyName, AssemblyBuilderAccess.RunAndSave,".");  // to save it to the disk
+                AssemblyBuilder assemblyBuilder =
+#if VNEXT
+                    AssemblyBuilder.DefineDynamicAssembly(
+#else
+                    AppDomain.CurrentDomain.DefineDynamicAssembly(
+#endif
+                        assemblyName, AssemblyBuilderAccess.Run);
 
                 // create a new module for this proxy
                 ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(MODULE_NAME);
@@ -206,7 +208,7 @@ namespace DynamicProxy
                 ConstructorBuilder delegateConstructor = typeBuilder.DefineConstructor(
                     MethodAttributes.Public, CallingConventions.Standard, new Type[] { handlerType });
 
-                #region( "Constructor IL Code" )
+#region( "Constructor IL Code" )
                 ILGenerator constructorIL = delegateConstructor.GetILGenerator();
 
                 // Load "this"
@@ -221,7 +223,7 @@ namespace DynamicProxy
                 constructorIL.Emit(OpCodes.Call, superConstructor);
                 // Constructor return
                 constructorIL.Emit(OpCodes.Ret);
-                #endregion
+#endregion
 
                 // for every method that the interfaces define, build a corresponding
                 // method in the dynamic type that calls the handlers invoke method.
@@ -270,7 +272,7 @@ namespace DynamicProxy
                     CallingConventions.Standard,
                     methodInfo.ReturnType, methodParameters);
 
-                #region( "Handler Method IL Code" )
+#region( "Handler Method IL Code" )
                 ILGenerator methodIL = methodBuilder.GetILGenerator();
 
                 // load "this"
@@ -341,7 +343,7 @@ namespace DynamicProxy
 
                 // Return
                 methodIL.Emit(OpCodes.Ret);
-                #endregion
+#endregion
             }
 
             // for (int i = 0; i < props.Length; i++)

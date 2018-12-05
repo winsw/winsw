@@ -34,16 +34,20 @@ after_build:
 
 test_script:
 # Runner for NUnit2
-- ps: nunit-console 'src/Test/winswTests/bin/Release/net40/winswTests.dll' 'src/Test/winswTests/bin/Release/net40/SharedDirectoryMapper.dll' 'src/Test/winswTests/bin/Release/net40/RunawayProcessKiller.dll'
+- ps: nunit-console 'src\Test\winswTests\bin\Release\net40\winswTests.dll' 'src\Test\winswTests\bin\Release\net40\SharedDirectoryMapper.dll' 'src\Test\winswTests\bin\Release\net40\RunawayProcessKiller.dll'
 
 artifacts:
-  - path: 'src/Core/ServiceWrapper/bin/Release/net20/WinSW.exe'
+  - path: 'src\Core\ServiceWrapper\bin\Release\net20\WinSW.exe'
     name: WinSW.NET2.exe
-  - path: 'src/Core/ServiceWrapper/bin/Release/net40/WinSW.exe'
+  - path: 'src\Core\ServiceWrapper\bin\Release\net40\WinSW.exe'
     name: WinSW.NET4.exe
+  - path: 'src\Core\ServiceWrapper\bin\Release\net45\WinSW.exe'
+    name: WinSW.NET45.exe
+  - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\'
+    name: WinSW.NETCore
   - path: 'WinSW.$(appveyor_build_version).nupkg'
     name: WinSW.nupkg
-  - path: 'examples/sample-allOptions.xml'
+  - path: 'examples\sample-allOptions.xml'
     name: 'sample-allOptions.xml'
-  - path: 'examples/sample-minimal.xml'
+  - path: 'examples\sample-minimal.xml'
     name: 'sample-minimal.xml'

@@ -2,9 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net20;net40</TargetFrameworks>
-    <!-- AppVeyor -->
-    <Version></Version>
+    <TargetFrameworks>net20;net40;net45;netcoreapp3.1</TargetFrameworks>
+    <Version><!-- Populated by AppVeyor --></Version>
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
     <Company>CloudBees, Inc.</Company>
@@ -16,13 +15,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
-    <PackageReference Include="ilmerge" Version="3.0.29" />
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
+  </ItemGroup>
+
+  <!-- error NU1605: Detected package downgrade: log4net 2.0.8 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Threading" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <PackageReference Include="ilmerge" Version="3.0.29" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.Management" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -36,39 +49,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\WinSWCore\WinSWCore.csproj" />
     <ProjectReference Include="..\..\Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj" />
     <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj" />
   </ItemGroup>
 
   <!-- Merge plugins and other DLLs into the executable -->
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'net20'">
-      <PropertyGroup>
-        <TargetPlatform>v2</TargetPlatform>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net40'">
-      <PropertyGroup>
-        <TargetPlatform>v4</TargetPlatform>
-      </PropertyGroup>
-    </When>
-  </Choose>
+  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
 
-  <Target Name="Merge" BeforeTargets="AfterBuild">
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
+      <TargetPlatform>v2</TargetPlatform>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+      <TargetPlatform>v4</TargetPlatform>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+      <TargetPlatform>v4.5</TargetPlatform>
+    </PropertyGroup>
 
     <PropertyGroup>
       <InputAssemblies>"$(OutDir)$(TargetFileName)"</InputAssemblies>
