@@ -22,6 +22,7 @@ namespace winswTests.Util
                                     + "</workingdirectory>"
                                     + @"<logpath>C:\winsw\logs</logpath>"
                                     + "</service>";
+
         private static readonly ServiceDescriptor DefaultServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
 
         /// <summary>
@@ -61,8 +62,9 @@ namespace winswTests.Util
 
             using (swOut = new StringWriter())
             using (swErr = new StringWriter())
+            {
                 try
-                {              
+                {
                     Console.SetOut(swOut);
                     Console.SetError(swErr);
                     WrapperService.Run(args, descriptor ?? DefaultServiceDescriptor);
@@ -85,7 +87,8 @@ namespace winswTests.Util
                         Console.WriteLine(testEx);
                     }
                 }
-                
+            }
+
             return new CLITestResult(swOut.ToString(), swErr.ToString(), testEx);
         }
     }
@@ -97,14 +100,14 @@ namespace winswTests.Util
     {
         [NotNull]
         public String Out { get; private set; }
-        
+
         [NotNull]
         public String Err { get; private set; }
-        
+
         [CanBeNull]
         public Exception Exception { get; private set; }
 
-        public bool HasException { get { return Exception != null; } }
+        public bool HasException => Exception != null;
 
         public CLITestResult(String output, String err, Exception exception = null)
         {

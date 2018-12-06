@@ -1,10 +1,9 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
-using System.Text;
 using System.Threading;
+using log4net;
 
 namespace winsw.Util
 {
@@ -24,8 +23,9 @@ namespace winsw.Util
         public static List<int> GetChildPids(int pid)
         {
             var childPids = new List<int>();
-            
-            try {
+
+            try
+            {
                 var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
                 foreach (var mo in searcher.Get())
                 {
@@ -38,7 +38,7 @@ namespace winsw.Util
             {
                 Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
             }
-            
+
             return childPids;
         }
 
@@ -87,7 +87,7 @@ namespace winsw.Util
                 }
             }
 
-            //TODO: Propagate error if process kill fails? Currently we use the legacy behavior
+            // TODO: Propagate error if process kill fails? Currently we use the legacy behavior
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace winsw.Util
         public static void StopProcessAndChildren(int pid, TimeSpan stopTimeout, bool stopParentProcessFirst)
         {
             if (!stopParentProcessFirst)
-            {         
+            {
                 foreach (var childPid in GetChildPids(pid))
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
@@ -149,7 +149,7 @@ namespace winsw.Util
                 foreach (string key in envVars.Keys)
                 {
                     Environment.SetEnvironmentVariable(key, envVars[key]);
-                    // DONTDO: ps.EnvironmentVariables[key] = envs[key]; 
+                    // DONTDO: ps.EnvironmentVariables[key] = envs[key];
                     // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
                 }
             }
@@ -157,8 +157,8 @@ namespace winsw.Util
             processToStart.Start();
             Logger.Info("Started process " + processToStart.Id);
 
-            if (priority != null && priority.Value != ProcessPriorityClass.Normal) 
-            { 
+            if (priority != null && priority.Value != ProcessPriorityClass.Normal)
+            {
                 processToStart.PriorityClass = priority.Value;
             }
 
@@ -172,7 +172,7 @@ namespace winsw.Util
             // monitor the completion of the process
             if (callback != null)
             {
-                StartThread(delegate
+                StartThread(() =>
                 {
                     processToStart.WaitForExit();
                     callback(processToStart);
@@ -187,7 +187,7 @@ namespace winsw.Util
         /// </summary>
         public static void StartThread(ThreadStart main)
         {
-            new Thread(delegate()
+            new Thread(() =>
             {
                 try
                 {

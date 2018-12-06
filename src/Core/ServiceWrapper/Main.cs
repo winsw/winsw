@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Management;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
@@ -12,15 +12,13 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using log4net.Repository.Hierarchy;
 using Microsoft.Win32;
 using winsw.Extensions;
+using winsw.Logging;
+using winsw.Native;
 using winsw.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
-using winsw.Native;
-using System.Reflection;
-using winsw.Logging;
 
 namespace winsw
 {
@@ -32,7 +30,7 @@ namespace winsw
         private readonly ServiceDescriptor _descriptor;
         private Dictionary<string, string> _envs;
 
-        internal WinSWExtensionManager ExtensionManager { private set; get; }
+        internal WinSWExtensionManager ExtensionManager { get; private set; }
 
         private static readonly ILog Log = LogManager.GetLogger("WinSW");
         private static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
@@ -50,17 +48,12 @@ namespace winsw
         /// <remarks>
         /// The version will be taken from <see cref="AssemblyInfo"/>
         /// </remarks>
-        public static Version Version
-        {
-            get { return Assembly.GetExecutingAssembly().GetName().Version; }
-        }
+        public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
         /// <summary>
         /// Indicates that the system is shutting down.
         /// </summary>
-        public bool IsShuttingDown {
-            get { return _systemShuttingdown; }
-        }
+        public bool IsShuttingDown => _systemShuttingdown;
 
         public WrapperService(ServiceDescriptor descriptor)
         {
@@ -77,8 +70,8 @@ namespace winsw
             eventLogProvider.service = this;
         }
 
-        public WrapperService() : this (new ServiceDescriptor())
-        {          
+        public WrapperService() : this(new ServiceDescriptor())
+        {
         }
 
         /// <summary>
@@ -93,7 +86,7 @@ namespace winsw
 
             try
             {
-                using (var tr = new StreamReader(file,Encoding.UTF8))
+                using (var tr = new StreamReader(file, Encoding.UTF8))
                 {
                     string line;
                     while ((line = tr.ReadLine()) != null)
@@ -114,7 +107,6 @@ namespace winsw
             {
                 File.Delete(file);
             }
-
         }
 
         /// <summary>
@@ -199,7 +191,6 @@ namespace winsw
             {
                 LogEvent("envar " + key + '=' + _envs[key]);
             }*/
-
             HandleFileCopies();
 
             // handle downloads
@@ -217,12 +208,13 @@ namespace winsw
                     string errorMessage = "Failed to download " + d.From + " to " + d.To;
                     LogEvent(errorMessage + ". " + e.Message);
                     Log.Error(errorMessage, e);
+
                     // TODO: move this code into the download logic
                     if (d.FailOnError)
                     {
                         throw new IOException(errorMessage, e);
                     }
-                    
+
                     // Else just keep going
                 }
             }
@@ -254,7 +246,7 @@ namespace winsw
 
         protected override void OnShutdown()
         {
-//            WriteEvent("OnShutdown");
+            // WriteEvent("OnShutdown");
 
             try
             {
@@ -269,7 +261,7 @@ namespace winsw
 
         protected override void OnStop()
         {
-//            WriteEvent("OnStop");
+            // WriteEvent("OnStop");
 
             try
             {
@@ -318,7 +310,7 @@ namespace winsw
                     executable = _descriptor.Executable;
                 }
 
-                // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated 
+                // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
                 StartProcess(stopProcess, stoparguments, executable, null, false);
 
                 Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
@@ -327,10 +319,10 @@ namespace winsw
                 SignalShutdownComplete();
             }
 
-            // Stop extensions      
+            // Stop extensions
             ExtensionManager.FireBeforeWrapperStopped();
 
-            if (_systemShuttingdown && _descriptor.BeepOnShutdown) 
+            if (_systemShuttingdown && _descriptor.BeepOnShutdown)
             {
                 Console.Beep();
             }
@@ -341,11 +333,11 @@ namespace winsw
         private void WaitForProcessToExit(Process processoWait)
         {
             SignalShutdownPending();
-            
+
             int effectiveProcessWaitSleepTime;
             if (_descriptor.SleepTime.TotalMilliseconds > Int32.MaxValue)
             {
-                Log.Warn("The requested sleep time " + _descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " + 
+                Log.Warn("The requested sleep time " + _descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " +
                     Int32.MaxValue + ". The value will be truncated");
                 effectiveProcessWaitSleepTime = Int32.MaxValue;
             }
@@ -356,12 +348,12 @@ namespace winsw
 
             try
             {
-//                WriteEvent("WaitForProcessToExit [start]");
+                // WriteEvent("WaitForProcessToExit [start]");
 
                 while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
                 {
                     SignalShutdownPending();
-//                    WriteEvent("WaitForProcessToExit [repeat]");
+                    // WriteEvent("WaitForProcessToExit [repeat]");
                 }
             }
             catch (InvalidOperationException)
@@ -369,7 +361,7 @@ namespace winsw
                 // already terminated
             }
 
-//            WriteEvent("WaitForProcessToExit [finished]");
+            // WriteEvent("WaitForProcessToExit [finished]");
         }
 
         private void SignalShutdownPending()
@@ -377,7 +369,7 @@ namespace winsw
             int effectiveWaitHint;
             if (_descriptor.WaitHint.TotalMilliseconds > Int32.MaxValue)
             {
-                Log.Warn("The requested WaitHint value (" + _descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " + 
+                Log.Warn("The requested WaitHint value (" + _descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
                     Int32.MaxValue + ". The value will be truncated");
                 effectiveWaitHint = Int32.MaxValue;
             }
@@ -386,11 +378,10 @@ namespace winsw
                 effectiveWaitHint = (int)_descriptor.WaitHint.TotalMilliseconds;
             }
 
-
             IntPtr handle = ServiceHandle;
             _wrapperServiceStatus.checkPoint++;
             _wrapperServiceStatus.waitHint = effectiveWaitHint;
-//            WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
+            // WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             _wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
             Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
@@ -399,16 +390,15 @@ namespace winsw
         {
             IntPtr handle = ServiceHandle;
             _wrapperServiceStatus.checkPoint++;
-//            WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
+            // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             _wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
             Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
 
         private void StartProcess(Process processToStart, string arguments, String executable, LogHandler logHandler, bool redirectStdin)
         {
-            
             // Define handler of the completed process
-            ProcessCompletionCallback processCompletionCallback = delegate(Process proc)
+            ProcessCompletionCallback processCompletionCallback = proc =>
             {
                 string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
                 try
@@ -425,6 +415,7 @@ namespace winsw
                         // restart the service automatically
                         if (proc.ExitCode == 0)
                             SignalShutdownComplete();
+
                         Environment.Exit(proc.ExitCode);
                     }
                 }
@@ -485,30 +476,27 @@ namespace winsw
             throw new WmiException(ReturnValue.NoSuchService);
         }
 
-
         // ReSharper disable once InconsistentNaming
         /// <summary>
         /// Runs the wrapper.
         /// </summary>
         /// <param name="_args">Arguments. If empty, WinSW will behave in the service mode. Otherwise - CLI mode</param>
-        /// <param name="descriptor">Service descriptor. If null, it will be initialized within the method. 
+        /// <param name="descriptor">Service descriptor. If null, it will be initialized within the method.
         ///                          In such case configs will be loaded from the XML Configuration File.</param>
         /// <exception cref="Exception">Any unhandled exception</exception>
         public static void Run(string[] _args, ServiceDescriptor descriptor = null)
         {
             bool isCLIMode = _args.Length > 0;
-            
-            
+
             // If descriptor is not specified, initialize the new one (and load configs from there)
             var d = descriptor ?? new ServiceDescriptor();
-                
+
             // Configure the wrapper-internal logging.
             // STDIN and STDOUT of the child process will be handled independently.
             InitLoggers(d, isCLIMode);
 
-            
             if (isCLIMode) // CLI mode, in-service mode otherwise
-            {               
+            {
                 Log.Debug("Starting ServiceWrapper in the CLI mode");
 
                 // Get service info for the future use
@@ -519,7 +507,7 @@ namespace winsw
                 if (args[0] == "/redirect")
                 {
                     // Redirect output
-                    // One might ask why we support this when the caller 
+                    // One might ask why we support this when the caller
                     // can redirect the output easily. The answer is for supporting UAC.
                     // On UAC-enabled Windows such as Vista, SCM operation requires
                     // elevated privileges, thus winsw.exe needs to be launched
@@ -527,7 +515,7 @@ namespace winsw
                     // and among other things it makes it difficult for the caller
                     // to read stdout/stderr. Thus redirection becomes handy.
                     var f = new FileStream(args[1], FileMode.Create);
-                    var w = new StreamWriter(f) {AutoFlush = true};
+                    var w = new StreamWriter(f) { AutoFlush = true };
                     Console.SetOut(w);
                     Console.SetError(w);
 
@@ -551,7 +539,7 @@ namespace winsw
                         throw new Exception("Installation failure: Service with id '" + d.Id + "' already exists");
                     }
 
-                    string username=null, password=null;
+                    string username = null, password = null;
                     bool setallowlogonasaserviceright = false;
                     if (args.Count > 1 && args[1] == "/p")
                     {
@@ -578,13 +566,13 @@ namespace winsw
                             setallowlogonasaserviceright = d.AllowServiceAcountLogonRight;
                         }
                     }
-                    
+
                     if (setallowlogonasaserviceright)
                     {
                         LogonAsAService.AddLogonAsAServiceRight(username);
                     }
 
-                    svc.Create (
+                    svc.Create(
                         d.Id,
                         d.Caption,
                         "\"" + d.ExecutablePath + "\"",
@@ -616,7 +604,7 @@ namespace winsw
                             using (Service sc = scm.Open(d.Id))
                             {
                                 // Delayed auto start
-                                if (isDelayedAutoStart) 
+                                if (isDelayedAutoStart)
                                 {
                                     sc.SetDelayedAutoStart(true);
                                 }
@@ -629,8 +617,10 @@ namespace winsw
                             }
                         }
                     }
+
                     return;
                 }
+
                 if (args[0] == "uninstall")
                 {
                     Log.Info("Uninstalling the service with id '" + d.Id + "'");
@@ -639,6 +629,7 @@ namespace winsw
                         Log.Warn("The service with id '" + d.Id + "' does not exist. Nothing to uninstall");
                         return; // there's no such service, so consider it already uninstalled
                     }
+
                     if (s.Started)
                     {
                         // We could fail the opeartion here, but it would be an incompatible change.
@@ -654,9 +645,9 @@ namespace winsw
                     {
                         if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
                         {
-                            Log.Error("Failed to uninstall the service with id '" + d.Id + "'" 
+                            Log.Error("Failed to uninstall the service with id '" + d.Id + "'"
                                + ". It has been marked for deletion.");
-                            
+
                             // TODO: change the default behavior to Error?
                             return; // it's already uninstalled, so consider it a success
                         }
@@ -664,31 +655,40 @@ namespace winsw
                         {
                             Log.Fatal("Failed to uninstall the service with id '" + d.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
                         }
+
                         throw e;
                     }
+
                     return;
                 }
+
                 if (args[0] == "start")
                 {
                     Log.Info("Starting the service with id '" + d.Id + "'");
-                    if (s == null) ThrowNoSuchService();
+                    if (s == null)
+                        ThrowNoSuchService();
+
                     s.StartService();
                     return;
                 }
+
                 if (args[0] == "stop")
                 {
                     Log.Info("Stopping the service with id '" + d.Id + "'");
-                    if (s == null) ThrowNoSuchService();
+                    if (s == null)
+                        ThrowNoSuchService();
+
                     s.StopService();
                     return;
                 }
+
                 if (args[0] == "restart")
                 {
                     Log.Info("Restarting the service with id '" + d.Id + "'");
-                    if (s == null) 
+                    if (s == null)
                         ThrowNoSuchService();
 
-                    if(s.Started)
+                    if (s.Started)
                         s.StopService();
 
                     while (s.Started)
@@ -700,22 +700,24 @@ namespace winsw
                     s.StartService();
                     return;
                 }
+
                 if (args[0] == "restart!")
                 {
                     Log.Info("Restarting the service with id '" + d.Id + "'");
 
                     // run restart from another process group. see README.md for why this is useful.
 
-                    STARTUPINFO si = new STARTUPINFO();
-                    PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
+                    STARTUPINFO si = default;
 
-                    bool result = Kernel32.CreateProcess(null, d.ExecutablePath+" restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out pi);
+                    bool result = Kernel32.CreateProcess(null, d.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out PROCESS_INFORMATION pi);
                     if (!result)
                     {
-                        throw new Exception("Failed to invoke restart: "+Marshal.GetLastWin32Error());
+                        throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
                     }
+
                     return;
                 }
+
                 if (args[0] == "status")
                 {
                     Log.Debug("User requested the status of the process with id '" + d.Id + "'");
@@ -727,6 +729,7 @@ namespace winsw
                         Console.WriteLine("Stopped");
                     return;
                 }
+
                 if (args[0] == "test")
                 {
                     WrapperService wsvc = new WrapperService(d);
@@ -735,6 +738,7 @@ namespace winsw
                     wsvc.OnStop();
                     return;
                 }
+
                 if (args[0] == "testwait")
                 {
                     WrapperService wsvc = new WrapperService(d);
@@ -744,27 +748,29 @@ namespace winsw
                     wsvc.OnStop();
                     return;
                 }
-                if (args[0] == "help" || args[0] == "--help" || args[0] == "-h" 
+
+                if (args[0] == "help" || args[0] == "--help" || args[0] == "-h"
                     || args[0] == "-?" || args[0] == "/?")
                 {
                     printHelp();
                     return;
                 }
+
                 if (args[0] == "version")
                 {
                     printVersion();
                     return;
                 }
-                
+
                 Console.WriteLine("Unknown command: " + args[0]);
                 printAvailableCommandsInfo();
                 throw new Exception("Unknown command: " + args[0]);
-
             }
             else
             {
                 Log.Info("Starting ServiceWrapper in the service mode");
             }
+
             Run(new WrapperService(d));
         }
 
@@ -774,7 +780,7 @@ namespace winsw
             Level logLevel = Level.Debug;
             // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted
             // This is a workaround till there is a better command line parsing, which will allow determining
-            Level consoleLogLevel = Level.Info; 
+            Level consoleLogLevel = Level.Info;
             Level eventLogLevel = Level.Warn;
 
             // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
@@ -812,11 +818,11 @@ namespace winsw
             }
 
             // System log
-            var systemEventLogger = new ServiceEventLogAppender 
+            var systemEventLogger = new ServiceEventLogAppender
             {
                 Name = "System event log",
                 Threshold = eventLogLevel,
-                provider  = eventLogProvider
+                provider = eventLogProvider
             };
             systemEventLogger.ActivateOptions();
             appenders.Add(systemEventLogger);
@@ -851,21 +857,21 @@ namespace winsw
         private static void printHelp()
         {
             Console.WriteLine("A wrapper binary that can be used to host executables as Windows services");
-            Console.WriteLine("");
+            Console.WriteLine();
             Console.WriteLine("Usage: winsw [/redirect file] <command> [<args>]");
             Console.WriteLine("       Missing arguments trigger the service mode");
-            Console.WriteLine("");
+            Console.WriteLine();
             printAvailableCommandsInfo();
-            Console.WriteLine("");
+            Console.WriteLine();
             Console.WriteLine("Extra options:");
             Console.WriteLine("- '/redirect' - redirect the wrapper's STDOUT and STDERR to the specified file");
-            Console.WriteLine("");
+            Console.WriteLine();
             printVersion();
             Console.WriteLine("More info: https://github.com/kohsuke/winsw");
             Console.WriteLine("Bug tracker: https://github.com/kohsuke/winsw/issues");
         }
 
-        //TODO: Rework to enum in winsw-2.0
+        // TODO: Rework to enum in winsw-2.0
         private static void printAvailableCommandsInfo()
         {
             Console.WriteLine("Available commands:");

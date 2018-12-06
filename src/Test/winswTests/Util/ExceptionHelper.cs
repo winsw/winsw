@@ -1,7 +1,5 @@
-﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using NUnit.Framework;
 
 namespace winswTests.Util
 {
@@ -28,8 +26,6 @@ namespace winswTests.Util
 
             Assert.Fail("Expected exception " + expectedExceptionType + " to be thrown by the operation");
         }
-
-        
     }
 
     public delegate void ExceptionHelperExecutionBody();

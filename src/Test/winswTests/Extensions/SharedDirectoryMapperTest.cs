@@ -1,5 +1,5 @@
-﻿using winsw;
-using NUnit.Framework;
+﻿using NUnit.Framework;
+using winsw;
 using winsw.Extensions;
 using winsw.Plugins.SharedDirectoryMapper;
 
@@ -10,12 +10,11 @@ namespace winswTests.Extensions
     {
         ServiceDescriptor _testServiceDescriptor;
 
-        string testExtension = getExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
+        string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
         [SetUp]
         public void SetUp()
         {
-            
             string seedXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
                 + "<service>                                                                                                        "
                 + "  <id>SERVICE_NAME</id>                                                                                          "

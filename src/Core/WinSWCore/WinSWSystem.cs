@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace winsw
+﻿namespace winsw
 {
     /// <summary>
     /// Class, which contains generic information about WinSW runtime.
@@ -19,11 +15,11 @@ namespace winsw
         /// Variable, which points to the service ID.
         /// It may be used to determine runaway processes.
         /// </summary>
-        public static string ENVVAR_NAME_SERVICE_ID { get { return SYSTEM_EVNVVAR_PREFIX + "SERVICE_ID"; } }
+        public static string ENVVAR_NAME_SERVICE_ID => SYSTEM_EVNVVAR_PREFIX + "SERVICE_ID";
 
         /// <summary>
         /// Variable, which specifies path to the executable being launched by WinSW.
         /// </summary>
-        public static string ENVVAR_NAME_EXECUTABLE_PATH { get { return SYSTEM_EVNVVAR_PREFIX + "EXECUTABLE"; } }
+        public static string ENVVAR_NAME_EXECUTABLE_PATH => SYSTEM_EVNVVAR_PREFIX + "EXECUTABLE";
     }
 }

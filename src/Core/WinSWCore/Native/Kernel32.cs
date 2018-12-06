@@ -1,6 +1,6 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace winsw.Native
 {
@@ -8,7 +8,7 @@ namespace winsw.Native
     /// kernel32.dll P/Invoke wrappers
     /// </summary>
     public class Kernel32
-    {        
+    {
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetStdHandle(int nStdHandle, SafeFileHandle handle);
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace winsw.Extensions
+﻿namespace winsw.Extensions
 {
     /// <summary>
     /// This attribute is used to identify extension points within the code

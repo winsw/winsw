@@ -13,7 +13,12 @@ namespace winsw
     /// </summary>
     public class Download
     {
-        public enum AuthType { none = 0, sspi, basic }
+        public enum AuthType
+        {
+            none = 0,
+            sspi,
+            basic
+        }
 
         public readonly string From;
         public readonly string To;
@@ -23,10 +28,16 @@ namespace winsw
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
 
-        public string ShortId { get { return String.Format("(download from {0})", From); } }
+        public string ShortId => $"(download from {From})";
 
-        public Download(string from, string to, bool failOnError = false, AuthType auth = AuthType.none, 
-            string username = null, string password = null, bool unsecureAuth = false)
+        public Download(
+            string from,
+            string to,
+            bool failOnError = false,
+            AuthType auth = AuthType.none,
+            string username = null,
+            string password = null,
+            bool unsecureAuth = false)
         {
             From = from;
             To = to;
@@ -48,19 +59,19 @@ namespace winsw
             To = XmlHelper.SingleAttribute<String>(n, "to");
 
             // All arguments below are optional
-            FailOnError = XmlHelper.SingleAttribute<bool>(n, "failOnError", false);
+            FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
 
-            Auth = XmlHelper.EnumAttribute<AuthType>(n, "auth", AuthType.none);
+            Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.none);
             Username = XmlHelper.SingleAttribute<String>(n, "user", null);
             Password = XmlHelper.SingleAttribute<String>(n, "password", null);
-            UnsecureAuth = XmlHelper.SingleAttribute<bool>(n, "unsecureAuth", false);
+            UnsecureAuth = XmlHelper.SingleAttribute(n, "unsecureAuth", false);
 
             if (Auth == AuthType.basic)
             {
-                // Allow it only for HTTPS or for UnsecureAuth 
+                // Allow it only for HTTPS or for UnsecureAuth
                 if (!From.StartsWith("https:") && !UnsecureAuth)
                 {
-                    throw new InvalidDataException("Warning: you're sending your credentials in clear text to the server " + ShortId + 
+                    throw new InvalidDataException("Warning: you're sending your credentials in clear text to the server " + ShortId +
                                                    "If you really want this you must enable 'unsecureAuth' in the configuration");
                 }
 
@@ -69,6 +80,7 @@ namespace winsw
                 {
                     throw new InvalidDataException("Basic Auth is enabled, but username is not specified " + ShortId);
                 }
+
                 if (Password == null)
                 {
                     throw new InvalidDataException("Basic Auth is enabled, but password is not specified " + ShortId);
@@ -87,7 +99,7 @@ namespace winsw
         /// <summary>
         ///     Downloads the requested file and puts it to the specified target.
         /// </summary>
-        /// <exception cref="System.Net.WebException">
+        /// <exception cref="WebException">
         ///     Download failure. FailOnError flag should be processed outside.
         /// </exception>
         public void Perform()
@@ -120,6 +132,7 @@ namespace winsw
             // only after we successfully downloaded a file, overwrite the existing one
             if (File.Exists(To))
                 File.Delete(To);
+
             File.Move(To + ".tmp", To);
         }
 
@@ -129,9 +142,12 @@ namespace winsw
             while (true)
             {
                 int len = i.Read(buf, 0, buf.Length);
-                if (len <= 0) break;
+                if (len <= 0)
+                    break;
+
                 o.Write(buf, 0, len);
             }
+
             i.Close();
             o.Close();
         }

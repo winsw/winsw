@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using WMI;
 
@@ -14,11 +13,11 @@ namespace winsw.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
-        public string Id { get { return null; } }
-        public string Caption { get { return null; } }
-        public string Description { get { return null; } }
-        public string Executable { get { return null; } }
-        public bool HideWindow { get { return false; } }
+        public string Id => null;
+        public string Caption => null;
+        public string Description => null;
+        public string Executable => null;
+        public bool HideWindow => false;
 
         public string ExecutablePath
         {
@@ -32,47 +31,47 @@ namespace winsw.Configuration
         }
 
         // Installation
-        public bool AllowServiceAcountLogonRight { get { return false; } }
-        public string ServiceAccountPassword { get { return null; } }
-        public string ServiceAccountUser { get { return "NULL\\NULL"; } }
-        public List<winsw.Native.SC_ACTION> FailureActions { get { return new List<winsw.Native.SC_ACTION>(); } }
-        public TimeSpan ResetFailureAfter { get { return TimeSpan.FromDays(1); } }
+        public bool AllowServiceAcountLogonRight => false;
+        public string ServiceAccountPassword => null;
+        public string ServiceAccountUser => "NULL\\NULL";
+        public List<Native.SC_ACTION> FailureActions => new List<Native.SC_ACTION>();
+        public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
         // Executable management
-        public string Arguments { get { return ""; } }
-        public string Startarguments { get { return null; } }
-        public string StopExecutable { get { return null; } }
-        public string Stoparguments { get { return null; } }
-        public string WorkingDirectory { get { return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location); } }
-        public ProcessPriorityClass Priority { get { return ProcessPriorityClass.Normal; } }
-        public TimeSpan StopTimeout { get { return TimeSpan.FromSeconds(15); } }
-        public bool StopParentProcessFirst { get { return false; } }
+        public string Arguments => string.Empty;
+        public string Startarguments => null;
+        public string StopExecutable => null;
+        public string Stoparguments => null;
+        public string WorkingDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
+        public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
+        public bool StopParentProcessFirst => false;
 
         // Service management
-        public StartMode StartMode { get { return StartMode.Automatic; } }
-        public bool DelayedAutoStart { get { return false; } }
-        public string[] ServiceDependencies { get { return new string[0]; } }
-        public TimeSpan WaitHint { get { return TimeSpan.FromSeconds(15); } }
-        public TimeSpan SleepTime { get { return TimeSpan.FromSeconds(1); } }
-        public bool Interactive { get { return false; } }
+        public StartMode StartMode => StartMode.Automatic;
+        public bool DelayedAutoStart => false;
+        public string[] ServiceDependencies => new string[0];
+        public TimeSpan WaitHint => TimeSpan.FromSeconds(15);
+        public TimeSpan SleepTime => TimeSpan.FromSeconds(1);
+        public bool Interactive => false;
 
         // Logging
-        public string LogDirectory { get { return Path.GetDirectoryName(ExecutablePath); } }
-        public string LogMode { get { return "append"; } }
+        public string LogDirectory => Path.GetDirectoryName(ExecutablePath);
+        public string LogMode => "append";
 
-        public bool OutFileDisabled { get { return false; } }
-        public bool ErrFileDisabled { get { return false; } }
-        public string OutFilePattern { get { return ".out.log"; } }
-        public string ErrFilePattern { get { return ".err.log"; } }
+        public bool OutFileDisabled => false;
+        public bool ErrFileDisabled => false;
+        public string OutFilePattern => ".out.log";
+        public string ErrFilePattern => ".err.log";
 
         // Environment
-        public List<Download> Downloads { get { return new List<Download>(); } }
-        public Dictionary<string, string> EnvironmentVariables { get { return new Dictionary<string, string>(); } }
+        public List<Download> Downloads => new List<Download>();
+        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>();
 
         // Misc
-        public bool BeepOnShutdown { get { return false; } }
+        public bool BeepOnShutdown => false;
 
         // Extensions
-        public XmlNode ExtensionsConfiguration { get {return null; } }
+        public XmlNode ExtensionsConfiguration => null;
     }
 }

@@ -7,8 +7,8 @@ using System.Threading;
 namespace DynamicProxy
 {
     /// <summary>
-    /// Interface that a user defined proxy handler needs to implement.  This interface 
-    /// defines one method that gets invoked by the generated proxy.  
+    /// Interface that a user defined proxy handler needs to implement.  This interface
+    /// defines one method that gets invoked by the generated proxy.
     /// </summary>
     public interface IProxyInvocationHandler
     {
@@ -96,7 +96,7 @@ namespace DynamicProxy
         private const string MODULE_NAME = "ProxyModule";
         private const string HANDLER_NAME = "handler";
 
-        // Initialize the value type mapper.  This is needed for methods with intrinsic 
+        // Initialize the value type mapper.  This is needed for methods with intrinsic
         // return types, used in the Emit process.
         static ProxyFactory()
         {
@@ -182,7 +182,7 @@ namespace DynamicProxy
                 // create a new assembly for this proxy, one that isn't presisted on the file system
                 AssemblyBuilder assemblyBuilder = domain.DefineDynamicAssembly(
                     assemblyName, AssemblyBuilderAccess.Run);
-                    // assemblyName, AssemblyBuilderAccess.RunAndSave,".");  // to save it to the disk
+                // assemblyName, AssemblyBuilderAccess.RunAndSave,".");  // to save it to the disk
 
                 // create a new module for this proxy
                 ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(MODULE_NAME);
@@ -200,9 +200,8 @@ namespace DynamicProxy
                 FieldBuilder handlerField = typeBuilder.DefineField(
                     HANDLER_NAME, handlerType, FieldAttributes.Private);
 
-
                 // build a constructor that takes the delegate object as the only argument
-                //ConstructorInfo defaultObjConstructor = objType.GetConstructor( new Type[0] );
+                // ConstructorInfo defaultObjConstructor = objType.GetConstructor( new Type[0] );
                 ConstructorInfo superConstructor = objType.GetConstructor(new Type[0]);
                 ConstructorBuilder delegateConstructor = typeBuilder.DefineConstructor(
                     MethodAttributes.Public, CallingConventions.Standard, new Type[] { handlerType });
@@ -224,8 +223,8 @@ namespace DynamicProxy
                 constructorIL.Emit(OpCodes.Ret);
                 #endregion
 
-                // for every method that the interfaces define, build a corresponding 
-                // method in the dynamic type that calls the handlers invoke method.  
+                // for every method that the interfaces define, build a corresponding
+                // method in the dynamic type that calls the handlers invoke method.
                 foreach (Type interfaceType in interfaces)
                 {
                     GenerateMethod(interfaceType, handlerField, typeBuilder);
@@ -242,106 +241,122 @@ namespace DynamicProxy
         private static readonly MethodInfo INVOKE_METHOD = typeof(IProxyInvocationHandler).GetMethod("Invoke");
         private static readonly MethodInfo GET_METHODINFO_METHOD = typeof(MetaDataFactory).GetMethod("GetMethod", new Type[] { typeof(string), typeof(int) });
 
-        private void GenerateMethod( Type interfaceType, FieldBuilder handlerField, TypeBuilder typeBuilder ) {
-            MetaDataFactory.Add( interfaceType );
+        private void GenerateMethod(Type interfaceType, FieldBuilder handlerField, TypeBuilder typeBuilder)
+        {
+            MetaDataFactory.Add(interfaceType);
             MethodInfo[] interfaceMethods = interfaceType.GetMethods();
             PropertyInfo[] props = interfaceType.GetProperties();
 
-            for ( int i = 0; i < interfaceMethods.Length; i++ ) {
+            for (int i = 0; i < interfaceMethods.Length; i++)
+            {
                 MethodInfo methodInfo = interfaceMethods[i];
 
                 // Get the method parameters since we need to create an array
                 // of parameter types
                 ParameterInfo[] methodParams = methodInfo.GetParameters();
                 int numOfParams = methodParams.Length;
-                Type[] methodParameters = new Type[ numOfParams ];
+                Type[] methodParameters = new Type[numOfParams];
 
                 // convert the ParameterInfo objects into Type
-                for ( int j = 0; j < numOfParams; j++ ) {
+                for (int j = 0; j < numOfParams; j++)
+                {
                     methodParameters[j] = methodParams[j].ParameterType;
                 }
 
                 // create a new builder for the method in the interface
                 MethodBuilder methodBuilder = typeBuilder.DefineMethod(
-                    methodInfo.Name, 
-                    /*MethodAttributes.Public | MethodAttributes.Virtual | */ methodInfo.Attributes&~MethodAttributes.Abstract,
+                    methodInfo.Name,
+                    /*MethodAttributes.Public | MethodAttributes.Virtual | */ methodInfo.Attributes & ~MethodAttributes.Abstract,
                     CallingConventions.Standard,
-                    methodInfo.ReturnType, methodParameters );                                                   
+                    methodInfo.ReturnType, methodParameters);
 
                 #region( "Handler Method IL Code" )
                 ILGenerator methodIL = methodBuilder.GetILGenerator();
-                        
+
                 // load "this"
-                methodIL.Emit( OpCodes.Ldarg_0 );
+                methodIL.Emit(OpCodes.Ldarg_0);
                 // load the handler
-                methodIL.Emit( OpCodes.Ldfld, handlerField );
+                methodIL.Emit(OpCodes.Ldfld, handlerField);
                 // load "this" since its needed for the call to invoke
-                methodIL.Emit( OpCodes.Ldarg_0 );
+                methodIL.Emit(OpCodes.Ldarg_0);
                 // load the name of the interface, used to get the MethodInfo object
                 // from MetaDataFactory
-                methodIL.Emit( OpCodes.Ldstr, interfaceType.FullName );
-                // load the index, used to get the MethodInfo object 
-                // from MetaDataFactory 
-                methodIL.Emit( OpCodes.Ldc_I4, i ); 
+                methodIL.Emit(OpCodes.Ldstr, interfaceType.FullName);
+                // load the index, used to get the MethodInfo object
+                // from MetaDataFactory
+                methodIL.Emit(OpCodes.Ldc_I4, i);
                 // invoke GetMethod in MetaDataFactory
-                methodIL.Emit( OpCodes.Call, GET_METHODINFO_METHOD);
+                methodIL.Emit(OpCodes.Call, GET_METHODINFO_METHOD);
 
                 // load the number of parameters onto the stack
-                methodIL.Emit( OpCodes.Ldc_I4, numOfParams );
+                methodIL.Emit(OpCodes.Ldc_I4, numOfParams);
                 // create a new array, using the size that was just pused on the stack
-                methodIL.Emit( OpCodes.Newarr, typeof(object) );
-                        
+                methodIL.Emit(OpCodes.Newarr, typeof(object));
+
                 // if we have any parameters, then iterate through and set the values
                 // of each element to the corresponding arguments
-                for ( int j = 0; j < numOfParams; j++ ) {
-                    methodIL.Emit( OpCodes.Dup );   // this copies the array
-                    methodIL.Emit( OpCodes.Ldc_I4, j );
-                    methodIL.Emit( OpCodes.Ldarg, j + 1 );
-                    if ( methodParameters[j].IsValueType ) {
-                        methodIL.Emit( OpCodes.Box, methodParameters[j] );
+                for (int j = 0; j < numOfParams; j++)
+                {
+                    methodIL.Emit(OpCodes.Dup);   // this copies the array
+                    methodIL.Emit(OpCodes.Ldc_I4, j);
+                    methodIL.Emit(OpCodes.Ldarg, j + 1);
+                    if (methodParameters[j].IsValueType)
+                    {
+                        methodIL.Emit(OpCodes.Box, methodParameters[j]);
                     }
-                    methodIL.Emit( OpCodes.Stelem_Ref );                                    
+
+                    methodIL.Emit(OpCodes.Stelem_Ref);
                 }
 
                 // call the Invoke method
-                methodIL.Emit( OpCodes.Callvirt, INVOKE_METHOD );
-                        
-                if ( methodInfo.ReturnType != typeof(void) ) { 
+                methodIL.Emit(OpCodes.Callvirt, INVOKE_METHOD);
+
+                if (methodInfo.ReturnType != typeof(void))
+                {
                     // if the return type if a value type, then unbox the return value
                     // so that we don't get junk.
-                    if ( methodInfo.ReturnType.IsValueType  ) {
-                        methodIL.Emit( OpCodes.Unbox, methodInfo.ReturnType );
-                        if ( methodInfo.ReturnType.IsEnum ) {
-                            methodIL.Emit( OpCodes.Ldind_I4 );
-                        } else if ( !methodInfo.ReturnType.IsPrimitive ) {
-                            methodIL.Emit( OpCodes.Ldobj, methodInfo.ReturnType );
-                        } else {
-                            methodIL.Emit( (OpCode) OpCodeTypeMapper[ methodInfo.ReturnType ] );
+                    if (methodInfo.ReturnType.IsValueType)
+                    {
+                        methodIL.Emit(OpCodes.Unbox, methodInfo.ReturnType);
+                        if (methodInfo.ReturnType.IsEnum)
+                        {
+                            methodIL.Emit(OpCodes.Ldind_I4);
                         }
-                    }                                                                     
-                } else {
-                    // pop the return value that Invoke returned from the stack since
-                    // the method's return type is void. 
-                    methodIL.Emit( OpCodes.Pop );
+                        else if (!methodInfo.ReturnType.IsPrimitive)
+                        {
+                            methodIL.Emit(OpCodes.Ldobj, methodInfo.ReturnType);
+                        }
+                        else
+                        {
+                            methodIL.Emit((OpCode)OpCodeTypeMapper[methodInfo.ReturnType]);
+                        }
+                    }
                 }
-                                            
+                else
+                {
+                    // pop the return value that Invoke returned from the stack since
+                    // the method's return type is void.
+                    methodIL.Emit(OpCodes.Pop);
+                }
+
                 // Return
-                methodIL.Emit( OpCodes.Ret );
+                methodIL.Emit(OpCodes.Ret);
                 #endregion
             }
 
-            //for (int i = 0; i < props.Length; i++)
-            //{
-            //    PropertyInfo p = props[i];
+            // for (int i = 0; i < props.Length; i++)
+            // {
+            //     PropertyInfo p = props[i];
 
-            //    PropertyBuilder pb = typeBuilder.DefineProperty(p.Name, p.Attributes, p.PropertyType, new Type[] { p.PropertyType });
-            //    pb.SetGetMethod((MethodBuilder)methodTable[p.GetGetMethod()]);
-            //    pb.SetSetMethod((MethodBuilder)methodTable[p.GetSetMethod()]);
-            //}
+            //     PropertyBuilder pb = typeBuilder.DefineProperty(p.Name, p.Attributes, p.PropertyType, new Type[] { p.PropertyType });
+            //     pb.SetGetMethod((MethodBuilder)methodTable[p.GetGetMethod()]);
+            //     pb.SetSetMethod((MethodBuilder)methodTable[p.GetSetMethod()]);
+            // }
 
             // Iterate through the parent interfaces and recursively call this method
-            foreach ( Type parentType in interfaceType.GetInterfaces() ) {
-                GenerateMethod( parentType, handlerField, typeBuilder );            
+            foreach (Type parentType in interfaceType.GetInterfaces())
+            {
+                GenerateMethod(parentType, handlerField, typeBuilder);
             }
         }
     }

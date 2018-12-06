@@ -7,7 +7,7 @@ namespace winsw.Configuration
 {
     public interface IWinSWConfiguration
     {
-        //TODO: Document the parameters && refactor
+        // TODO: Document the parameters && refactor
 
         string Id { get; }
         string Caption { get; }
@@ -20,7 +20,7 @@ namespace winsw.Configuration
         bool AllowServiceAcountLogonRight { get; }
         string ServiceAccountPassword { get; }
         string ServiceAccountUser { get; }
-        List<winsw.Native.SC_ACTION> FailureActions { get; }
+        List<Native.SC_ACTION> FailureActions { get; }
         TimeSpan ResetFailureAfter { get; }
 
         // Executable management
@@ -39,16 +39,16 @@ namespace winsw.Configuration
         TimeSpan WaitHint { get; }
         TimeSpan SleepTime { get; }
         bool Interactive { get; }
-  
+
         // Logging
         string LogDirectory { get; }
-        //TODO: replace by enum
+        // TODO: replace by enum
         string LogMode { get; }
-        
+
         // Environment
         List<Download> Downloads { get; }
         Dictionary<string, string> EnvironmentVariables { get; }
-        
+
         // Misc
         bool BeepOnShutdown { get; }
 

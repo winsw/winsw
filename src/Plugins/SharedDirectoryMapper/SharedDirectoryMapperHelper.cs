@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using winsw.Util;
 
 namespace winsw.Plugins.SharedDirectoryMapper
 {

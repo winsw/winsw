@@ -1,9 +1,6 @@
-﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Xml;
+using NUnit.Framework;
 using winsw;
 using winswTests.Util;
 
@@ -16,11 +13,10 @@ namespace winswTests.Configuration
     [TestFixture]
     class ExamplesTest
     {
-
         [Test]
-        public void allOptionsConfigShouldDeclareDefaults()
+        public void AllOptionsConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor d = doLoad("allOptions");
+            ServiceDescriptor d = DoLoad("allOptions");
 
             Assert.AreEqual("myapp", d.Id);
             Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
@@ -31,9 +27,9 @@ namespace winswTests.Configuration
         }
 
         [Test]
-        public void minimalConfigShouldDeclareDefaults()
+        public void MinimalConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor d = doLoad("minimal");
+            ServiceDescriptor d = DoLoad("minimal");
 
             Assert.AreEqual("myapp", d.Id);
             Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
@@ -43,13 +39,15 @@ namespace winswTests.Configuration
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
         }
 
-        private ServiceDescriptor doLoad(string exampleName) {
+        private ServiceDescriptor DoLoad(string exampleName)
+        {
             var dir = Directory.GetCurrentDirectory();
             string path = Path.GetFullPath(dir + "\\..\\..\\..\\..\\..\\..\\examples\\sample-" + exampleName + ".xml");
             if (!File.Exists(path))
             {
                 throw new FileNotFoundException("Cannot find the XML file " + path, path);
             }
+
             XmlDocument dom = new XmlDocument();
             dom.Load(path);
             return new ServiceDescriptor(dom);

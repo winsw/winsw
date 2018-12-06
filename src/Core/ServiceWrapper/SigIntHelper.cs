@@ -16,6 +16,7 @@ namespace winsw
 
         [DllImport(KERNEL32)]
         private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+
         // Delegate type to be used as the Handler Routine for SCCH
         private delegate Boolean ConsoleCtrlDelegate(CtrlTypes CtrlType);
 
@@ -43,15 +44,15 @@ namespace winsw
         {
             if (AttachConsole((uint)process.Id))
             {
-                //Disable Ctrl-C handling for our program
+                // Disable Ctrl-C handling for our program
                 SetConsoleCtrlHandler(null, true);
                 GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
                 process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
 
-                return process.HasExited;    
+                return process.HasExited;
             }
-         
+
             return false;
         }
     }

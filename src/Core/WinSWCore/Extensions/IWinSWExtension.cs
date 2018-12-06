@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Xml;
-using winsw.Util;
 
 namespace winsw.Extensions
 {
@@ -8,7 +7,7 @@ namespace winsw.Extensions
     /// Interface for Win Service Wrapper Extension
     /// </summary>
     /// <remarks>
-    /// All implementations should provide the default empty constructor. 
+    /// All implementations should provide the default empty constructor.
     /// The initialization will be performed by Init methods.
     /// Binary comparibility of the class is not guaranteed in WinSW 2.
     /// </remarks>

@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
-using NUnit.Framework;
-using winsw;
-using System.IO;
-using winsw.Util;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using NUnit.Framework;
+using winsw.Util;
 
 namespace winswTests.Util
 {
-
     [TestFixture]
     class ProcessHelperTest
     {
@@ -24,7 +22,6 @@ namespace winswTests.Util
             String envFile = Path.Combine(tmpDir, "env.properties");
             String scriptFile = Path.Combine(tmpDir, "printenv.bat");
             File.WriteAllText(scriptFile, "set > " + envFile);
-
 
             Process proc = new Process();
             var ps = proc.StartInfo;
@@ -54,7 +51,7 @@ namespace winswTests.Util
         {
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
             String scriptFile = Path.Combine(tmpDir, "print_lots_to_stdout.bat");
-            var lotsOfStdOut = string.Join("", _Range(1,1000));
+            var lotsOfStdOut = string.Join(string.Empty, _Range(1, 1000));
             File.WriteAllText(scriptFile, string.Format("echo \"{0}\"", lotsOfStdOut));
 
             Process proc = new Process();
@@ -72,10 +69,11 @@ namespace winswTests.Util
         private string[] _Range(int start, int limit)
         {
             var range = new List<string>();
-            for(var i = start; i<limit; i++)
+            for (var i = start; i < limit; i++)
             {
                 range.Add(i.ToString());
             }
+
             return range.ToArray();
         }
     }

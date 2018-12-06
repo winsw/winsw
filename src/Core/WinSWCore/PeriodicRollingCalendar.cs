@@ -29,10 +29,16 @@ namespace winsw
 
         public enum PeriodicityType
         {
-            ERRONEOUS, TOP_OF_MILLISECOND, TOP_OF_SECOND, TOP_OF_MINUTE, TOP_OF_HOUR, TOP_OF_DAY
+            ERRONEOUS,
+            TOP_OF_MILLISECOND,
+            TOP_OF_SECOND,
+            TOP_OF_MINUTE,
+            TOP_OF_HOUR,
+            TOP_OF_DAY
         }
 
-        private static readonly PeriodicityType[] VALID_ORDERED_LIST = {
+        private static readonly PeriodicityType[] VALID_ORDERED_LIST =
+        {
             PeriodicityType.TOP_OF_MILLISECOND, PeriodicityType.TOP_OF_SECOND, PeriodicityType.TOP_OF_MINUTE, PeriodicityType.TOP_OF_HOUR, PeriodicityType.TOP_OF_DAY
         };
 
@@ -54,6 +60,7 @@ namespace winsw
                     return i;
                 }
             }
+
             return PeriodicityType.ERRONEOUS;
         }
 
@@ -100,17 +107,11 @@ namespace winsw
                     _nextRoll = nextTriggeringTime(now, _period);
                     return true;
                 }
+
                 return false;
             }
         }
 
-        public string format
-        {
-            get
-            {
-                return _currentRoll.ToString(_format);
-            }
-        }
-
+        public string format => _currentRoll.ToString(_format);
     }
 }

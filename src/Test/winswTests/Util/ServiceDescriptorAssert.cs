@@ -1,8 +1,6 @@
-﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
+using NUnit.Framework;
 using winsw;
 using winsw.Configuration;
 
@@ -13,7 +11,7 @@ namespace winswTests.Util
         // TODO: convert to Extension attributes once the .NET dependency is upgraded
         // BTW there is a way to get them working in .NET2, but KISS
 
-        public static void AssertPropertyIsDefault(ServiceDescriptor d, string property) 
+        public static void AssertPropertyIsDefault(ServiceDescriptor d, string property)
         {
             PropertyInfo actualProperty = typeof(ServiceDescriptor).GetProperty(property);
             Assert.IsNotNull(actualProperty, "Cannot find property " + property + " in the service descriptor" + d);
@@ -37,14 +35,17 @@ namespace winswTests.Util
             AssertPropertyIsDefault(d, AllOptionalProperties);
         }
 
-        private static List<string> AllProperties {
-            get {
+        private static List<string> AllProperties
+        {
+            get
+            {
                 var res = new List<string>();
                 var properties = typeof(IWinSWConfiguration).GetProperties();
                 foreach (var prop in properties)
                 {
                     res.Add(prop.Name);
                 }
+
                 return res;
             }
         }
@@ -62,6 +63,4 @@ namespace winswTests.Util
             }
         }
     }
-
-    
 }

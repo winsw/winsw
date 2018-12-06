@@ -18,12 +18,6 @@ namespace winsw.Extensions
             ExtensionId = extensionName;
         }
 
-        public override string Message
-        {
-            get
-            {
-                return ExtensionId + ": " + base.Message;
-            }
-        }
+        public override string Message => ExtensionId + ": " + base.Message;
     }
 }

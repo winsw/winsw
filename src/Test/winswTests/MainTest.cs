@@ -7,7 +7,6 @@ namespace winswTests
     [TestFixture]
     class MainTest
     {
-
         [Test]
         public void PrintVersion()
         {
@@ -21,12 +20,12 @@ namespace winswTests
         {
             string expectedVersion = WrapperService.Version.ToString();
             string cliOut = CLITestHelper.CLITest(new[] { "help" });
-            
+
             StringAssert.Contains(expectedVersion, cliOut, "Expected that help contains " + expectedVersion);
             StringAssert.Contains("start", cliOut, "Expected that help refers start command");
             StringAssert.Contains("help", cliOut, "Expected that help refers help command");
             StringAssert.Contains("version", cliOut, "Expected that help refers version command");
-            //TODO: check all commands after the migration of ccommands to enum
+            // TODO: check all commands after the migration of ccommands to enum
 
             // Extra options
             StringAssert.Contains("/redirect", cliOut, "Expected that help message refers the redirect message");
@@ -37,8 +36,8 @@ namespace winswTests
         {
             const string commandName = "nonExistentCommand";
             string expectedMessage = "Unknown command: " + commandName.ToLower();
-            CLITestResult res = CLITestHelper.CLIErrorTest(new[] {commandName});
-  
+            CLITestResult res = CLITestHelper.CLIErrorTest(new[] { commandName });
+
             Assert.True(res.HasException, "Expected an exception due to the wrong command");
             StringAssert.Contains(expectedMessage, res.Out, "Expected the message about unknown command");
             // ReSharper disable once PossibleNullReferenceException
