@@ -161,8 +161,6 @@ namespace winsw.Extensions
 
         private IWinSWExtension CreateExtensionInstance(string id, string className)
         {
-            ActivationContext ac = AppDomain.CurrentDomain.ActivationContext;
-            Assembly assembly = Assembly.GetCallingAssembly();
             object created;
 
             try
