@@ -591,7 +591,7 @@ namespace winsw
         private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName, DateTime now)
         {
             var nextFileNumber = 0;
-            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(FilePattern), ext));
+            var files = Directory.GetFiles(baseDirectory, string.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(FilePattern), ext));
             if (files.Length == 0)
             {
                 nextFileNumber = 1;

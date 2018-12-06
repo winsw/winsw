@@ -96,7 +96,7 @@ namespace winsw
 
         public PeriodicityType periodicityType { get; set; }
 
-        public Boolean shouldRoll
+        public bool shouldRoll
         {
             get
             {

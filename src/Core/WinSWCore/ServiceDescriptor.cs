@@ -218,7 +218,7 @@ namespace winsw
             get
             {
                 var wd = SingleElement("workingdirectory", true);
-                return String.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd;
+                return string.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd;
             }
         }
 
@@ -235,7 +235,7 @@ namespace winsw
                     foreach (XmlNode e in extensions)
                     {
                         XmlElement extension = (XmlElement)e;
-                        String extensionId = XmlHelper.SingleAttribute<string>(extension, "id");
+                        string extensionId = XmlHelper.SingleAttribute<string>(extension, "id");
                         res.Add(extensionId);
                     }
                 }
@@ -675,7 +675,7 @@ namespace winsw
             {
                 if (AllowServiceLogon != null)
                 {
-                    if (Boolean.TryParse(AllowServiceLogon, out bool parsedvalue))
+                    if (bool.TryParse(AllowServiceLogon, out bool parsedvalue))
                     {
                         return parsedvalue;
                     }

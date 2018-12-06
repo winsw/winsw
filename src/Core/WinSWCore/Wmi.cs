@@ -99,7 +99,7 @@ namespace WMI
             string path;
 
             if (machineName != null)
-                path = String.Format(@"\\{0}\root\cimv2", machineName);
+                path = string.Format(@"\\{0}\root\cimv2", machineName);
             else
                 path = @"\root\cimv2";
             scope = new ManagementScope(path, options);

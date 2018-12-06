@@ -15,7 +15,7 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// <summary>
         /// Absolute path to the PID file, which stores ID of the previously launched process.
         /// </summary>
-        public String Pidfile { get; private set; }
+        public string Pidfile { get; private set; }
 
         /// <summary>
         /// Defines the process termination timeout in milliseconds.
@@ -34,9 +34,9 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// </summary>
         public bool CheckWinSWEnvironmentVariable { get; private set; }
 
-        public override String DisplayName => "Runaway Process Killer";
+        public override string DisplayName => "Runaway Process Killer";
 
-        private String ServiceId { get; set; }
+        private string ServiceId { get; set; }
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(RunawayProcessKillerExtension));
 
@@ -45,7 +45,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             // Default initializer
         }
 
-        public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
+        public RunawayProcessKillerExtension(string pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
         {
             this.Pidfile = pidfile;
             this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
@@ -58,12 +58,12 @@ namespace winsw.Plugins.RunawayProcessKiller
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
             Pidfile = XmlHelper.SingleElement(node, "pidfile", false);
-            StopTimeout = TimeSpan.FromMilliseconds(Int32.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
-            StopParentProcessFirst = Boolean.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
+            StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
+            StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
             ServiceId = descriptor.Id;
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
-            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? Boolean.Parse(checkWinSWEnvironmentVariable) : true;
+            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? bool.Parse(checkWinSWEnvironmentVariable) : true;
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace winsw.Plugins.RunawayProcessKiller
 
                 try
                 {
-                    pid = Int32.Parse(pidstring);
+                    pid = int.Parse(pidstring);
                 }
                 catch (FormatException e)
                 {
@@ -117,11 +117,11 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Ensure the process references the service
-            String affiliatedServiceId;
+            string affiliatedServiceId;
             // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
             // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
             StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;
-            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
+            string expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             if (previousProcessEnvVars.ContainsKey(expectedEnvVarName))
             {
                 // StringDictionary is case-insensitive, hence it will fetch variable definitions in any case
@@ -134,9 +134,9 @@ namespace winsw.Plugins.RunawayProcessKiller
                 if (Logger.IsDebugEnabled)
                 {
                     // TODO replace by String.Join() in .NET 4
-                    String[] keys = new String[previousProcessEnvVars.Count];
+                    string[] keys = new string[previousProcessEnvVars.Count];
                     previousProcessEnvVars.Keys.CopyTo(keys, 0);
-                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new Object[] { pid, String.Join(",", keys) });
+                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new object[] { pid, string.Join(",", keys) });
                 }
 
                 return;

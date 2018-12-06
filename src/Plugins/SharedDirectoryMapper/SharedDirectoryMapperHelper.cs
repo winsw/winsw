@@ -12,7 +12,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         /// <param name="command">Command to be executed</param>
         /// <param name="args">Command arguments</param>
         /// <exception cref="MapperException">Operation failure</exception>
-        private void InvokeCommand(String command, String args)
+        private void InvokeCommand(string command, string args)
         {
             Process p = new Process
             {
@@ -41,7 +41,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         /// <param name="label">Disk label</param>
         /// <param name="uncPath">UNC path to the directory</param>
         /// <exception cref="MapperException">Operation failure</exception>
-        public void MapDirectory(String label, String uncPath)
+        public void MapDirectory(string label, string uncPath)
         {
             InvokeCommand("net.exe", " use " + label + " " + uncPath);
         }
@@ -51,7 +51,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         /// </summary>
         /// <param name="label">Disk label</param>
         /// <exception cref="MapperException">Operation failure</exception>
-        public void UnmapDirectory(String label)
+        public void UnmapDirectory(string label)
         {
             InvokeCommand("net.exe", " use /DELETE /YES " + label);
         }
@@ -59,7 +59,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
 
     class MapperException : WinSWException
     {
-        public String Call { get; private set; }
+        public string Call { get; private set; }
         public Process Process { get; private set; }
 
         public MapperException(Process process, string command, string args)

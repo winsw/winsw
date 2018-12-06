@@ -20,7 +20,7 @@ namespace winswTests.Util
         public string XMLComment { get; set; }
         public List<string> ExtensionXmls { get; private set; }
 
-        private List<String> configEntries;
+        private List<string> configEntries;
 
         // TODO: Switch to the initializer?
         private ConfigXmlBuilder()
@@ -64,7 +64,7 @@ namespace winswTests.Util
             str.AppendFormat("  <name>{0}</name>\n", Name);
             str.AppendFormat("  <description>{0}</description>\n", Description);
             str.AppendFormat("  <executable>{0}</executable>\n", Executable);
-            foreach (String entry in configEntries)
+            foreach (string entry in configEntries)
             {
                 // We do not care much about pretty formatting here
                 str.AppendFormat("  {0}\n", entry);
@@ -106,14 +106,14 @@ namespace winswTests.Util
 
         public ConfigXmlBuilder WithTag(string tagName, string value)
         {
-            return WithRawEntry(String.Format("<{0}>{1}</{0}>", tagName, value));
+            return WithRawEntry(string.Format("<{0}>{1}</{0}>", tagName, value));
         }
 
         public ConfigXmlBuilder WithRunawayProcessKiller(RunawayProcessKillerExtension ext, string extensionId = "killRunawayProcess", bool enabled = true)
         {
             var fullyQualifiedExtensionName = ExtensionTestBase.GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
             StringBuilder str = new StringBuilder();
-            str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new Object[] { enabled, fullyQualifiedExtensionName, extensionId });
+            str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new object[] { enabled, fullyQualifiedExtensionName, extensionId });
             str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.Pidfile);
             str.AppendFormat("      <stopTimeout>{0}</stopTimeout>\n", ext.StopTimeout.TotalMilliseconds);
             str.AppendFormat("      <stopParentFirst>{0}</stopParentFirst>\n", ext.StopParentProcessFirst);
@@ -127,7 +127,7 @@ namespace winswTests.Util
         public ConfigXmlBuilder WithDownload(Download download)
         {
             StringBuilder str = new StringBuilder();
-            str.AppendFormat("<download from=\"{0}\" to=\"{1}\" failOnError=\"{2}\"", new Object[] { download.From, download.To, download.FailOnError });
+            str.AppendFormat("<download from=\"{0}\" to=\"{1}\" failOnError=\"{2}\"", new object[] { download.From, download.To, download.FailOnError });
 
             // Authentication
             if (download.Auth != Download.AuthType.none)
@@ -135,7 +135,7 @@ namespace winswTests.Util
                 str.AppendFormat(" auth=\"{0}\"", download.Auth);
                 if (download.Auth == Download.AuthType.basic)
                 {
-                    str.AppendFormat(" user=\"{0}\" password=\"{1}\"", new Object[] { download.Username, download.Password });
+                    str.AppendFormat(" user=\"{0}\" password=\"{1}\"", new object[] { download.Username, download.Password });
                 }
 
                 if (download.UnsecureAuth)

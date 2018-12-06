@@ -109,7 +109,7 @@ namespace winsw.Extensions
         public void LoadExtensions()
         {
             var extensionIds = ServiceDescriptor.ExtensionIds;
-            foreach (String extensionId in extensionIds)
+            foreach (string extensionId in extensionIds)
             {
                 LoadExtension(extensionId);
             }
@@ -163,7 +163,7 @@ namespace winsw.Extensions
         {
             ActivationContext ac = AppDomain.CurrentDomain.ActivationContext;
             Assembly assembly = Assembly.GetCallingAssembly();
-            Object created;
+            object created;
 
             try
             {

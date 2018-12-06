@@ -143,7 +143,7 @@ namespace winsw
             return logAppender;
         }
 
-        public void LogEvent(String message)
+        public void LogEvent(string message)
         {
             if (_systemShuttingdown)
             {
@@ -162,7 +162,7 @@ namespace winsw
             }
         }
 
-        public void LogEvent(String message, EventLogEntryType type)
+        public void LogEvent(string message, EventLogEntryType type)
         {
             if (_systemShuttingdown)
             {
@@ -196,7 +196,7 @@ namespace winsw
             // handle downloads
             foreach (Download d in _descriptor.Downloads)
             {
-                String downloadMsg = "Downloading: " + d.From + " to " + d.To + ". failOnError=" + d.FailOnError;
+                string downloadMsg = "Downloading: " + d.From + " to " + d.To + ". failOnError=" + d.FailOnError;
                 LogEvent(downloadMsg);
                 Log.Info(downloadMsg);
                 try
@@ -303,7 +303,7 @@ namespace winsw
                 stoparguments += " " + _descriptor.Arguments;
 
                 Process stopProcess = new Process();
-                String executable = _descriptor.StopExecutable;
+                string executable = _descriptor.StopExecutable;
 
                 if (executable == null)
                 {
@@ -335,11 +335,11 @@ namespace winsw
             SignalShutdownPending();
 
             int effectiveProcessWaitSleepTime;
-            if (_descriptor.SleepTime.TotalMilliseconds > Int32.MaxValue)
+            if (_descriptor.SleepTime.TotalMilliseconds > int.MaxValue)
             {
                 Log.Warn("The requested sleep time " + _descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " +
-                    Int32.MaxValue + ". The value will be truncated");
-                effectiveProcessWaitSleepTime = Int32.MaxValue;
+                    int.MaxValue + ". The value will be truncated");
+                effectiveProcessWaitSleepTime = int.MaxValue;
             }
             else
             {
@@ -367,11 +367,11 @@ namespace winsw
         private void SignalShutdownPending()
         {
             int effectiveWaitHint;
-            if (_descriptor.WaitHint.TotalMilliseconds > Int32.MaxValue)
+            if (_descriptor.WaitHint.TotalMilliseconds > int.MaxValue)
             {
                 Log.Warn("The requested WaitHint value (" + _descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
-                    Int32.MaxValue + ". The value will be truncated");
-                effectiveWaitHint = Int32.MaxValue;
+                    int.MaxValue + ". The value will be truncated");
+                effectiveWaitHint = int.MaxValue;
             }
             else
             {
@@ -395,7 +395,7 @@ namespace winsw
             Advapi32.SetServiceStatus(handle, ref _wrapperServiceStatus);
         }
 
-        private void StartProcess(Process processToStart, string arguments, String executable, LogHandler logHandler, bool redirectStdin)
+        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler logHandler, bool redirectStdin)
         {
             // Define handler of the completed process
             ProcessCompletionCallback processCompletionCallback = proc =>
@@ -790,7 +790,7 @@ namespace winsw
             List<IAppender> appenders = new List<IAppender>();
 
             // wrapper.log
-            String wrapperLogPath = Path.Combine(d.LogDirectory, d.BaseName + ".wrapper.log");
+            string wrapperLogPath = Path.Combine(d.LogDirectory, d.BaseName + ".wrapper.log");
             var wrapperLog = new FileAppender
             {
                 AppendToFile = true,

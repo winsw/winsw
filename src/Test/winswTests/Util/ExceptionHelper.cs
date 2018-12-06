@@ -5,7 +5,7 @@ namespace winswTests.Util
 {
     class ExceptionHelper
     {
-        public static void assertFails(String expectedMessagePart, Type expectedExceptionType, ExceptionHelperExecutionBody body)
+        public static void assertFails(string expectedMessagePart, Type expectedExceptionType, ExceptionHelperExecutionBody body)
         {
             try
             {

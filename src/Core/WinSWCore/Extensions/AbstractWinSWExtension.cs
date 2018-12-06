@@ -5,7 +5,7 @@ namespace winsw.Extensions
 {
     public abstract class AbstractWinSWExtension : IWinSWExtension
     {
-        public abstract String DisplayName { get; }
+        public abstract string DisplayName { get; }
 
         public WinSWExtensionDescriptor Descriptor { get; set; }
 

@@ -18,7 +18,7 @@ namespace winsw
         private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
 
         // Delegate type to be used as the Handler Routine for SCCH
-        private delegate Boolean ConsoleCtrlDelegate(CtrlTypes CtrlType);
+        private delegate bool ConsoleCtrlDelegate(CtrlTypes CtrlType);
 
         // Enumerated type for the control messages sent to the handler routine
         private enum CtrlTypes : uint

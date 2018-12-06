@@ -72,7 +72,7 @@ namespace winswTests.Extensions
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
 
             // Prepare the env var
-            String varName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
+            string varName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             var env = new Dictionary<string, string>();
             env.Add(varName, winswId);
 

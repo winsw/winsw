@@ -86,7 +86,7 @@ namespace DynamicProxy
     public class ProxyFactory
     {
         private static ProxyFactory _instance;
-        private static readonly Object LockObj = new Object();
+        private static readonly object LockObj = new object();
 
         private readonly Hashtable _typeMap = Hashtable.Synchronized(new Hashtable());
         private static readonly Hashtable OpCodeTypeMapper = new Hashtable();
@@ -100,14 +100,14 @@ namespace DynamicProxy
         // return types, used in the Emit process.
         static ProxyFactory()
         {
-            OpCodeTypeMapper.Add(typeof(Boolean), OpCodes.Ldind_I1);
-            OpCodeTypeMapper.Add(typeof(Int16), OpCodes.Ldind_I2);
-            OpCodeTypeMapper.Add(typeof(Int32), OpCodes.Ldind_I4);
-            OpCodeTypeMapper.Add(typeof(Int64), OpCodes.Ldind_I8);
-            OpCodeTypeMapper.Add(typeof(Double), OpCodes.Ldind_R8);
-            OpCodeTypeMapper.Add(typeof(Single), OpCodes.Ldind_R4);
-            OpCodeTypeMapper.Add(typeof(UInt16), OpCodes.Ldind_U2);
-            OpCodeTypeMapper.Add(typeof(UInt32), OpCodes.Ldind_U4);
+            OpCodeTypeMapper.Add(typeof(bool), OpCodes.Ldind_I1);
+            OpCodeTypeMapper.Add(typeof(short), OpCodes.Ldind_I2);
+            OpCodeTypeMapper.Add(typeof(int), OpCodes.Ldind_I4);
+            OpCodeTypeMapper.Add(typeof(long), OpCodes.Ldind_I8);
+            OpCodeTypeMapper.Add(typeof(double), OpCodes.Ldind_R8);
+            OpCodeTypeMapper.Add(typeof(float), OpCodes.Ldind_R4);
+            OpCodeTypeMapper.Add(typeof(ushort), OpCodes.Ldind_U2);
+            OpCodeTypeMapper.Add(typeof(uint), OpCodes.Ldind_U4);
         }
 
         private ProxyFactory()
@@ -135,7 +135,7 @@ namespace DynamicProxy
             }
         }
 
-        public Object Create(IProxyInvocationHandler handler, Type objType, bool isObjInterface)
+        public object Create(IProxyInvocationHandler handler, Type objType, bool isObjInterface)
         {
             string typeName = objType.FullName + PROXY_SUFFIX;
             Type type = (Type)_typeMap[typeName];
@@ -160,7 +160,7 @@ namespace DynamicProxy
             return Activator.CreateInstance(type, new object[] { handler });
         }
 
-        public Object Create(IProxyInvocationHandler handler, Type objType)
+        public object Create(IProxyInvocationHandler handler, Type objType)
         {
             return Create(handler, objType, false);
         }
@@ -171,7 +171,7 @@ namespace DynamicProxy
 
             if (handler != null && interfaces != null)
             {
-                Type objType = typeof(Object);
+                Type objType = typeof(object);
                 Type handlerType = typeof(IProxyInvocationHandler);
 
                 AppDomain domain = Thread.GetDomain();

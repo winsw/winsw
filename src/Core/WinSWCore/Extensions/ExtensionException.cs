@@ -4,15 +4,15 @@ namespace winsw.Extensions
 {
     public class ExtensionException : WinSWException
     {
-        public String ExtensionId { get; private set; }
+        public string ExtensionId { get; private set; }
 
-        public ExtensionException(String extensionName, String message)
+        public ExtensionException(string extensionName, string message)
             : base(message)
         {
             ExtensionId = extensionName;
         }
 
-        public ExtensionException(String extensionName, String message, Exception innerException)
+        public ExtensionException(string extensionName, string message, Exception innerException)
             : base(message, innerException)
         {
             ExtensionId = extensionName;

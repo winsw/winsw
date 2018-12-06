@@ -55,15 +55,15 @@ namespace winsw
         /// <exception cref="InvalidDataException">The required attribute is missing or the configuration is invalid</exception>
         internal Download(XmlElement n)
         {
-            From = XmlHelper.SingleAttribute<String>(n, "from");
-            To = XmlHelper.SingleAttribute<String>(n, "to");
+            From = XmlHelper.SingleAttribute<string>(n, "from");
+            To = XmlHelper.SingleAttribute<string>(n, "to");
 
             // All arguments below are optional
             FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
 
             Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.none);
-            Username = XmlHelper.SingleAttribute<String>(n, "user", null);
-            Password = XmlHelper.SingleAttribute<String>(n, "password", null);
+            Username = XmlHelper.SingleAttribute<string>(n, "user", null);
+            Password = XmlHelper.SingleAttribute<string>(n, "password", null);
             UnsecureAuth = XmlHelper.SingleAttribute(n, "unsecureAuth", false);
 
             if (Auth == AuthType.basic)
@@ -89,7 +89,7 @@ namespace winsw
         }
 
         // Source: http://stackoverflow.com/questions/2764577/forcing-basic-authentication-in-webrequest
-        private void SetBasicAuthHeader(WebRequest request, String username, String password)
+        private void SetBasicAuthHeader(WebRequest request, string username, string password)
         {
             string authInfo = username + ":" + password;
             authInfo = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(authInfo));

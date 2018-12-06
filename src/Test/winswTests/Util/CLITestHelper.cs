@@ -33,7 +33,7 @@ namespace winswTests.Util
         /// <returns>STDOUT if there's no exceptions</returns>
         /// <exception cref="Exception">Command failure</exception>
         [NotNull]
-        public static string CLITest(String[] args, ServiceDescriptor descriptor = null)
+        public static string CLITest(string[] args, ServiceDescriptor descriptor = null)
         {
             using (StringWriter sw = new StringWriter())
             {
@@ -53,7 +53,7 @@ namespace winswTests.Util
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>Test results</returns>
         [NotNull]
-        public static CLITestResult CLIErrorTest(String[] args, ServiceDescriptor descriptor = null)
+        public static CLITestResult CLIErrorTest(string[] args, ServiceDescriptor descriptor = null)
         {
             StringWriter swOut, swErr;
             Exception testEx = null;
@@ -99,17 +99,17 @@ namespace winswTests.Util
     public class CLITestResult
     {
         [NotNull]
-        public String Out { get; private set; }
+        public string Out { get; private set; }
 
         [NotNull]
-        public String Err { get; private set; }
+        public string Err { get; private set; }
 
         [CanBeNull]
         public Exception Exception { get; private set; }
 
         public bool HasException => Exception != null;
 
-        public CLITestResult(String output, String err, Exception exception = null)
+        public CLITestResult(string output, string err, Exception exception = null)
         {
             Out = output;
             Err = err;

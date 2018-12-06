@@ -71,7 +71,7 @@ namespace winswTests
         [TestCase("file:///")]
         [TestCase("jar://")]
         [TestCase("\\\\")] // UNC
-        public void ShouldReject_BasicAuth_with_UnsecureProtocol(String protocolPrefix)
+        public void ShouldReject_BasicAuth_with_UnsecureProtocol(string protocolPrefix)
         {
             var d = new Download(protocolPrefix + "myServer.com:8080/file.txt", To,
                 auth: Download.AuthType.basic, username: "aUser", password: "aPassword");
@@ -127,7 +127,7 @@ namespace winswTests
         [TestCase("SSPI")]
         [TestCase("SsPI")]
         [TestCase("Sspi")]
-        public void AuthType_Is_CaseInsensitive(String authType)
+        public void AuthType_Is_CaseInsensitive(string authType)
         {
             var sd = ConfigXmlBuilder.create()
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"" + authType + "\"/>")
@@ -157,7 +157,7 @@ namespace winswTests
             return downloads[0];
         }
 
-        private void AssertInitializationFails(Download download, String expectedMessagePart = null, Type expectedExceptionType = null)
+        private void AssertInitializationFails(Download download, string expectedMessagePart = null, Type expectedExceptionType = null)
         {
             var sd = ConfigXmlBuilder.create()
                 .WithDownload(download)

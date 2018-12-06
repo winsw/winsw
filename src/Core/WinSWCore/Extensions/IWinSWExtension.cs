@@ -16,7 +16,7 @@ namespace winsw.Extensions
         /// <summary>
         /// Extension name to be displayed in logs
         /// </summary>
-        String DisplayName { get; }
+        string DisplayName { get; }
 
         /// <summary>
         /// Extension descriptor

@@ -12,7 +12,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         private readonly SharedDirectoryMappingHelper _mapper = new SharedDirectoryMappingHelper();
         private readonly List<SharedDirectoryMapperConfig> _entries = new List<SharedDirectoryMapperConfig>();
 
-        public override String DisplayName => "Shared Directory Mapper";
+        public override string DisplayName => "Shared Directory Mapper";
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SharedDirectoryMapper));
 

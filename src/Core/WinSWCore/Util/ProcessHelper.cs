@@ -131,7 +131,7 @@ namespace winsw.Util
         /// <param name="callback">Completion callback. If null, the completion won't be monitored</param>
         /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         /// <param name="redirectStdin">Redirect standard input</param>
-        public static void StartProcessAndCallbackForExit(Process processToStart, String executable = null, string arguments = null, Dictionary<string, string> envVars = null,
+        public static void StartProcessAndCallbackForExit(Process processToStart, string executable = null, string arguments = null, Dictionary<string, string> envVars = null,
             string workingDirectory = null, ProcessPriorityClass? priority = null, ProcessCompletionCallback callback = null, bool redirectStdin = true, LogHandler logHandler = null, bool hideWindow = false)
         {
             var ps = processToStart.StartInfo;

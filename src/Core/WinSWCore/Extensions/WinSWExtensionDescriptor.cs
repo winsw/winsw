@@ -15,7 +15,7 @@ namespace winsw.Extensions
         /// <summary>
         /// Unique extension ID
         /// </summary>
-        public String Id { get; private set; }
+        public string Id { get; private set; }
 
         /// <summary>
         /// Exception is enabled
@@ -25,7 +25,7 @@ namespace winsw.Extensions
         /// <summary>
         /// Extension classname
         /// </summary>
-        public String ClassName { get; private set; }
+        public string ClassName { get; private set; }
 
         private WinSWExtensionDescriptor(string id, string className, bool enabled)
         {

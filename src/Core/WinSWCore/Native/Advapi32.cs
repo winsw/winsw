@@ -17,7 +17,7 @@ namespace winsw.Native
             _handle = Advapi32.OpenSCManager(null, null, (uint)SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
             if (_handle == IntPtr.Zero)
             {
-                throw new Exception(String.Format("Error connecting to Service Control Manager. Error provided was: 0x{0:X}", Marshal.GetLastWin32Error()));
+                throw new Exception(string.Format("Error connecting to Service Control Manager. Error provided was: 0x{0:X}", Marshal.GetLastWin32Error()));
             }
         }
 
@@ -26,7 +26,7 @@ namespace winsw.Native
             IntPtr svcHandle = Advapi32.OpenService(_handle, serviceName, (int)SERVICE_ACCESS.SERVICE_ALL_ACCESS);
             if (svcHandle == IntPtr.Zero)
             {
-                throw new Exception(String.Format("Error opening service for modifying. Error returned was: 0x{0:X}", Marshal.GetLastWin32Error()));
+                throw new Exception(string.Format("Error opening service for modifying. Error returned was: 0x{0:X}", Marshal.GetLastWin32Error()));
             }
 
             return new Service(svcHandle);
@@ -164,7 +164,7 @@ namespace winsw.Native
         /// <param name="accountName">Name of an account - "domain\account" or only "account"</param>
         /// <param name="privilegeName">Name ofthe privilege</param>
         /// <returns>The windows error code returned by LsaAddAccountRights</returns>
-        private static long SetRight(String accountName, String privilegeName)
+        private static long SetRight(string accountName, string privilegeName)
         {
             long winErrorCode; // contains the last error
 
@@ -178,14 +178,14 @@ namespace winsw.Native
             int accountType = 0;
 
             // get required buffer size
-            Advapi32.LookupAccountName(String.Empty, accountName, sid, ref sidSize, domainName, ref nameSize, ref accountType);
+            Advapi32.LookupAccountName(string.Empty, accountName, sid, ref sidSize, domainName, ref nameSize, ref accountType);
 
             // allocate buffers
             domainName = new StringBuilder(nameSize);
             sid = Marshal.AllocHGlobal(sidSize);
 
             // lookup the SID for the account
-            bool result = Advapi32.LookupAccountName(String.Empty, accountName, sid, ref sidSize, domainName, ref nameSize,
+            bool result = Advapi32.LookupAccountName(string.Empty, accountName, sid, ref sidSize, domainName, ref nameSize,
                                             ref accountType);
 
             // say what you're doing
@@ -247,8 +247,8 @@ namespace winsw.Native
                     LSA_UNICODE_STRING[] userRights = new LSA_UNICODE_STRING[1];
                     userRights[0] = default;
                     userRights[0].Buffer = Marshal.StringToHGlobalUni(privilegeName);
-                    userRights[0].Length = (UInt16)(privilegeName.Length * UnicodeEncoding.CharSize);
-                    userRights[0].MaximumLength = (UInt16)((privilegeName.Length + 1) * UnicodeEncoding.CharSize);
+                    userRights[0].Length = (ushort)(privilegeName.Length * UnicodeEncoding.CharSize);
+                    userRights[0].MaximumLength = (ushort)((privilegeName.Length + 1) * UnicodeEncoding.CharSize);
 
                     // add the right to the account
                     uint res = Advapi32.LsaAddAccountRights(policyHandle, sid, userRights, 1);
@@ -300,7 +300,7 @@ namespace winsw.Native
         public static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
 
         [DllImport("advapi32.dll", PreserveSig = true)]
-        internal static extern UInt32 LsaOpenPolicy(ref LSA_UNICODE_STRING SystemName, ref LSA_OBJECT_ATTRIBUTES ObjectAttributes, Int32 DesiredAccess,
+        internal static extern uint LsaOpenPolicy(ref LSA_UNICODE_STRING SystemName, ref LSA_OBJECT_ATTRIBUTES ObjectAttributes, int DesiredAccess,
             out IntPtr PolicyHandle);
 
         [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
@@ -341,8 +341,8 @@ namespace winsw.Native
     [StructLayout(LayoutKind.Sequential)]
     struct LSA_UNICODE_STRING
     {
-        public UInt16 Length;
-        public UInt16 MaximumLength;
+        public ushort Length;
+        public ushort MaximumLength;
         public IntPtr Buffer;
     }
 
@@ -352,7 +352,7 @@ namespace winsw.Native
         public int Length;
         public IntPtr RootDirectory;
         public LSA_UNICODE_STRING ObjectName;
-        public UInt32 Attributes;
+        public uint Attributes;
         public IntPtr SecurityDescriptor;
         public IntPtr SecurityQualityOfService;
     }

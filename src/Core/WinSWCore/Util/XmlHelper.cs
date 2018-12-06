@@ -14,7 +14,7 @@ namespace winsw.Util
         /// <param name="optional">If optional, don't throw an exception if the elemen is missing</param>
         /// <returns>String value or null</returns>
         /// <exception cref="InvalidDataException">The required element is missing</exception>
-        public static string SingleElement(XmlNode node, string tagName, Boolean optional)
+        public static string SingleElement(XmlNode node, string tagName, bool optional)
         {
             var n = node.SelectSingleNode(tagName);
             if (n == null && !optional)
@@ -31,7 +31,7 @@ namespace winsw.Util
         /// <param name="optional">If otional, don't throw an exception if the elemen is missing</param>
         /// <returns>String value or null</returns>
         /// <exception cref="InvalidDataException">The required element is missing</exception>
-        public static XmlNode SingleNode(XmlNode node, string tagName, Boolean optional)
+        public static XmlNode SingleNode(XmlNode node, string tagName, bool optional)
         {
             var n = node.SelectSingleNode(tagName);
             if (n == null && !optional)
