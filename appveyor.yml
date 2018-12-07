@@ -3,7 +3,7 @@ skip_tags: true
 skip_branch_with_pr: true
 
 # Project configuration
-image: Visual Studio 2013
+image: Visual Studio 2019
 platform: Any CPU
 configuration: Release
 
@@ -16,17 +16,15 @@ nuget:
 before_build:
   # Check SDKs
   - ECHO "Installed SDKs:"
-  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  - ps: "ls \"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\\""
   # Generates a temporary SNK. Not for real signing
-  - cmd: "\"C:/Program Files/Microsoft SDKs/Windows/v7.1/Bin/sn.exe\" -k winsw_key.snk"
+  - cmd: "\"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0A\\bin\\NETFX 4.8 Tools\\sn.exe\" -k winsw_key.snk"
 
-assembly_info:
+dotnet_csproj:
   patch: true
-  file: "**\\AssemblyInfo.*"
-  assembly_version:  $(appveyor_build_version)
-  assembly_file_version:  $(appveyor_build_version)
-  assembly_informational_version: '$(appveyor_build_version)-rc'
-  
+  file: "**\\*.csproj"
+  version: $(appveyor_build_version)
+
 build:
   parallel: true 
   project:  src\winsw.sln 
@@ -36,12 +34,12 @@ after_build:
 
 test_script:
 # Runner for NUnit2
-- ps: nunit-console 'src/Test/winswTests/bin/Release/winswTests.dll' 'src/Test/winswTests/bin/Release/SharedDirectoryMapper.dll' 'src/Test/winswTests/bin/Release/RunawayProcessKiller.dll'
+- ps: nunit-console 'src/Test/winswTests/bin/Release/net40/winswTests.dll' 'src/Test/winswTests/bin/Release/net40/SharedDirectoryMapper.dll' 'src/Test/winswTests/bin/Release/net40/RunawayProcessKiller.dll'
 
 artifacts:
-  - path: 'src/Core/ServiceWrapper/bin/Release/WinSW.NET2.exe'
+  - path: 'src/Core/ServiceWrapper/bin/Release/net20/WinSW.exe'
     name: WinSW.NET2.exe
-  - path: 'src/Core/ServiceWrapper_dotNET4/bin/Release/WinSW.NET4.exe'
+  - path: 'src/Core/ServiceWrapper/bin/Release/net40/WinSW.exe'
     name: WinSW.NET4.exe
   - path: 'WinSW.$(appveyor_build_version).nupkg'
     name: WinSW.nupkg
@@ -49,7 +47,3 @@ artifacts:
     name: 'sample-allOptions.xml'
   - path: 'examples/sample-minimal.xml'
     name: 'sample-minimal.xml'
-
-
-
-  
