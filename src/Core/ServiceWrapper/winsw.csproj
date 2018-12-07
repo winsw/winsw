@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net20;net40</TargetFrameworks>
+    <!-- AppVeyor -->
+    <Version></Version>
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
     <Company>CloudBees, Inc.</Company>

@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net20;net40</TargetFrameworks>
+    <!-- AppVeyor -->
+    <Version></Version>
     <RootNamespace>winsw.Plugins.SharedDirectoryMapper</RootNamespace>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
