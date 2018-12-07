@@ -8,8 +8,10 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="8.0.5.0" />
     <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <PackageReference Include="NUnit" Version="2.6.4" />
+    <PackageReference Include="NUnitTestAdapter" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

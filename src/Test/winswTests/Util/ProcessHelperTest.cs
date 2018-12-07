@@ -18,6 +18,8 @@ namespace winswTests.Util
         [Test]
         public void ShouldPropagateVariablesInUppercase()
         {
+            Environment.SetEnvironmentVariable("TEST_KEY", "TEST_VALUE");
+
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
             String envFile = Path.Combine(tmpDir, "env.properties");
             String scriptFile = Path.Combine(tmpDir, "printenv.bat");
@@ -40,12 +42,10 @@ namespace winswTests.Util
             String[] keys = new String[envVars.Count];
             envVars.Keys.CopyTo(keys, 0);
             String availableVars = "[" + String.Join(",", keys) + "]";
-            Assert.That(envVars.ContainsKey("PROCESSOR_ARCHITECTURE"), "No PROCESSOR_ARCHITECTURE in the injected vars: " + availableVars);
-            Assert.That(envVars.ContainsKey("COMPUTERNAME"), "No COMPUTERNAME in the injected vars: " + availableVars);
-            Assert.That(envVars.ContainsKey("PATHEXT"), "No PATHEXT in the injected vars: " + availableVars);
+            Assert.That(envVars.ContainsKey("TEST_KEY"), "No TEST_KEY in the injected vars: " + availableVars);
             
             // And just ensure that the parsing logic is case-sensitive
-            Assert.That(!envVars.ContainsKey("computername"), "Test error: the environment parsing logic is case-insensitive");
+            Assert.That(!envVars.ContainsKey("test_key"), "Test error: the environment parsing logic is case-insensitive");
 
         }
 
