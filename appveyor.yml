@@ -25,9 +25,8 @@ dotnet_csproj:
   file: "**\\*.csproj"
   version: $(appveyor_build_version)
 
-build:
-  parallel: true 
-  project:  src\winsw.sln 
+build_script:
+  - dotnet.exe build src\winsw.sln 
 
 after_build:
   - ps: nuget pack WinSW.nuspec -Version $env:APPVEYOR_BUILD_VERSION
