@@ -31,7 +31,7 @@ namespace winsw
 
         public readonly string From;
         public readonly string To;
-        public readonly AuthType Auth = AuthType.none;
+        public readonly AuthType Auth;
         public readonly string? Username;
         public readonly string? Password;
         public readonly bool UnsecureAuth;

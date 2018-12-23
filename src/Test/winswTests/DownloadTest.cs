@@ -1,5 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Net;
+#if VNEXT
+using System.Threading.Tasks;
+#endif
 using NUnit.Framework;
 using winsw;
 using winswTests.Util;
@@ -13,6 +16,56 @@ namespace winswTests
         private const string To = "%BASE%\\foo.xml";
 
         [Test]
+#if VNEXT
+        public async Task DownloadFileAsync()
+#else
+        public void DownloadFile()
+#endif
+        {
+            string from = Path.GetTempFileName();
+            string to = Path.GetTempFileName();
+
+            try
+            {
+                const string contents = "WinSW";
+                File.WriteAllText(from, contents);
+#if VNEXT
+                await new Download(from, to).PerformAsync();
+#else
+                new Download(from, to).Perform();
+#endif
+                Assert.That(File.ReadAllText(to), Is.EqualTo(contents));
+            }
+            finally
+            {
+                File.Delete(from);
+                File.Delete(to);
+            }
+        }
+
+        [Test]
+        public void DownloadFile_NonExistent()
+        {
+            string from = Path.GetTempPath() + Path.GetRandomFileName();
+            string to = Path.GetTempFileName();
+
+            try
+            {
+                Assert.That(
+#if VNEXT
+                    async () => await new Download(from, to).PerformAsync(),
+#else
+                    () => new Download(from, to).Perform(),
+#endif
+                    Throws.TypeOf<WebException>());
+            }
+            finally
+            {
+                File.Delete(to);
+            }
+        }
+
+        [Test]
         public void Roundtrip_Defaults()
         {
             // Roundtrip data
@@ -23,11 +76,11 @@ namespace winswTests
             var loaded = GetSingleEntry(sd);
 
             // Check default values
-            Assert.That(loaded.FailOnError, Is.EqualTo(false));
+            Assert.That(loaded.FailOnError, Is.False);
             Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.none));
             Assert.That(loaded.Username, Is.Null);
             Assert.That(loaded.Password, Is.Null);
-            Assert.That(loaded.UnsecureAuth, Is.EqualTo(false));
+            Assert.That(loaded.UnsecureAuth, Is.False);
         }
 
         [Test]
@@ -41,11 +94,11 @@ namespace winswTests
             var loaded = GetSingleEntry(sd);
 
             // Check default values
-            Assert.That(loaded.FailOnError, Is.EqualTo(true));
+            Assert.That(loaded.FailOnError, Is.True);
             Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.basic));
             Assert.That(loaded.Username, Is.EqualTo("aUser"));
             Assert.That(loaded.Password, Is.EqualTo("aPassword"));
-            Assert.That(loaded.UnsecureAuth, Is.EqualTo(true));
+            Assert.That(loaded.UnsecureAuth, Is.True);
         }
 
         [Test]
@@ -59,32 +112,34 @@ namespace winswTests
             var loaded = GetSingleEntry(sd);
 
             // Check default values
-            Assert.That(loaded.FailOnError, Is.EqualTo(false));
+            Assert.That(loaded.FailOnError, Is.False);
             Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.sspi));
             Assert.That(loaded.Username, Is.Null);
             Assert.That(loaded.Password, Is.Null);
-            Assert.That(loaded.UnsecureAuth, Is.EqualTo(false));
+            Assert.That(loaded.UnsecureAuth, Is.False);
         }
 
         [TestCase("http://")]
         [TestCase("ftp://")]
-        [TestCase("file:///")]
+        [TestCase("file://")]
         [TestCase("jar://")]
         [TestCase("\\\\")] // UNC
-        public void ShouldReject_BasicAuth_with_UnsecureProtocol(string protocolPrefix)
+        public void RejectBasicAuth_With_UnsecureProtocol(string protocolPrefix)
         {
-            var d = new Download(protocolPrefix + "myServer.com:8080/file.txt", To,
-                auth: Download.AuthType.basic, username: "aUser", password: "aPassword");
-            AssertInitializationFails(d, "you're sending your credentials in clear text to the server");
+            string unsecureFrom = protocolPrefix + "myServer.com:8080/file.txt";
+            var d = new Download(unsecureFrom, To, auth: Download.AuthType.basic, username: "aUser", password: "aPassword");
+            AssertInitializationFails(d, "Warning: you're sending your credentials in clear text to the server");
         }
 
-        public void ShouldRejectBasicAuth_without_username()
+        [Test]
+        public void RejectBasicAuth_Without_Username()
         {
             var d = new Download(From, To, auth: Download.AuthType.basic, username: null, password: "aPassword");
             AssertInitializationFails(d, "Basic Auth is enabled, but username is not specified");
         }
 
-        public void ShouldRejectBasicAuth_without_password()
+        [Test]
+        public void RejectBasicAuth_Without_Password()
         {
             var d = new Download(From, To, auth: Download.AuthType.basic, username: "aUser", password: null);
             AssertInitializationFails(d, "Basic Auth is enabled, but password is not specified");
@@ -144,7 +199,7 @@ namespace winswTests
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"digest\"/>")
                     .ToServiceDescriptor(true);
 
-            ExceptionHelper.AssertFails("Cannot parse <auth> Enum value from string 'digest'", typeof(InvalidDataException), () => _ = GetSingleEntry(sd));
+            Assert.That(() => GetSingleEntry(sd), Throws.TypeOf<InvalidDataException>().With.Message.StartsWith("Cannot parse <auth> Enum value from string 'digest'"));
         }
 
         private Download GetSingleEntry(ServiceDescriptor sd)
@@ -154,13 +209,13 @@ namespace winswTests
             return downloads[0];
         }
 
-        private void AssertInitializationFails(Download download, string expectedMessagePart = null, Type expectedExceptionType = null)
+        private void AssertInitializationFails(Download download, string expectedMessagePart = null)
         {
             var sd = ConfigXmlBuilder.create()
                 .WithDownload(download)
                 .ToServiceDescriptor(true);
 
-            ExceptionHelper.AssertFails(expectedMessagePart, expectedExceptionType ?? typeof(InvalidDataException), () => _ = GetSingleEntry(sd));
+            Assert.That(() => GetSingleEntry(sd), Throws.TypeOf<InvalidDataException>().With.Message.StartsWith(expectedMessagePart));
         }
     }
 }
