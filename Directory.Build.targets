@@ -4,4 +4,8 @@
     <DefineConstants>VNEXT</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <DefineConstants>$(DefineConstants);CIM</DefineConstants>
+  </PropertyGroup>
+
 </Project>

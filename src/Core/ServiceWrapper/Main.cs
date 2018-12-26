@@ -596,7 +596,7 @@ namespace winsw
                     "\"" + descriptor.ExecutablePath + "\"",
                     ServiceType.OwnProcess,
                     ErrorControl.UserNotified,
-                    descriptor.StartMode,
+                    descriptor.StartMode.ToString(),
                     descriptor.Interactive,
                     username,
                     password,
