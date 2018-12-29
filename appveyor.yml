@@ -37,7 +37,7 @@ after_build:
 
 test_script:
   - dotnet.exe test -f net40 --no-build src\Test\winswTests\winswTests.csproj
-  - dotnet.exe test -f net45 --no-build src\Test\winswTests\winswTests.csproj
+  - dotnet.exe test -f net461 --no-build src\Test\winswTests\winswTests.csproj
   - dotnet.exe test -f netcoreapp3.1 --no-build src\Test\winswTests\winswTests.csproj
 
 artifacts:
@@ -45,8 +45,8 @@ artifacts:
     name: WinSW.NET2.exe
   - path: 'src\Core\ServiceWrapper\bin\Release\net40\WinSW.exe'
     name: WinSW.NET4.exe
-  - path: 'src\Core\ServiceWrapper\bin\Release\net45\WinSW.exe'
-    name: WinSW.NET45.exe
+  - path: 'src\Core\ServiceWrapper\bin\Release\net461\WinSW.exe'
+    name: WinSW.NET461.exe
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\publish\'
     name: WinSW.NETCore31
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\win-x64\publish\WindowsService.exe'
