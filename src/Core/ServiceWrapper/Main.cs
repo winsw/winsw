@@ -583,8 +583,63 @@ namespace winsw
                 args = args.GetRange(2, args.Count - 2);
             }
 
-            args[0] = args[0].ToLower();
-            if (args[0] == "install")
+            switch (args[0].ToLower())
+            {
+                case "install":
+                    Install();
+                    return;
+
+                case "uninstall":
+                    Uninstall();
+                    return;
+
+                case "start":
+                    Start();
+                    return;
+
+                case "stop":
+                    Stop();
+                    return;
+
+                case "restart":
+                    Restart();
+                    return;
+
+                case "restart!":
+                    RestartSelf();
+                    return;
+
+                case "status":
+                    Status();
+                    return;
+
+                case "test":
+                    Test();
+                    return;
+
+                case "testwait":
+                    TestWait();
+                    return;
+
+                case "help":
+                case "--help":
+                case "-h":
+                case "-?":
+                case "/?":
+                    printHelp();
+                    return;
+
+                case "version":
+                    printVersion();
+                    return;
+
+                default:
+                    Console.WriteLine("Unknown command: " + args[0]);
+                    printAvailableCommandsInfo();
+                    throw new Exception("Unknown command: " + args[0]);
+            }
+
+            void Install()
             {
                 Log.Info("Installing the service with id '" + descriptor.Id + "'");
 
@@ -667,11 +722,9 @@ namespace winsw
                     rawSecurityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
                     _ = Advapi32.SetServiceObjectSecurity(sc.Handle, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
                 }
-
-                return;
             }
 
-            if (args[0] == "uninstall")
+            void Uninstall()
             {
                 Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
                 if (s is null)
@@ -708,11 +761,9 @@ namespace winsw
 
                     throw e;
                 }
-
-                return;
             }
 
-            if (args[0] == "start")
+            void Start()
             {
                 Log.Info("Starting the service with id '" + descriptor.Id + "'");
                 if (s is null)
@@ -733,11 +784,9 @@ namespace winsw
                         throw;
                     }
                 }
-
-                return;
             }
 
-            if (args[0] == "stop")
+            void Stop()
             {
                 Log.Info("Stopping the service with id '" + descriptor.Id + "'");
                 if (s is null)
@@ -758,11 +807,9 @@ namespace winsw
                         throw;
                     }
                 }
-
-                return;
             }
 
-            if (args[0] == "restart")
+            void Restart()
             {
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
                 if (s is null)
@@ -778,10 +825,9 @@ namespace winsw
                 }
 
                 s.StartService();
-                return;
             }
 
-            if (args[0] == "restart!")
+            void RestartSelf()
             {
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
 
@@ -792,11 +838,9 @@ namespace winsw
                 {
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
                 }
-
-                return;
             }
 
-            if (args[0] == "status")
+            void Status()
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
                 if (s is null)
@@ -805,45 +849,24 @@ namespace winsw
                     Console.WriteLine("Started");
                 else
                     Console.WriteLine("Stopped");
-
-                return;
             }
 
-            if (args[0] == "test")
+            void Test()
             {
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.OnStart(args.ToArray());
                 Thread.Sleep(1000);
                 wsvc.OnStop();
-                return;
             }
 
-            if (args[0] == "testwait")
+            void TestWait()
             {
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.OnStart(args.ToArray());
                 Console.WriteLine("Press any key to stop the service...");
                 Console.Read();
                 wsvc.OnStop();
-                return;
             }
-
-            if (args[0] == "help" || args[0] == "--help" || args[0] == "-h"
-                || args[0] == "-?" || args[0] == "/?")
-            {
-                printHelp();
-                return;
-            }
-
-            if (args[0] == "version")
-            {
-                printVersion();
-                return;
-            }
-
-            Console.WriteLine("Unknown command: " + args[0]);
-            printAvailableCommandsInfo();
-            throw new Exception("Unknown command: " + args[0]);
         }
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
