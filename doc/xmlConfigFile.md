@@ -258,7 +258,9 @@ For more information, see [Security Descriptor Definition Language](https://docs
 
 ### Service account
 
-It is possible to specify the useraccount (and password) that the service will run as. To do this, specify a `<serviceaccount>` element like this:
+The service is installed as the [LocalSystem account](https://docs.microsoft.com/windows/win32/services/localsystem-account) by default. If your service does not need a high privilege level, consider using the [LocalService account](https://docs.microsoft.com/windows/win32/services/localservice-account), the [NetworkService account](https://docs.microsoft.com/windows/win32/services/networkservice-account) or a user account.
+
+To use a user account, specify a `<serviceaccount>` element like this:
 
 ```xml
 <serviceaccount>
@@ -269,10 +271,12 @@ It is possible to specify the useraccount (and password) that the service will r
 </serviceaccount>
 ```
 
+The `<domain>` is optional and defaults to the local computer.
+
 The `<allowservicelogon>` is optional. 
 If set to `true`, will automatically set the "Allow Log On As A Service" right to the listed account.
 
-To use [(Group) Managed Service Accounts](https://technet.microsoft.com/en-us/library/hh831782.aspx) append `$` to the account name and remove `<password>` element:
+To use [Group Managed Service Accounts](https://docs.microsoft.com/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview), append `$` to the account name and remove `<password>` element:
 
 ```xml
 <serviceaccount>
@@ -281,6 +285,44 @@ To use [(Group) Managed Service Accounts](https://technet.microsoft.com/en-us/li
   <allowservicelogon>true</allowservicelogon>
 </serviceaccount>
 ```
+
+#### LocalSystem account
+
+To explicitly use the [LocalSystem account](https://docs.microsoft.com/windows/win32/services/localsystem-account), specify the following:
+
+```xml
+<serviceaccount>
+  <user>LocalSystem</user>
+</serviceaccount>
+```
+
+Note that this account does not have a password, so any password provided is ignored.
+
+#### LocalService account
+
+To use the [LocalService account](https://docs.microsoft.com/windows/win32/services/localservice-account), specify the following:
+
+```xml
+<serviceaccount>
+  <domain>NT AUTHORITY</domain>
+  <user>LocalService</user>
+</serviceaccount>
+```
+
+Note that this account does not have a password, so any password provided is ignored.
+
+#### NetworkService account
+
+To use the [NetworkService account](https://docs.microsoft.com/windows/win32/services/networkservice-account), specify the following:
+
+```xml
+<serviceaccount>
+  <domain>NT AUTHORITY</domain>
+  <user>NetworkService</user>
+</serviceaccount>
+```
+
+Note that this account does not have a password, so any password provided is ignored.
 
 ### Working directory
 
