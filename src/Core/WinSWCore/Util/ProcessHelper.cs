@@ -161,11 +161,15 @@ namespace winsw.Util
 
             if (envVars != null)
             {
-                foreach (string key in envVars.Keys)
+                var newEnvironment =
+#if NETCOREAPP
+                    ps.Environment;
+#else
+                    ps.EnvironmentVariables;
+#endif
+                foreach (KeyValuePair<string, string> pair in envVars)
                 {
-                    Environment.SetEnvironmentVariable(key, envVars[key]);
-                    // DONTDO: ps.EnvironmentVariables[key] = envs[key];
-                    // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
+                    newEnvironment[pair.Key] = pair.Value;
                 }
             }
 
