@@ -1,7 +1,20 @@
 Release Notes
 ====
 
-Below you can find release notes for the trunk version of WinSW.
+##### 2.2.0
+
+Release date: Jan 06, 2019
+
+* [PR #247](https://github.com/kohsuke/winsw/pull/247) -
+Intoduce new logging configuration options to allow renaming and disabling logs
+(`logname`, `outfiledisabled`, `errfiledisabled`, `outfilepattern`, `errfilepattern`)
+* [PR #259](https://github.com/kohsuke/winsw/pull/259) -
+Add support of archiving old log files to the 'roll-by-size-time' log appender 
+(`zipOlderThanNumDays` and `zipDateFormat` options)
+* [PR #239](https://github.com/kohsuke/winsw/pull/239) -
+Improve logging for process termination by Runaway Process Killer
+* [PR #254](https://github.com/kohsuke/winsw/pull/254) -
+Performance: prevent double loading of the service descriptors on startup
 
 ##### 2.1.2
 
