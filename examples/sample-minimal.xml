@@ -24,9 +24,9 @@
  E.g. for myapp.exe the configuration file name should be myapp.xml
  
  You can find more information about the configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
- Full example: https://github.com/kohsuke/winsw/blob/sample-config-file/examples/allOptions.xml
+ Full example: https://github.com/kohsuke/winsw/blob/master/examples/sample-allOptions.xml
 -->
-<configuration>
+<service>
   
   <!-- ID of the service. It should be unique across the Windows system-->
   <id>myapp</id>
@@ -38,4 +38,4 @@
   <!-- Path to the executable, which should be started -->
   <executable>%BASE%\myExecutable.exe</executable>
 
-</configuration>
+</service>
