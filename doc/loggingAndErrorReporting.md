@@ -55,7 +55,7 @@ This configuration must accompany a nested `<pattern>` element, which specifies 
 </log>
 ```
 
-The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). 
+The syntax of the pattern string is specified by [DateTime.ToString(String)](https://docs.microsoft.com/dotnet/api/system.datetime.tostring#System_DateTime_ToString_System_String_). 
 For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
 
 ### Rotate by size and time mode
@@ -72,10 +72,10 @@ Works in a combination of rotate size mode and rotate time mode, if the log file
 </log>
 ```
 
-The syntax of the pattern string is specified by [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx). 
+The syntax of the pattern string is specified by [DateTime.ToString(String)](https://docs.microsoft.com/dotnet/api/system.datetime.tostring#System_DateTime_ToString_System_String_). 
 For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
 
-The syntax of the autoRollAtTime is specified by [TimeSpan.ToString()](https://msdn.microsoft.com/en-us/library/1ecy8h51(v=vs.110).aspx).
+The syntax of the autoRollAtTime is specified by [TimeSpan.ToString(String)](https://docs.microsoft.com/dotnet/api/system.timespan.tostring#System_TimeSpan_ToString_System_String_).
 For example, in the above example, at the start of the day it will roll the file over.
 
 The `zipOlderThanNumDays` can only be used in conjection with autoRollAtTime, provide the number of days of files to keep.
@@ -87,7 +87,7 @@ The `zipOlderThanNumDays` can only be used in conjection with autoRollAtTime, pr
 </log>
 ```
 
-The zipDateFormat can only be used in conjection with autoRollAtTime, provide the zip file format using the [DateTime.ToString()](http://msdn.microsoft.com/en-us/library/zdtaw1bw.aspx).
+The zipDateFormat can only be used in conjection with autoRollAtTime, provide the zip file format using the [TimeSpan.ToString(String)](https://docs.microsoft.com/dotnet/api/system.timespan.tostring#System_TimeSpan_ToString_System_String_).
 
 ```xml
 <log mode="roll-by-size-time">
@@ -99,6 +99,6 @@ The zipDateFormat can only be used in conjection with autoRollAtTime, provide th
 ### Error reporting
 
 WinSW uses WMI underneath, and as such it uses its error code as the exit code. 
-See [Create method of the Win32_Service class](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service) for the complete list of exit code.
+For the complete list of exit codes, see [return values of the Create method of the Win32_Service class](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service#return-value).
 
 When winsw is running as a service, more detailed error information is reported to the Windows event log.
