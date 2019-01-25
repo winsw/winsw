@@ -2,7 +2,7 @@ Deferred file operations
 ====
 
 To support self updating services, winsw offers a mechanism to perform file operations before the process you specified in the configuration file gets launched. 
-This is often necessary because Windows prevents files from overwritten while it's in use.
+This is often necessary because Windows prevents a file from being overwritten while it's in use.
 
 To perform file operations, write a text file (in the UTF-8 encoding) at `myapp.copies` 
   (that is, it's in the same directory as `myapp.xml` and `myapp.exe` but with a different file extension), 
@@ -17,4 +17,4 @@ Kohsuke has failed to find any authoritative source of information about this, b
 This behavior can be used to update `winsw.exe` itself.
 Also see `WINSW_EXECUTABLE` environment variable.
 
-The `<download>` element in the configuration file also provides an useful building block for a self updating services.
+The `<download>` element in the configuration file also provides an useful building block for a self updating service.
