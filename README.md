@@ -17,7 +17,7 @@ See the [project manifest](MANIFEST.md).
 
 Starting from WinSW v2, the releases are being hosted on [GitHub](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
 
-Due to historical reasons, the project also uses [Jenkins Maven repository](https://jenkins.io/index.html) as a secondary source. 
+Due to historical reasons, the project also uses the [Jenkins](https://jenkins.io/) Maven repository as a secondary source. 
 Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
 ### Usage
