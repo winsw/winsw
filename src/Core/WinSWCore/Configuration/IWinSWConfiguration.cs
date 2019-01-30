@@ -20,7 +20,7 @@ namespace winsw.Configuration
         // Installation
         bool AllowServiceAcountLogonRight { get; }
         string? ServiceAccountPassword { get; }
-        string ServiceAccountUser { get; }
+        string? ServiceAccountUser { get; }
         List<Native.SC_ACTION> FailureActions { get; }
         TimeSpan ResetFailureAfter { get; }
 
