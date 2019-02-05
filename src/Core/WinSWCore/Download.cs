@@ -22,11 +22,12 @@ namespace winsw
         public readonly string Password;
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
+        public readonly bool DisableStrongCrypto;
 
         public string ShortId { get { return String.Format("(download from {0})", From); } }
 
         public Download(string from, string to, bool failOnError = false, AuthType auth = AuthType.none, 
-            string username = null, string password = null, bool unsecureAuth = false)
+            string username = null, string password = null, bool unsecureAuth = false, bool disableStrongCrypto = false)
         {
             From = from;
             To = to;
@@ -35,6 +36,7 @@ namespace winsw
             Username = username;
             Password = password;
             UnsecureAuth = unsecureAuth;
+            DisableStrongCrypto = disableStrongCrypto;
         }
 
         /// <summary>
@@ -54,6 +56,7 @@ namespace winsw
             Username = XmlHelper.SingleAttribute<String>(n, "user", null);
             Password = XmlHelper.SingleAttribute<String>(n, "password", null);
             UnsecureAuth = XmlHelper.SingleAttribute<bool>(n, "unsecureAuth", false);
+            DisableStrongCrypto = XmlHelper.SingleAttribute<bool>(n, "disableStrongCrypto", false);
 
             if (Auth == AuthType.basic)
             {
@@ -93,6 +96,14 @@ namespace winsw
         public void Perform()
         {
             WebRequest req = WebRequest.Create(From);
+
+            //Enum values for TLS 1.1 and 1.2
+            //https://docs.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype?view=netframework-4.7.2
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | (SecurityProtocolType)768 | (SecurityProtocolType)3072;
+            if(DisableStrongCrypto)
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
+            }
 
             switch (Auth)
             {
