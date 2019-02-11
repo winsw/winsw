@@ -164,9 +164,9 @@ For servers requiring authentication some parameters must be specified depending
 * `none`:  default, must not be specified
 * `sspi`: Microsoft [authentication](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) including Kerberos, NTLM etc. 
 * `basic`: Basic authentication, sub-parameters:
-	* `user=“UserName”`
-	* `password=“Passw0rd”`
-	* `unsecureAuth=“true”: default=“false"`
+	* `user="UserName"`
+	* `password="Passw0rd"`
+	* `unsecureAuth="true": default="false"`
 
 The parameter “unsecureAuth” is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
 
@@ -275,7 +275,7 @@ Specifying a priority higher than normal has unintended consequences.
 See the MSDN article [ProcessPriorityClass Enumeration](http://msdn.microsoft.com/en-us/library/system.diagnostics.processpriorityclass%28v=vs.110%29.aspx) for details.
 This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
 
-###stopparentprocessfirst
+### stopparentprocessfirst
 Optionally specify the order of service shutdown. 
 If `true`, the parent process is shutdown first. 
 This is useful when the main process is a console, which can respond to Ctrl+C command and will gracefully shutdown child processes.
