@@ -8,6 +8,9 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
+#if VNEXT
+using System.Threading.Tasks;
+#endif
 using log4net;
 using log4net.Appender;
 using log4net.Config;
@@ -199,23 +202,54 @@ namespace winsw
             HandleFileCopies();
 
             // handle downloads
-            foreach (Download d in _descriptor.Downloads)
+#if VNEXT
+            List<Download> downloads = _descriptor.Downloads;
+            Task[] tasks = new Task[downloads.Count];
+            for (int i = 0; i < downloads.Count; i++)
             {
-                string downloadMsg = "Downloading: " + d.From + " to " + d.To + ". failOnError=" + d.FailOnError;
-                LogEvent(downloadMsg);
-                Log.Info(downloadMsg);
+                Download download = downloads[i];
+                string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
+                LogEvent(downloadMessage);
+                Log.Info(downloadMessage);
+                tasks[i] = download.PerformAsync();
+            }
+
+            Task.WhenAll(tasks);
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                if (tasks[i].IsFaulted)
+                {
+                    Download download = downloads[i];
+                    string errorMessage = $"Failed to download {download.From} to {download.To}";
+                    AggregateException exception = tasks[i].Exception!;
+                    LogEvent($"{errorMessage}. {exception.Message}");
+                    Log.Error(errorMessage, exception);
+
+                    // TODO: move this code into the download logic
+                    if (download.FailOnError)
+                    {
+                        throw new IOException(errorMessage, exception);
+                    }
+                }
+            }
+#else
+            foreach (Download download in _descriptor.Downloads)
+            {
+                string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
+                LogEvent(downloadMessage);
+                Log.Info(downloadMessage);
                 try
                 {
-                    d.Perform();
+                    download.Perform();
                 }
                 catch (Exception e)
                 {
-                    string errorMessage = "Failed to download " + d.From + " to " + d.To;
-                    LogEvent(errorMessage + ". " + e.Message);
+                    string errorMessage = $"Failed to download {download.From} to {download.To}";
+                    LogEvent($"{errorMessage}. {e.Message}");
                     Log.Error(errorMessage, e);
 
                     // TODO: move this code into the download logic
-                    if (d.FailOnError)
+                    if (download.FailOnError)
                     {
                         throw new IOException(errorMessage, e);
                     }
@@ -223,6 +257,7 @@ namespace winsw
                     // Else just keep going
                 }
             }
+#endif
 
             string? startarguments = _descriptor.Startarguments;
 
