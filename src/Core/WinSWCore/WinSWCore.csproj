@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
 
     <RootNamespace>winsw</RootNamespace>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
