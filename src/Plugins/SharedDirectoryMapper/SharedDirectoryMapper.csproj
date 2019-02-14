@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <Version><!-- Populated by AppVeyor --></Version>
     <RootNamespace>winsw.Plugins.SharedDirectoryMapper</RootNamespace>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>

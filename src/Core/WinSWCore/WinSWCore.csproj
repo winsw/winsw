@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <Version><!-- Populated by AppVeyor --></Version>
     <RootNamespace>winsw</RootNamespace>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>

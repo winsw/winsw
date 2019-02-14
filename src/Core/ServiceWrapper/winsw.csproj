@@ -13,7 +13,6 @@
     <Copyright>Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors</Copyright>
     <RootNamespace>winsw</RootNamespace>
     <AssemblyName>WindowsService</AssemblyName>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -101,7 +100,7 @@
 
     <PropertyGroup>
       <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
-      <ILMergeArgs>/keyfile:"$(AssemblyOriginatorKeyFile)" /targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
+      <ILMergeArgs>/targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
 
