@@ -63,7 +63,14 @@ namespace winsw
             BaseName = baseName;
             BasePath = Path.Combine(d.FullName, BaseName);
 
-            dom.Load(BasePath + ".xml");
+            try
+            {
+                dom.Load(BasePath + ".xml");
+            }
+            catch (XmlException e)
+            {
+                throw new InvalidDataException(e.Message, e);
+            }
 
             // register the base directory as environment variable so that future expansions can refer to this.
             Environment.SetEnvironmentVariable("BASE", d.FullName);
