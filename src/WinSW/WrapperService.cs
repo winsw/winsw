@@ -91,11 +91,11 @@ namespace WinSW
                 string? line;
                 while ((line = tr.ReadLine()) != null)
                 {
-                    this.LogEvent("Handling copy: " + line);
+                    this.LogInfo("Handling copy: " + line);
                     string[] tokens = line.Split('>');
                     if (tokens.Length > 2)
                     {
-                        this.LogEvent("Too many delimiters in " + line);
+                        Log.Error("Too many delimiters in " + line);
                         continue;
                     }
 
@@ -119,7 +119,7 @@ namespace WinSW
             }
             catch (IOException e)
             {
-                this.LogEvent("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+                Log.Error("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
         }
 
@@ -179,6 +179,12 @@ namespace WinSW
             }
         }
 
+        private void LogInfo(string message)
+        {
+            this.LogEvent(message);
+            Log.Info(message);
+        }
+
         protected override void OnStart(string[] args)
         {
             this.envs = this.descriptor.EnvironmentVariables;
@@ -192,8 +198,7 @@ namespace WinSW
             {
                 Download download = downloads[i];
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
-                this.LogEvent(downloadMessage);
-                Log.Info(downloadMessage);
+                this.LogInfo(downloadMessage);
                 tasks[i] = download.PerformAsync();
             }
 
@@ -211,7 +216,6 @@ namespace WinSW
                         Download download = downloads[i];
                         string errorMessage = $"Failed to download {download.From} to {download.To}";
                         AggregateException exception = tasks[i].Exception!;
-                        this.LogEvent($"{errorMessage}. {exception.Message}");
                         Log.Error(errorMessage, exception);
 
                         // TODO: move this code into the download logic
@@ -232,7 +236,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(prestartExecutable, this.descriptor.PrestartArguments);
                     this.WaitForProcessToExit(process);
-                    Log.Info($"Pre-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    this.LogInfo($"Pre-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
                 }
             }
             catch (Exception e)
@@ -256,8 +260,7 @@ namespace WinSW
             // in the xml for readability.
             startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
 
-            this.LogEvent("Starting " + this.descriptor.Executable + ' ' + startArguments);
-            Log.Info("Starting " + this.descriptor.Executable + ' ' + startArguments);
+            this.LogInfo("Starting " + this.descriptor.Executable + ' ' + startArguments);
 
             // Load and start extensions
             this.ExtensionManager.LoadExtensions();
@@ -278,7 +281,7 @@ namespace WinSW
                     process.Exited += (sender, _) =>
                     {
                         Process process = (Process)sender!;
-                        Log.Info($"Post-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                        this.LogInfo($"Post-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
                     };
 
                     process.EnableRaisingEvents = true;
@@ -335,7 +338,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(prestopExecutable, this.descriptor.PrestopArguments);
                     this.WaitForProcessToExit(process);
-                    Log.Info($"Pre-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    this.LogInfo($"Pre-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
                 }
             }
             catch (Exception e)
@@ -344,8 +347,7 @@ namespace WinSW
             }
 
             string? stopArguments = this.descriptor.StopArguments;
-            this.LogEvent("Stopping " + this.descriptor.Id);
-            Log.Info("Stopping " + this.descriptor.Id);
+            this.LogInfo("Stopping " + this.descriptor.Id);
             this.orderlyShutdown = true;
             this.process.EnableRaisingEvents = false;
 
@@ -381,7 +383,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(poststopExecutable, this.descriptor.PoststopArguments);
                     this.WaitForProcessToExit(process);
-                    Log.Info($"Post-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    this.LogInfo($"Post-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
                 }
             }
             catch (Exception e)
@@ -437,11 +439,11 @@ namespace WinSW
 
                 if (this.orderlyShutdown)
                 {
-                    this.LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
+                    this.LogInfo("Child process [" + msg + "] terminated with " + process.ExitCode);
                 }
                 else
                 {
-                    this.LogEvent("Child process [" + msg + "] finished with " + process.ExitCode, EventLogEntryType.Warning);
+                    Log.Warn("Child process [" + msg + "] finished with " + process.ExitCode);
 
                     // if we finished orderly, report that to SCM.
                     // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
