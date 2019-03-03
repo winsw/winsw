@@ -136,9 +136,9 @@ SECTION: Executable management
   <!--
     OPTION: stopparentprocessfirst
     If set, WinSW will terminate the parent process before stopping the children.
-    Default value: false
+    Default value: true
   -->
-  <stopparentprocessfirst>false</stopparentprocessfirst>
+  <stopparentprocessfirst>true</stopparentprocessfirst>
   
   
   <!-- 
