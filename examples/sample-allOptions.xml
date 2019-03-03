@@ -132,13 +132,6 @@ SECTION: Executable management
     Default value: 15 seconds
   -->
   <stoptimeout>15 sec</stoptimeout>
-    
-  <!--
-    OPTION: stopparentprocessfirst
-    If set, WinSW will terminate the parent process before stopping the children.
-    Default value: false
-  -->
-  <stopparentprocessfirst>false</stopparentprocessfirst>
   
   
   <!-- 

@@ -114,25 +114,13 @@ namespace winsw.Util
         /// </summary>
         /// <param name="pid">Process PID</param>
         /// <param name="stopTimeout">Stop timeout (for each process)</param>
-        /// <param name="stopParentProcessFirst">If enabled, the perent process will be terminated before its children on all levels</param>
-        public static void StopProcessAndChildren(Process process, TimeSpan stopTimeout, bool stopParentProcessFirst)
+        public static void StopProcessTree(Process process, TimeSpan stopTimeout)
         {
-            if (!stopParentProcessFirst)
-            {
-                foreach (Process child in GetChildProcesses(process.Id))
-                {
-                    StopProcessAndChildren(child, stopTimeout, stopParentProcessFirst);
-                }
-            }
-
             StopProcess(process, stopTimeout);
 
-            if (stopParentProcessFirst)
+            foreach (Process child in GetChildProcesses(process.Id))
             {
-                foreach (Process child in GetChildProcesses(process.Id))
-                {
-                    StopProcessAndChildren(child, stopTimeout, stopParentProcessFirst);
-                }
+                StopProcessTree(child, stopTimeout);
             }
         }
 

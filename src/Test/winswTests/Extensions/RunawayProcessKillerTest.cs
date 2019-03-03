@@ -33,7 +33,6 @@ $@"<service>
     <extension enabled=""true"" className=""{testExtension}"" id=""killRunawayProcess"">
       <pidfile>foo/bar/pid.txt</pidfile>
       <stopTimeout>5000</stopTimeout>
-      <stopParentFirst>true</stopParentFirst>
     </extension>
   </extensions>
 </service>";
@@ -52,7 +51,6 @@ $@"<service>
             Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
             Assert.AreEqual("foo/bar/pid.txt", extension.Pidfile, "Loaded PID file path is not equal to the expected one");
             Assert.AreEqual(5000, extension.StopTimeout.TotalMilliseconds, "Loaded Stop Timeout is not equal to the expected one");
-            Assert.AreEqual(true, extension.StopParentProcessFirst, "Loaded StopParentFirst is not equal to the expected one");
         }
 
         [Test]
@@ -110,7 +108,7 @@ $@"<service>
                 if (!proc.HasExited)
                 {
                     Console.Error.WriteLine("Test: Killing runaway process with ID=" + proc.Id);
-                    ProcessHelper.StopProcessAndChildren(proc, TimeSpan.FromMilliseconds(100), false);
+                    ProcessHelper.StopProcessTree(proc, TimeSpan.FromMilliseconds(100));
                     if (!proc.HasExited)
                     {
                         // The test is failed here anyway, but we add additional diagnostics info
