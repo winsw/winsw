@@ -32,7 +32,6 @@ namespace winsw.Configuration
         string WorkingDirectory { get; }
         ProcessPriorityClass Priority { get; }
         TimeSpan StopTimeout { get; }
-        bool StopParentProcessFirst { get; }
 
         // Service management
         ServiceStartMode StartMode { get; }

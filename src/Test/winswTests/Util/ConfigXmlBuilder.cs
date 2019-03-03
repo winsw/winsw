@@ -116,7 +116,6 @@ namespace winswTests.Util
             str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new object[] { enabled, fullyQualifiedExtensionName, extensionId });
             str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.Pidfile);
             str.AppendFormat("      <stopTimeout>{0}</stopTimeout>\n", ext.StopTimeout.TotalMilliseconds);
-            str.AppendFormat("      <stopParentFirst>{0}</stopParentFirst>\n", ext.StopParentProcessFirst);
             str.AppendFormat("      <checkWinSWEnvironmentVariable>{0}</checkWinSWEnvironmentVariable>\n", ext.CheckWinSWEnvironmentVariable);
             str.Append("    </extension>\n");
             ExtensionXmls.Add(str.ToString());

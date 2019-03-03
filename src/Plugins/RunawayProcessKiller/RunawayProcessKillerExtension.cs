@@ -25,11 +25,6 @@ namespace winsw.Plugins.RunawayProcessKiller
         public TimeSpan StopTimeout { get; private set; }
 
         /// <summary>
-        /// If true, the parent process will be terminated first if the runaway process gets terminated.
-        /// </summary>
-        public bool StopParentProcessFirst { get; private set; }
-
-        /// <summary>
         /// If true, the runaway process will be checked for the WinSW environment variable before termination.
         /// This option is not documented AND not supposed to be used by users.
         /// </summary>
@@ -49,12 +44,11 @@ namespace winsw.Plugins.RunawayProcessKiller
         }
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public RunawayProcessKillerExtension(string pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
+        public RunawayProcessKillerExtension(string pidfile, int stopTimeoutMs = 5000, bool checkWinSWEnvironmentVariable = true)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.Pidfile = pidfile;
             this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
-            this.StopParentProcessFirst = stopParentFirst;
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable;
         }
 
@@ -185,7 +179,6 @@ namespace winsw.Plugins.RunawayProcessKiller
             // TODO: a better parser API for types would be useful
             Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
             StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
-            StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
             ServiceId = descriptor.Id;
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
@@ -276,7 +269,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             bldr.Append(proc);
 
             Logger.Warn(bldr.ToString());
-            ProcessHelper.StopProcessAndChildren(proc, this.StopTimeout, this.StopParentProcessFirst);
+            ProcessHelper.StopProcessTree(proc, this.StopTimeout);
         }
 
         /// <summary>

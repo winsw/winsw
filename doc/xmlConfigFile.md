@@ -352,13 +352,3 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
 Specifying a priority higher than normal has unintended consequences.
 For more information, see [ProcessPriorityClass Enumeration](https://docs.microsoft.com/dotnet/api/system.diagnostics.processpriorityclass) in .NET docs.
 This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
-
-### Stop parent process first
-
-Optionally specify the order of service shutdown. 
-If `true`, the parent process is shutdown first. 
-This is useful when the main process is a console, which can respond to Ctrl+C command and will gracefully shutdown child processes.
-
-```xml
-<stopparentprocessfirst>true</stopparentprocessfirst>
-```

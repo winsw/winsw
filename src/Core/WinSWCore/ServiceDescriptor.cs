@@ -677,20 +677,6 @@ namespace winsw
         /// </summary>
         public TimeSpan StopTimeout => SingleTimeSpanElement(dom, "stoptimeout", Defaults.StopTimeout);
 
-        public bool StopParentProcessFirst
-        {
-            get
-            {
-                var value = SingleElement("stopparentprocessfirst", true);
-                if (bool.TryParse(value, out bool result))
-                {
-                    return result;
-                }
-
-                return Defaults.StopParentProcessFirst;
-            }
-        }
-
         /// <summary>
         /// Desired process priority or null if not specified.
         /// </summary>

@@ -137,23 +137,6 @@ $@"<service>
         }
 
         [Test]
-        public void StopParentProcessFirstIsFalseByDefault()
-        {
-            Assert.That(_extendedServiceDescriptor.StopParentProcessFirst, Is.False);
-        }
-
-        [Test]
-        public void CanParseStopParentProcessFirst()
-        {
-            const string seedXml = "<service>"
-                                   + "<stopparentprocessfirst>true</stopparentprocessfirst>"
-                                   + "</service>";
-            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-
-            Assert.That(serviceDescriptor.StopParentProcessFirst, Is.True);
-        }
-
-        [Test]
         public void CanParseStopTimeout()
         {
             const string seedXml = "<service>"

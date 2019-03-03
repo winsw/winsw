@@ -35,7 +35,6 @@ namespace winsw.Configuration
         public string WorkingDirectory => Path.GetDirectoryName(ExecutablePath)!;
         public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
         public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
-        public bool StopParentProcessFirst => false;
 
         // Service management
         public ServiceStartMode StartMode => ServiceStartMode.Automatic;

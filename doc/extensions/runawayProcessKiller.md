@@ -35,8 +35,6 @@ The extension can be configured via the [XML configuration file](../xmlConfigFil
            After the timeout WinSW will try to force kill the process.
       -->
       <stopTimeout>5000</stopTimeout>
-      <!-- If true, the parent process will be terminated first if the runaway process gets terminated. -->
-      <stopParentFirst>false</stopParentFirst>
     </extension>
   </extensions>
 </service>
