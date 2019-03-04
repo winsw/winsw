@@ -46,13 +46,6 @@ WinSW v2 offers two executables, which declare .NET Frameworks 2.0 and 4.0 as ta
 More executables can be added on-demand.
 Please create an issue if you need such executables.
 
-### WinSW v1
-
-WinSW v1 Executable is being built with a .NET Framework 2.0 target, and by defaut it will work only for .NET Framework versions below 3.5.
-On the other hand, the code is known to be compatible with .NET Framework 4.0 and above.
-It is possible to declare the support of this framework via the *.exe.config* file.
-See the [Installation guide](doc/installation.md) for more details.
-
 ## Documentation
 
 User documentation:
@@ -87,12 +80,6 @@ This is a new baseline of WinSW with several major changes:
 
 The version v2 is **fully compatible** with the v1 configuration file format, 
   hence the upgrade procedure just requires replacement of the executable file.
-
-### WinSW v1
-
-This is an old baseline of WinSW.
-Currently it is in the maintenance-only state.
-New versions with fixes may be released on-demand.
 
 ## License
 
