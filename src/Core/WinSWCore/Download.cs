@@ -36,9 +36,12 @@ namespace winsw
 
         public string ShortId => $"(download from {From})";
 
-#if !VNEXT
         static Download()
         {
+#if NET461
+            // If your app runs on .NET Framework 4.7 or later versions, but targets an earlier version
+            AppContext.SetSwitch("Switch.System.Net.DontEnableSystemDefaultTlsVersions", false);
+#elif !VNEXT
             const SecurityProtocolType Tls12 = (SecurityProtocolType)0x00000C00;
             const SecurityProtocolType Tls11 = (SecurityProtocolType)0x00000300;
 
@@ -55,8 +58,8 @@ namespace winsw
                     Logger.Info("TLS 1.1/1.2 disabled");
                 }
             }
-        }
 #endif
+        }
 
         // internal
         public Download(
