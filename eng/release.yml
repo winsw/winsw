@@ -3,10 +3,15 @@ name: $(Major).$(Minor).$(Patch).$(Revision)
 trigger: none
 
 variables:
-  Revision: $[counter(format('{0}.{1}.{2}', variables.Major, variables.Minor, variables.Patch), 1)]
-  AssemblyVersion: $(Major).$(Minor).$(Patch)
-  PackageVersion: $(Major).$(Minor).$(Patch)
-  BuildConfiguration: Release
+- group: Version
+- name: Revision
+  value: $[counter(format('{0}.{1}.{2}', variables.Major, variables.Minor, variables.Patch), 1)]
+- name: AssemblyVersion
+  value: $(Major).$(Minor).$(Patch)
+- name: PackageVersion
+  value: $(Major).$(Minor).$(Patch)
+- name: BuildConfiguration
+  value: Release
 
 jobs:
 - template: template.yml
