@@ -5,7 +5,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version><!-- Populated by AppVeyor --></Version>
+
     <RootNamespace>winsw.Plugins.RunawayProcessKiller</RootNamespace>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
