@@ -67,6 +67,8 @@ $@"<service>
         [Test]
         public void ShouldKillTheSpawnedProcess()
         {
+            Assert.Ignore();
+
             var winswId = "myAppWithRunaway";
             var extensionId = "runawayProcessKiller";
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
