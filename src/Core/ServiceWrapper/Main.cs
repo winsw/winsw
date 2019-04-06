@@ -211,23 +211,32 @@ namespace winsw
                 tasks[i] = download.PerformAsync();
             }
 
-            Task.WhenAll(tasks);
-            for (int i = 0; i < tasks.Length; i++)
+            try
             {
-                if (tasks[i].IsFaulted)
+                Task.WaitAll(tasks);
+            }
+            catch (AggregateException e)
+            {
+                List<Exception> exceptions = new List<Exception>(e.InnerExceptions.Count);
+                for (int i = 0; i < tasks.Length; i++)
                 {
-                    Download download = downloads[i];
-                    string errorMessage = $"Failed to download {download.From} to {download.To}";
-                    AggregateException exception = tasks[i].Exception!;
-                    LogEvent($"{errorMessage}. {exception.Message}");
-                    Log.Error(errorMessage, exception);
-
-                    // TODO: move this code into the download logic
-                    if (download.FailOnError)
+                    if (tasks[i].IsFaulted)
                     {
-                        throw new IOException(errorMessage, exception);
+                        Download download = downloads[i];
+                        string errorMessage = $"Failed to download {download.From} to {download.To}";
+                        AggregateException exception = tasks[i].Exception!;
+                        LogEvent($"{errorMessage}. {exception.Message}");
+                        Log.Error(errorMessage, exception);
+
+                        // TODO: move this code into the download logic
+                        if (download.FailOnError)
+                        {
+                            exceptions.Add(new IOException(errorMessage, exception));
+                        }
                     }
                 }
+
+                throw new AggregateException(exceptions);
             }
 #else
             foreach (Download download in _descriptor.Downloads)
