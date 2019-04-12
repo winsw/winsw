@@ -601,6 +601,11 @@ namespace winsw
 
                 args = args.GetRange(1, args.Count - 1);
             }
+            else if (Environment.OSVersion.Version.Major == 5)
+            {
+                // Windows XP
+                elevated = true;
+            }
             else
             {
                 elevated = IsProcessElevated();
