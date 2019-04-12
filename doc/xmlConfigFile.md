@@ -173,7 +173,7 @@ This operation runs when the service is started, before the application specifie
 For servers requiring authentication some parameters must be specified depending on the type of authentication. Only the basic authentication requires additional sub-parameters. Supported authentication types are:
 
 * `none`:  default, must not be specified
-* `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi) including Kerberos, NTLM etc. 
+* `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/windows/win32/secauthn/sspi) including Kerberos, NTLM etc. 
 * `basic`: Basic authentication, sub-parameters:
 	* `user="UserName"`
 	* `password="Passw0rd"`
