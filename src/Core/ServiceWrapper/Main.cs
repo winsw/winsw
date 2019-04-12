@@ -1038,7 +1038,7 @@ namespace winsw
             IntPtr process = Kernel32.GetCurrentProcess();
             if (!Advapi32.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
             {
-                throw new Win32Exception();
+                ThrowWin32Exception("Failed to open process token.");
             }
 
             try
@@ -1050,7 +1050,7 @@ namespace winsw
                     sizeof(TOKEN_ELEVATION),
                     out _))
                 {
-                    throw new Win32Exception();
+                    ThrowWin32Exception("Failed to get token information");
                 }
 
                 return elevation.TokenIsElevated != 0;
@@ -1058,6 +1058,12 @@ namespace winsw
             finally
             {
                 _ = Kernel32.CloseHandle(token);
+            }
+
+            static void ThrowWin32Exception(string message)
+            {
+                Win32Exception inner = new Win32Exception();
+                throw new Win32Exception(inner.NativeErrorCode, message + ' ' + inner.Message);
             }
         }
 
