@@ -95,15 +95,8 @@ namespace winsw
         /// </exception>
         public void Perform()
         {
+            AppContext.SetSwitch("Switch.System.Net.DontEnableSchUseStrongCrypto", DisableStrongCrypto);
             WebRequest req = WebRequest.Create(From);
-
-            //Enum values for TLS 1.1 and 1.2
-            //https://docs.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype?view=netframework-4.7.2
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | (SecurityProtocolType)768 | (SecurityProtocolType)3072;
-            if(DisableStrongCrypto)
-            {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
-            }
 
             switch (Auth)
             {
