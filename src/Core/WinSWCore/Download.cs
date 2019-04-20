@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using System.Net;
+#if !VNEXT
+using System.Reflection;
+#endif
 using System.Text;
 #if VNEXT
 using System.Threading.Tasks;
@@ -42,6 +45,9 @@ namespace winsw
             // If your app runs on .NET Framework 4.7 or later versions, but targets an earlier version
             AppContext.SetSwitch("Switch.System.Net.DontEnableSystemDefaultTlsVersions", false);
 #elif !VNEXT
+            // If your app runs on .NET Framework 4.6, but targets an earlier version
+            Type.GetType("System.AppContext")?.InvokeMember("SetSwitch", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static, null, null, new object[] { "Switch.System.Net.DontEnableSchUseStrongCrypto", false });
+
             const SecurityProtocolType Tls12 = (SecurityProtocolType)0x00000C00;
             const SecurityProtocolType Tls11 = (SecurityProtocolType)0x00000300;
 
