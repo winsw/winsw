@@ -2,6 +2,8 @@ name: $(Major).$(Minor).$(Patch).$(Revision)
 
 trigger: none
 
+pr: none
+
 variables:
 - group: Version
 - name: Revision
