@@ -562,7 +562,9 @@ namespace winsw
                     try
                     {
                         var filenameOnly = Path.GetFileNameWithoutExtension(f);
-                        var lastNumberAsString = filenameOnly.Substring(filenameOnly.Length - 4, 4);
+                        var hashIndex = filenameOnly.IndexOf('#');
+                        var lastNumberAsString = filenameOnly.Substring(hashIndex + 1, 4);
+                        //var lastNumberAsString = filenameOnly.Substring(filenameOnly.Length - 4, 4);
                         int lastNumber = 0;
                         if (int.TryParse(lastNumberAsString, out lastNumber))
                         {
