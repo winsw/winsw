@@ -24,7 +24,7 @@ namespace winsw.Configuration
         public bool AllowServiceAcountLogonRight => false;
         public string? ServiceAccountPassword => null;
         public string? ServiceAccountUser => null;
-        public List<Native.SC_ACTION> FailureActions => new List<Native.SC_ACTION>(0);
+        public Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
         // Executable management

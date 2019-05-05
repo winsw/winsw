@@ -595,17 +595,17 @@ namespace winsw
             }
         }
 
-        public List<SC_ACTION> FailureActions
+        public SC_ACTION[] FailureActions
         {
             get
             {
                 XmlNodeList? childNodes = dom.SelectNodes("//onfailure");
                 if (childNodes is null)
                 {
-                    return new List<SC_ACTION>(0);
+                    return new SC_ACTION[0];
                 }
 
-                List<SC_ACTION> result = new List<SC_ACTION>(childNodes.Count);
+                SC_ACTION[] result = new SC_ACTION[childNodes.Count];
                 for (int i = 0; i < childNodes.Count; i++)
                 {
                     XmlNode node = childNodes[i];
@@ -618,7 +618,7 @@ namespace winsw
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
                     XmlAttribute? delay = node.Attributes["delay"];
-                    result.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
+                    result[i] = new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero);
                 }
 
                 return result;
@@ -645,9 +645,9 @@ namespace winsw
 
         protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
-        protected string? ServiceAccountDomain => GetServiceAccountPart("domain");
+        protected internal string? ServiceAccountDomain => GetServiceAccountPart("domain");
 
-        protected string? ServiceAccountName => GetServiceAccountPart("user");
+        protected internal string? ServiceAccountName => GetServiceAccountPart("user");
 
         public string? ServiceAccountPassword => GetServiceAccountPart("password");
 

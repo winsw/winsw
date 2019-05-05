@@ -1,7 +1,7 @@
 ﻿namespace winsw.Native
 {
-    public static class Errors
+    internal static class Errors
     {
-        public const int ERROR_CANCELLED = 1223;
+        internal const int ERROR_CANCELLED = 1223;
     }
 }
