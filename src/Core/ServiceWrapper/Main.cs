@@ -31,7 +31,7 @@ namespace winsw
 {
     public class WrapperService : ServiceBase, EventLogger
     {
-        private SERVICE_STATUS _wrapperServiceStatus;
+        private ServiceApis.SERVICE_STATUS _wrapperServiceStatus;
 
         private readonly Process _process = new Process();
         private readonly ServiceDescriptor _descriptor;
@@ -434,10 +434,10 @@ namespace winsw
         private void SignalShutdownComplete()
         {
             IntPtr handle = ServiceHandle;
-            _wrapperServiceStatus.checkPoint++;
+            _wrapperServiceStatus.CheckPoint++;
             // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            _wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
-            Advapi32.SetServiceStatus(handle, _wrapperServiceStatus);
+            _wrapperServiceStatus.CurrentState = ServiceApis.ServiceState.STOPPED;
+            ServiceApis.SetServiceStatus(handle, _wrapperServiceStatus);
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
@@ -590,8 +590,8 @@ namespace winsw
             {
                 elevated = true;
 
-                _ = SigIntHelper.FreeConsole();
-                _ = SigIntHelper.AttachConsole(SigIntHelper.ATTACH_PARENT_PROCESS);
+                _ = ConsoleApis.FreeConsole();
+                _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
 
                 args = args.GetRange(1, args.Count - 1);
             }
@@ -714,7 +714,7 @@ namespace winsw
 
                 if (setallowlogonasaserviceright)
                 {
-                    LogonAsAService.AddLogonAsAServiceRight(username!);
+                    Security.AddServiceLogonRight(descriptor.ServiceAccountDomain!, descriptor.ServiceAccountName!);
                 }
 
                 svc.Create(
@@ -729,13 +729,13 @@ namespace winsw
                     password,
                     descriptor.ServiceDependencies);
 
-                using ServiceManager scm = new ServiceManager();
-                using Service sc = scm.Open(descriptor.Id);
+                using ServiceManager scm = ServiceManager.Open();
+                using Service sc = scm.OpenService(descriptor.Id);
 
                 sc.SetDescription(descriptor.Description);
 
                 var actions = descriptor.FailureActions;
-                if (actions.Count > 0)
+                if (actions.Length > 0)
                 {
                     sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
                 }
@@ -746,13 +746,11 @@ namespace winsw
                     sc.SetDelayedAutoStart(true);
                 }
 
-                if (descriptor.SecurityDescriptor != null)
+                var securityDescriptor = descriptor.SecurityDescriptor;
+                if (securityDescriptor != null)
                 {
                     // throws ArgumentException
-                    RawSecurityDescriptor rawSecurityDescriptor = new RawSecurityDescriptor(descriptor.SecurityDescriptor);
-                    byte[] securityDescriptorBytes = new byte[rawSecurityDescriptor.BinaryLength];
-                    rawSecurityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
-                    _ = Advapi32.SetServiceObjectSecurity(sc.Handle, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
+                    sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
                 }
 
                 string eventLogSource = descriptor.Id;
@@ -919,7 +917,7 @@ namespace winsw
 
                 // run restart from another process group. see README.md for why this is useful.
 
-                bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, Kernel32.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
+                bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
@@ -1063,19 +1061,19 @@ namespace winsw
 
         internal static unsafe bool IsProcessElevated()
         {
-            IntPtr process = Kernel32.GetCurrentProcess();
-            if (!Advapi32.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
+            IntPtr process = ProcessApis.GetCurrentProcess();
+            if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
             {
                 ThrowWin32Exception("Failed to open process token.");
             }
 
             try
             {
-                if (!Advapi32.GetTokenInformation(
+                if (!SecurityApis.GetTokenInformation(
                     token,
-                    TOKEN_INFORMATION_CLASS.TokenElevation,
-                    out TOKEN_ELEVATION elevation,
-                    sizeof(TOKEN_ELEVATION),
+                    SecurityApis.TOKEN_INFORMATION_CLASS.TokenElevation,
+                    out SecurityApis.TOKEN_ELEVATION elevation,
+                    sizeof(SecurityApis.TOKEN_ELEVATION),
                     out _))
                 {
                     ThrowWin32Exception("Failed to get token information");
@@ -1085,7 +1083,7 @@ namespace winsw
             }
             finally
             {
-                _ = Kernel32.CloseHandle(token);
+                _ = HandleApis.CloseHandle(token);
             }
 
             static void ThrowWin32Exception(string message)

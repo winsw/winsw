@@ -4,6 +4,7 @@
     <TargetFrameworks>net20;net40;net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <RootNamespace>winsw</RootNamespace>
   </PropertyGroup>
