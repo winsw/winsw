@@ -19,7 +19,7 @@ Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://git
 Due to historical reasons, the project also uses  [Jenkins Maven repository](https://jenkins.io/index.html)  as a secondary source. 
 Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
-The executables in all sources are [strong-named assemblies](https://msdn.microsoft.com/en-us/library/wd40t7ad%28v=vs.110%29.aspx), which are being singed by randomly generated keys.
+The executables in all sources are [strong-named assemblies](https://msdn.microsoft.com/en-us/library/wd40t7ad%28v=vs.110%29.aspx), which are being signed by randomly generated keys.
 Do not rely on such strong names for security (as well as on other strong names as it recommended by Microsoft). 
 They provide a unique identity only.
 
