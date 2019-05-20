@@ -24,7 +24,7 @@ namespace winswTests.Configuration
 
             Assert.AreEqual("myapp", d.Id);
             Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
-            Assert.AreEqual("This service is a service cratead from a sample configuration", d.Description);
+            Assert.AreEqual("This service is a service created from a sample configuration", d.Description);
             Assert.AreEqual("%BASE%\\myExecutable.exe", d.Executable);
 
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
@@ -37,7 +37,7 @@ namespace winswTests.Configuration
 
             Assert.AreEqual("myapp", d.Id);
             Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
-            Assert.AreEqual("This service is a service cratead from a minimal configuration", d.Description);
+            Assert.AreEqual("This service is a service created from a minimal configuration", d.Description);
             Assert.AreEqual("%BASE%\\myExecutable.exe", d.Executable);
 
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
