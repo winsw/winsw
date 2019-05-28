@@ -18,6 +18,7 @@ namespace winsw.Configuration
         public string Caption { get { return null; } }
         public string Description { get { return null; } }
         public string Executable { get { return null; } }
+        public bool HideWindow { get { return false; } }
 
         public string ExecutablePath
         {

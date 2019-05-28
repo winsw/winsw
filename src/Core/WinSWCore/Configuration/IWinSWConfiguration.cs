@@ -14,6 +14,7 @@ namespace winsw.Configuration
         string Description { get; }
         string Executable { get; }
         string ExecutablePath { get; }
+        bool HideWindow { get; }
 
         // Installation
         bool AllowServiceAcountLogonRight { get; }
