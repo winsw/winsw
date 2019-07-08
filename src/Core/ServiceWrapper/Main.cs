@@ -718,7 +718,22 @@ namespace winsw
                 if (s is null)
                     ThrowNoSuchService();
 
-                s.StartService();
+                try
+                {
+                    s.StartService();
+                }
+                catch (WmiException e)
+                {
+                    if (e.ErrorCode == ReturnValue.ServiceAlreadyRunning)
+                    {
+                        Log.Info($"The service with ID '{descriptor.Id}' has already been started");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
                 return;
             }
 
