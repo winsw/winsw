@@ -245,9 +245,6 @@ namespace winsw
             ExtensionManager.LoadExtensions();
             ExtensionManager.FireOnWrapperStarted();
 
-            LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
-
             LogHandler executableLogHandler = CreateExecutableLogHandler();
             StartProcess(_process, startarguments, _descriptor.Executable, executableLogHandler, true);
             ExtensionManager.FireOnProcessStarted(_process);
