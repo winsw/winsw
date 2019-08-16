@@ -18,7 +18,7 @@
 -->
 
 <!--
- This is an example of a minimal Windows Service Wrapper configuration, which includes only mandatiory options.
+ This is an example of a minimal Windows Service Wrapper configuration, which includes only mandatory options.
  
  This configuration file should be placed near the WinSW executable, the name should be the same.
  E.g. for myapp.exe the configuration file name should be myapp.xml
@@ -28,7 +28,7 @@
 -->
 <configuration>
   
-  <!-- ID of the service. It should be unique accross the Windows system-->
+  <!-- ID of the service. It should be unique across the Windows system-->
   <id>myapp</id>
   <!-- Display name of the service -->
   <name>MyApp Service (powered by WinSW)</name>
