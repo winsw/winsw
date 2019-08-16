@@ -175,6 +175,13 @@ namespace winsw
             }
         }
 
+        public bool HideWindow 
+        { 
+            get {
+                return SingleBoolElement("hidewindow", Defaults.HideWindow);
+            } 
+        }
+
         /// <summary>
         /// Optionally specify a different Path to an executable to shutdown the service.
         /// </summary>

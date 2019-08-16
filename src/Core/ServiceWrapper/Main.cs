@@ -453,7 +453,8 @@ namespace winsw
                 priority: _descriptor.Priority,
                 callback: processCompletionCallback,
                 logHandler: logHandler,
-                redirectStdin: redirectStdin);
+                redirectStdin: redirectStdin,
+                hideWindow: _descriptor.HideWindow);
         }
 
         public static int Main(string[] args)
