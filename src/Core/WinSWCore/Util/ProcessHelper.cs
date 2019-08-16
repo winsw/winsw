@@ -66,7 +66,7 @@ namespace winsw.Util
             bool successful = SigIntHelper.SendSIGINTToProcess(proc, stopTimeout);
             if (successful)
             {
-                Logger.Info("SIGINT to" + pid + " successful");
+                Logger.Info("SIGINT to " + pid + " successful");
             }
             else
             {
