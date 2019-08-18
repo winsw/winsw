@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <DefineConstants>$(DefineConstants);CIM</DefineConstants>
+    <!-- https://docs.microsoft.com/windows/win32/wmisdk/common-information-model -->
+    <DefineConstants>$(DefineConstants);FEATURE_CIM</DefineConstants>
   </PropertyGroup>
 
 </Project>

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-#if !CIM
+#if !FEATURE_CIM
 using System.Management;
 #endif
 using System.Reflection;
 using DynamicProxy;
-#if CIM
+#if FEATURE_CIM
 using Microsoft.Management.Infrastructure;
 using Microsoft.Management.Infrastructure.Generic;
 #endif
@@ -91,7 +91,7 @@ namespace WMI
 
     public sealed class WmiRoot
     {
-#if CIM
+#if FEATURE_CIM
         private const string CimNamespace = "root/cimv2";
 
         private readonly CimSession cimSession;
@@ -101,7 +101,7 @@ namespace WMI
 
         public WmiRoot(string? machineName = null)
         {
-#if CIM
+#if FEATURE_CIM
             this.cimSession = CimSession.Create(machineName);
 #else
             ConnectionOptions options = new ConnectionOptions
@@ -131,7 +131,7 @@ namespace WMI
         {
             public abstract object? Invoke(object proxy, MethodInfo method, object[] arguments);
 
-#if CIM
+#if FEATURE_CIM
             protected void CheckError(CimMethodResult result)
             {
                 uint code = (uint)result.ReturnValue.Value;
@@ -147,7 +147,7 @@ namespace WMI
             }
 #endif
 
-#if CIM
+#if FEATURE_CIM
             protected CimMethodParametersCollection GetMethodParameters(CimClass cimClass, string methodName, ParameterInfo[] methodParameters, object[] arguments)
             {
                 CimMethodParametersCollection cimParameters = new CimMethodParametersCollection();
@@ -177,7 +177,7 @@ namespace WMI
 
         private class InstanceHandler : BaseHandler, IWmiObject
         {
-#if CIM
+#if FEATURE_CIM
             private readonly CimSession cimSession;
             private readonly CimInstance cimInstance;
 
@@ -202,7 +202,7 @@ namespace WMI
                 // TODO: proper property support
                 if (method.Name.StartsWith("set_"))
                 {
-#if CIM
+#if FEATURE_CIM
                     CimProperty cimProperty = this.cimInstance.CimInstanceProperties[method.Name.Substring(4)];
                     Debug.Assert((cimProperty.Flags & CimFlags.ReadOnly) == CimFlags.None);
                     cimProperty.Value = arguments[0];
@@ -214,7 +214,7 @@ namespace WMI
 
                 if (method.Name.StartsWith("get_"))
                 {
-#if CIM
+#if FEATURE_CIM
                     return this.cimInstance.CimInstanceProperties[method.Name.Substring(4)].Value;
 #else
                     return this.wmiObject[method.Name.Substring(4)];
@@ -222,7 +222,7 @@ namespace WMI
                 }
 
                 string methodName = method.Name;
-#if CIM
+#if FEATURE_CIM
                 using CimMethodParametersCollection? cimParameters = arguments.Length == 0 ? null :
                     this.GetMethodParameters(this.cimInstance.CimClass, methodName, method.GetParameters(), arguments);
                 using CimMethodResult result = this.cimSession.InvokeMethod(CimNamespace, this.cimInstance, methodName, cimParameters);
@@ -238,7 +238,7 @@ namespace WMI
 
             public void Commit()
             {
-#if !CIM
+#if !FEATURE_CIM
                 this.wmiObject.Put();
 #endif
             }
@@ -246,7 +246,7 @@ namespace WMI
 
         private class ClassHandler : BaseHandler
         {
-#if CIM
+#if FEATURE_CIM
             private readonly CimSession cimSession;
             private readonly CimClass cimClass;
 #else
@@ -254,7 +254,7 @@ namespace WMI
 #endif
             private readonly string className;
 
-#if CIM
+#if FEATURE_CIM
             public ClassHandler(CimSession cimSession, string className)
             {
                 this.cimSession = cimSession;
@@ -285,7 +285,7 @@ namespace WMI
                         query += ' ' + Capitalize(methodParameters[i].Name!) + " = '" + arguments[i] + "'";
                     }
 
-#if CIM
+#if FEATURE_CIM
                     // TODO: support collections
                     foreach (CimInstance cimInstance in this.cimSession.QueryInstances(CimNamespace, "WQL", query))
                     {
@@ -305,7 +305,7 @@ namespace WMI
                 }
 
                 string methodName = method.Name;
-#if CIM
+#if FEATURE_CIM
                 using CimMethodParametersCollection? cimParameters = arguments.Length == 0 ? null :
                     this.GetMethodParameters(this.cimClass, methodName, methodParameters, arguments);
                 using CimMethodResult result = this.cimSession.InvokeMethod(CimNamespace, this.className, methodName, cimParameters);
@@ -328,7 +328,7 @@ namespace WMI
             WmiClassName className = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
 
             return (T)ProxyFactory.GetInstance().Create(
-#if CIM
+#if FEATURE_CIM
                 new ClassHandler(this.cimSession, className.Name),
 #else
                 new ClassHandler(this.wmiScope, className.Name),

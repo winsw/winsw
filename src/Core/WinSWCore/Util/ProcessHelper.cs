@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-#if !CIM
+#if !FEATURE_CIM
 using System.Management;
 #endif
 using System.Threading;
 using log4net;
-#if CIM
+#if FEATURE_CIM
 using Microsoft.Management.Infrastructure;
 #endif
 
@@ -32,7 +32,7 @@ namespace winsw.Util
             try
             {
                 string query = "SELECT * FROM Win32_Process WHERE ParentProcessID = " + pid;
-#if CIM
+#if FEATURE_CIM
                 using CimSession session = CimSession.Create(null);
                 foreach (CimInstance instance in session.QueryInstances("root/cimv2", "WQL", query))
                 {
