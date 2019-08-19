@@ -1,6 +1,28 @@
 Release Notes
 ====
 
+##### 2.3.0
+
+Release date: Aug 19, 2019
+
+* [PR #315](https://github.com/kohsuke/winsw/pull/315) - 
+Prevent application crash when `roll-by-size-time` is enabled
+* [PR #321](https://github.com/kohsuke/winsw/pull/321) - 
+Add a new `hidewindow` option to suppress windows popup on legacy platforms 
+* [PR #330](https://github.com/kohsuke/winsw/pull/330) -
+Fix duplicate startup log entries
+* [PR #299](https://github.com/kohsuke/winsw/pull/299),
+  [PR #303](https://github.com/kohsuke/winsw/pull/303),
+  [PR #311](https://github.com/kohsuke/winsw/pull/311),
+  [PR #316](https://github.com/kohsuke/winsw/pull/316),
+  [PR #318](https://github.com/kohsuke/winsw/pull/318) -
+  Documentation cleanup
+
+Internal changes:
+
+* [PR #331](https://github.com/kohsuke/winsw/pull/331) -
+Add a Release Drafter configuration for the repository. Will be enabled in the future
+
 ##### 2.2.0
 
 Release date: Jan 06, 2019
