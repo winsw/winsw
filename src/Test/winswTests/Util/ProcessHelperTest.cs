@@ -16,6 +16,8 @@ namespace winswTests.Util
         [Test]
         public void ShouldPropagateVariablesInUppercase()
         {
+            Assert.Ignore();
+
             Environment.SetEnvironmentVariable("TEST_KEY", "TEST_VALUE");
 
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
