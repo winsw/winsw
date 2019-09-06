@@ -4,10 +4,4 @@
     <DefineConstants>VNEXT</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <!-- https://docs.microsoft.com/windows/win32/wmisdk/common-information-model -->
-    <!-- https://github.com/kohsuke/winsw/issues/411 -->
-    <!-- <DefineConstants>$(DefineConstants);FEATURE_CIM</DefineConstants> -->
-  </PropertyGroup>
-
 </Project>
