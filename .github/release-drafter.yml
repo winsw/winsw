@@ -20,12 +20,12 @@ categories:
       - new-feature
   - title: 🐛 Bug Fixes
     label: bug
-  - title: :package: Packaging changes
+  - title: ":package: Packaging changes"
     label: packaging
   - title: 📝 Documentation updates
     label: documentation
   # Default label used by Dependabot
-  - title: :arrow_up: Dependency updates
+  - title: ":arrow_up: Dependency updates"
     label: dependencies
   - title: 👻 Maintenance
     labels: 
