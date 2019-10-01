@@ -5,7 +5,9 @@ skip_branch_with_pr: true
 # Project configuration
 image: Visual Studio 2019
 # platform: Any CPU
-configuration: Release
+configuration:
+  - Debug
+  - Release
 
 # Automatically register private account and/or project AppVeyor NuGet feeds.
 nuget:
@@ -33,9 +35,7 @@ after_build:
   - ps: nuget pack WinSW.nuspec -Version $env:APPVEYOR_BUILD_VERSION
 
 test_script:
-  - dotnet.exe test -f net40 --no-build src\Test\winswTests\winswTests.csproj
-  - dotnet.exe test -f net461 --no-build src\Test\winswTests\winswTests.csproj
-  - dotnet.exe test -f netcoreapp3.1 --no-build src\Test\winswTests\winswTests.csproj
+  - dotnet.exe test --no-build src\Test\winswTests\winswTests.csproj
 
 artifacts:
   - path: artifacts\WinSW.NET2.exe
