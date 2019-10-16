@@ -95,22 +95,3 @@ One way to deal with this is to ensure that .NET Framework 2.0 is installed thro
 The way the runtime finds this file is by naming convention, so don't forget to rename a file based on your actual executable name (e.g. *myapp.exe*). 
 For more information, see [How to: Configure an App to Support .NET Framework 4 or later versions](https://docs.microsoft.com/dotnet/framework/migration-guide/how-to-configure-an-app-to-support-net-framework-4-or-4-5).
 None of the other flags are needed.
-
-### WinSW Offline mode and Authenticode
-
-To work with UAC-enabled Windows, winsw ships with a digital signature.
-This causes Windows to automatically verify this digital signature when the application is launched. 
-This adds some delay to the launch of the service, and more importantly, it prevents winsw from running in a server that has no internet connection. 
-This is because a part of the signature verification involves checking certificate revocation list.
-
-To prevent this problem, create *myapp.exe.config* in the same directory as *myapp.exe* (renamed *WinSW.exe*) and put the following in it:
-
-```xml
-<configuration>
-  <runtime>
-    <generatePublisherEvidence enabled="false"/> 
-  </runtime>
-</configuration>
-```
-
-For more information, see [\<generatePublisherEvidence\> Element](https://docs.microsoft.com/dotnet/framework/configure-apps/file-schema/runtime/generatepublisherevidence-element).
