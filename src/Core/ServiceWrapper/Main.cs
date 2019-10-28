@@ -479,300 +479,304 @@ namespace winsw
         /// <summary>
         /// Runs the wrapper.
         /// </summary>
-        /// <param name="_args">Arguments. If empty, WinSW will behave in the service mode. Otherwise - CLI mode</param>
+        /// <param name="_args">Arguments.</param>
         /// <param name="descriptor">Service descriptor. If null, it will be initialized within the method.
         ///                          In such case configs will be loaded from the XML Configuration File.</param>
         /// <exception cref="Exception">Any unhandled exception</exception>
         public static void Run(string[] _args, ServiceDescriptor? descriptor = null)
         {
-            bool isCLIMode = _args.Length > 0;
+            bool inCliMode = Console.OpenStandardInput() != Stream.Null;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptor();
 
             // Configure the wrapper-internal logging.
             // STDIN and STDOUT of the child process will be handled independently.
-            InitLoggers(descriptor, isCLIMode);
+            InitLoggers(descriptor, inCliMode);
 
-            if (isCLIMode) // CLI mode, in-service mode otherwise
+            if (!inCliMode)
             {
-                Log.Debug("Starting ServiceWrapper in the CLI mode");
+                Log.Info("Starting WinSW in the service mode");
+                Run(new WrapperService(descriptor));
+                return;
+            }
 
-                // Get service info for the future use
-                Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
-                Win32Service s = svc.Select(descriptor.Id);
+            Log.Debug("Starting WinSW in the CLI mode");
 
-                var args = new List<string>(Array.AsReadOnly(_args));
-                if (args[0] == "/redirect")
+            if (_args.Length == 0)
+            {
+                printHelp();
+                return;
+            }
+
+            // Get service info for the future use
+            Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
+            Win32Service s = svc.Select(descriptor.Id);
+
+            var args = new List<string>(Array.AsReadOnly(_args));
+            if (args[0] == "/redirect")
+            {
+                // Redirect output
+                // One might ask why we support this when the caller
+                // can redirect the output easily. The answer is for supporting UAC.
+                // On UAC-enabled Windows such as Vista, SCM operation requires
+                // elevated privileges, thus winsw.exe needs to be launched
+                // accordingly. This in turn limits what the caller can do,
+                // and among other things it makes it difficult for the caller
+                // to read stdout/stderr. Thus redirection becomes handy.
+                var f = new FileStream(args[1], FileMode.Create);
+                var w = new StreamWriter(f) { AutoFlush = true };
+                Console.SetOut(w);
+                Console.SetError(w);
+
+                var handle = f.SafeFileHandle;
+                Kernel32.SetStdHandle(-11, handle); // set stdout
+                Kernel32.SetStdHandle(-12, handle); // set stder
+
+                args = args.GetRange(2, args.Count - 2);
+            }
+
+            args[0] = args[0].ToLower();
+            if (args[0] == "install")
+            {
+                Log.Info("Installing the service with id '" + descriptor.Id + "'");
+
+                // Check if the service exists
+                if (s != null)
                 {
-                    // Redirect output
-                    // One might ask why we support this when the caller
-                    // can redirect the output easily. The answer is for supporting UAC.
-                    // On UAC-enabled Windows such as Vista, SCM operation requires
-                    // elevated privileges, thus winsw.exe needs to be launched
-                    // accordingly. This in turn limits what the caller can do,
-                    // and among other things it makes it difficult for the caller
-                    // to read stdout/stderr. Thus redirection becomes handy.
-                    var f = new FileStream(args[1], FileMode.Create);
-                    var w = new StreamWriter(f) { AutoFlush = true };
-                    Console.SetOut(w);
-                    Console.SetError(w);
-
-                    var handle = f.SafeFileHandle;
-                    Kernel32.SetStdHandle(-11, handle); // set stdout
-                    Kernel32.SetStdHandle(-12, handle); // set stder
-
-                    args = args.GetRange(2, args.Count - 2);
+                    Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
+                    Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
+                    throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
                 }
 
-                args[0] = args[0].ToLower();
-                if (args[0] == "install")
+                string? username = null;
+                string? password = null;
+                bool setallowlogonasaserviceright = false; // This variable is very readable.
+                if (args.Count > 1 && args[1] == "/p")
                 {
-                    Log.Info("Installing the service with id '" + descriptor.Id + "'");
-
-                    // Check if the service exists
-                    if (s != null)
+                    // we expected username/password on stdin
+                    Console.Write("Username: ");
+                    username = Console.ReadLine();
+                    Console.Write("Password: ");
+                    password = ReadPassword();
+                    Console.WriteLine();
+                    Console.Write("Set Account rights to allow log on as a service (y/n)?: ");
+                    var keypressed = Console.ReadKey();
+                    Console.WriteLine();
+                    if (keypressed.Key == ConsoleKey.Y)
                     {
-                        Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
-                        Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                        throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+                        setallowlogonasaserviceright = true;
+                    }
+                }
+                else
+                {
+                    if (descriptor.HasServiceAccount())
+                    {
+                        username = descriptor.ServiceAccountUser;
+                        password = descriptor.ServiceAccountPassword;
+                        setallowlogonasaserviceright = descriptor.AllowServiceAcountLogonRight;
+                    }
+                }
+
+                if (setallowlogonasaserviceright)
+                {
+                    LogonAsAService.AddLogonAsAServiceRight(username!);
+                }
+
+                svc.Create(
+                    descriptor.Id,
+                    descriptor.Caption,
+                    "\"" + descriptor.ExecutablePath + "\"",
+                    ServiceType.OwnProcess,
+                    ErrorControl.UserNotified,
+                    descriptor.StartMode,
+                    descriptor.Interactive,
+                    username,
+                    password,
+                    descriptor.ServiceDependencies);
+
+                // update the description
+                /* Somehow this doesn't work, even though it doesn't report an error
+                Win32Service s = svc.Select(d.Id);
+                s.Description = d.Description;
+                s.Commit();
+                 */
+
+                // so using a classic method to set the description. Ugly.
+                Registry.LocalMachine
+                    .OpenSubKey("System")
+                    .OpenSubKey("CurrentControlSet")
+                    .OpenSubKey("Services")
+                    .OpenSubKey(descriptor.Id, true)
+                    .SetValue("Description", descriptor.Description);
+
+                var actions = descriptor.FailureActions;
+                var isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
+                if (actions.Count > 0 || isDelayedAutoStart)
+                {
+                    using ServiceManager scm = new ServiceManager();
+                    using Service sc = scm.Open(descriptor.Id);
+
+                    // Delayed auto start
+                    if (isDelayedAutoStart)
+                    {
+                        sc.SetDelayedAutoStart(true);
                     }
 
-                    string? username = null;
-                    string? password = null;
-                    bool setallowlogonasaserviceright = false; // This variable is very readable.
-                    if (args.Count > 1 && args[1] == "/p")
+                    // Set the failure actions
+                    if (actions.Count > 0)
                     {
-                        // we expected username/password on stdin
-                        Console.Write("Username: ");
-                        username = Console.ReadLine();
-                        Console.Write("Password: ");
-                        password = ReadPassword();
-                        Console.WriteLine();
-                        Console.Write("Set Account rights to allow log on as a service (y/n)?: ");
-                        var keypressed = Console.ReadKey();
-                        Console.WriteLine();
-                        if (keypressed.Key == ConsoleKey.Y)
-                        {
-                            setallowlogonasaserviceright = true;
-                        }
+                        sc.ChangeConfig(descriptor.ResetFailureAfter, actions);
+                    }
+                }
+
+                return;
+            }
+
+            if (args[0] == "uninstall")
+            {
+                Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
+                if (s == null)
+                {
+                    Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
+                    return; // there's no such service, so consider it already uninstalled
+                }
+
+                if (s.Started)
+                {
+                    // We could fail the opeartion here, but it would be an incompatible change.
+                    // So it is just a warning
+                    Log.Warn("The service with id '" + descriptor.Id + "' is running. It may be impossible to uninstall it");
+                }
+
+                try
+                {
+                    s.Delete();
+                }
+                catch (WmiException e)
+                {
+                    if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
+                    {
+                        Log.Error("Failed to uninstall the service with id '" + descriptor.Id + "'"
+                           + ". It has been marked for deletion.");
+
+                        // TODO: change the default behavior to Error?
+                        return; // it's already uninstalled, so consider it a success
                     }
                     else
                     {
-                        if (descriptor.HasServiceAccount())
-                        {
-                            username = descriptor.ServiceAccountUser;
-                            password = descriptor.ServiceAccountPassword;
-                            setallowlogonasaserviceright = descriptor.AllowServiceAcountLogonRight;
-                        }
+                        Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
                     }
 
-                    if (setallowlogonasaserviceright)
-                    {
-                        LogonAsAService.AddLogonAsAServiceRight(username!);
-                    }
-
-                    svc.Create(
-                        descriptor.Id,
-                        descriptor.Caption,
-                        "\"" + descriptor.ExecutablePath + "\"",
-                        ServiceType.OwnProcess,
-                        ErrorControl.UserNotified,
-                        descriptor.StartMode,
-                        descriptor.Interactive,
-                        username,
-                        password,
-                        descriptor.ServiceDependencies);
-
-                    // update the description
-                    /* Somehow this doesn't work, even though it doesn't report an error
-                    Win32Service s = svc.Select(d.Id);
-                    s.Description = d.Description;
-                    s.Commit();
-                     */
-
-                    // so using a classic method to set the description. Ugly.
-                    Registry.LocalMachine
-                        .OpenSubKey("System")
-                        .OpenSubKey("CurrentControlSet")
-                        .OpenSubKey("Services")
-                        .OpenSubKey(descriptor.Id, true)
-                        .SetValue("Description", descriptor.Description);
-
-                    var actions = descriptor.FailureActions;
-                    var isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
-                    if (actions.Count > 0 || isDelayedAutoStart)
-                    {
-                        using ServiceManager scm = new ServiceManager();
-                        using Service sc = scm.Open(descriptor.Id);
-
-                        // Delayed auto start
-                        if (isDelayedAutoStart)
-                        {
-                            sc.SetDelayedAutoStart(true);
-                        }
-
-                        // Set the failure actions
-                        if (actions.Count > 0)
-                        {
-                            sc.ChangeConfig(descriptor.ResetFailureAfter, actions);
-                        }
-                    }
-
-                    return;
+                    throw e;
                 }
 
-                if (args[0] == "uninstall")
-                {
-                    Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
-                    if (s == null)
-                    {
-                        Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
-                        return; // there's no such service, so consider it already uninstalled
-                    }
+                return;
+            }
 
-                    if (s.Started)
-                    {
-                        // We could fail the opeartion here, but it would be an incompatible change.
-                        // So it is just a warning
-                        Log.Warn("The service with id '" + descriptor.Id + "' is running. It may be impossible to uninstall it");
-                    }
+            if (args[0] == "start")
+            {
+                Log.Info("Starting the service with id '" + descriptor.Id + "'");
+                if (s == null)
+                    ThrowNoSuchService();
 
-                    try
-                    {
-                        s.Delete();
-                    }
-                    catch (WmiException e)
-                    {
-                        if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
-                        {
-                            Log.Error("Failed to uninstall the service with id '" + descriptor.Id + "'"
-                               + ". It has been marked for deletion.");
+                s.StartService();
+                return;
+            }
 
-                            // TODO: change the default behavior to Error?
-                            return; // it's already uninstalled, so consider it a success
-                        }
-                        else
-                        {
-                            Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
-                        }
+            if (args[0] == "stop")
+            {
+                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
+                if (s == null)
+                    ThrowNoSuchService();
 
-                        throw e;
-                    }
+                s.StopService();
+                return;
+            }
 
-                    return;
-                }
+            if (args[0] == "restart")
+            {
+                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
+                if (s == null)
+                    ThrowNoSuchService();
 
-                if (args[0] == "start")
-                {
-                    Log.Info("Starting the service with id '" + descriptor.Id + "'");
-                    if (s == null)
-                        ThrowNoSuchService();
-
-                    s.StartService();
-                    return;
-                }
-
-                if (args[0] == "stop")
-                {
-                    Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-                    if (s == null)
-                        ThrowNoSuchService();
-
+                if (s.Started)
                     s.StopService();
-                    return;
-                }
 
-                if (args[0] == "restart")
+                while (s.Started)
                 {
-                    Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-                    if (s == null)
-                        ThrowNoSuchService();
-
-                    if (s.Started)
-                        s.StopService();
-
-                    while (s.Started)
-                    {
-                        Thread.Sleep(1000);
-                        s = svc.Select(descriptor.Id);
-                    }
-
-                    s.StartService();
-                    return;
-                }
-
-                if (args[0] == "restart!")
-                {
-                    Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-
-                    // run restart from another process group. see README.md for why this is useful.
-
-                    STARTUPINFO si = default;
-                    bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out _);
-                    if (!result)
-                    {
-                        throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
-                    }
-
-                    return;
-                }
-
-                if (args[0] == "status")
-                {
-                    Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
-                    if (s == null)
-                        Console.WriteLine("NonExistent");
-                    else if (s.Started)
-                        Console.WriteLine("Started");
-                    else
-                        Console.WriteLine("Stopped");
-
-                    return;
-                }
-
-                if (args[0] == "test")
-                {
-                    WrapperService wsvc = new WrapperService(descriptor);
-                    wsvc.OnStart(args.ToArray());
                     Thread.Sleep(1000);
-                    wsvc.OnStop();
-                    return;
+                    s = svc.Select(descriptor.Id);
                 }
 
-                if (args[0] == "testwait")
-                {
-                    WrapperService wsvc = new WrapperService(descriptor);
-                    wsvc.OnStart(args.ToArray());
-                    Console.WriteLine("Press any key to stop the service...");
-                    Console.Read();
-                    wsvc.OnStop();
-                    return;
-                }
-
-                if (args[0] == "help" || args[0] == "--help" || args[0] == "-h"
-                    || args[0] == "-?" || args[0] == "/?")
-                {
-                    printHelp();
-                    return;
-                }
-
-                if (args[0] == "version")
-                {
-                    printVersion();
-                    return;
-                }
-
-                Console.WriteLine("Unknown command: " + args[0]);
-                printAvailableCommandsInfo();
-                throw new Exception("Unknown command: " + args[0]);
+                s.StartService();
+                return;
             }
-            else
+
+            if (args[0] == "restart!")
             {
-                Log.Info("Starting ServiceWrapper in the service mode");
+                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
+
+                // run restart from another process group. see README.md for why this is useful.
+
+                STARTUPINFO si = default;
+                bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, 0x200/*CREATE_NEW_PROCESS_GROUP*/, IntPtr.Zero, null, ref si, out _);
+                if (!result)
+                {
+                    throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
+                }
+
+                return;
             }
 
-            Run(new WrapperService(descriptor));
+            if (args[0] == "status")
+            {
+                Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
+                if (s == null)
+                    Console.WriteLine("NonExistent");
+                else if (s.Started)
+                    Console.WriteLine("Started");
+                else
+                    Console.WriteLine("Stopped");
+
+                return;
+            }
+
+            if (args[0] == "test")
+            {
+                WrapperService wsvc = new WrapperService(descriptor);
+                wsvc.OnStart(args.ToArray());
+                Thread.Sleep(1000);
+                wsvc.OnStop();
+                return;
+            }
+
+            if (args[0] == "testwait")
+            {
+                WrapperService wsvc = new WrapperService(descriptor);
+                wsvc.OnStart(args.ToArray());
+                Console.WriteLine("Press any key to stop the service...");
+                Console.Read();
+                wsvc.OnStop();
+                return;
+            }
+
+            if (args[0] == "help" || args[0] == "--help" || args[0] == "-h"
+                || args[0] == "-?" || args[0] == "/?")
+            {
+                printHelp();
+                return;
+            }
+
+            if (args[0] == "version")
+            {
+                printVersion();
+                return;
+            }
+
+            Console.WriteLine("Unknown command: " + args[0]);
+            printAvailableCommandsInfo();
+            throw new Exception("Unknown command: " + args[0]);
         }
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
