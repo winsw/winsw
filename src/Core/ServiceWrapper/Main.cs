@@ -496,7 +496,7 @@ namespace winsw
 
             if (!inCliMode)
             {
-                Log.Info("Starting WinSW in the service mode");
+                Log.Debug("Starting WinSW in the service mode");
                 Run(new WrapperService(descriptor));
                 return;
             }
