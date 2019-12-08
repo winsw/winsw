@@ -1044,7 +1044,7 @@ namespace winsw
                 appenders.ToArray());
         }
 
-        private static unsafe bool IsProcessElevated()
+        internal static unsafe bool IsProcessElevated()
         {
             IntPtr process = Kernel32.GetCurrentProcess();
             if (!Advapi32.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))

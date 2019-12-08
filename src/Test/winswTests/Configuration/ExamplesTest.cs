@@ -12,7 +12,7 @@ namespace winswTests.Configuration
     /// The test uses a relative path to example files, which is based on the current project structure.
     /// </summary>
     [TestFixture]
-    class ExamplesTest
+    public class ExamplesTest
     {
         [Test]
         public void AllOptionsConfigShouldDeclareDefaults()
@@ -40,10 +40,21 @@ namespace winswTests.Configuration
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
         }
 
-        private ServiceDescriptor Load(string exampleName)
+        private static ServiceDescriptor Load(string exampleName)
         {
-            var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string path = Path.GetFullPath($@"{directory}\..\..\..\..\..\..\examples\sample-{exampleName}.xml");
+            string directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            while (true)
+            {
+                if (File.Exists(Path.Combine(directory, ".gitignore")))
+                {
+                    break;
+                }
+
+                directory = Path.GetDirectoryName(directory);
+                Assert.That(directory, Is.Not.Null);
+            }
+
+            string path = Path.Combine(directory, $@"examples\sample-{exampleName}.xml");
             Assert.That(path, Does.Exist);
 
             XmlDocument dom = new XmlDocument();
