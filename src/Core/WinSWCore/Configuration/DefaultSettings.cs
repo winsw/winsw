@@ -29,9 +29,9 @@ namespace winsw.Configuration
 
         // Executable management
         public string Arguments => string.Empty;
-        public string? Startarguments => null;
+        public string? StartArguments => null;
         public string? StopExecutable => null;
-        public string? Stoparguments => null;
+        public string? StopArguments => null;
         public string WorkingDirectory => Path.GetDirectoryName(ExecutablePath)!;
         public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
         public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);

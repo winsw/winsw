@@ -92,9 +92,9 @@ Optionally set a different logging directory with `<logpath>` and startup `<logm
 
 See the [Logging and error reporting](loggingAndErrorReporting.md) page for more info.
 
-### argument
+### Arguments
 
-This element specifies the arguments to be passed to the executable. 
+`<argument>` element specifies the arguments to be passed to the executable. 
 Winsw will quote each argument if necessary, so do not put quotes in `<argument>` to avoid double quotation.
 
 ```xml
@@ -107,12 +107,12 @@ Winsw will quote each argument if necessary, so do not put quotes in `<argument>
 
 ### stopargument/stopexecutable
 
-When the service is requested to stop, winsw simply calls [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly. 
-However, if `<stopargument>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the `<stopargument>` arguments, and expects that to initiate the graceful shutdown of the service process.
+~~When the service is requested to stop, winsw simply calls [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.~~
+However, if `<stopargument>`/`<stoparguments>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the specified arguments, and expects that to initiate the graceful shutdown of the service process.
 
 Winsw will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
 
-When you use the `<stopargument>`, you must use `<startargument>` instead of `<argument>`. See the complete example below:
+When you use the `<stopargument>`/`<stoparguments>`, you must use `<startargument>`/`<startarguments>` instead of `<argument>`. See the complete example below:
 
 ```xml
 <executable>catalina.sh</executable>
@@ -122,9 +122,6 @@ When you use the `<stopargument>`, you must use `<startargument>` instead of `<a
 <stopexecutable>catalina.sh</stopexecutable>
 <stopargument>stop</stopargument>
 ```
-
-Note that the name of the element is `startargument` and not `startarguments`. 
-As such, to specify multiple arguments, you'll specify multiple elements.
 
 ### stoptimeout
 

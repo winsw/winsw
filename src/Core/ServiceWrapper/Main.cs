@@ -268,31 +268,31 @@ namespace winsw
             }
 #endif
 
-            string? startarguments = _descriptor.Startarguments;
+            string? startArguments = _descriptor.StartArguments;
 
-            if (startarguments is null)
+            if (startArguments is null)
             {
-                startarguments = _descriptor.Arguments;
+                startArguments = _descriptor.Arguments;
             }
             else
             {
-                startarguments += " " + _descriptor.Arguments;
+                startArguments += " " + _descriptor.Arguments;
             }
 
             // Converting newlines, line returns, tabs into a single 
             // space. This allows users to provide multi-line arguments
             // in the xml for readability.
-            startarguments = Regex.Replace(startarguments, @"\s*[\n\r]+\s*", " ");
+            startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
 
-            LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
+            LogEvent("Starting " + _descriptor.Executable + ' ' + startArguments);
+            Log.Info("Starting " + _descriptor.Executable + ' ' + startArguments);
 
             // Load and start extensions
             ExtensionManager.LoadExtensions();
             ExtensionManager.FireOnWrapperStarted();
 
             LogHandler executableLogHandler = CreateExecutableLogHandler();
-            StartProcess(_process, startarguments, _descriptor.Executable, executableLogHandler, true);
+            StartProcess(_process, startArguments, _descriptor.Executable, executableLogHandler, true);
             ExtensionManager.FireOnProcessStarted(_process);
 
             _process.StandardInput.Close(); // nothing for you to read!
@@ -332,12 +332,12 @@ namespace winsw
         /// </summary>
         private void StopIt()
         {
-            string? stoparguments = _descriptor.Stoparguments;
+            string? stopArguments = _descriptor.StopArguments;
             LogEvent("Stopping " + _descriptor.Id);
             Log.Info("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
 
-            if (stoparguments is null)
+            if (stopArguments is null)
             {
                 try
                 {
@@ -354,7 +354,7 @@ namespace winsw
             {
                 SignalShutdownPending();
 
-                stoparguments += " " + _descriptor.Arguments;
+                stopArguments += " " + _descriptor.Arguments;
 
                 Process stopProcess = new Process();
                 string? executable = _descriptor.StopExecutable;
@@ -362,7 +362,7 @@ namespace winsw
                 executable ??= _descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                StartProcess(stopProcess, stoparguments, executable, null, false);
+                StartProcess(stopProcess, stopArguments, executable, null, false);
 
                 Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(_process);
