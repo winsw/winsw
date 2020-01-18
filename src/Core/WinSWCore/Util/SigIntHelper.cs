@@ -1,7 +1,7 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using log4net;
 using winsw.Native;
 
 namespace winsw.Util
@@ -20,8 +20,9 @@ namespace winsw.Util
 
         [DllImport(KERNEL32)]
         private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+
         // Delegate type to be used as the Handler Routine for SCCH
-        private delegate Boolean ConsoleCtrlDelegate(CtrlTypes CtrlType);
+        private delegate bool ConsoleCtrlDelegate(CtrlTypes CtrlType);
 
         // Enumerated type for the control messages sent to the handler routine
         private enum CtrlTypes : uint
@@ -47,7 +48,7 @@ namespace winsw.Util
         {
             if (AttachConsole((uint)process.Id))
             {
-                //Disable Ctrl-C handling for our program
+                // Disable Ctrl-C handling for our program
                 SetConsoleCtrlHandler(null, true);
                 GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
@@ -61,9 +62,9 @@ namespace winsw.Util
                     Logger.Warn("Failed to detach from console. Error code: " + errorCode);
                 }
 
-                return process.HasExited;    
+                return process.HasExited;
             }
-         
+
             return false;
         }
     }

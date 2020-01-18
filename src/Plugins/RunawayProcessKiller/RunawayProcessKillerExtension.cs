@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Xml;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Xml;
+using log4net;
 using winsw.Extensions;
 using winsw.Util;
-using log4net;
-using System.Collections.Specialized;
-using System.Text;
 
 namespace winsw.Plugins.RunawayProcessKiller
 {
@@ -15,7 +15,7 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// <summary>
         /// Absolute path to the PID file, which stores ID of the previously launched process.
         /// </summary>
-        public String Pidfile { get; private set; }
+        public string Pidfile { get; private set; }
 
         /// <summary>
         /// Defines the process termination timeout in milliseconds.
@@ -34,9 +34,9 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// </summary>
         public bool CheckWinSWEnvironmentVariable { get; private set; }
 
-        public override String DisplayName { get { return "Runaway Process Killer"; } }
+        public override string DisplayName => "Runaway Process Killer";
 
-        private String ServiceId { get; set; }
+        private string ServiceId { get; set; }
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(RunawayProcessKillerExtension));
 
@@ -45,7 +45,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             // Default initializer
         }
 
-        public RunawayProcessKillerExtension(String pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
+        public RunawayProcessKillerExtension(string pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = false, bool checkWinSWEnvironmentVariable = true)
         {
             this.Pidfile = pidfile;
             this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
@@ -58,12 +58,12 @@ namespace winsw.Plugins.RunawayProcessKiller
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
             Pidfile = XmlHelper.SingleElement(node, "pidfile", false);
-            StopTimeout = TimeSpan.FromMilliseconds(Int32.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
-            StopParentProcessFirst = Boolean.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
+            StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)));
+            StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false));
             ServiceId = descriptor.Id;
-            //TODO: Consider making it documented
+            // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
-            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? Boolean.Parse(checkWinSWEnvironmentVariable) : true;
+            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? bool.Parse(checkWinSWEnvironmentVariable) : true;
         }
 
         /// <summary>
@@ -74,20 +74,22 @@ namespace winsw.Plugins.RunawayProcessKiller
         {
             // Read PID file from the disk
             int pid;
-            if (System.IO.File.Exists(Pidfile)) {
+            if (File.Exists(Pidfile))
+            {
                 string pidstring;
                 try
                 {
-                    pidstring = System.IO.File.ReadAllText(Pidfile);
+                    pidstring = File.ReadAllText(Pidfile);
                 }
                 catch (Exception ex)
                 {
                     Logger.Error("Cannot read PID file from " + Pidfile, ex);
                     return;
                 }
+
                 try
                 {
-                    pid = Int32.Parse(pidstring);
+                    pid = int.Parse(pidstring);
                 }
                 catch (FormatException e)
                 {
@@ -108,18 +110,18 @@ namespace winsw.Plugins.RunawayProcessKiller
             {
                 proc = Process.GetProcessById(pid);
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
                 Logger.Debug("No runaway process with PID=" + pid + ". The process has been already stopped.");
                 return;
             }
 
             // Ensure the process references the service
-            String affiliatedServiceId;
+            string affiliatedServiceId;
             // TODO: This method is not ideal since it works only for vars explicitly mentioned in the start info
             // No Windows 10- compatible solution for EnvVars retrieval, see https://blog.gapotchenko.com/eazfuscator.net/reading-environment-variables
             StringDictionary previousProcessEnvVars = proc.StartInfo.EnvironmentVariables;
-            String expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
+            string expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             if (previousProcessEnvVars.ContainsKey(expectedEnvVarName))
             {
                 // StringDictionary is case-insensitive, hence it will fetch variable definitions in any case
@@ -127,14 +129,16 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
             else if (CheckWinSWEnvironmentVariable)
             {
-                Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. " 
+                Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. "
                     + "The process has not been started by WinSW, hence it won't be terminated.");
-                if (Logger.IsDebugEnabled) {
-                    //TODO replace by String.Join() in .NET 4
-                    String[] keys = new String[previousProcessEnvVars.Count];
+                if (Logger.IsDebugEnabled)
+                {
+                    // TODO replace by String.Join() in .NET 4
+                    string[] keys = new string[previousProcessEnvVars.Count];
                     previousProcessEnvVars.Keys.CopyTo(keys, 0);
-                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new Object[] {pid, String.Join(",", keys)});
+                    Logger.DebugFormat("Env vars of the process with PID={0}: {1}", new object[] { pid, string.Join(",", keys) });
                 }
+
                 return;
             }
             else
@@ -155,11 +159,13 @@ namespace winsw.Plugins.RunawayProcessKiller
             StringBuilder bldr = new StringBuilder("Stopping the runaway process (pid=");
             bldr.Append(pid);
             bldr.Append(") and its children. Environment was ");
-            if (!CheckWinSWEnvironmentVariable) {
+            if (!CheckWinSWEnvironmentVariable)
+            {
                 bldr.Append("not ");
             }
+
             bldr.Append("checked, affiliated service ID: ");
-            bldr.Append(affiliatedServiceId != null ? affiliatedServiceId : "undefined");
+            bldr.Append(affiliatedServiceId ?? "undefined");
             bldr.Append(", process to kill: ");
             bldr.Append(proc);
 
@@ -171,12 +177,12 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// Records the started process PID for the future use in OnStart() after the restart.
         /// </summary>
         /// <param name="process"></param>
-        public override void OnProcessStarted(System.Diagnostics.Process process)
+        public override void OnProcessStarted(Process process)
         {
             Logger.Info("Recording PID of the started process:" + process.Id + ". PID file destination is " + Pidfile);
             try
             {
-                System.IO.File.WriteAllText(Pidfile, process.Id.ToString());
+                File.WriteAllText(Pidfile, process.Id.ToString());
             }
             catch (Exception ex)
             {

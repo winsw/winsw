@@ -1,14 +1,13 @@
-﻿using winsw;
-using NUnit.Framework;
-using winsw.Extensions;
-using winsw.Plugins.SharedDirectoryMapper;
-using winsw.Plugins.RunawayProcessKiller;
-using winswTests.Util;
-using System.IO;
-using System.Diagnostics;
-using winsw.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using NUnit.Framework;
+using winsw;
+using winsw.Extensions;
+using winsw.Plugins.RunawayProcessKiller;
+using winsw.Util;
+using winswTests.Util;
 
 namespace winswTests.Extensions
 {
@@ -17,8 +16,8 @@ namespace winswTests.Extensions
     {
         ServiceDescriptor _testServiceDescriptor;
 
-        string testExtension = getExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
-            
+        string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
+
         [SetUp]
         public void SetUp()
         {
@@ -71,9 +70,9 @@ namespace winswTests.Extensions
             var winswId = "myAppWithRunaway";
             var extensionId = "runawayProcessKiller";
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
-            
+
             // Prepare the env var
-            String varName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
+            string varName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
             var env = new Dictionary<string, string>();
             env.Add(varName, winswId);
 
@@ -99,7 +98,7 @@ namespace winswTests.Extensions
                 Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
                 Assert.AreEqual(pidfile, extension.Pidfile, "PidFile should have been retained during the config roundtrip");
 
-                // Inject PID 
+                // Inject PID
                 File.WriteAllText(pidfile, proc.Id.ToString());
 
                 // Try to terminate
@@ -119,7 +118,7 @@ namespace winswTests.Extensions
                         Console.Error.WriteLine("Test: ProcessHelper failed to properly terminate process with ID=" + proc.Id);
                     }
                 }
-            }   
+            }
         }
     }
 }

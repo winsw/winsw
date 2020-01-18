@@ -1,9 +1,6 @@
-﻿using log4net.Appender;
+﻿using System.Diagnostics;
+using log4net.Appender;
 using log4net.Core;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 
 namespace winsw.Logging
 {
@@ -31,6 +28,7 @@ namespace winsw.Logging
             {
                 return EventLogEntryType.Error;
             }
+
             if (level.Value >= Level.Warn.Value)
             {
                 return EventLogEntryType.Warning;

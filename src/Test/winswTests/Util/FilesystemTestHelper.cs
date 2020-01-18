@@ -1,8 +1,7 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using NUnit.Framework;
 
 namespace winswTests.Util
 {
@@ -12,9 +11,9 @@ namespace winswTests.Util
         /// Creates a temporary directory for testing.
         /// </summary>
         /// <returns>tmp Dir</returns>
-        public static string CreateTmpDirectory(String testName = null)
+        public static string CreateTmpDirectory(string testName = null)
         {
-            string tempDirectory = Path.Combine(Path.GetTempPath(), "winswTests_" + (testName ?? "") + Path.GetRandomFileName());
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "winswTests_" + (testName ?? string.Empty) + Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
             Console.Out.WriteLine("Created the temporary directory: {0}", tempDirectory);
             return tempDirectory;
@@ -29,7 +28,8 @@ namespace winswTests.Util
         {
             Dictionary<string, string> res = new Dictionary<string, string>();
             var lines = File.ReadAllLines(filePath);
-            foreach(var line in lines) {
+            foreach (var line in lines)
+            {
                 var parsed = line.Split("=".ToCharArray(), 2);
                 if (parsed.Length == 2)
                 {
@@ -40,6 +40,7 @@ namespace winswTests.Util
                     Assert.Fail("Wrong line in the parsed Set output file: " + line);
                 }
             }
+
             return res;
         }
     }

@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
-using NUnit.Framework;
-using winsw;
-using System.IO;
-using winsw.Util;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using NUnit.Framework;
+using winsw.Util;
 
 namespace winswTests.Util
 {
-
     [TestFixture]
     class ProcessHelperTest
     {
@@ -21,10 +19,9 @@ namespace winswTests.Util
             Environment.SetEnvironmentVariable("TEST_KEY", "TEST_VALUE");
 
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
-            String envFile = Path.Combine(tmpDir, "env.properties");
-            String scriptFile = Path.Combine(tmpDir, "printenv.bat");
+            string envFile = Path.Combine(tmpDir, "env.properties");
+            string scriptFile = Path.Combine(tmpDir, "printenv.bat");
             File.WriteAllText(scriptFile, "set > " + envFile);
-
 
             Process proc = new Process();
             var ps = proc.StartInfo;
@@ -39,11 +36,11 @@ namespace winswTests.Util
 
             // Check several veriables, which are expected to be in Uppercase
             var envVars = FilesystemTestHelper.parseSetOutput(envFile);
-            String[] keys = new String[envVars.Count];
+            string[] keys = new string[envVars.Count];
             envVars.Keys.CopyTo(keys, 0);
-            String availableVars = "[" + String.Join(",", keys) + "]";
+            String availableVars = "[" + string.Join(",", keys) + "]";
             Assert.That(envVars.ContainsKey("TEST_KEY"), "No TEST_KEY in the injected vars: " + availableVars);
-            
+
             // And just ensure that the parsing logic is case-sensitive
             Assert.That(!envVars.ContainsKey("test_key"), "Test error: the environment parsing logic is case-insensitive");
 
@@ -53,8 +50,8 @@ namespace winswTests.Util
         public void ShouldNotHangWhenWritingLargeStringToStdOut()
         {
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
-            String scriptFile = Path.Combine(tmpDir, "print_lots_to_stdout.bat");
-            var lotsOfStdOut = string.Join("", _Range(1,1000));
+            string scriptFile = Path.Combine(tmpDir, "print_lots_to_stdout.bat");
+            var lotsOfStdOut = string.Join(string.Empty, _Range(1, 1000));
             File.WriteAllText(scriptFile, string.Format("echo \"{0}\"", lotsOfStdOut));
 
             Process proc = new Process();
@@ -72,10 +69,11 @@ namespace winswTests.Util
         private string[] _Range(int start, int limit)
         {
             var range = new List<string>();
-            for(var i = start; i<limit; i++)
+            for (var i = start; i < limit; i++)
             {
                 range.Add(i.ToString());
             }
+
             return range.ToArray();
         }
     }

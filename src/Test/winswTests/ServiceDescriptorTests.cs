@@ -1,18 +1,16 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using NUnit.Framework;
 using winsw;
 
 namespace winswTests
 {
     using System;
-    using WMI;
     using winswTests.Util;
+    using WMI;
 
     [TestFixture]
     public class ServiceDescriptorTests
     {
-
         private ServiceDescriptor _extendedServiceDescriptor;
 
         private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
@@ -32,9 +30,9 @@ namespace winswTests
                                    + "<arguments>My Arguments</arguments>"
                                    + "<logmode>rotate</logmode>"
                                    + "<serviceaccount>"
-                                   +   "<domain>" + Domain + "</domain>"
-                                   +   "<user>" + Username + "</user>"
-                                   +   "<password>" + Password + "</password>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
                                    + "<allowservicelogon>" + AllowServiceAccountLogonRight + "</allowservicelogon>"
                                    + "</serviceaccount>"
                                    + "<workingdirectory>"
@@ -52,7 +50,7 @@ namespace winswTests
         }
 
         [Test]
-        [ExpectedException(typeof(System.ArgumentException))]
+        [ExpectedException(typeof(ArgumentException))]
         public void IncorrectStartMode()
         {
             const string SeedXml = "<service>"
@@ -105,6 +103,7 @@ namespace winswTests
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
             Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
         }
+
         [Test]
         public void VerifyWorkingDirectory()
         {
@@ -154,8 +153,8 @@ namespace winswTests
         [Test]
         public void CanParseStopParentProcessFirst()
         {
-            const string seedXml =   "<service>"
-                                   +    "<stopparentprocessfirst>true</stopparentprocessfirst>"
+            const string seedXml = "<service>"
+                                   + "<stopparentprocessfirst>true</stopparentprocessfirst>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
@@ -165,8 +164,8 @@ namespace winswTests
         [Test]
         public void CanParseStopTimeout()
         {
-            const string seedXml =   "<service>"
-                                   +    "<stoptimeout>60sec</stoptimeout>"
+            const string seedXml = "<service>"
+                                   + "<stoptimeout>60sec</stoptimeout>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
@@ -176,8 +175,8 @@ namespace winswTests
         [Test]
         public void CanParseStopTimeoutFromMinutes()
         {
-            const string seedXml =   "<service>"
-                                   +    "<stoptimeout>10min</stoptimeout>"
+            const string seedXml = "<service>"
+                                   + "<stoptimeout>10min</stoptimeout>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
@@ -242,14 +241,14 @@ namespace winswTests
         [Test]
         public void LogModeRollBySize()
         {
-            const string seedXml =   "<service>"
+            const string seedXml = "<service>"
                                    + "<logpath>c:\\</logpath>"
                                    + "<log mode=\"roll-by-size\">"
-                                   +    "<sizeThreshold>112</sizeThreshold>"
-                                   +    "<keepFiles>113</keepFiles>"
+                                   + "<sizeThreshold>112</sizeThreshold>"
+                                   + "<keepFiles>113</keepFiles>"
                                    + "</log>"
                                    + "</service>";
-            
+
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             serviceDescriptor.BaseName = "service";
 
@@ -265,8 +264,8 @@ namespace winswTests
             const string seedXml = "<service>"
                                    + "<logpath>c:\\</logpath>"
                                    + "<log mode=\"roll-by-time\">"
-                                   +    "<period>7</period>"
-                                   +    "<pattern>log pattern</pattern>"
+                                   + "<period>7</period>"
+                                   + "<pattern>log pattern</pattern>"
                                    + "</log>"
                                    + "</service>";
 
@@ -298,23 +297,24 @@ namespace winswTests
             Assert.NotNull(logHandler);
             Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
             Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
-            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0,0,0)));
+            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0, 0, 0)));
         }
 
         [Test]
         public void VerifyServiceLogonRightGraceful()
         {
-            const string seedXml="<service>"
+            const string seedXml = "<service>"
                                    + "<serviceaccount>"
-                                   +   "<domain>" + Domain + "</domain>"
-                                   +   "<user>" + Username + "</user>"
-                                   +   "<password>" + Password + "</password>"
+                                   + "<domain>" + Domain + "</domain>"
+                                   + "<user>" + Username + "</user>"
+                                   + "<password>" + Password + "</password>"
                                    + "<allowservicelogon>true1</allowservicelogon>"
-                                   +  "</serviceaccount>"
+                                   + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
         }
+
         [Test]
         public void VerifyServiceLogonRightOmitted()
         {
@@ -358,7 +358,7 @@ namespace winswTests
                 .ToServiceDescriptor(true);
             Assert.That(sd.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(22)));
         }
-        
+
         [Test]
         public void VerifyWaitHint_XMLWithoutVersionAndComment()
         {
@@ -438,10 +438,12 @@ namespace winswTests
         public void DelayedStart_RoundTrip(bool enabled)
         {
             var bldr = ConfigXmlBuilder.create();
-            if (enabled) { 
+            if (enabled)
+            {
                 bldr = bldr.WithDelayedAutoStart();
             }
-             var sd = bldr.ToServiceDescriptor();
+
+            var sd = bldr.ToServiceDescriptor();
             Assert.That(sd.DelayedAutoStart, Is.EqualTo(enabled));
         }
     }

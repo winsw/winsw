@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml;
 using System.Reflection;
-using System.Diagnostics;
-using winsw.Util;
+using System.Xml;
 using log4net;
 
 namespace winsw.Extensions
 {
     public class WinSWExtensionManager
     {
-        public Dictionary<string, IWinSWExtension> Extensions { private set; get; }
-        public ServiceDescriptor ServiceDescriptor { private set; get; }
+        public Dictionary<string, IWinSWExtension> Extensions { get; private set; }
+
+        public ServiceDescriptor ServiceDescriptor { get; private set; }
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
@@ -27,7 +26,7 @@ namespace winsw.Extensions
         /// If any extensions fails, WinSW startup should be interrupted.
         /// </summary>
         /// <exception cref="Exception">Start failure</exception>
-        public void FireOnWrapperStarted() 
+        public void FireOnWrapperStarted()
         {
             foreach (var ext in Extensions)
             {
@@ -50,7 +49,7 @@ namespace winsw.Extensions
         public void FireBeforeWrapperStopped()
         {
             foreach (var ext in Extensions)
-            { 
+            {
                 try
                 {
                     ext.Value.BeforeWrapperStopped();
@@ -100,10 +99,9 @@ namespace winsw.Extensions
             }
         }
 
-        //TODO: Implement loading of external extensions. Current version supports internal hack
+        // TODO: Implement loading of external extensions. Current version supports internal hack
         #region Extension load management
 
-        
         /// Loads extensions according to the configuration file.
         /// </summary>
         /// <param name="logger">Logger</param>
@@ -111,7 +109,7 @@ namespace winsw.Extensions
         public void LoadExtensions()
         {
             var extensionIds = ServiceDescriptor.ExtensionIds;
-            foreach (String extensionId in extensionIds) 
+            foreach (string extensionId in extensionIds)
             {
                 LoadExtension(extensionId);
             }
@@ -131,7 +129,7 @@ namespace winsw.Extensions
             }
 
             var extensionsConfig = ServiceDescriptor.ExtensionsConfiguration;
-            XmlElement configNode =(extensionsConfig != null) ? extensionsConfig.SelectSingleNode("extension[@id='"+id+"'][1]") as XmlElement : null;
+            XmlElement configNode = (extensionsConfig != null) ? extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement : null;
             if (configNode == null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
@@ -151,6 +149,7 @@ namespace winsw.Extensions
                     Log.Fatal("Failed to configure the extension " + id, ex);
                     throw ex;
                 }
+
                 Extensions.Add(id, extension);
                 Log.Info("Extension loaded: " + id);
             }
@@ -158,37 +157,35 @@ namespace winsw.Extensions
             {
                 Log.Warn("Extension is disabled: " + id);
             }
-            
         }
 
         private IWinSWExtension CreateExtensionInstance(string id, string className)
         {
-            ActivationContext ac = AppDomain.CurrentDomain.ActivationContext;
-            Assembly assembly = Assembly.GetCallingAssembly();
-            Object created;
-            
+            object created;
+
             try
             {
                 Type t = Type.GetType(className);
                 if (t == null)
                 {
-                    throw new ExtensionException(id, "Class "+className+" does not exist");
+                    throw new ExtensionException(id, "Class " + className + " does not exist");
                 }
+
                 created = Activator.CreateInstance(t);
-            } 
+            }
             catch (Exception ex)
             {
-                throw new ExtensionException(id, "Cannot load the class by name: "+className, ex);
+                throw new ExtensionException(id, "Cannot load the class by name: " + className, ex);
             }
-            
-            var extension = created as IWinSWExtension;
-            if (extension == null)
+
+            if (!(created is IWinSWExtension extension))
             {
                 throw new ExtensionException(id, "The loaded class is not a WinSW extension: " + className + ". Type is " + created.GetType());
             }
+
             return extension;
         }
 
-        #endregion   
+        #endregion
     }
 }

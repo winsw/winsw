@@ -5,7 +5,7 @@ using DynamicProxy;
 
 namespace WMI
 {
-    //Reference: http://msdn2.microsoft.com/en-us/library/aa389390(VS.85).aspx
+    // Reference: http://msdn2.microsoft.com/en-us/library/aa389390(VS.85).aspx
 
     public enum ReturnValue
     {
@@ -63,13 +63,14 @@ namespace WMI
     public class WmiClassName : Attribute
     {
         public readonly string Name;
-        public WmiClassName(string name) { Name = name; }
+
+        public WmiClassName(string name) => Name = name;
     }
 
     /// <summary>
     /// Marker interface to denote a collection in WMI.
     /// </summary>
-    public interface IWmiCollection {}
+    public interface IWmiCollection { }
 
     /// <summary>
     /// Marker interface to denote an individual managed object
@@ -98,7 +99,7 @@ namespace WMI
             string path;
 
             if (machineName != null)
-                path = String.Format(@"\\{0}\root\cimv2", machineName);
+                path = string.Format(@"\\{0}\root\cimv2", machineName);
             else
                 path = @"\root\cimv2";
             scope = new ManagementScope(path, options);
@@ -141,6 +142,7 @@ namespace WMI
                     _mo[method.Name.Substring(4)] = args[0];
                     return null;
                 }
+
                 if (method.Name.StartsWith("get_"))
                 {
                     return _mo[method.Name.Substring(4)];
@@ -180,7 +182,9 @@ namespace WMI
                     string query = "SELECT * FROM " + _wmiClass + " WHERE ";
                     for (int i = 0; i < args.Length; i++)
                     {
-                        if (i != 0) query += " AND ";
+                        if (i != 0)
+                            query += " AND ";
+
                         query += ' ' + Capitalize(methodArgs[i].Name) + " = '" + args[i] + "'";
                     }
 

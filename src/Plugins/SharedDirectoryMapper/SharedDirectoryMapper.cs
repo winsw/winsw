@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml;
-using System.Diagnostics;
+using log4net;
 using winsw.Extensions;
 using winsw.Util;
-using log4net;
 
 namespace winsw.Plugins.SharedDirectoryMapper
 {
@@ -13,7 +12,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         private readonly SharedDirectoryMappingHelper _mapper = new SharedDirectoryMappingHelper();
         private readonly List<SharedDirectoryMapperConfig> _entries = new List<SharedDirectoryMapperConfig>();
 
-        public override String DisplayName { get { return "Shared Directory Mapper"; } }
+        public override string DisplayName => "Shared Directory Mapper";
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SharedDirectoryMapper));
 
@@ -34,8 +33,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
             {
                 foreach (XmlNode mapNode in nodes)
                 {
-                    var mapElement = mapNode as XmlElement;
-                    if (mapElement != null)
+                    if (mapNode is XmlElement mapElement)
                     {
                         var config = SharedDirectoryMapperConfig.FromXml(mapElement);
                         _entries.Add(config);
@@ -85,8 +83,9 @@ namespace winsw.Plugins.SharedDirectoryMapper
             }
         }
 
-        private void HandleMappingError(SharedDirectoryMapperConfig config, MapperException ex) {
-            Logger.Error("Mapping of " + config.Label + " failed. STDOUT: " + ex.Process.StandardOutput.ReadToEnd() 
+        private void HandleMappingError(SharedDirectoryMapperConfig config, MapperException ex)
+        {
+            Logger.Error("Mapping of " + config.Label + " failed. STDOUT: " + ex.Process.StandardOutput.ReadToEnd()
                 + " \r\nSTDERR: " + ex.Process.StandardError.ReadToEnd(), ex);
             throw new ExtensionException(Descriptor.Id, DisplayName + ": Mapping of " + config.Label + "failed", ex);
         }

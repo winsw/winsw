@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using System.Timers;
 using ICSharpCode.SharpZipLib.Zip;
 
 namespace winsw
@@ -11,6 +10,7 @@ namespace winsw
     public interface EventLogger
     {
         void LogEvent(string message);
+
         void LogEvent(string message, EventLogEntryType type);
     }
 
@@ -25,7 +25,7 @@ namespace winsw
         /// <summary>
         /// Error and information about logging should be reported here.
         /// </summary>
-        public EventLogger EventLogger { set; get; }
+        public EventLogger EventLogger { get; set; }
 
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
@@ -36,10 +36,13 @@ namespace winsw
             while (true)
             {
                 int sz = i.Read(buf, 0, buf.Length);
-                if (sz == 0) break;
+                if (sz == 0)
+                    break;
+
                 o.Write(buf, 0, sz);
                 o.Flush();
             }
+
             i.Close();
             o.Close();
         }
@@ -66,11 +69,11 @@ namespace winsw
     /// </summary>
     public abstract class AbstractFileLogAppender : LogHandler
     {
-        protected string BaseLogFileName { private set; get; }
-        protected bool OutFileDisabled { private set; get; }
-        protected bool ErrFileDisabled { private set; get; }
-        protected string OutFilePattern { private set; get; }
-        protected string ErrFilePattern { private set; get; }
+        protected string BaseLogFileName { get; private set; }
+        protected bool OutFileDisabled { get; private set; }
+        protected bool ErrFileDisabled { get; private set; }
+        protected string OutFilePattern { get; private set; }
+        protected string ErrFilePattern { get; private set; }
 
         protected AbstractFileLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
         {
@@ -84,9 +87,9 @@ namespace winsw
 
     public abstract class SimpleLogAppender : AbstractFileLogAppender
     {
-        public FileMode FileMode { private set; get; }
-        public string OutputLogFileName { private set; get; }
-        public string ErrorLogFileName { private set; get; }
+        public FileMode FileMode { get; private set; }
+        public string OutputLogFileName { get; private set; }
+        public string ErrorLogFileName { get; private set; }
 
         protected SimpleLogAppender(string logDirectory, string baseName, FileMode fileMode, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
@@ -98,8 +101,11 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            if (!OutFileDisabled) new Thread(delegate() { CopyStream(outputStream, new FileStream(OutputLogFileName, FileMode)); }).Start();
-            if (!ErrFileDisabled) new Thread(delegate() { CopyStream(errorStream, new FileStream(ErrorLogFileName, FileMode)); }).Start();
+            if (!OutFileDisabled)
+                new Thread(() => CopyStream(outputStream, new FileStream(OutputLogFileName, FileMode))).Start();
+
+            if (!ErrFileDisabled)
+                new Thread(() => CopyStream(errorStream, new FileStream(ErrorLogFileName, FileMode))).Start();
         }
     }
 
@@ -118,7 +124,7 @@ namespace winsw
         {
         }
     }
-    
+
     /// <summary>
     /// LogHandler that throws away output
     /// </summary>
@@ -126,8 +132,8 @@ namespace winsw
     {
         public override void log(Stream outputStream, Stream errorStream)
         {
-            new Thread(delegate() { CopyStream(outputStream, Stream.Null); }).Start();
-            new Thread(delegate() { CopyStream(errorStream, Stream.Null); }).Start();
+            new Thread(() => CopyStream(outputStream, Stream.Null)).Start();
+            new Thread(() => CopyStream(errorStream, Stream.Null)).Start();
         }
     }
 
@@ -145,8 +151,11 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            if (!OutFileDisabled) new Thread(delegate() { CopyStreamWithDateRotation(outputStream, OutFilePattern); }).Start();
-            if (!ErrFileDisabled) new Thread(delegate() { CopyStreamWithDateRotation(errorStream, ErrFilePattern); }).Start();
+            if (!OutFileDisabled)
+                new Thread(() => CopyStreamWithDateRotation(outputStream, OutFilePattern)).Start();
+
+            if (!ErrFileDisabled)
+                new Thread(() => CopyStreamWithDateRotation(errorStream, ErrFilePattern)).Start();
         }
 
         /// <summary>
@@ -162,16 +171,19 @@ namespace winsw
             while (true)
             {
                 int len = data.Read(buf, 0, buf.Length);
-                if (len == 0) break;    // EOF
+                if (len == 0)
+                    break;    // EOF
 
                 if (periodicRollingCalendar.shouldRoll)
-                {// rotate at the line boundary
+                {
+                    // rotate at the line boundary
                     int offset = 0;
                     bool rolled = false;
                     for (int i = 0; i < len; i++)
                     {
                         if (buf[i] == 0x0A)
-                        {// at the line boundary.
+                        {
+                            // at the line boundary.
                             // time to rotate.
                             w.Write(buf, offset, i + 1);
                             w.Close();
@@ -189,24 +201,25 @@ namespace winsw
                     }
 
                     if (!rolled)
-                    {// we didn't roll - most likely as we didnt find a line boundary, so we should log what we read and roll anyway.
+                    {
+                        // we didn't roll - most likely as we didnt find a line boundary, so we should log what we read and roll anyway.
                         w.Write(buf, 0, len);
                         w.Close();
                         w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
                     }
-
                 }
                 else
-                {// typical case. write the whole thing into the current file
+                {
+                    // typical case. write the whole thing into the current file
                     w.Write(buf, 0, len);
                 }
 
                 w.Flush();
             }
+
             data.Close();
             w.Close();
         }
-
     }
 
     public class SizeBasedRollingLogAppender : AbstractFileLogAppender
@@ -220,9 +233,9 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         public static int DEFAULT_FILES_TO_KEEP = 8;
 
-        public int SizeTheshold { private set; get; }
+        public int SizeTheshold { get; private set; }
 
-        public int FilesToKeep { private set; get; }
+        public int FilesToKeep { get; private set; }
 
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, int filesToKeep)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
@@ -236,8 +249,11 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            if (!OutFileDisabled) new Thread(delegate() { CopyStreamWithRotation(outputStream, OutFilePattern); }).Start();
-            if (!ErrFileDisabled) new Thread(delegate() { CopyStreamWithRotation(errorStream, ErrFilePattern); }).Start();
+            if (!OutFileDisabled)
+                new Thread(() => CopyStreamWithRotation(outputStream, OutFilePattern)).Start();
+
+            if (!ErrFileDisabled)
+                new Thread(() => CopyStreamWithRotation(errorStream, ErrFilePattern)).Start();
         }
 
         /// <summary>
@@ -252,9 +268,12 @@ namespace winsw
             while (true)
             {
                 int len = data.Read(buf, 0, buf.Length);
-                if (len == 0) break;    // EOF
+                if (len == 0)
+                    break;    // EOF
+
                 if (sz + len < SizeTheshold)
-                {// typical case. write the whole thing into the current file
+                {
+                    // typical case. write the whole thing into the current file
                     w.Write(buf, 0, len);
                     sz += len;
                 }
@@ -264,8 +283,11 @@ namespace winsw
                     int s = 0;
                     for (int i = 0; i < len; i++)
                     {
-                        if (buf[i] != 0x0A) continue;
-                        if (sz + i < SizeTheshold) continue;
+                        if (buf[i] != 0x0A)
+                            continue;
+
+                        if (sz + i < SizeTheshold)
+                            continue;
 
                         // at the line boundary and exceeded the rotation unit.
                         // time to rotate.
@@ -281,9 +303,11 @@ namespace winsw
                                 string src = BaseLogFileName + "." + (j - 2) + ext;
                                 if (File.Exists(dst))
                                     File.Delete(dst);
+
                                 if (File.Exists(src))
                                     File.Move(src, dst);
                             }
+
                             File.Move(BaseLogFileName + ext, BaseLogFileName + ".0" + ext);
                         }
                         catch (IOException e)
@@ -300,6 +324,7 @@ namespace winsw
 
                 w.Flush();
             }
+
             data.Close();
             w.Close();
         }
@@ -317,8 +342,12 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            if (!OutFileDisabled) CopyFile(OutputLogFileName, OutputLogFileName + ".old");
-            if (!ErrFileDisabled) CopyFile(ErrorLogFileName, ErrorLogFileName + ".old");
+            if (!OutFileDisabled)
+                CopyFile(OutputLogFileName, OutputLogFileName + ".old");
+
+            if (!ErrFileDisabled)
+                CopyFile(ErrorLogFileName, ErrorLogFileName + ".old");
+
             base.log(outputStream, errorStream);
         }
     }
@@ -326,11 +355,11 @@ namespace winsw
     public class RollingSizeTimeLogAppender : AbstractFileLogAppender
     {
         public static int BYTES_PER_KB = 1024;
-        public int SizeTheshold { private set; get; }
-        public string FilePattern { private set; get; }
-        public TimeSpan? AutoRollAtTime { private set; get; }
-        public int? ZipOlderThanNumDays { private set; get; }
-        public string ZipDateFormat { private set; get; }
+        public int SizeTheshold { get; private set; }
+        public string FilePattern { get; private set; }
+        public TimeSpan? AutoRollAtTime { get; private set; }
+        public int? ZipOlderThanNumDays { get; private set; }
+        public string ZipDateFormat { get; private set; }
 
         public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime, int? zipolderthannumdays, string zipdateformat)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
@@ -344,8 +373,11 @@ namespace winsw
 
         public override void log(Stream outputStream, Stream errorStream)
         {
-            if (!OutFileDisabled) new Thread(delegate () { CopyStreamWithRotation(outputStream, OutFilePattern); }).Start();
-            if (!ErrFileDisabled) new Thread(delegate () { CopyStreamWithRotation(errorStream, ErrFilePattern); }).Start();
+            if (!OutFileDisabled)
+                new Thread(() => CopyStreamWithRotation(outputStream, OutFilePattern)).Start();
+
+            if (!ErrFileDisabled)
+                new Thread(() => CopyStreamWithRotation(errorStream, ErrFilePattern)).Start();
         }
 
         private void CopyStreamWithRotation(Stream data, string ext)
@@ -379,7 +411,7 @@ namespace winsw
 
                             var now = DateTime.Now.AddDays(-1);
                             var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
-                            var nextFileName =  Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
+                            var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
                             File.Move(logFile, nextFileName);
 
                             w = new FileStream(logFile, FileMode.Create);
@@ -402,10 +434,13 @@ namespace winsw
                 };
                 timer.Start();
             }
+
             while (true)
             {
                 var len = data.Read(buf, 0, buf.Length);
-                if (len == 0) break;    // EOF
+                if (len == 0)
+                    break;    // EOF
+
                 lock (fileLock)
                 {
                     if (sz + len < SizeTheshold)
@@ -422,8 +457,11 @@ namespace winsw
                             int s = 0;
                             for (int i = 0; i < len; i++)
                             {
-                                if (buf[i] != 0x0A) continue;
-                                if (sz + i < SizeTheshold) continue;
+                                if (buf[i] != 0x0A)
+                                    continue;
+
+                                if (sz + i < SizeTheshold)
+                                    continue;
 
                                 // at the line boundary and exceeded the rotation unit.
                                 // time to rotate.
@@ -450,16 +488,19 @@ namespace winsw
                             EventLogger.LogEvent(string.Format("Failed to roll size time log: {0}", e.Message));
                         }
                     }
+
                     w.Flush();
                 }
             }
+
             data.Close();
             w.Close();
         }
 
         private void ZipFiles(string path, string fileExt, string baseZipfilename)
         {
-            if (ZipOlderThanNumDays == null || !(ZipOlderThanNumDays > 0)) return;
+            if (ZipOlderThanNumDays == null || !(ZipOlderThanNumDays > 0))
+                return;
 
             try
             {
@@ -467,7 +508,8 @@ namespace winsw
                 foreach (var file in files)
                 {
                     var fi = new FileInfo(file);
-                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderThanNumDays.Value)) continue;
+                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderThanNumDays.Value))
+                        continue;
 
                     // lets archive this bugger
                     ZipTheFile(file, path, fi.LastWriteTimeUtc.ToString(ZipDateFormat), baseZipfilename);
@@ -487,7 +529,6 @@ namespace winsw
             bool commited = false;
             try
             {
-
                 if (File.Exists(zipfilename))
                 {
                     zipFile = new ZipFile(zipfilename);
@@ -539,18 +580,18 @@ namespace winsw
         {
             var nowTime = DateTime.Now;
             var scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, AutoRollAtTime.Value.Hours,
-                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0); //Specify your time HH,MM,SS
+                AutoRollAtTime.Value.Minutes, AutoRollAtTime.Value.Seconds, 0); // Specify your time HH,MM,SS
             if (nowTime > scheduledTime)
                 scheduledTime = scheduledTime.AddDays(1);
 
-            double tickTime = (double) (scheduledTime - DateTime.Now).TotalMilliseconds;
+            double tickTime = (scheduledTime - DateTime.Now).TotalMilliseconds;
             return tickTime;
         }
 
         private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName, DateTime now)
         {
             var nextFileNumber = 0;
-            var files = Directory.GetFiles(baseDirectory, String.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(FilePattern), ext));
+            var files = Directory.GetFiles(baseDirectory, string.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(FilePattern), ext));
             if (files.Length == 0)
             {
                 nextFileNumber = 1;
@@ -564,24 +605,29 @@ namespace winsw
                         var filenameOnly = Path.GetFileNameWithoutExtension(f);
                         var hashIndex = filenameOnly.IndexOf('#');
                         var lastNumberAsString = filenameOnly.Substring(hashIndex + 1, 4);
-                        //var lastNumberAsString = filenameOnly.Substring(filenameOnly.Length - 4, 4);
-                        int lastNumber = 0;
-                        if (int.TryParse(lastNumberAsString, out lastNumber))
+                        // var lastNumberAsString = filenameOnly.Substring(filenameOnly.Length - 4, 4);
+                        if (int.TryParse(lastNumberAsString, out int lastNumber))
                         {
                             if (lastNumber > nextFileNumber)
                                 nextFileNumber = lastNumber;
                         }
                         else
-                            throw new IOException(string.Format("File {0} does not follow the pattern provided",f));
+                        {
+                            throw new IOException(string.Format("File {0} does not follow the pattern provided", f));
+                        }
                     }
                     catch (Exception e)
                     {
-                        throw new IOException(string.Format("Failed to process file {0} due to error {1}",f, e.Message), e);
+                        throw new IOException(string.Format("Failed to process file {0} due to error {1}", f, e.Message), e);
                     }
                 }
-                if (nextFileNumber == 0) throw new IOException("Cannot roll the file because matching pattern not found");
+
+                if (nextFileNumber == 0)
+                    throw new IOException("Cannot roll the file because matching pattern not found");
+
                 nextFileNumber++;
             }
+
             return nextFileNumber;
         }
     }

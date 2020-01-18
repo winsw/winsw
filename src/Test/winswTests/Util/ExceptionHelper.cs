@@ -1,13 +1,11 @@
-﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using NUnit.Framework;
 
 namespace winswTests.Util
 {
     class ExceptionHelper
     {
-        public static void assertFails(String expectedMessagePart, Type expectedExceptionType, ExceptionHelperExecutionBody body)
+        public static void assertFails(string expectedMessagePart, Type expectedExceptionType, ExceptionHelperExecutionBody body)
         {
             try
             {
@@ -28,8 +26,6 @@ namespace winswTests.Util
 
             Assert.Fail("Expected exception " + expectedExceptionType + " to be thrown by the operation");
         }
-
-        
     }
 
     public delegate void ExceptionHelperExecutionBody();
