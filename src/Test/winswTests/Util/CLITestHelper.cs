@@ -46,7 +46,7 @@ $@"<service>
             Console.SetError(swErr);
             try
             {
-                WrapperService.Run(arguments, descriptor ?? DefaultServiceDescriptor);
+                Program.Run(arguments, descriptor ?? DefaultServiceDescriptor);
             }
             finally
             {
@@ -78,7 +78,7 @@ $@"<service>
             Console.SetError(swErr);
             try
             {
-                WrapperService.Run(arguments, descriptor ?? DefaultServiceDescriptor);
+                Program.Run(arguments, descriptor ?? DefaultServiceDescriptor);
             }
             catch (Exception ex)
             {

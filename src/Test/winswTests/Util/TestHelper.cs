@@ -7,7 +7,7 @@ namespace winswTests.Util
     {
         internal static void RequireProcessElevated()
         {
-            if (!WrapperService.IsProcessElevated())
+            if (!Program.IsProcessElevated())
             {
                 Assert.Ignore();
             }
