@@ -1,98 +1,40 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{0DE77F55-ADE5-43C1-999A-0BC81153B039}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworks>net20;net40</TargetFrameworks>
+    <!-- AppVeyor -->
+    <Version></Version>
+    <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
+    <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
+    <Company>CloudBees, Inc.</Company>
+    <Product>Windows Service Wrapper</Product>
+    <Copyright>Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors</Copyright>
     <RootNamespace>winsw</RootNamespace>
     <AssemblyName>WindowsService</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <StartupObject>
-    </StartupObject>
-    <SignManifests>false</SignManifests>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(SolutionDir)..\winsw_key.snk</AssemblyOriginatorKeyFile>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>
-    </DocumentationFile>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.4.369, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ICSharpCode.SharpZipLib.dll.0.85.4.369\lib\net20\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\packages\log4net.2.0.8\lib\net20-full\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Drawing" />
+    <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
+    <PackageReference Include="ilmerge" Version="3.0.29" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Management" />
-    <Reference Include="System.Data" />
     <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Main.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SigIntHelper.cs" />
-    <Compile Include="Logging\WrapperServiceEventLogProvider.cs" />
-  </ItemGroup>
+
   <ItemGroup>
     <Content Include="manifest.xml" />
   </ItemGroup>
+
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="$(AssemblyOriginatorKeyFile)" />
   </ItemGroup>
+
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
@@ -105,77 +47,47 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj">
-      <Project>{57284b7a-82a4-407a-b706-ebea6bf8ea13}</Project>
-      <Name>RunawayProcessKiller</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj">
-      <Project>{ca5c71db-c5a8-4c27-bf83-8e6daed9d6b5}</Project>
-      <Name>SharedDirectoryMapper</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WinSWCore\WinSWCore.csproj">
-      <Project>{9d0c63e2-b6ff-4a85-bd36-b3e5d7f27d06}</Project>
-      <Name>WinSWCore</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\WinSWCore\WinSWCore.csproj" />
+    <ProjectReference Include="..\..\Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj" />
+    <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
+
   <!-- Merge plugins and other DLLs into the executable -->
-  <UsingTask TaskName="MSBuild.Community.Tasks.ILMerge" AssemblyFile="$(SolutionDir)\packages\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" />
-  <Target Name="AfterBuild">
-    <ItemGroup>
-      <MergeAsm Include="$(OutputPath)$(TargetFileName)" />
-      <MergeAsm Include="$(OutputPath)WinSWCore.dll" />
-      <MergeAsm Include="$(OutputPath)SharedDirectoryMapper.dll" />
-      <MergeAsm Include="$(OutputPath)RunawayProcessKiller.dll" />
-      <MergeAsm Include="$(OutputPath)log4net.dll" />
-    </ItemGroup>
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'net20'">
+      <PropertyGroup>
+        <TargetPlatform>v2</TargetPlatform>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net40'">
+      <PropertyGroup>
+        <TargetPlatform>v4</TargetPlatform>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <Target Name="Merge" BeforeTargets="AfterBuild">
+
     <PropertyGroup>
-      <MergedAssembly>$(ProjectDir)$(OutDir)WinSW.NET2.exe</MergedAssembly>
-      <CertificatePfxFile>$(AssemblyOriginatorKeyFile)</CertificatePfxFile>
+      <InputAssemblies>"$(OutDir)$(TargetFileName)"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSWCore.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)SharedDirectoryMapper.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)RunawayProcessKiller.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
+      <OutputAssembly>"$(OutDir)WinSW.exe"</OutputAssembly>
     </PropertyGroup>
-    <!-- Locate SN.EXE in Windows SDK, use the first found one-->
+
     <PropertyGroup>
-      <SnPathTmpFile>$(OutputPath)sn-path.txt</SnPathTmpFile>
+      <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
+      <ILMergeArgs>/keyfile:"$(AssemblyOriginatorKeyFile)" /targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
+      <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
-    <GetFrameworkSdkPath>
-      <Output TaskParameter="Path" PropertyName="WindowsSdkPath" />
-    </GetFrameworkSdkPath>
-    <Message Text="Using SDK from $(WindowsSdkPath)" Importance="high" />
-    <Exec Command="WHERE /r &quot;$(WindowsSdkPath.TrimEnd('\\'))&quot; sn &gt; $(SnPathTmpFile)" />
-    <ReadLinesFromFile File="$(SnPathTmpFile)">
-      <Output TaskParameter="Lines" PropertyName="SNPath" />
-    </ReadLinesFromFile>
-    <Delete Files="$(SnPathTmpFile)" />
-    <PropertyGroup>
-      <SNPath>$([System.Text.RegularExpressions.Regex]::Replace('$(SNPath)', ';.*', ''))</SNPath>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SNPath)')" Text="Cannot find SN.EXE utility in $(WindowsSdkPath)" />
-    <Message Text="Using SN.EXE utility from $(SNPath)" Importance="high" />
-    <!-- Merge and re-sign assemblies -->
-    <PropertyGroup>
-      <ILMergePath>$(SolutionDir)packages\ilmerge.2.14.1208\tools</ILMergePath>
-      <CertificateTmpPubFile>$(OutputPath)winsw_cert.pub</CertificateTmpPubFile>
-    </PropertyGroup>
-    <Message Text="Extracting public key from $(AssemblyOriginatorKeyFile)" />
-    <Exec Command="&quot;$(SNPath)&quot; -p &quot;$(AssemblyOriginatorKeyFile)&quot; &quot;$(CertificateTmpPubFile)&quot;" />
-    <Message Text="ILMerge @(MergeAsm) -&gt; $(MergedAssembly)" Importance="high" />
-    <ILMerge ToolPath="$(ILMergePath)" InputAssemblies="@(MergeAsm)" OutputFile="$(MergedAssembly)" TargetKind="SameAsPrimaryAssembly" KeyFile="$(CertificateTmpPubFile)" DelaySign="true" TargetPlatformVersion="v2" />
-    <Exec Command="&quot;$(SNPath)&quot; -R &quot;$(MergedAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" />
+
+    <Message Text="$(ILMergeCommand)" Importance="high" />
+    <Exec Command="$(ILMergeCommand)" />
+
   </Target>
+
 </Project>

@@ -6,6 +6,5 @@ obj
 /src/packages/
 /winsw_key.snk
 /winsw_key.pfx
-/src/.vs/winsw/v15/sqlite3/storage.ide
+/src/.vs/
 /src/Core/WinSWCore/WinSWCore.csproj.DotSettings
-/src/.vs/winsw/v15/Server/sqlite3
