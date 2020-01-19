@@ -1,8 +1,13 @@
 using System;
 using System.Diagnostics;
+#if VNEXT
+using System.IO.Compression;
+#endif
 using System.IO;
 using System.Threading;
+#if !VNEXT
 using ICSharpCode.SharpZipLib.Zip;
+#endif
 
 namespace winsw
 {
@@ -361,7 +366,18 @@ namespace winsw
         public int? ZipOlderThanNumDays { get; private set; }
         public string ZipDateFormat { get; private set; }
 
-        public RollingSizeTimeLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, string filePattern, TimeSpan? autoRollAtTime, int? zipolderthannumdays, string zipdateformat)
+        public RollingSizeTimeLogAppender(
+            string logDirectory,
+            string baseName,
+            bool outFileDisabled,
+            bool errFileDisabled,
+            string outFilePattern,
+            string errFilePattern,
+            int sizeThreshold,
+            string filePattern,
+            TimeSpan? autoRollAtTime,
+            int? zipolderthannumdays,
+            string zipdateformat)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             SizeTheshold = sizeThreshold;
@@ -380,7 +396,7 @@ namespace winsw
                 new Thread(() => CopyStreamWithRotation(errorStream, ErrFilePattern)).Start();
         }
 
-        private void CopyStreamWithRotation(Stream data, string ext)
+        private void CopyStreamWithRotation(Stream data, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
             var fileLock = new object();
@@ -389,7 +405,7 @@ namespace winsw
 
             var baseDirectory = Path.GetDirectoryName(BaseLogFileName);
             var baseFileName = Path.GetFileName(BaseLogFileName);
-            var logFile = string.Format("{0}{1}", BaseLogFileName, ext);
+            var logFile = BaseLogFileName + extension;
 
             var w = new FileStream(logFile, FileMode.Append);
             var sz = new FileInfo(logFile).Length;
@@ -410,8 +426,8 @@ namespace winsw
                             w.Close();
 
                             var now = DateTime.Now.AddDays(-1);
-                            var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
-                            var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
+                            var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
+                            var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
                             w = new FileStream(logFile, FileMode.Create);
@@ -419,7 +435,7 @@ namespace winsw
                         }
 
                         // Next day so check if file can be zipped
-                        ZipFiles(baseDirectory, ext, baseFileName);
+                        ZipFiles(baseDirectory, extension, baseFileName);
                     }
                     catch (Exception et)
                     {
@@ -471,10 +487,10 @@ namespace winsw
 
                                 // rotate file
                                 var now = DateTime.Now;
-                                var nextFileNumber = GetNextFileNumber(ext, baseDirectory, baseFileName, now);
+                                var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
                                 var nextFileName =
                                     Path.Combine(baseDirectory,
-                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, ext));
+                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
                                 File.Move(logFile, nextFileName);
 
                                 // even if the log rotation fails, create a new one, or else
@@ -497,84 +513,82 @@ namespace winsw
             w.Close();
         }
 
-        private void ZipFiles(string path, string fileExt, string baseZipfilename)
+        private void ZipFiles(string directory, string fileExtension, string zipFileBaseName)
         {
             if (ZipOlderThanNumDays == null || !(ZipOlderThanNumDays > 0))
                 return;
 
             try
             {
-                var files = Directory.GetFiles(path, "*" + fileExt);
-                foreach (var file in files)
+                foreach (string path in Directory.GetFiles(directory, "*" + fileExtension))
                 {
-                    var fi = new FileInfo(file);
-                    if (fi.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderThanNumDays.Value))
+                    var fileInfo = new FileInfo(path);
+                    if (fileInfo.LastWriteTimeUtc >= DateTime.UtcNow.AddDays(-ZipOlderThanNumDays.Value))
                         continue;
 
-                    // lets archive this bugger
-                    ZipTheFile(file, path, fi.LastWriteTimeUtc.ToString(ZipDateFormat), baseZipfilename);
-                    File.Delete(file);
+                    string sourceFileName = Path.GetFileName(path);
+                    string zipFilePattern = fileInfo.LastAccessTimeUtc.ToString(ZipDateFormat);
+                    string zipFilePath = Path.Combine(directory, $"{zipFileBaseName}.{zipFilePattern}.zip");
+                    ZipOneFile(path, sourceFileName, zipFilePath);
+
+                    File.Delete(path);
                 }
             }
             catch (Exception e)
             {
-                EventLogger.LogEvent(string.Format("Failed to Zip File. Error {0}", e.Message));
+                EventLogger.LogEvent($"Failed to Zip files. Error {e.Message}");
             }
         }
 
-        private void ZipTheFile(string filename, string zipPath, string zipFilePattern, string baseZipfilename)
+#if VNEXT
+        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
-            var zipfilename = Path.Combine(zipPath, string.Format("{0}.{1}.zip", baseZipfilename, zipFilePattern));
-            ZipFile zipFile = null;
-            bool commited = false;
+            ZipArchive zipArchive = null;
             try
             {
-                if (File.Exists(zipfilename))
-                {
-                    zipFile = new ZipFile(zipfilename);
-                    TestZipfile(zipFile, zipfilename);
-                }
-                else
-                {
-                    zipFile = ZipFile.Create(zipfilename);
-                }
+                zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Update);
 
-                zipFile.BeginUpdate();
-                zipFile.NameTransform = new ZipNameTransform(zipPath);
-                var relFile = Path.GetFileName(filename);
-                if (zipFile.FindEntry(relFile, true) == -1)
+                if (zipArchive.GetEntry(entryName) is null)
                 {
-                    zipFile.Add(filename);
+                    zipArchive.CreateEntryFromFile(sourceFilePath, entryName);
                 }
-
-                zipFile.CommitUpdate();
-                commited = true;
-                TestZipfile(zipFile, zipfilename);
             }
             catch (Exception e)
             {
-                EventLogger.LogEvent(string.Format("Failed to Zip the File {0}. Error {1}", filename, e.Message));
-                if (zipFile != null && !commited)
-                    zipFile.AbortUpdate();
+                EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
             }
             finally
             {
-                if (zipFile != null)
-                {
-                    zipFile.Close();
-                }
+                zipArchive?.Dispose();
             }
         }
-
-        static void TestZipfile(ZipFile zipFile, string zipArchive)
+#else
+        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
-            var testResult = zipFile.TestArchive(true);
-            if (!testResult)
+            ZipFile zipFile = null;
+            try
             {
-                var em = string.Format("Bad zip file \"{0}\"", zipArchive);
-                throw new ApplicationException(em);
+                zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate));
+                zipFile.BeginUpdate();
+
+                if (zipFile.FindEntry(entryName, false) < 0)
+                {
+                    zipFile.Add(sourceFilePath, entryName);
+                }
+
+                zipFile.CommitUpdate();
+            }
+            catch (Exception e)
+            {
+                EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+                zipFile?.AbortUpdate();
+            }
+            finally
+            {
+                zipFile?.Close();
             }
         }
+#endif
 
         private double SetupRollTimer()
         {

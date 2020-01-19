@@ -17,7 +17,7 @@ namespace winswTests.Util
                 Assert.That(ex, Is.InstanceOf(expectedExceptionType ?? typeof(Exception)), "Wrong exception type");
                 if (expectedMessagePart != null)
                 {
-                    Assert.That(ex.Message, Is.StringContaining(expectedMessagePart), "Wrong error message");
+                    Assert.That(ex.Message, Does.Contain(expectedMessagePart), "Wrong error message");
                 }
 
                 // Else the exception is fine

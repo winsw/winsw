@@ -1,13 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using NUnit.Framework;
 using winsw;
+using winswTests.Util;
+using WMI;
 
 namespace winswTests
 {
-    using System;
-    using winswTests.Util;
-    using WMI;
-
     [TestFixture]
     public class ServiceDescriptorTests
     {
@@ -50,7 +49,6 @@ namespace winswTests
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentException))]
         public void IncorrectStartMode()
         {
             const string SeedXml = "<service>"
@@ -74,7 +72,7 @@ namespace winswTests
                                    + "</service>";
 
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+            Assert.Throws(typeof(ArgumentException), () => _ = _extendedServiceDescriptor.StartMode);
         }
 
         [Test]

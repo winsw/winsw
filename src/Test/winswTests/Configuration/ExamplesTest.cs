@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using System.Xml;
 using NUnit.Framework;
 using winsw;
@@ -41,7 +42,7 @@ namespace winswTests.Configuration
 
         private ServiceDescriptor DoLoad(string exampleName)
         {
-            var dir = Directory.GetCurrentDirectory();
+            var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string path = Path.GetFullPath(dir + "\\..\\..\\..\\..\\..\\..\\examples\\sample-" + exampleName + ".xml");
             if (!File.Exists(path))
             {
