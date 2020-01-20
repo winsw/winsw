@@ -18,11 +18,6 @@ before_build:
   # Generates a temporary SNK. Not for real signing
   - cmd: '"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\sn.exe" -k winsw_key.snk'
 
-dotnet_csproj:
-  patch: true
-  file: '**\*.csproj'
-  version: $(appveyor_build_version)
-
 build_script:
   - dotnet.exe build src\winsw.sln
   - dotnet.exe publish -f netcoreapp3.1 src\Core\ServiceWrapper\winsw.csproj
