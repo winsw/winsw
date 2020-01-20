@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Xml;
 using winsw.Configuration;
 using winsw.Native;
@@ -81,7 +81,9 @@ namespace winsw
         /// <summary>
         /// Loads descriptor from existing DOM
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ServiceDescriptor(XmlDocument dom)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
         }
@@ -96,10 +98,10 @@ namespace winsw
 
         private string SingleElement(string tagName)
         {
-            return SingleElement(tagName, false);
+            return SingleElement(tagName, false)!;
         }
 
-        private string SingleElement(string tagName, bool optional)
+        private string? SingleElement(string tagName, bool optional)
         {
             var n = dom.SelectSingleNode("//" + tagName);
             if (n == null && !optional)
@@ -174,7 +176,7 @@ namespace winsw
         /// <summary>
         /// Optionally specify a different Path to an executable to shutdown the service.
         /// </summary>
-        public string StopExecutable => SingleElement("stopexecutable", true);
+        public string? StopExecutable => SingleElement("stopexecutable", true);
 
         /// <summary>
         /// Arguments or multiple optional argument elements which overrule the arguments element.
@@ -183,7 +185,7 @@ namespace winsw
         {
             get
             {
-                string arguments = AppendTags("argument", null);
+                string? arguments = AppendTags("argument", null);
 
                 if (arguments == null)
                 {
@@ -206,19 +208,19 @@ namespace winsw
         /// <summary>
         /// Multiple optional startargument elements.
         /// </summary>
-        public string Startarguments => AppendTags("startargument", Defaults.Startarguments);
+        public string? Startarguments => AppendTags("startargument", Defaults.Startarguments);
 
         /// <summary>
         /// Multiple optional stopargument elements.
         /// </summary>
-        public string Stoparguments => AppendTags("stopargument", Defaults.Stoparguments);
+        public string? Stoparguments => AppendTags("stopargument", Defaults.Stoparguments);
 
         public string WorkingDirectory
         {
             get
             {
                 var wd = SingleElement("workingdirectory", true);
-                return string.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd;
+                return string.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd!;
             }
         }
 
@@ -226,65 +228,65 @@ namespace winsw
         {
             get
             {
-                List<string> res = new List<string>();
-
-                XmlNode argumentNode = ExtensionsConfiguration;
-                XmlNodeList extensions = argumentNode?.SelectNodes("extension");
-                if (extensions != null)
+                XmlNode? argumentNode = ExtensionsConfiguration;
+                XmlNodeList? extensions = argumentNode?.SelectNodes("extension");
+                if (extensions == null)
                 {
-                    foreach (XmlNode e in extensions)
-                    {
-                        XmlElement extension = (XmlElement)e;
-                        string extensionId = XmlHelper.SingleAttribute<string>(extension, "id");
-                        res.Add(extensionId);
-                    }
+                    return new List<string>(0);
                 }
 
-                return res;
+                List<string> result = new List<string>(extensions.Count);
+                for (int i = 0; i < extensions.Count; i++)
+                {
+                    result.Add(XmlHelper.SingleAttribute<string>((XmlElement)extensions[i], "id"));
+                }
+
+                return result;
             }
         }
 
-        public XmlNode ExtensionsConfiguration => dom.SelectSingleNode("//extensions");
+        public XmlNode? ExtensionsConfiguration => dom.SelectSingleNode("//extensions");
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
         /// or return null if no element exists. Handles whitespace quotation.
         /// </summary>
-        private string AppendTags(string tagName, string defaultValue = null)
+        private string? AppendTags(string tagName, string? defaultValue = null)
         {
-            XmlNode argumentNode = dom.SelectSingleNode("//" + tagName);
-
+            XmlNode? argumentNode = dom.SelectSingleNode("//" + tagName);
             if (argumentNode == null)
             {
                 return defaultValue;
             }
-            else
+
+            StringBuilder arguments = new StringBuilder();
+
+            XmlNodeList argumentNodeList = dom.SelectNodes("//" + tagName);
+            for (int i = 0; i < argumentNodeList.Count; i++)
             {
-                string arguments = string.Empty;
+                arguments.Append(' ');
 
-                foreach (XmlElement argument in dom.SelectNodes("//" + tagName))
+                string token = Environment.ExpandEnvironmentVariables(argumentNodeList[i].InnerText);
+
+                if (token.StartsWith("\"") && token.EndsWith("\""))
                 {
-                    string token = Environment.ExpandEnvironmentVariables(argument.InnerText);
-
-                    if (token.StartsWith("\"") && token.EndsWith("\""))
+                    // for backward compatibility, if the argument is already quoted, leave it as is.
+                    // in earlier versions we didn't handle quotation, so the user might have worked
+                    // around it by themselves
+                }
+                else
+                {
+                    if (token.Contains(" "))
                     {
-                        // for backward compatibility, if the argument is already quoted, leave it as is.
-                        // in earlier versions we didn't handle quotation, so the user might have worked
-                        // around it by themselves
+                        arguments.Append('"').Append(token).Append('"');
+                        continue;
                     }
-                    else
-                    {
-                        if (token.Contains(" "))
-                        {
-                            token = '"' + token + '"';
-                        }
-                    }
-
-                    arguments += " " + token;
                 }
 
-                return arguments;
+                arguments.Append(token);
             }
+
+            return arguments.ToString();
         }
 
         /// <summary>
@@ -311,7 +313,7 @@ namespace winsw
         {
             get
             {
-                string mode = null;
+                string? mode = null;
 
                 // first, backward compatibility with older configuration
                 XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
@@ -469,19 +471,19 @@ namespace winsw
         {
             get
             {
-                var xmlNodeList = dom.SelectNodes("//depend");
-                if (xmlNodeList != null)
+                XmlNodeList? nodeList = dom.SelectNodes("//depend");
+                if (nodeList == null)
                 {
-                    ArrayList serviceDependencies = new ArrayList();
-                    foreach (XmlNode depend in xmlNodeList)
-                    {
-                        serviceDependencies.Add(depend.InnerText);
-                    }
-
-                    return (string[])serviceDependencies.ToArray(typeof(string));
+                    return Defaults.ServiceDependencies;
                 }
 
-                return Defaults.ServiceDependencies;
+                string[] serviceDependencies = new string[nodeList.Count];
+                for (int i = 0; i < nodeList.Count; i++)
+                {
+                    serviceDependencies[i] = nodeList[i].InnerText;
+                }
+
+                return serviceDependencies;
             }
         }
 
@@ -558,10 +560,12 @@ namespace winsw
             get
             {
                 Dictionary<string, string> map = new Dictionary<string, string>();
-                foreach (XmlNode n in dom.SelectNodes("//env"))
+                XmlNodeList nodeList = dom.SelectNodes("//env");
+                for (int i = 0; i < nodeList.Count; i++)
                 {
-                    string key = n.Attributes["name"].Value;
-                    string value = Environment.ExpandEnvironmentVariables(n.Attributes["value"].Value);
+                    XmlNode node = nodeList[i];
+                    string key = node.Attributes["name"].Value;
+                    string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"].Value);
                     map[key] = value;
 
                     Environment.SetEnvironmentVariable(key, value);
@@ -579,22 +583,22 @@ namespace winsw
         {
             get
             {
-                var xmlNodeList = dom.SelectNodes("//download");
-                if (xmlNodeList == null)
+                XmlNodeList? nodeList = dom.SelectNodes("//download");
+                if (nodeList == null)
                 {
                     return Defaults.Downloads;
                 }
 
-                List<Download> r = new List<Download>();
-                foreach (XmlNode n in xmlNodeList)
+                List<Download> result = new List<Download>(nodeList.Count);
+                for (int i = 0; i < nodeList.Count; i++)
                 {
-                    if (n is XmlElement el)
+                    if (nodeList[i] is XmlElement element)
                     {
-                        r.Add(new Download(el));
+                        result.Add(new Download(element));
                     }
                 }
 
-                return r;
+                return result;
             }
         }
 
@@ -602,41 +606,35 @@ namespace winsw
         {
             get
             {
-                List<SC_ACTION> r = new List<SC_ACTION>();
-                var childNodes = dom.SelectNodes("//onfailure");
-                if (childNodes != null)
+                XmlNodeList? childNodes = dom.SelectNodes("//onfailure");
+                if (childNodes == null)
                 {
-                    foreach (XmlNode n in childNodes)
-                    {
-                        SC_ACTION_TYPE type;
-                        string action = n.Attributes["action"].Value;
-                        switch (action)
-                        {
-                            case "restart":
-                                type = SC_ACTION_TYPE.SC_ACTION_RESTART;
-                                break;
-                            case "none":
-                                type = SC_ACTION_TYPE.SC_ACTION_NONE;
-                                break;
-                            case "reboot":
-                                type = SC_ACTION_TYPE.SC_ACTION_REBOOT;
-                                break;
-                            default:
-                                throw new Exception("Invalid failure action: " + action);
-                        }
-
-                        XmlAttribute delay = n.Attributes["delay"];
-                        r.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
-                    }
+                    return new List<SC_ACTION>(0);
                 }
 
-                return r;
+                List<SC_ACTION> result = new List<SC_ACTION>(childNodes.Count);
+                for (int i = 0; i < childNodes.Count; i++)
+                {
+                    XmlNode node = childNodes[i];
+                    string action = node.Attributes["action"].Value;
+                    SC_ACTION_TYPE type = action switch
+                    {
+                        "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
+                        "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
+                        "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
+                        _ => throw new Exception("Invalid failure action: " + action)
+                    };
+                    XmlAttribute? delay = node.Attributes["delay"];
+                    result.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
+                }
+
+                return result;
             }
         }
 
         public TimeSpan ResetFailureAfter => SingleTimeSpanElement(dom, "resetfailure", Defaults.ResetFailureAfter);
 
-        protected string GetServiceAccountPart(string subNodeName)
+        protected string? GetServiceAccountPart(string subNodeName)
         {
             var node = dom.SelectSingleNode("//serviceaccount");
 
@@ -652,15 +650,15 @@ namespace winsw
             return null;
         }
 
-        protected string AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
+        protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
         // ReSharper disable once InconsistentNaming
-        protected string serviceAccountDomain => GetServiceAccountPart("domain");
+        protected string? serviceAccountDomain => GetServiceAccountPart("domain");
 
         // ReSharper disable once InconsistentNaming
-        protected string serviceAccountName => GetServiceAccountPart("user");
+        protected string? serviceAccountName => GetServiceAccountPart("user");
 
-        public string ServiceAccountPassword => GetServiceAccountPart("password");
+        public string? ServiceAccountPassword => GetServiceAccountPart("password");
 
         public string ServiceAccountUser => (serviceAccountDomain ?? "NULL") + @"\" + (serviceAccountName ?? "NULL");
 

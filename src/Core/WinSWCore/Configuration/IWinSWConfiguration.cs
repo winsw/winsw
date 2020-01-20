@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml;
 using WMI;
+
 namespace winsw.Configuration
 {
     public interface IWinSWConfiguration
@@ -18,16 +19,16 @@ namespace winsw.Configuration
 
         // Installation
         bool AllowServiceAcountLogonRight { get; }
-        string ServiceAccountPassword { get; }
+        string? ServiceAccountPassword { get; }
         string ServiceAccountUser { get; }
         List<Native.SC_ACTION> FailureActions { get; }
         TimeSpan ResetFailureAfter { get; }
 
         // Executable management
         string Arguments { get; }
-        string Startarguments { get; }
-        string StopExecutable { get; }
-        string Stoparguments { get; }
+        string? Startarguments { get; }
+        string? StopExecutable { get; }
+        string? Stoparguments { get; }
         string WorkingDirectory { get; }
         ProcessPriorityClass Priority { get; }
         TimeSpan StopTimeout { get; }
@@ -53,6 +54,6 @@ namespace winsw.Configuration
         bool BeepOnShutdown { get; }
 
         // Extensions
-        XmlNode ExtensionsConfiguration { get; }
+        XmlNode? ExtensionsConfiguration { get; }
     }
 }

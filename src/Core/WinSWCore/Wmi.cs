@@ -89,17 +89,19 @@ namespace WMI
 
         public WmiRoot() : this(null) { }
 
-        public WmiRoot(string machineName)
+        public WmiRoot(string? machineName)
         {
-            ConnectionOptions options = new ConnectionOptions();
-            options.EnablePrivileges = true;
-            options.Impersonation = ImpersonationLevel.Impersonate;
-            options.Authentication = AuthenticationLevel.PacketPrivacy;
+            ConnectionOptions options = new ConnectionOptions
+            {
+                EnablePrivileges = true,
+                Impersonation = ImpersonationLevel.Impersonate,
+                Authentication = AuthenticationLevel.PacketPrivacy,
+            };
 
             string path;
 
             if (machineName != null)
-                path = string.Format(@"\\{0}\root\cimv2", machineName);
+                path = $@"\\{machineName}\root\cimv2";
             else
                 path = @"\root\cimv2";
             scope = new ManagementScope(path, options);
@@ -113,7 +115,7 @@ namespace WMI
 
         abstract class BaseHandler : IProxyInvocationHandler
         {
-            public abstract object Invoke(object proxy, MethodInfo method, object[] args);
+            public abstract object? Invoke(object proxy, MethodInfo method, object[] args);
 
             protected void CheckError(ManagementBaseObject result)
             {
@@ -127,9 +129,9 @@ namespace WMI
         {
             private readonly ManagementObject _mo;
 
-            public InstanceHandler(ManagementObject o) { _mo = o; }
+            public InstanceHandler(ManagementObject o) => _mo = o;
 
-            public override object Invoke(object proxy, MethodInfo method, object[] args)
+            public override object? Invoke(object proxy, MethodInfo method, object[] args)
             {
                 if (method.DeclaringType == typeof(IWmiObject))
                 {
@@ -153,7 +155,7 @@ namespace WMI
 
                 ManagementBaseObject wmiArgs = _mo.GetMethodParameters(method.Name);
                 for (int i = 0; i < args.Length; i++)
-                    wmiArgs[Capitalize(methodArgs[i].Name)] = args[i];
+                    wmiArgs[Capitalize(methodArgs[i].Name!)] = args[i];
 
                 CheckError(_mo.InvokeMethod(method.Name, wmiArgs, null));
                 return null;
@@ -172,7 +174,7 @@ namespace WMI
 
             public ClassHandler(ManagementClass mc, string wmiClass) { _mc = mc; _wmiClass = wmiClass; }
 
-            public override object Invoke(object proxy, MethodInfo method, object[] args)
+            public override object? Invoke(object proxy, MethodInfo method, object[] args)
             {
                 ParameterInfo[] methodArgs = method.GetParameters();
 
@@ -185,7 +187,7 @@ namespace WMI
                         if (i != 0)
                             query += " AND ";
 
-                        query += ' ' + Capitalize(methodArgs[i].Name) + " = '" + args[i] + "'";
+                        query += ' ' + Capitalize(methodArgs[i].Name!) + " = '" + args[i] + "'";
                     }
 
                     ManagementObjectSearcher searcher = new ManagementObjectSearcher(_mc.Scope, new ObjectQuery(query));
@@ -198,7 +200,7 @@ namespace WMI
 
                 ManagementBaseObject wmiArgs = _mc.GetMethodParameters(method.Name);
                 for (int i = 0; i < args.Length; i++)
-                    wmiArgs[Capitalize(methodArgs[i].Name)] = args[i];
+                    wmiArgs[Capitalize(methodArgs[i].Name!)] = args[i];
 
                 CheckError(_mc.InvokeMethod(method.Name, wmiArgs, null));
                 return null;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Xml;
 using log4net;
 
@@ -128,8 +127,8 @@ namespace winsw.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            var extensionsConfig = ServiceDescriptor.ExtensionsConfiguration;
-            XmlElement configNode = (extensionsConfig != null) ? extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement : null;
+            XmlNode? extensionsConfig = ServiceDescriptor.ExtensionsConfiguration;
+            XmlElement? configNode = (extensionsConfig != null) ? extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement : null;
             if (configNode == null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
@@ -165,13 +164,13 @@ namespace winsw.Extensions
 
             try
             {
-                Type t = Type.GetType(className);
+                Type? t = Type.GetType(className);
                 if (t == null)
                 {
                     throw new ExtensionException(id, "Class " + className + " does not exist");
                 }
 
-                created = Activator.CreateInstance(t);
+                created = Activator.CreateInstance(t)!;
             }
             catch (Exception ex)
             {

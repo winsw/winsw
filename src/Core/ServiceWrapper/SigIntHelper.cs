@@ -15,7 +15,7 @@ namespace winsw
         private static extern bool FreeConsole();
 
         [DllImport(KERNEL32)]
-        private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+        private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate? HandlerRoutine, bool Add);
 
         // Delegate type to be used as the Handler Routine for SCCH
         private delegate bool ConsoleCtrlDelegate(CtrlTypes CtrlType);

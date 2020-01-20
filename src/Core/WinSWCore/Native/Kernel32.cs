@@ -13,12 +13,17 @@ namespace winsw.Native
         public static extern bool SetStdHandle(int nStdHandle, SafeFileHandle handle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool CreateProcess(string lpApplicationName,
-           string lpCommandLine, IntPtr lpProcessAttributes,
-           IntPtr lpThreadAttributes, bool bInheritHandles,
-           uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory,
-           [In] ref STARTUPINFO lpStartupInfo,
-           out PROCESS_INFORMATION lpProcessInformation);
+        public static extern bool CreateProcess(
+            string? lpApplicationName,
+            string lpCommandLine,
+            IntPtr lpProcessAttributes,
+            IntPtr lpThreadAttributes,
+            bool bInheritHandles,
+            uint dwCreationFlags,
+            IntPtr lpEnvironment,
+            string? lpCurrentDirectory,
+            [In] ref STARTUPINFO lpStartupInfo,
+            out PROCESS_INFORMATION lpProcessInformation);
 
         [DllImport("kernel32.dll")]
         public static extern int GetLastError();

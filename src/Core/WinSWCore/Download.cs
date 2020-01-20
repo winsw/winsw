@@ -23,20 +23,21 @@ namespace winsw
         public readonly string From;
         public readonly string To;
         public readonly AuthType Auth = AuthType.none;
-        public readonly string Username;
-        public readonly string Password;
+        public readonly string? Username;
+        public readonly string? Password;
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
 
         public string ShortId => $"(download from {From})";
 
+        // internal
         public Download(
             string from,
             string to,
             bool failOnError = false,
             AuthType auth = AuthType.none,
-            string username = null,
-            string password = null,
+            string? username = null,
+            string? password = null,
             bool unsecureAuth = false)
         {
             From = from;
@@ -119,7 +120,7 @@ namespace winsw
                     break;
 
                 case AuthType.basic:
-                    SetBasicAuthHeader(req, Username, Password);
+                    SetBasicAuthHeader(req, Username!, Password!);
                     break;
 
                 default:
