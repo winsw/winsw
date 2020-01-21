@@ -8,10 +8,6 @@ Actual samples are being also published as a part of releases in GitHub and NuGe
 
 ## File structure
 
-The root element of this XML file must be `<service>`, and it supports the following child element.
-
-Example:
-
 ```
     <service>
       <id>jenkins</id>
