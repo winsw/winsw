@@ -20,7 +20,7 @@ namespace winswTests.Util
         public string XMLComment { get; set; }
         public List<string> ExtensionXmls { get; private set; }
 
-        private List<string> configEntries;
+        private readonly List<string> configEntries;
 
         // TODO: Switch to the initializer?
         private ConfigXmlBuilder()

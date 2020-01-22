@@ -144,10 +144,7 @@ namespace winswTests
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"digest\"/>")
                     .ToServiceDescriptor(true);
 
-            ExceptionHelper.assertFails("Cannot parse <auth> Enum value from string 'digest'", typeof(InvalidDataException), () =>
-            {
-                var d = GetSingleEntry(sd);
-            });
+            ExceptionHelper.AssertFails("Cannot parse <auth> Enum value from string 'digest'", typeof(InvalidDataException), () => _ = GetSingleEntry(sd));
         }
 
         private Download GetSingleEntry(ServiceDescriptor sd)
@@ -163,10 +160,7 @@ namespace winswTests
                 .WithDownload(download)
                 .ToServiceDescriptor(true);
 
-            ExceptionHelper.assertFails(expectedMessagePart, expectedExceptionType ?? typeof(InvalidDataException), () =>
-            {
-                var d = GetSingleEntry(sd);
-            });
+            ExceptionHelper.AssertFails(expectedMessagePart, expectedExceptionType ?? typeof(InvalidDataException), () => _ = GetSingleEntry(sd));
         }
     }
 }

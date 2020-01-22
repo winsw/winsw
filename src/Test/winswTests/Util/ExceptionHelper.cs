@@ -5,28 +5,10 @@ namespace winswTests.Util
 {
     class ExceptionHelper
     {
-        public static void assertFails(string expectedMessagePart, Type expectedExceptionType, ExceptionHelperExecutionBody body)
+        public static void AssertFails(string expectedMessagePart, Type expectedExceptionType, TestDelegate body)
         {
-            try
-            {
-                body();
-            }
-            catch (Exception ex)
-            {
-                Console.Out.WriteLine("Caught exception: " + ex);
-                Assert.That(ex, Is.InstanceOf(expectedExceptionType ?? typeof(Exception)), "Wrong exception type");
-                if (expectedMessagePart != null)
-                {
-                    Assert.That(ex.Message, Does.Contain(expectedMessagePart), "Wrong error message");
-                }
-
-                // Else the exception is fine
-                return;
-            }
-
-            Assert.Fail("Expected exception " + expectedExceptionType + " to be thrown by the operation");
+            Exception exception = Assert.Throws(expectedExceptionType ?? typeof(Exception), body);
+            StringAssert.Contains(expectedMessagePart, exception.Message);
         }
     }
-
-    public delegate void ExceptionHelperExecutionBody();
 }

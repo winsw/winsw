@@ -439,9 +439,9 @@ namespace winsw
                         // Next day so check if file can be zipped
                         ZipFiles(baseDirectory, extension, baseFileName);
                     }
-                    catch (Exception et)
+                    catch (Exception ex)
                     {
-                        EventLogger.LogEvent(string.Format("Failed to to trigger auto roll at time event due to: {0}", et.Message));
+                        EventLogger.LogEvent($"Failed to to trigger auto roll at time event due to: {ex.Message}");
                     }
                     finally
                     {
@@ -503,7 +503,7 @@ namespace winsw
                         }
                         catch (Exception e)
                         {
-                            EventLogger.LogEvent(string.Format("Failed to roll size time log: {0}", e.Message));
+                            EventLogger.LogEvent($"Failed to roll size time log: {e.Message}");
                         }
                     }
 
@@ -635,12 +635,12 @@ namespace winsw
                         }
                         else
                         {
-                            throw new IOException(string.Format("File {0} does not follow the pattern provided", f));
+                            throw new IOException($"File {f} does not follow the pattern provided");
                         }
                     }
                     catch (Exception e)
                     {
-                        throw new IOException(string.Format("Failed to process file {0} due to error {1}", f, e.Message), e);
+                        throw new IOException($"Failed to process file {f} due to error {e.Message}", e);
                     }
                 }
 
