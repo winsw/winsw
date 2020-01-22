@@ -24,7 +24,7 @@
  
  You can find more information about configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
 -->
-<configuration>
+<service>
   
 <!-- 
 SECTION: Mandatory options
@@ -307,4 +307,4 @@ More info is available here: https://github.com/kohsuke/winsw/blob/master/doc/ex
 </extensions>
 -->
 
-</configuration>
+</service>
