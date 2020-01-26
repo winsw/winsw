@@ -10,9 +10,7 @@ version: 2.0.{build}
 
 # Automatically register private account and/or project AppVeyor NuGet feeds.
 nuget:
-  account_feed: true
-  project_feed: true
-  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
+  disable_publish_on_pr: true     # disable publishing of .nupkg artifacts 
 
 before_build:
   # Check SDKs
