@@ -6,7 +6,6 @@ skip_branch_with_pr: true
 image: Visual Studio 2019
 # platform: Any CPU
 configuration: Release
-version: 2.0.{build}
 
 # Automatically register private account and/or project AppVeyor NuGet feeds.
 nuget:
