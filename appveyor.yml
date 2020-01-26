@@ -45,11 +45,11 @@ artifacts:
   - path: 'src\Core\ServiceWrapper\bin\Release\net461\WinSW.exe'
     name: WinSW.NET461.exe
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\publish\'
-    name: WinSW.NETCore31
+    name: WinSW.NETCore31.zip
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\win-x64\publish\WindowsService.exe'
-    name: WinSW.NETCore31.x64
+    name: WinSW.NETCore31.x64.exe
   - path: 'src\Core\ServiceWrapper\bin\Release\netcoreapp3.1\win-x86\publish\WindowsService.exe'
-    name: WinSW.NETCore31.x86
+    name: WinSW.NETCore31.x86.exe
   - path: 'WinSW.$(appveyor_build_version).nupkg'
     name: WinSW.nupkg
   - path: 'examples\sample-allOptions.xml'
