@@ -1,6 +1,10 @@
 Release Notes
 ====
 
+##### Newer releases
+
+See [GitHub Releases](https://github.com/kohsuke/winsw/releases)
+
 ##### 2.3.0
 
 Release date: Aug 19, 2019
