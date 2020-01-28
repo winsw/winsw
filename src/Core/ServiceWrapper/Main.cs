@@ -728,7 +728,22 @@ namespace winsw
                 if (s is null)
                     ThrowNoSuchService();
 
-                s.StopService();
+                try
+                {
+                    s.StopService();
+                }
+                catch (WmiException e)
+                {
+                    if (e.ErrorCode == ReturnValue.ServiceCannotAcceptControl)
+                    {
+                        Log.Info($"The service with ID '{descriptor.Id}' is not running");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
                 return;
             }
 
