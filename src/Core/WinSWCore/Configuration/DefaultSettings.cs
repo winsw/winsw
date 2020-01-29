@@ -19,9 +19,7 @@ namespace winsw.Configuration
         public string Executable => throw new InvalidOperationException(nameof(Executable) + " must be specified.");
         public bool HideWindow => false;
 
-        // this returns the executable name as given by the calling process, so
-        // it needs to be absolutized.
-        public string ExecutablePath => Path.GetFullPath(Environment.GetCommandLineArgs()[0]);
+        public string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
 
         // Installation
         public bool AllowServiceAcountLogonRight => false;
