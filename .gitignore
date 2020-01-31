@@ -8,3 +8,4 @@ obj
 /winsw_key.pfx
 /src/.vs/
 /src/Core/WinSWCore/WinSWCore.csproj.DotSettings
+/artifacts/
