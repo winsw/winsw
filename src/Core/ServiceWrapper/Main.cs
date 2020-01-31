@@ -455,6 +455,13 @@ namespace winsw
                 Log.Debug("Completed. Exit code is 0");
                 return 0;
             }
+            catch (InvalidDataException e)
+            {
+                string message = "The configuration file cound not be loaded. " + e.Message;
+                Log.Fatal(message, e);
+                Console.Error.WriteLine(message);
+                return -1;
+            }
             catch (WmiException e)
             {
                 Log.Fatal("WMI Operation failure: " + e.ErrorCode, e);
