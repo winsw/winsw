@@ -3,6 +3,9 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Xml;
+#if !VNEXT
+using log4net;
+#endif
 using winsw.Util;
 
 namespace winsw
@@ -20,6 +23,10 @@ namespace winsw
             basic
         }
 
+#if !VNEXT
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(Download));
+#endif
+
         public readonly string From;
         public readonly string To;
         public readonly AuthType Auth = AuthType.none;
@@ -29,6 +36,28 @@ namespace winsw
         public readonly bool FailOnError;
 
         public string ShortId => $"(download from {From})";
+
+#if !VNEXT
+        static Download()
+        {
+            const SecurityProtocolType Tls12 = (SecurityProtocolType)0x00000C00;
+            const SecurityProtocolType Tls11 = (SecurityProtocolType)0x00000300;
+
+            // Windows 7 and Windows Server 2008 R2
+            if (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor == 1)
+            {
+                try
+                {
+                    ServicePointManager.SecurityProtocol |= Tls11 | Tls12;
+                    Logger.Info("TLS 1.1/1.2 enabled");
+                }
+                catch (NotSupportedException)
+                {
+                    Logger.Info("TLS 1.1/1.2 disabled");
+                }
+            }
+        }
+#endif
 
         // internal
         public Download(
