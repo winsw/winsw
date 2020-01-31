@@ -175,7 +175,7 @@ namespace winsw.Util
             if (logHandler != null)
             {
                 Logger.Debug("Forwarding logs of the process " + processToStart + " to " + logHandler);
-                logHandler.log(processToStart.StandardOutput.BaseStream, processToStart.StandardError.BaseStream);
+                logHandler.log(processToStart.StandardOutput, processToStart.StandardError);
             }
 
             // monitor the completion of the process

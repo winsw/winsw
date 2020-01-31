@@ -25,7 +25,7 @@ namespace winsw
     public abstract class LogHandler
     {
         // ReSharper disable once InconsistentNaming
-        public abstract void log(Stream outputStream, Stream errorStream);
+        public abstract void log(StreamReader outputReader, StreamReader errorReader);
 
         /// <summary>
         /// Error and information about logging should be reported here.
@@ -37,21 +37,16 @@ namespace winsw
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
         /// </summary>
-        protected void CopyStream(Stream i, Stream o)
+        protected void CopyStream(StreamReader reader, StreamWriter writer)
         {
-            byte[] buf = new byte[1024];
-            while (true)
+            string? line;
+            while ((line = reader.ReadLine()) != null)
             {
-                int sz = i.Read(buf, 0, buf.Length);
-                if (sz == 0)
-                    break;
-
-                o.Write(buf, 0, sz);
-                o.Flush();
+                writer.WriteLine(line);
             }
 
-            i.Close();
-            o.Close();
+            reader.Dispose();
+            writer.Dispose();
         }
 
         /// <summary>
@@ -90,6 +85,8 @@ namespace winsw
             ErrFileDisabled = errFileDisabled;
             ErrFilePattern = errFilePattern;
         }
+
+        protected StreamWriter CreateWriter(FileStream stream) => new StreamWriter(stream) { AutoFlush = true };
     }
 
     public abstract class SimpleLogAppender : AbstractFileLogAppender
@@ -106,13 +103,13 @@ namespace winsw
             ErrorLogFileName = BaseLogFileName + ".err.log";
         }
 
-        public override void log(Stream outputStream, Stream errorStream)
+        public override void log(StreamReader outputReader, StreamReader errorReader)
         {
             if (!OutFileDisabled)
-                new Thread(() => CopyStream(outputStream, new FileStream(OutputLogFileName, FileMode))).Start();
+                new Thread(() => CopyStream(outputReader, CreateWriter(new FileStream(OutputLogFileName, FileMode)))).Start();
 
             if (!ErrFileDisabled)
-                new Thread(() => CopyStream(errorStream, new FileStream(ErrorLogFileName, FileMode))).Start();
+                new Thread(() => CopyStream(errorReader, CreateWriter(new FileStream(ErrorLogFileName, FileMode)))).Start();
         }
     }
 
@@ -137,10 +134,10 @@ namespace winsw
     /// </summary>
     public class IgnoreLogAppender : LogHandler
     {
-        public override void log(Stream outputStream, Stream errorStream)
+        public override void log(StreamReader outputReader, StreamReader errorReader)
         {
-            new Thread(() => CopyStream(outputStream, Stream.Null)).Start();
-            new Thread(() => CopyStream(errorStream, Stream.Null)).Start();
+            new Thread(() => CopyStream(outputReader, StreamWriter.Null)).Start();
+            new Thread(() => CopyStream(errorReader, StreamWriter.Null)).Start();
         }
     }
 
@@ -156,76 +153,38 @@ namespace winsw
             Period = period;
         }
 
-        public override void log(Stream outputStream, Stream errorStream)
+        public override void log(StreamReader outputReader, StreamReader errorReader)
         {
             if (!OutFileDisabled)
-                new Thread(() => CopyStreamWithDateRotation(outputStream, OutFilePattern)).Start();
+                new Thread(() => CopyStreamWithDateRotation(outputReader, OutFilePattern)).Start();
 
             if (!ErrFileDisabled)
-                new Thread(() => CopyStreamWithDateRotation(errorStream, ErrFilePattern)).Start();
+                new Thread(() => CopyStreamWithDateRotation(errorReader, ErrFilePattern)).Start();
         }
 
         /// <summary>
         /// Works like the CopyStream method but does a log rotation based on time.
         /// </summary>
-        private void CopyStreamWithDateRotation(Stream data, string ext)
+        private void CopyStreamWithDateRotation(StreamReader reader, string ext)
         {
             PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(Pattern, Period);
             periodicRollingCalendar.init();
 
-            byte[] buf = new byte[1024];
-            FileStream w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Append);
-            while (true)
+            StreamWriter writer = CreateWriter(new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Append));
+            string? line;
+            while ((line = reader.ReadLine()) != null)
             {
-                int len = data.Read(buf, 0, buf.Length);
-                if (len == 0)
-                    break;    // EOF
-
                 if (periodicRollingCalendar.shouldRoll)
                 {
-                    // rotate at the line boundary
-                    int offset = 0;
-                    bool rolled = false;
-                    for (int i = 0; i < len; i++)
-                    {
-                        if (buf[i] == 0x0A)
-                        {
-                            // at the line boundary.
-                            // time to rotate.
-                            w.Write(buf, offset, i + 1);
-                            w.Close();
-                            offset = i + 1;
-
-                            // create a new file and write everything to the new file.
-                            w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
-                            rolled = true;
-                            if (offset < len)
-                            {
-                                w.Write(buf, offset, len - offset);
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!rolled)
-                    {
-                        // we didn't roll - most likely as we didnt find a line boundary, so we should log what we read and roll anyway.
-                        w.Write(buf, 0, len);
-                        w.Close();
-                        w = new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create);
-                    }
-                }
-                else
-                {
-                    // typical case. write the whole thing into the current file
-                    w.Write(buf, 0, len);
+                    writer.Dispose();
+                    writer = CreateWriter(new FileStream(BaseLogFileName + "_" + periodicRollingCalendar.format + ext, FileMode.Create));
                 }
 
-                w.Flush();
+                writer.WriteLine(line);
             }
 
-            data.Close();
-            w.Close();
+            reader.Dispose();
+            writer.Dispose();
         }
     }
 
@@ -254,86 +213,63 @@ namespace winsw
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
             : this(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern, DEFAULT_SIZE_THRESHOLD, DEFAULT_FILES_TO_KEEP) { }
 
-        public override void log(Stream outputStream, Stream errorStream)
+        public override void log(StreamReader outputReader, StreamReader errorReader)
         {
             if (!OutFileDisabled)
-                new Thread(() => CopyStreamWithRotation(outputStream, OutFilePattern)).Start();
+                new Thread(() => CopyStreamWithRotation(outputReader, OutFilePattern)).Start();
 
             if (!ErrFileDisabled)
-                new Thread(() => CopyStreamWithRotation(errorStream, ErrFilePattern)).Start();
+                new Thread(() => CopyStreamWithRotation(errorReader, ErrFilePattern)).Start();
         }
 
         /// <summary>
         /// Works like the CopyStream method but does a log rotation.
         /// </summary>
-        private void CopyStreamWithRotation(Stream data, string ext)
+        private void CopyStreamWithRotation(StreamReader reader, string ext)
         {
-            byte[] buf = new byte[1024];
-            FileStream w = new FileStream(BaseLogFileName + ext, FileMode.Append);
-            long sz = new FileInfo(BaseLogFileName + ext).Length;
+            StreamWriter writer = CreateWriter(new FileStream(BaseLogFileName + ext, FileMode.Append));
+            long fileLength = new FileInfo(BaseLogFileName + ext).Length;
 
-            while (true)
+            string? line;
+            while ((line = reader.ReadLine()) != null)
             {
-                int len = data.Read(buf, 0, buf.Length);
-                if (len == 0)
-                    break;    // EOF
+                int lengthToWrite = (line.Length + Environment.NewLine.Length) * sizeof(char);
+                if (fileLength + lengthToWrite > SizeTheshold)
+                {
+                    writer.Dispose();
 
-                if (sz + len < SizeTheshold)
-                {
-                    // typical case. write the whole thing into the current file
-                    w.Write(buf, 0, len);
-                    sz += len;
-                }
-                else
-                {
-                    // rotate at the line boundary
-                    int s = 0;
-                    for (int i = 0; i < len; i++)
+                    try
                     {
-                        if (buf[i] != 0x0A)
-                            continue;
-
-                        if (sz + i < SizeTheshold)
-                            continue;
-
-                        // at the line boundary and exceeded the rotation unit.
-                        // time to rotate.
-                        w.Write(buf, s, i + 1);
-                        w.Close();
-                        s = i + 1;
-
-                        try
+                        for (int j = FilesToKeep; j >= 1; j--)
                         {
-                            for (int j = FilesToKeep; j >= 1; j--)
-                            {
-                                string dst = BaseLogFileName + "." + (j - 1) + ext;
-                                string src = BaseLogFileName + "." + (j - 2) + ext;
-                                if (File.Exists(dst))
-                                    File.Delete(dst);
+                            string dst = BaseLogFileName + "." + (j - 1) + ext;
+                            string src = BaseLogFileName + "." + (j - 2) + ext;
+                            if (File.Exists(dst))
+                                File.Delete(dst);
 
-                                if (File.Exists(src))
-                                    File.Move(src, dst);
-                            }
-
-                            File.Move(BaseLogFileName + ext, BaseLogFileName + ".0" + ext);
-                        }
-                        catch (IOException e)
-                        {
-                            EventLogger.LogEvent("Failed to rotate log: " + e.Message);
+                            if (File.Exists(src))
+                                File.Move(src, dst);
                         }
 
-                        // even if the log rotation fails, create a new one, or else
-                        // we'll infinitely try to rotate.
-                        w = new FileStream(BaseLogFileName + ext, FileMode.Create);
-                        sz = new FileInfo(BaseLogFileName + ext).Length;
+                        File.Move(BaseLogFileName + ext, BaseLogFileName + ".0" + ext);
                     }
+                    catch (IOException e)
+                    {
+                        EventLogger.LogEvent("Failed to rotate log: " + e.Message);
+                    }
+
+                    // even if the log rotation fails, create a new one, or else
+                    // we'll infinitely try to rotate.
+                    writer = CreateWriter(new FileStream(BaseLogFileName + ext, FileMode.Create));
+                    fileLength = new FileInfo(BaseLogFileName + ext).Length;
                 }
 
-                w.Flush();
+                writer.WriteLine(line);
+                fileLength += lengthToWrite;
             }
 
-            data.Close();
-            w.Close();
+            reader.Dispose();
+            writer.Dispose();
         }
     }
 
@@ -347,7 +283,7 @@ namespace winsw
         {
         }
 
-        public override void log(Stream outputStream, Stream errorStream)
+        public override void log(StreamReader outputReader, StreamReader errorReader)
         {
             if (!OutFileDisabled)
                 CopyFile(OutputLogFileName, OutputLogFileName + ".old");
@@ -355,7 +291,7 @@ namespace winsw
             if (!ErrFileDisabled)
                 CopyFile(ErrorLogFileName, ErrorLogFileName + ".old");
 
-            base.log(outputStream, errorStream);
+            base.log(outputReader, errorReader);
         }
     }
 
@@ -389,28 +325,26 @@ namespace winsw
             ZipDateFormat = zipdateformat;
         }
 
-        public override void log(Stream outputStream, Stream errorStream)
+        public override void log(StreamReader outputReader, StreamReader errorReader)
         {
             if (!OutFileDisabled)
-                new Thread(() => CopyStreamWithRotation(outputStream, OutFilePattern)).Start();
+                new Thread(() => CopyStreamWithRotation(outputReader, OutFilePattern)).Start();
 
             if (!ErrFileDisabled)
-                new Thread(() => CopyStreamWithRotation(errorStream, ErrFilePattern)).Start();
+                new Thread(() => CopyStreamWithRotation(errorReader, ErrFilePattern)).Start();
         }
 
-        private void CopyStreamWithRotation(Stream data, string extension)
+        private void CopyStreamWithRotation(StreamReader reader, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
             var fileLock = new object();
-
-            var buf = new byte[1024];
 
             var baseDirectory = Path.GetDirectoryName(BaseLogFileName)!;
             var baseFileName = Path.GetFileName(BaseLogFileName);
             var logFile = BaseLogFileName + extension;
 
-            var w = new FileStream(logFile, FileMode.Append);
-            var sz = new FileInfo(logFile).Length;
+            var writer = CreateWriter(new FileStream(logFile, FileMode.Append));
+            var fileLength = new FileInfo(logFile).Length;
 
             // We auto roll at time is configured then we need to create a timer and wait until time is elasped and roll the file over
             if (AutoRollAtTime is TimeSpan autoRollAtTime)
@@ -425,15 +359,15 @@ namespace winsw
                         timer.Stop();
                         lock (fileLock)
                         {
-                            w.Close();
+                            writer.Dispose();
 
                             var now = DateTime.Now.AddDays(-1);
                             var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
                             var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
-                            w = new FileStream(logFile, FileMode.Create);
-                            sz = new FileInfo(logFile).Length;
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
+                            fileLength = new FileInfo(logFile).Length;
                         }
 
                         // Next day so check if file can be zipped
@@ -453,53 +387,28 @@ namespace winsw
                 timer.Start();
             }
 
-            while (true)
+            string? line;
+            while ((line = reader.ReadLine()) != null)
             {
-                var len = data.Read(buf, 0, buf.Length);
-                if (len == 0)
-                    break;    // EOF
-
                 lock (fileLock)
                 {
-                    if (sz + len < SizeTheshold)
-                    {
-                        // typical case. write the whole thing into the current file
-                        w.Write(buf, 0, len);
-                        sz += len;
-                    }
-                    else
+                    int lengthToWrite = (line.Length + Environment.NewLine.Length) * sizeof(char);
+                    if (fileLength + lengthToWrite > SizeTheshold)
                     {
                         try
                         {
-                            // rotate at the line boundary
-                            int s = 0;
-                            for (int i = 0; i < len; i++)
-                            {
-                                if (buf[i] != 0x0A)
-                                    continue;
+                            // rotate file
+                            var now = DateTime.Now;
+                            var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
+                            var nextFileName =
+                                Path.Combine(baseDirectory,
+                                    string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
+                            File.Move(logFile, nextFileName);
 
-                                if (sz + i < SizeTheshold)
-                                    continue;
-
-                                // at the line boundary and exceeded the rotation unit.
-                                // time to rotate.
-                                w.Write(buf, s, i + 1);
-                                w.Close();
-                                s = i + 1;
-
-                                // rotate file
-                                var now = DateTime.Now;
-                                var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
-                                var nextFileName =
-                                    Path.Combine(baseDirectory,
-                                        string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
-                                File.Move(logFile, nextFileName);
-
-                                // even if the log rotation fails, create a new one, or else
-                                // we'll infinitely try to rotate.
-                                w = new FileStream(logFile, FileMode.Create);
-                                sz = new FileInfo(logFile).Length;
-                            }
+                            // even if the log rotation fails, create a new one, or else
+                            // we'll infinitely try to rotate.
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
+                            fileLength = new FileInfo(logFile).Length;
                         }
                         catch (Exception e)
                         {
@@ -507,12 +416,13 @@ namespace winsw
                         }
                     }
 
-                    w.Flush();
+                    writer.WriteLine(line);
+                    fileLength += lengthToWrite;
                 }
             }
 
-            data.Close();
-            w.Close();
+            reader.Dispose();
+            writer.Dispose();
         }
 
         private void ZipFiles(string directory, string fileExtension, string zipFileBaseName)
