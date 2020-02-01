@@ -106,7 +106,7 @@ namespace winsw
                         continue;
                     }
 
-                    CopyFile(tokens[0], tokens[1]);
+                    MoveFile(tokens[0], tokens[1]);
                 }
             }
             finally
@@ -118,16 +118,15 @@ namespace winsw
         /// <summary>
         /// File replacement.
         /// </summary>
-        private void CopyFile(string sourceFileName, string destFileName)
+        private void MoveFile(string sourceFileName, string destFileName)
         {
             try
             {
-                File.Delete(destFileName);
-                File.Move(sourceFileName, destFileName);
+                FileHelper.MoveOrReplaceFile(sourceFileName, destFileName);
             }
             catch (IOException e)
             {
-                LogEvent("Failed to copy :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+                LogEvent("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
         }
 

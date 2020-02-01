@@ -8,6 +8,7 @@ using System.Threading;
 #if !VNEXT
 using ICSharpCode.SharpZipLib.Zip;
 #endif
+using winsw.Util;
 
 namespace winsw
 {
@@ -52,16 +53,15 @@ namespace winsw
         /// <summary>
         /// File replacement.
         /// </summary>
-        protected void CopyFile(string sourceFileName, string destFileName)
+        protected void MoveFile(string sourceFileName, string destFileName)
         {
             try
             {
-                File.Delete(destFileName);
-                File.Move(sourceFileName, destFileName);
+                FileHelper.MoveOrReplaceFile(sourceFileName, destFileName);
             }
             catch (IOException e)
             {
-                EventLogger.LogEvent("Failed to copy :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+                EventLogger.LogEvent("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
         }
     }
@@ -286,10 +286,10 @@ namespace winsw
         public override void log(StreamReader outputReader, StreamReader errorReader)
         {
             if (!OutFileDisabled)
-                CopyFile(OutputLogFileName, OutputLogFileName + ".old");
+                MoveFile(OutputLogFileName, OutputLogFileName + ".old");
 
             if (!ErrFileDisabled)
-                CopyFile(ErrorLogFileName, ErrorLogFileName + ".old");
+                MoveFile(ErrorLogFileName, ErrorLogFileName + ".old");
 
             base.log(outputReader, errorReader);
         }

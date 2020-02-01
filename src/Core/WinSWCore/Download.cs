@@ -181,14 +181,7 @@ namespace winsw
 #endif
             }
 
-#if NETCOREAPP
-            File.Move(tmpFilePath, To, true);
-#else
-            if (File.Exists(To))
-                File.Delete(To);
-
-            File.Move(tmpFilePath, To);
-#endif
+            FileHelper.MoveOrReplaceFile(To + ".tmp", To);
         }
 #if NET20
 
