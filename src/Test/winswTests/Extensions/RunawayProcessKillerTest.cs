@@ -71,19 +71,15 @@ $@"<service>
             var extensionId = "runawayProcessKiller";
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
 
-            // Prepare the env var
-            string varName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
-            var env = new Dictionary<string, string>();
-            env.Add(varName, winswId);
-
             // Spawn the test process
-            var scriptFile = Path.Combine(tmpDir, "dosleep.bat");
-            var envFile = Path.Combine(tmpDir, "env.txt");
-            File.WriteAllText(scriptFile, "set > " + envFile + "\npause");
             Process proc = new Process();
             var ps = proc.StartInfo;
-            ps.FileName = scriptFile;
-            ProcessHelper.StartProcessAndCallbackForExit(proc, envVars: env);
+            ps.FileName = "cmd.exe";
+            ps.Arguments = "/c pause";
+            ps.UseShellExecute = false;
+            ps.RedirectStandardOutput = true;
+            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID] = winswId;
+            proc.Start();
 
             try
             {
@@ -103,6 +99,7 @@ $@"<service>
 
                 // Try to terminate
                 Assert.That(!proc.HasExited, "Process " + proc + " has exited before the RunawayProcessKiller extension invocation");
+                _ = proc.StandardOutput.Read();
                 extension.OnWrapperStarted();
                 Assert.That(proc.HasExited, "Process " + proc + " should have been terminated by RunawayProcessKiller");
             }
