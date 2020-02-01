@@ -55,7 +55,7 @@ namespace winsw
                 DateTime next = periodicRollingCalendar.nextTriggeringTime(epoch, 1);
                 string r1 = next.ToString(_format);
 
-                if (r0 != null && r1 != null && !r0.Equals(r1))
+                if (r0 != r1)
                 {
                     return i;
                 }

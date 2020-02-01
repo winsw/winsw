@@ -52,7 +52,7 @@ namespace WMI
 
         void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string[] serviceDependencies);
 
-        Win32Service Select(string name);
+        Win32Service? Select(string name);
     }
 
     // http://msdn.microsoft.com/en-us/library/windows/desktop/aa394418(v=vs.85).aspx

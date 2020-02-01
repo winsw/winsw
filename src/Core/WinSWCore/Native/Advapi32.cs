@@ -152,7 +152,7 @@ namespace winsw.Native
         {
             var machinename = Environment.MachineName;
             string? domain = GetDomain(username);
-            if (domain == null || domain.ToLower() == machinename.ToLower() || domain == ".")
+            if (domain is null || domain.ToLower() == machinename.ToLower() || domain == ".")
             {
                 return GetLogin(username);
             }

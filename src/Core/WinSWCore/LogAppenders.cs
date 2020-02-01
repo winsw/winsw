@@ -427,7 +427,7 @@ namespace winsw
 
         private void ZipFiles(string directory, string fileExtension, string zipFileBaseName)
         {
-            if (ZipOlderThanNumDays == null || !(ZipOlderThanNumDays > 0))
+            if (ZipOlderThanNumDays is null || ZipOlderThanNumDays <= 0)
                 return;
 
             try

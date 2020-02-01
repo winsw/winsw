@@ -106,12 +106,12 @@ namespace winsw
                 }
 
                 // Also fail if there is no user/password
-                if (Username == null)
+                if (Username is null)
                 {
                     throw new InvalidDataException("Basic Auth is enabled, but username is not specified " + ShortId);
                 }
 
-                if (Password == null)
+                if (Password is null)
                 {
                     throw new InvalidDataException("Basic Auth is enabled, but password is not specified " + ShortId);
                 }

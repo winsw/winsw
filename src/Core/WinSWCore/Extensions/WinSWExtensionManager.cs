@@ -128,8 +128,8 @@ namespace winsw.Extensions
             }
 
             XmlNode? extensionsConfig = ServiceDescriptor.ExtensionsConfiguration;
-            XmlElement? configNode = (extensionsConfig != null) ? extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement : null;
-            if (configNode == null)
+            XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
+            if (configNode is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
             }
@@ -165,7 +165,7 @@ namespace winsw.Extensions
             try
             {
                 Type? t = Type.GetType(className);
-                if (t == null)
+                if (t is null)
                 {
                     throw new ExtensionException(id, "Class " + className + " does not exist");
                 }
