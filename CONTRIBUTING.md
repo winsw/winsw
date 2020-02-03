@@ -29,4 +29,4 @@ dotnet test src\Test\winswTests\winswTests.csproj
 
 ## Project Structure
 
-You can find the project structure guideline [here](doc/developer/projectStructure.md).
+You can find the project structure guideline [here](docs/developer/project-structure.md).

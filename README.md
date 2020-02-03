@@ -29,16 +29,15 @@ Alternative sources:
 
 * [Maven packaging](https://github.com/jenkinsci/winsw-maven-packaging) for executables, hosted by the [Jenkins project](https://jenkins.io/). 
 Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/).
-* [Puppet](./doc/puppetWinSW.md), currently outdated (WinSW 1.x). Binaries are available on [Puppet Forge](https://forge.puppet.com/kenmaglio/winsw)
 
 ## Usage
 
-WinSW is being managed by configuration files: [Main XML configuration file](doc/xmlConfigFile.md) and [EXE configuration file](doc/exeConfigFile.md).
+WinSW is being managed by configuration files: [Main XML configuration file](docs/xml-config-file.md) and [EXE configuration file](docs/exe-config-file.md).
 
 Your renamed *WinSW.exe* binary also accepts the following commands:
 
 * `install` to install the service to Windows Service Controller.
-  This command requires some preliminary steps described in the [Installation guide](doc/installation.md).
+  This command requires some preliminary steps described in the [Installation guide](docs/installation.md).
 * `uninstall` to uninstall the service. The opposite operation of above.
 * `start` to start the service. The service must have already been installed.
 * `stop` to stop the service.
@@ -56,17 +55,17 @@ Most commands require Administrator privileges to execute. Since v2.8, WinSW wil
 
 User documentation:
 
-* [Installation guide](doc/installation.md) - Describes the installation process for different systems and .NET versions
+* [Installation guide](docs/installation.md) - Describes the installation process for different systems and .NET versions
 * Configuration:
-  * [Main XML configuration file](doc/xmlConfigFile.md)
-  * [EXE configuration file](doc/exeConfigFile.md)
-  * [Logging and error reporting](doc/loggingAndErrorReporting.md)
-  * [Extensions](doc/extensions/extensions.md)
+  * [Main XML configuration file](docs/xml-config-file.md)
+  * [EXE configuration file](docs/exe-config-file.md)
+  * [Logging and error reporting](docs/logging-and-error-reporting.md)
+  * [Extensions](docs/extensions/extensions.md)
 * Use-cases:
-  * [Self-restarting services](doc/selfRestartingService.md)
-  * [Deferred file operations](doc/deferredFileOperations.md)
+  * [Self-restarting services](docs/self-restarting-service.md)
+  * [Deferred file operations](docs/deferred-file-operations.md)
 * Configuration Management:
-  * [Puppet Forge Module](doc/puppetWinSW.md)
+  * [Puppet Forge Module](docs/puppetWinSW.md)
 
 Developer documentation:
 
@@ -76,7 +75,7 @@ Developer documentation:
 
 Contributions are welcome!
 No Contributor License Agreement is needed, just submit your pull requests.
-See the [contributing guidelines](./CONTRIBUTING.md) for more information.
+See the [contributing guidelines](CONTRIBUTING.md) for more information.
 
 ## License
 

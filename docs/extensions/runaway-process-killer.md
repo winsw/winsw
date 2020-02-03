@@ -11,7 +11,7 @@ Since: WinSW 2.0.
 
 ## Usage
 
-The extension can be configured via the [XML configuration file](../xmlConfigFile.md). Configuration sample:
+The extension can be configured via the [XML configuration file](../xml-config-file.md). Configuration sample:
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>

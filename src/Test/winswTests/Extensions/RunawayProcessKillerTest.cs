@@ -68,7 +68,7 @@ $@"<service>
             Assert.Ignore();
 
             var winswId = "myAppWithRunaway";
-            var extensionId = "runawayProcessKiller";
+            var extensionId = "runaway-process-killer";
             var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
 
             // Spawn the test process

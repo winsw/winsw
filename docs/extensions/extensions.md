@@ -5,8 +5,8 @@ These extensions allow to alter the behavior of the Windows service in order to 
 
 ## Available extensions
 
-* [Shared Directory Mapper](sharedDirectoryMapper.md) - Allows mapping shared drives before starting the executable
-* [Runaway Process Killer](runawayProcessKiller.md) - Termination of processes started by the previous runs of WinSW
+* [Shared Directory Mapper](shared-directory-mapper.md) - Allows mapping shared drives before starting the executable
+* [Runaway Process Killer](runaway-process-killer.md) - Termination of processes started by the previous runs of WinSW
 
 ## Developer guide
 
@@ -25,7 +25,7 @@ Generic extension creation guideline:
 * The extension should implement the configuration parsing from the `XmlNode`.
 * The extension should support disabling from the configuration file.
 
-WinSW engine will automatically locate your extension using the class name in the [XML configuration file](../xmlConfigFile.md).
+WinSW engine will automatically locate your extension using the class name in the [XML configuration file](../xml-config-file.md).
 See configuration samples provided for the extensions in the core.
 For extensions from external DLLs, the `className` field should also specify the assembly name. 
 It can be done via fully qualified class name or just by the `${CLASS_NAME}, ${ASSEMBLY_NAME}` declaration.

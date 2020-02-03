@@ -22,7 +22,7 @@
  This configuration file should be placed near the WinSW executable, the name should be the same.
  E.g. for myapp.exe the configuration file name should be myapp.xml
  
- You can find more information about configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
+ You can find more information about configuration options here: https://github.com/winsw/winsw/blob/master/docs/xml-config-file.md
 -->
 <service>
   
@@ -230,7 +230,7 @@ SECTION:Logging
     Default mode: append
     
     Each mode has different settings. 
-    See https://github.com/kohsuke/winsw/blob/master/doc/loggingAndErrorReporting.md for more details
+    See https://github.com/winsw/winsw/blob/master/docs/logging-and-error-reporting.md for more details
   -->
   <log mode="append">
     <!--
@@ -292,7 +292,7 @@ SECTION: Other options
 <!--
 SECTION: Extensions
 This configuration section allows specifying custom extensions.
-More info is available here: https://github.com/kohsuke/winsw/blob/master/doc/extensions/extensions.md
+More info is available here: https://github.com/winsw/winsw/blob/master/docs/extensions/extensions.md
 -->
 
 <!--
