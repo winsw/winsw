@@ -2,7 +2,7 @@
 
 This page describes the configuration file, which controls the behavior of the Windows service.
 
-You can find configuration file samples in the [examples](../examples) directory of the source code repository.
+You can find configuration file samples in the [samples](../samples) directory of the source code repository.
 Actual samples are being also published as a part of releases on GitHub and NuGet.
 
 ## File structure
@@ -90,7 +90,7 @@ Multiple elements can be used to specify multiple dependencies.
 
 Optionally set a different logging directory with `<logpath>` and startup `mode`: append (default), reset (clear log), ignore, roll (move to `\*.old`).
 
-See the [Logging and error reporting](loggingAndErrorReporting.md) page for more info.
+See the [Logging and error reporting](logging-and-error-reporting.md) page for more info.
 
 ### Arguments
 

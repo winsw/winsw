@@ -23,8 +23,8 @@
  This configuration file should be placed near the WinSW executable, the name should be the same.
  E.g. for myapp.exe the configuration file name should be myapp.xml
  
- You can find more information about the configuration options here: https://github.com/kohsuke/winsw/blob/master/doc/xmlConfigFile.md
- Full example: https://github.com/kohsuke/winsw/blob/master/examples/sample-allOptions.xml
+ You can find more information about the configuration options here: https://github.com/winsw/winsw/blob/master/docs/xml-config-file.md
+ Full example: https://github.com/winsw/winsw/blob/master/samples/sample-complete.xml
 -->
 <service>
   

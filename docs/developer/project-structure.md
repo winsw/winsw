@@ -3,9 +3,9 @@
 :movie_camera: You can find the code dive session recorded video [here](https://youtu.be/_adhRj19ESY).
 
 ```
-|_ doc
+|_ docs
 |_ eng
-|_ examples
+|_ samples
 |_ src
     |_ Core
     |   |_ ServiceWrapper
@@ -18,9 +18,9 @@
     |_ Test/winswTest
 ```
 
-## :open_file_folder: examples
+## :open_file_folder: samples
 
-This folder contains templates for configuration files. *sample-minimal.xml* contains a template for mandatory configurations and *sample-allOptions.xml* contains all possible configurations with documentation.
+This folder contains templates for configuration files. *sample-minimal.xml* contains a template for mandatory configurations and *sample-complete.xml* contains all possible configurations with documentation.
 
 ## :open_file_folder: Core
 

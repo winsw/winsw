@@ -7,7 +7,7 @@ This page provides WinSW installation guidelines for different cases.
 In order to setup WinSW, you commonly need to perform the following steps:
 
 1. Take *WinSW.exe* from the distribution, and rename it to your taste (such as *myapp.exe*)
-1. Write *myapp.xml* (see the [XML config file specification](xmlConfigFile.md) for more details)
+1. Write *myapp.xml* (see the [XML config file specification](xml-config-file.md) for more details)
 1. Place those two files side by side, because that's how WinSW discovers its configuration.
 1. Run `myapp.exe install <OPTIONS>` in order to install the service wrapper.
 1. Run `myapp.exe start` to start the service.
@@ -33,7 +33,7 @@ The example below is a primitive example being used in the Jenkins project:
 </service>
 ```
 
-The full specification of the configuration file is available [here](xmlConfigFile.md).
+The full specification of the configuration file is available [here](xml-config-file.md).
 
 ### Step 3. Service registration
  
