@@ -2,6 +2,9 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
+#if VNEXT
+using System.Threading.Tasks;
+#endif
 using System.Xml;
 #if !VNEXT
 using log4net;
@@ -132,9 +135,13 @@ namespace winsw
         /// <exception cref="WebException">
         ///     Download failure. FailOnError flag should be processed outside.
         /// </exception>
+#if VNEXT
+        public async Task PerformAsync()
+#else
         public void Perform()
+#endif
         {
-            WebRequest req = WebRequest.Create(From);
+            WebRequest request = WebRequest.Create(From);
 
             switch (Auth)
             {
@@ -143,43 +150,57 @@ namespace winsw
                     break;
 
                 case AuthType.sspi:
-                    req.UseDefaultCredentials = true;
-                    req.PreAuthenticate = true;
-                    req.Credentials = CredentialCache.DefaultCredentials;
+                    request.UseDefaultCredentials = true;
+                    request.PreAuthenticate = true;
+                    request.Credentials = CredentialCache.DefaultCredentials;
                     break;
 
                 case AuthType.basic:
-                    SetBasicAuthHeader(req, Username!, Password!);
+                    SetBasicAuthHeader(request, Username!, Password!);
                     break;
 
                 default:
                     throw new WebException("Code defect. Unsupported authentication type: " + Auth);
             }
 
-            WebResponse rsp = req.GetResponse();
-            FileStream tmpstream = new FileStream(To + ".tmp", FileMode.Create);
-            CopyStream(rsp.GetResponseStream(), tmpstream);
-            // only after we successfully downloaded a file, overwrite the existing one
+            string tmpFilePath = To + ".tmp";
+#if VNEXT
+            using (WebResponse response = await request.GetResponseAsync())
+#else
+            using (WebResponse response = request.GetResponse())
+#endif
+            using (Stream responseStream = response.GetResponseStream())
+            using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
+            {
+#if VNEXT
+                await responseStream.CopyToAsync(tmpStream);
+#elif NET20
+                CopyStream(responseStream, tmpStream);
+#else
+                responseStream.CopyTo(tmpStream);
+#endif
+            }
+
+#if NETCOREAPP
+            File.Move(tmpFilePath, To, true);
+#else
             if (File.Exists(To))
                 File.Delete(To);
 
-            File.Move(To + ".tmp", To);
+            File.Move(tmpFilePath, To);
+#endif
         }
+#if NET20
 
-        private static void CopyStream(Stream i, Stream o)
+        private static void CopyStream(Stream source, Stream destination)
         {
-            byte[] buf = new byte[8192];
-            while (true)
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = source.Read(buffer, 0, buffer.Length)) != 0)
             {
-                int len = i.Read(buf, 0, buf.Length);
-                if (len <= 0)
-                    break;
-
-                o.Write(buf, 0, len);
+                destination.Write(buffer, 0, read);
             }
-
-            i.Close();
-            o.Close();
         }
+#endif
     }
 }
