@@ -48,18 +48,16 @@ namespace WMI
     public interface Win32Services : IWmiCollection
     {
         // ReturnValue Create(bool desktopInteract, string displayName, int errorControl, string loadOrderGroup, string loadOrderGroupDependencies, string name, string pathName, string serviceDependencies, string serviceType, string startMode, string startName, string startPassword);
-        void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string? startName, string? startPassword, string[] serviceDependencies);
+        void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, string startMode, bool desktopInteract, string? startName, string? startPassword, string[] serviceDependencies);
 
-        void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, StartMode startMode, bool desktopInteract, string[] serviceDependencies);
+        void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, string startMode, bool desktopInteract, string[] serviceDependencies);
 
         Win32Service Select(string name);
     }
 
-    // http://msdn.microsoft.com/en-us/library/windows/desktop/aa394418(v=vs.85).aspx
+    // https://docs.microsoft.com/windows/win32/cimwin32prov/win32-service
     public interface Win32Service : IWmiObject
     {
-        string Description { get; set; }
-        string Name { get; }
         bool Started { get; }
         void Delete();
         void StartService();

@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+#if !FEATURE_CIM
 using System.Management;
+#endif
 using System.Threading;
 using log4net;
+#if FEATURE_CIM
+using Microsoft.Management.Infrastructure;
+#endif
 
 namespace winsw.Util
 {
@@ -26,13 +31,25 @@ namespace winsw.Util
 
             try
             {
-                var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-                foreach (var mo in searcher.Get())
+                string query = "SELECT * FROM Win32_Process WHERE ParentProcessID = " + pid;
+#if FEATURE_CIM
+                using CimSession session = CimSession.Create(null);
+                foreach (CimInstance instance in session.QueryInstances("root/cimv2", "WQL", query))
                 {
-                    var childProcessId = mo["ProcessID"];
-                    Logger.Info("Found child process: " + childProcessId + " Name: " + mo["Name"]);
+                    object childProcessId = instance.CimInstanceProperties["ProcessID"].Value;
+                    Logger.Info("Found child process: " + childProcessId + " Name: " + instance.CimInstanceProperties["Name"].Value);
                     childPids.Add(Convert.ToInt32(childProcessId));
                 }
+#else
+                using ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+                using ManagementObjectCollection results = searcher.Get();
+                foreach (ManagementBaseObject wmiObject in results)
+                {
+                    var childProcessId = wmiObject["ProcessID"];
+                    Logger.Info("Found child process: " + childProcessId + " Name: " + wmiObject["Name"]);
+                    childPids.Add(Convert.ToInt32(childProcessId));
+                }
+#endif
             }
             catch (Exception ex)
             {

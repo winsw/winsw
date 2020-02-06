@@ -1,13 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
+#if !FEATURE_CIM
 using System.Management;
+#endif
 using System.Reflection;
 using DynamicProxy;
+#if FEATURE_CIM
+using Microsoft.Management.Infrastructure;
+using Microsoft.Management.Infrastructure.Generic;
+#endif
 
 namespace WMI
 {
-    // Reference: http://msdn2.microsoft.com/en-us/library/aa389390(VS.85).aspx
-
-    public enum ReturnValue
+    // https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service
+    public enum ReturnValue : uint
     {
         Success = 0,
         NotSupported = 1,
@@ -45,8 +51,8 @@ namespace WMI
     {
         public readonly ReturnValue ErrorCode;
 
-        public WmiException(string msg, ReturnValue code)
-            : base(msg)
+        public WmiException(string message, ReturnValue code)
+            : base(message)
         {
             ErrorCode = code;
         }
@@ -83,14 +89,21 @@ namespace WMI
         void Commit();
     }
 
-    public class WmiRoot
+    public sealed class WmiRoot
     {
-        private readonly ManagementScope scope;
+#if FEATURE_CIM
+        private const string CimNamespace = "root/cimv2";
 
-        public WmiRoot() : this(null) { }
+        private readonly CimSession cimSession;
+#else
+        private readonly ManagementScope wmiScope;
+#endif
 
-        public WmiRoot(string? machineName)
+        public WmiRoot(string? machineName = null)
         {
+#if FEATURE_CIM
+            this.cimSession = CimSession.Create(machineName);
+#else
             ConnectionOptions options = new ConnectionOptions
             {
                 EnablePrivileges = true,
@@ -104,8 +117,9 @@ namespace WMI
                 path = $@"\\{machineName}\root\cimv2";
             else
                 path = @"\root\cimv2";
-            scope = new ManagementScope(path, options);
-            scope.Connect();
+            wmiScope = new ManagementScope(path, options);
+            wmiScope.Connect();
+#endif
         }
 
         private static string Capitalize(string s)
@@ -113,96 +127,195 @@ namespace WMI
             return char.ToUpper(s[0]) + s.Substring(1);
         }
 
-        abstract class BaseHandler : IProxyInvocationHandler
+        private abstract class BaseHandler : IProxyInvocationHandler
         {
-            public abstract object? Invoke(object proxy, MethodInfo method, object[] args);
+            public abstract object? Invoke(object proxy, MethodInfo method, object[] arguments);
 
-            protected void CheckError(ManagementBaseObject result)
+#if FEATURE_CIM
+            protected void CheckError(CimMethodResult result)
             {
-                int code = Convert.ToInt32(result["returnValue"]);
+                uint code = (uint)result.ReturnValue.Value;
                 if (code != 0)
                     throw new WmiException((ReturnValue)code);
             }
+#else
+            protected void CheckError(ManagementBaseObject result)
+            {
+                uint code = (uint)result["returnValue"];
+                if (code != 0)
+                    throw new WmiException((ReturnValue)code);
+            }
+#endif
+
+#if FEATURE_CIM
+            protected CimMethodParametersCollection GetMethodParameters(CimClass cimClass, string methodName, ParameterInfo[] methodParameters, object[] arguments)
+            {
+                CimMethodParametersCollection cimParameters = new CimMethodParametersCollection();
+                CimReadOnlyKeyedCollection<CimMethodParameterDeclaration> cimParameterDeclarations = cimClass.CimClassMethods[methodName].Parameters;
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    string capitalizedName = Capitalize(methodParameters[i].Name!);
+                    cimParameters.Add(CimMethodParameter.Create(capitalizedName, arguments[i], cimParameterDeclarations[capitalizedName].CimType, CimFlags.None));
+                }
+
+                return cimParameters;
+            }
+#else
+            protected ManagementBaseObject GetMethodParameters(ManagementObject wmiObject, string methodName, ParameterInfo[] methodParameters, object[] arguments)
+            {
+                ManagementBaseObject wmiParameters = wmiObject.GetMethodParameters(methodName);
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    string capitalizedName = Capitalize(methodParameters[i].Name!);
+                    wmiParameters[capitalizedName] = arguments[i];
+                }
+
+                return wmiParameters;
+            }
+#endif
         }
 
-        class InstanceHandler : BaseHandler, IWmiObject
+        private class InstanceHandler : BaseHandler, IWmiObject
         {
-            private readonly ManagementObject _mo;
+#if FEATURE_CIM
+            private readonly CimSession cimSession;
+            private readonly CimInstance cimInstance;
 
-            public InstanceHandler(ManagementObject o) => _mo = o;
+            public InstanceHandler(CimSession cimSession, CimInstance cimInstance)
+            {
+                this.cimSession = cimSession;
+                this.cimInstance = cimInstance;
+            }
+#else
+            private readonly ManagementObject wmiObject;
 
-            public override object? Invoke(object proxy, MethodInfo method, object[] args)
+            public InstanceHandler(ManagementObject wmiObject) => this.wmiObject = wmiObject;
+#endif
+
+            public override object? Invoke(object proxy, MethodInfo method, object[] arguments)
             {
                 if (method.DeclaringType == typeof(IWmiObject))
                 {
-                    return method.Invoke(this, args);
+                    return method.Invoke(this, arguments);
                 }
 
                 // TODO: proper property support
                 if (method.Name.StartsWith("set_"))
                 {
-                    _mo[method.Name.Substring(4)] = args[0];
+#if FEATURE_CIM
+                    CimProperty cimProperty = this.cimInstance.CimInstanceProperties[method.Name.Substring(4)];
+                    Debug.Assert((cimProperty.Flags & CimFlags.ReadOnly) == CimFlags.None);
+                    cimProperty.Value = arguments[0];
+#else
+                    this.wmiObject[method.Name.Substring(4)] = arguments[0];
+#endif
                     return null;
                 }
 
                 if (method.Name.StartsWith("get_"))
                 {
-                    return _mo[method.Name.Substring(4)];
+#if FEATURE_CIM
+                    return this.cimInstance.CimInstanceProperties[method.Name.Substring(4)].Value;
+#else
+                    return this.wmiObject[method.Name.Substring(4)];
+#endif
                 }
 
-                // method invocations
-                ParameterInfo[] methodArgs = method.GetParameters();
-
-                ManagementBaseObject wmiArgs = _mo.GetMethodParameters(method.Name);
-                for (int i = 0; i < args.Length; i++)
-                    wmiArgs[Capitalize(methodArgs[i].Name!)] = args[i];
-
-                CheckError(_mo.InvokeMethod(method.Name, wmiArgs, null));
+                string methodName = method.Name;
+#if FEATURE_CIM
+                using CimMethodParametersCollection? cimParameters = arguments.Length == 0 ? null :
+                    this.GetMethodParameters(this.cimInstance.CimClass, methodName, method.GetParameters(), arguments);
+                using CimMethodResult result = this.cimSession.InvokeMethod(CimNamespace, this.cimInstance, methodName, cimParameters);
+                this.CheckError(result);
+#else
+                using ManagementBaseObject? wmiParameters = arguments.Length == 0 ? null :
+                    this.GetMethodParameters(this.wmiObject, methodName, method.GetParameters(), arguments);
+                using ManagementBaseObject result = this.wmiObject.InvokeMethod(methodName, wmiParameters, null);
+                this.CheckError(result);
+#endif
                 return null;
             }
 
             public void Commit()
             {
-                _mo.Put();
+#if !FEATURE_CIM
+                this.wmiObject.Put();
+#endif
             }
         }
 
-        class ClassHandler : BaseHandler
+        private class ClassHandler : BaseHandler
         {
-            private readonly ManagementClass _mc;
-            private readonly string _wmiClass;
+#if FEATURE_CIM
+            private readonly CimSession cimSession;
+            private readonly CimClass cimClass;
+#else
+            private readonly ManagementClass wmiClass;
+#endif
+            private readonly string className;
 
-            public ClassHandler(ManagementClass mc, string wmiClass) { _mc = mc; _wmiClass = wmiClass; }
-
-            public override object? Invoke(object proxy, MethodInfo method, object[] args)
+#if FEATURE_CIM
+            public ClassHandler(CimSession cimSession, string className)
             {
-                ParameterInfo[] methodArgs = method.GetParameters();
+                this.cimSession = cimSession;
+                this.cimClass = cimSession.GetClass(CimNamespace, className);
+                this.className = className;
+            }
+#else
+            public ClassHandler(ManagementScope wmiScope, string className)
+            {
+                this.wmiClass = new ManagementClass(wmiScope, new ManagementPath(className), null);
+                this.className = className;
+            }
+#endif
 
-                if (method.Name.StartsWith("Select"))
+            public override object? Invoke(object proxy, MethodInfo method, object[] arguments)
+            {
+                ParameterInfo[] methodParameters = method.GetParameters();
+
+                if (method.Name == nameof(Win32Services.Select))
                 {
                     // select method to find instances
-                    string query = "SELECT * FROM " + _wmiClass + " WHERE ";
-                    for (int i = 0; i < args.Length; i++)
+                    string query = "SELECT * FROM " + this.className + " WHERE ";
+                    for (int i = 0; i < arguments.Length; i++)
                     {
                         if (i != 0)
                             query += " AND ";
 
-                        query += ' ' + Capitalize(methodArgs[i].Name!) + " = '" + args[i] + "'";
+                        query += ' ' + Capitalize(methodParameters[i].Name!) + " = '" + arguments[i] + "'";
                     }
 
-                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(_mc.Scope, new ObjectQuery(query));
-                    ManagementObjectCollection results = searcher.Get();
+#if FEATURE_CIM
                     // TODO: support collections
-                    foreach (ManagementObject manObject in results)
-                        return ProxyFactory.GetInstance().Create(new InstanceHandler(manObject), method.ReturnType, true);
+                    foreach (CimInstance cimInstance in this.cimSession.QueryInstances(CimNamespace, "WQL", query))
+                    {
+                        return ProxyFactory.GetInstance().Create(new InstanceHandler(this.cimSession, cimInstance), method.ReturnType, true);
+                    }
+#else
+                    using ManagementObjectSearcher searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query));
+                    using ManagementObjectCollection results = searcher.Get();
+                    // TODO: support collections
+                    foreach (ManagementObject wmiObject in results)
+                    {
+                        return ProxyFactory.GetInstance().Create(new InstanceHandler(wmiObject), method.ReturnType, true);
+                    }
+#endif
+
                     return null;
                 }
 
-                ManagementBaseObject wmiArgs = _mc.GetMethodParameters(method.Name);
-                for (int i = 0; i < args.Length; i++)
-                    wmiArgs[Capitalize(methodArgs[i].Name!)] = args[i];
-
-                CheckError(_mc.InvokeMethod(method.Name, wmiArgs, null));
+                string methodName = method.Name;
+#if FEATURE_CIM
+                using CimMethodParametersCollection? cimParameters = arguments.Length == 0 ? null :
+                    this.GetMethodParameters(this.cimClass, methodName, methodParameters, arguments);
+                using CimMethodResult result = this.cimSession.InvokeMethod(CimNamespace, this.className, methodName, cimParameters);
+                this.CheckError(result);
+#else
+                using ManagementBaseObject? wmiParameters = arguments.Length == 0 ? null :
+                    this.GetMethodParameters(this.wmiClass, methodName, methodParameters, arguments);
+                using ManagementBaseObject result = this.wmiClass.InvokeMethod(methodName, wmiParameters, null);
+                this.CheckError(result);
+#endif
                 return null;
             }
         }
@@ -212,12 +325,16 @@ namespace WMI
         /// </summary>
         public T GetCollection<T>() where T : IWmiCollection
         {
-            WmiClassName cn = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
+            WmiClassName className = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
 
-            ObjectGetOptions getOptions = new ObjectGetOptions();
-            ManagementPath path = new ManagementPath(cn.Name);
-            ManagementClass manClass = new ManagementClass(scope, path, getOptions);
-            return (T)ProxyFactory.GetInstance().Create(new ClassHandler(manClass, cn.Name), typeof(T), true);
+            return (T)ProxyFactory.GetInstance().Create(
+#if FEATURE_CIM
+                new ClassHandler(this.cimSession, className.Name),
+#else
+                new ClassHandler(this.wmiScope, className.Name),
+#endif
+                typeof(T),
+                true);
         }
     }
 }
