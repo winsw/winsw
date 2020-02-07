@@ -189,7 +189,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             ServiceId = descriptor.Id;
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
-            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable != null ? bool.Parse(checkWinSWEnvironmentVariable) : true;
+            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }
 
         /// <summary>

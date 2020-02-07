@@ -259,7 +259,7 @@ namespace winsw
 
             string? startarguments = _descriptor.Startarguments;
 
-            if (startarguments == null)
+            if (startarguments is null)
             {
                 startarguments = _descriptor.Arguments;
             }
@@ -321,7 +321,7 @@ namespace winsw
             Log.Info("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
 
-            if (stoparguments == null)
+            if (stoparguments is null)
             {
                 try
                 {
@@ -343,10 +343,7 @@ namespace winsw
                 Process stopProcess = new Process();
                 string? executable = _descriptor.StopExecutable;
 
-                if (executable == null)
-                {
-                    executable = _descriptor.Executable;
-                }
+                executable ??= _descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
                 StartProcess(stopProcess, stoparguments, executable, null, false);
@@ -553,7 +550,7 @@ namespace winsw
 
             // Get service info for the future use
             Win32Services svc = new WmiRoot().GetCollection<Win32Services>();
-            Win32Service s = svc.Select(descriptor.Id);
+            Win32Service? s = svc.Select(descriptor.Id);
 
             var args = new List<string>(Array.AsReadOnly(_args));
             if (args[0] == "/redirect")
@@ -678,7 +675,7 @@ namespace winsw
             if (args[0] == "uninstall")
             {
                 Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
-                if (s == null)
+                if (s is null)
                 {
                     Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
                     return; // there's no such service, so consider it already uninstalled
@@ -719,7 +716,7 @@ namespace winsw
             if (args[0] == "start")
             {
                 Log.Info("Starting the service with id '" + descriptor.Id + "'");
-                if (s == null)
+                if (s is null)
                     ThrowNoSuchService();
 
                 s.StartService();
@@ -729,7 +726,7 @@ namespace winsw
             if (args[0] == "stop")
             {
                 Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-                if (s == null)
+                if (s is null)
                     ThrowNoSuchService();
 
                 s.StopService();
@@ -739,7 +736,7 @@ namespace winsw
             if (args[0] == "restart")
             {
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-                if (s == null)
+                if (s is null)
                     ThrowNoSuchService();
 
                 if (s.Started)
@@ -748,7 +745,7 @@ namespace winsw
                 while (s.Started)
                 {
                     Thread.Sleep(1000);
-                    s = svc.Select(descriptor.Id);
+                    s = svc.Select(descriptor.Id)!;
                 }
 
                 s.StartService();
@@ -774,7 +771,7 @@ namespace winsw
             if (args[0] == "status")
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
-                if (s == null)
+                if (s is null)
                     Console.WriteLine("NonExistent");
                 else if (s.Started)
                     Console.WriteLine("Started");

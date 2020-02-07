@@ -27,7 +27,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
         {
-            var mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
+            XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
             {
                 for (int i = 0; i < mapNodes.Count; i++)

@@ -54,7 +54,7 @@ namespace winsw
                 if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
                     break;
 
-                if (d.Parent == null)
+                if (d.Parent is null)
                     throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory or any parents");
 
                 d = d.Parent;
@@ -110,38 +110,31 @@ namespace winsw
 
         private string? SingleElement(string tagName, bool optional)
         {
-            var n = dom.SelectSingleNode("//" + tagName);
-            if (n == null && !optional)
+            XmlNode? n = dom.SelectSingleNode("//" + tagName);
+            if (n is null && !optional)
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
 
-            return n == null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
+            return n is null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
         private bool SingleBoolElement(string tagName, bool defaultValue)
         {
-            var e = dom.SelectSingleNode("//" + tagName);
+            XmlNode? e = dom.SelectSingleNode("//" + tagName);
 
-            return e == null ? defaultValue : bool.Parse(e.InnerText);
+            return e is null ? defaultValue : bool.Parse(e.InnerText);
         }
 
         private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
         {
-            var e = parent.SelectSingleNode(tagName);
+            XmlNode? e = parent.SelectSingleNode(tagName);
 
-            if (e == null)
-            {
-                return defaultValue;
-            }
-            else
-            {
-                return int.Parse(e.InnerText);
-            }
+            return e is null ? defaultValue : int.Parse(e.InnerText);
         }
 
         private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
         {
-            var value = SingleElement(tagName, true);
-            return (value != null) ? ParseTimeSpan(value) : defaultValue;
+            string? value = SingleElement(tagName, true);
+            return value is null ? defaultValue : ParseTimeSpan(value);
         }
 
         private TimeSpan ParseTimeSpan(string v)
@@ -194,11 +187,11 @@ namespace winsw
             {
                 string? arguments = AppendTags("argument", null);
 
-                if (arguments == null)
+                if (arguments is null)
                 {
-                    var argumentsNode = dom.SelectSingleNode("//arguments");
+                    XmlNode? argumentsNode = dom.SelectSingleNode("//arguments");
 
-                    if (argumentsNode == null)
+                    if (argumentsNode is null)
                     {
                         return Defaults.Arguments;
                     }
@@ -237,7 +230,7 @@ namespace winsw
             {
                 XmlNode? argumentNode = ExtensionsConfiguration;
                 XmlNodeList? extensions = argumentNode?.SelectNodes("extension");
-                if (extensions == null)
+                if (extensions is null)
                 {
                     return new List<string>(0);
                 }
@@ -261,7 +254,7 @@ namespace winsw
         private string? AppendTags(string tagName, string? defaultValue = null)
         {
             XmlNode? argumentNode = dom.SelectSingleNode("//" + tagName);
-            if (argumentNode == null)
+            if (argumentNode is null)
             {
                 return defaultValue;
             }
@@ -303,16 +296,11 @@ namespace winsw
         {
             get
             {
-                XmlNode loggingNode = dom.SelectSingleNode("//logpath");
+                XmlNode? loggingNode = dom.SelectSingleNode("//logpath");
 
-                if (loggingNode != null)
-                {
-                    return Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
-                }
-                else
-                {
-                    return Defaults.LogDirectory;
-                }
+                return loggingNode is null
+                    ? Defaults.LogDirectory
+                    : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
             }
         }
 
@@ -323,7 +311,7 @@ namespace winsw
                 string? mode = null;
 
                 // first, backward compatibility with older configuration
-                XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
+                XmlElement? e = (XmlElement?)dom.SelectSingleNode("//logmode");
                 if (e != null)
                 {
                     mode = e.InnerText;
@@ -331,17 +319,12 @@ namespace winsw
                 else
                 {
                     // this is more modern way, to support nested elements as configuration
-                    e = (XmlElement)dom.SelectSingleNode("//log");
+                    e = (XmlElement?)dom.SelectSingleNode("//log");
                     if (e != null)
                         mode = e.GetAttribute("mode");
                 }
 
-                if (mode == null)
-                {
-                    mode = Defaults.LogMode;
-                }
-
-                return mode;
+                return mode ?? Defaults.LogMode;
             }
         }
 
@@ -349,9 +332,9 @@ namespace winsw
         {
             get
             {
-                XmlNode loggingName = dom.SelectSingleNode("//logname");
+                XmlNode? loggingName = dom.SelectSingleNode("//logname");
 
-                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : BaseName;
+                return loggingName is null ? BaseName : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
             }
         }
 
@@ -363,9 +346,9 @@ namespace winsw
         {
             get
             {
-                XmlNode loggingName = dom.SelectSingleNode("//outfilepattern");
+                XmlNode? loggingName = dom.SelectSingleNode("//outfilepattern");
 
-                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : Defaults.OutFilePattern;
+                return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
             }
         }
 
@@ -373,9 +356,9 @@ namespace winsw
         {
             get
             {
-                XmlNode loggingName = dom.SelectSingleNode("//errfilepattern");
+                XmlNode? loggingName = dom.SelectSingleNode("//errfilepattern");
 
-                return loggingName != null ? Environment.ExpandEnvironmentVariables(loggingName.InnerText) : Defaults.ErrFilePattern;
+                return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
             }
         }
 
@@ -383,12 +366,10 @@ namespace winsw
         {
             get
             {
-                XmlElement e = (XmlElement)dom.SelectSingleNode("//logmode");
-                if (e == null)
-                {
-                    // this is more modern way, to support nested elements as configuration
-                    e = (XmlElement)dom.SelectSingleNode("//log");
-                }
+                XmlElement? e = (XmlElement?)dom.SelectSingleNode("//logmode");
+
+                // this is more modern way, to support nested elements as configuration
+                e ??= (XmlElement?)dom.SelectSingleNode("//log")!; // WARNING: NRE
 
                 int sizeThreshold;
                 switch (LogMode)
@@ -406,8 +387,8 @@ namespace winsw
                         return new RollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
 
                     case "roll-by-time":
-                        XmlNode patternNode = e.SelectSingleNode("pattern");
-                        if (patternNode == null)
+                        XmlNode? patternNode = e.SelectSingleNode("pattern");
+                        if (patternNode is null)
                         {
                             throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
                         }
@@ -426,42 +407,36 @@ namespace winsw
 
                     case "roll-by-size-time":
                         sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BYTES_PER_KB;
-                        XmlNode filePatternNode = e.SelectSingleNode("pattern");
-                        if (filePatternNode == null)
+                        XmlNode? filePatternNode = e.SelectSingleNode("pattern");
+                        if (filePatternNode is null)
                         {
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration XML.");
                         }
 
-                        XmlNode autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
+                        XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
                         TimeSpan? autoRollAtTime = null;
                         if (autoRollAtTimeNode != null)
                         {
                             // validate it
                             if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out TimeSpan autoRollAtTimeValue))
                                 throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
+
                             autoRollAtTime = autoRollAtTimeValue;
                         }
 
-                        XmlNode zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
+                        XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
                         int? zipolderthannumdays = null;
                         if (zipolderthannumdaysNode != null)
                         {
                             // validate it
                             if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
                                 throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+
                             zipolderthannumdays = zipolderthannumdaysValue;
                         }
 
-                        XmlNode zipdateformatNode = e.SelectSingleNode("zipDateFormat");
-                        string zipdateformat;
-                        if (zipdateformatNode == null)
-                        {
-                            zipdateformat = "yyyyMM";
-                        }
-                        else
-                        {
-                            zipdateformat = zipdateformatNode.InnerText;
-                        }
+                        XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
+                        string zipdateformat = zipdateformatNode is null ? "yyyyMM" : zipdateformatNode.InnerText;
 
                         return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
 
@@ -479,7 +454,7 @@ namespace winsw
             get
             {
                 XmlNodeList? nodeList = dom.SelectNodes("//depend");
-                if (nodeList == null)
+                if (nodeList is null)
                 {
                     return Defaults.ServiceDependencies;
                 }
@@ -507,8 +482,8 @@ namespace winsw
         {
             get
             {
-                var p = SingleElement("startmode", true);
-                if (p == null)
+                string? p = SingleElement("startmode", true);
+                if (p is null)
                     return Defaults.StartMode;
 
                 try
@@ -591,7 +566,7 @@ namespace winsw
             get
             {
                 XmlNodeList? nodeList = dom.SelectNodes("//download");
-                if (nodeList == null)
+                if (nodeList is null)
                 {
                     return Defaults.Downloads;
                 }
@@ -614,7 +589,7 @@ namespace winsw
             get
             {
                 XmlNodeList? childNodes = dom.SelectNodes("//onfailure");
-                if (childNodes == null)
+                if (childNodes is null)
                 {
                     return new List<SC_ACTION>(0);
                 }
@@ -643,11 +618,11 @@ namespace winsw
 
         protected string? GetServiceAccountPart(string subNodeName)
         {
-            var node = dom.SelectSingleNode("//serviceaccount");
+            XmlNode? node = dom.SelectSingleNode("//serviceaccount");
 
             if (node != null)
             {
-                var subNode = node.SelectSingleNode(subNodeName);
+                XmlNode? subNode = node.SelectSingleNode(subNodeName);
                 if (subNode != null)
                 {
                     return subNode.InnerText;
@@ -716,8 +691,8 @@ namespace winsw
         {
             get
             {
-                var p = SingleElement("priority", true);
-                if (p == null)
+                string? p = SingleElement("priority", true);
+                if (p is null)
                     return Defaults.Priority;
 
                 return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);

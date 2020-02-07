@@ -17,11 +17,11 @@ namespace winsw.Util
         /// <exception cref="InvalidDataException">The required element is missing</exception>
         public static string? SingleElement(XmlNode node, string tagName, bool optional)
         {
-            var n = node.SelectSingleNode(tagName);
-            if (n == null && !optional)
+            XmlNode? n = node.SelectSingleNode(tagName);
+            if (n is null && !optional)
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
 
-            return n == null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
+            return n is null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
         /// <summary>
@@ -34,8 +34,8 @@ namespace winsw.Util
         /// <exception cref="InvalidDataException">The required element is missing</exception>
         public static XmlNode? SingleNode(XmlNode node, string tagName, bool optional)
         {
-            var n = node.SelectSingleNode(tagName);
-            if (n == null && !optional)
+            XmlNode? n = node.SelectSingleNode(tagName);
+            if (n is null && !optional)
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
 
             return n;

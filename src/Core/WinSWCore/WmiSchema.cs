@@ -52,7 +52,7 @@ namespace WMI
 
         void Create(string name, string displayName, string pathName, ServiceType serviceType, ErrorControl errorControl, string startMode, bool desktopInteract, string[] serviceDependencies);
 
-        Win32Service Select(string name);
+        Win32Service? Select(string name);
     }
 
     // https://docs.microsoft.com/windows/win32/cimwin32prov/win32-service
