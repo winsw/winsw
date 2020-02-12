@@ -86,7 +86,32 @@ namespace winsw
             ErrFilePattern = errFilePattern;
         }
 
+        public override void log(StreamReader outputReader, StreamReader errorReader)
+        {
+            if (this.OutFileDisabled)
+            {
+                outputReader.Dispose();
+            }
+            else
+            {
+                this.LogOutput(outputReader);
+            }
+
+            if (this.ErrFileDisabled)
+            {
+                errorReader.Dispose();
+            }
+            else
+            {
+                this.LogError(errorReader);
+            }
+        }
+
         protected StreamWriter CreateWriter(FileStream stream) => new StreamWriter(stream) { AutoFlush = true };
+
+        protected abstract void LogOutput(StreamReader outputReader);
+
+        protected abstract void LogError(StreamReader errorReader);
     }
 
     public abstract class SimpleLogAppender : AbstractFileLogAppender
@@ -103,13 +128,14 @@ namespace winsw
             ErrorLogFileName = BaseLogFileName + ".err.log";
         }
 
-        public override void log(StreamReader outputReader, StreamReader errorReader)
+        protected override void LogOutput(StreamReader outputReader)
         {
-            if (!OutFileDisabled)
-                new Thread(() => CopyStream(outputReader, CreateWriter(new FileStream(OutputLogFileName, FileMode)))).Start();
+            new Thread(() => CopyStream(outputReader, CreateWriter(new FileStream(OutputLogFileName, FileMode)))).Start();
+        }
 
-            if (!ErrFileDisabled)
-                new Thread(() => CopyStream(errorReader, CreateWriter(new FileStream(ErrorLogFileName, FileMode)))).Start();
+        protected override void LogError(StreamReader errorReader)
+        {
+            new Thread(() => CopyStream(errorReader, CreateWriter(new FileStream(ErrorLogFileName, FileMode)))).Start();
         }
     }
 
@@ -136,8 +162,8 @@ namespace winsw
     {
         public override void log(StreamReader outputReader, StreamReader errorReader)
         {
-            new Thread(() => CopyStream(outputReader, StreamWriter.Null)).Start();
-            new Thread(() => CopyStream(errorReader, StreamWriter.Null)).Start();
+            outputReader.Dispose();
+            errorReader.Dispose();
         }
     }
 
@@ -153,13 +179,14 @@ namespace winsw
             Period = period;
         }
 
-        public override void log(StreamReader outputReader, StreamReader errorReader)
+        protected override void LogOutput(StreamReader outputReader)
         {
-            if (!OutFileDisabled)
-                new Thread(() => CopyStreamWithDateRotation(outputReader, OutFilePattern)).Start();
+            new Thread(() => CopyStreamWithDateRotation(outputReader, OutFilePattern)).Start();
+        }
 
-            if (!ErrFileDisabled)
-                new Thread(() => CopyStreamWithDateRotation(errorReader, ErrFilePattern)).Start();
+        protected override void LogError(StreamReader errorReader)
+        {
+            new Thread(() => CopyStreamWithDateRotation(errorReader, ErrFilePattern)).Start();
         }
 
         /// <summary>
@@ -213,13 +240,14 @@ namespace winsw
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
             : this(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern, DEFAULT_SIZE_THRESHOLD, DEFAULT_FILES_TO_KEEP) { }
 
-        public override void log(StreamReader outputReader, StreamReader errorReader)
+        protected override void LogOutput(StreamReader outputReader)
         {
-            if (!OutFileDisabled)
-                new Thread(() => CopyStreamWithRotation(outputReader, OutFilePattern)).Start();
+            new Thread(() => CopyStreamWithRotation(outputReader, OutFilePattern)).Start();
+        }
 
-            if (!ErrFileDisabled)
-                new Thread(() => CopyStreamWithRotation(errorReader, ErrFilePattern)).Start();
+        protected override void LogError(StreamReader errorReader)
+        {
+            new Thread(() => CopyStreamWithRotation(errorReader, ErrFilePattern)).Start();
         }
 
         /// <summary>
@@ -325,13 +353,14 @@ namespace winsw
             ZipDateFormat = zipdateformat;
         }
 
-        public override void log(StreamReader outputReader, StreamReader errorReader)
+        protected override void LogOutput(StreamReader outputReader)
         {
-            if (!OutFileDisabled)
-                new Thread(() => CopyStreamWithRotation(outputReader, OutFilePattern)).Start();
+            new Thread(() => CopyStreamWithRotation(outputReader, OutFilePattern)).Start();
+        }
 
-            if (!ErrFileDisabled)
-                new Thread(() => CopyStreamWithRotation(errorReader, ErrFilePattern)).Start();
+        protected override void LogError(StreamReader errorReader)
+        {
+            new Thread(() => CopyStreamWithRotation(errorReader, ErrFilePattern)).Start();
         }
 
         private void CopyStreamWithRotation(StreamReader reader, string extension)
