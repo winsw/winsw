@@ -32,10 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="manifest.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="$(AssemblyOriginatorKeyFile)" />
   </ItemGroup>
 
