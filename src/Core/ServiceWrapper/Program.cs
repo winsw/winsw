@@ -88,20 +88,7 @@ namespace winsw
                 return;
             }
 
-            var args = new List<string>(Array.AsReadOnly(argsArray));
-            if (args[0] == "/redirect")
-            {
-                var f = new FileStream(args[1], FileMode.Create);
-                var w = new StreamWriter(f) { AutoFlush = true };
-                Console.SetOut(w);
-                Console.SetError(w);
-
-                var handle = f.SafeFileHandle;
-                _ = Kernel32.SetStdHandle(-11, handle); // set stdout
-                _ = Kernel32.SetStdHandle(-12, handle); // set stder
-
-                args = args.GetRange(2, args.Count - 2);
-            }
+            var args = new List<string>(argsArray);
 
             bool elevated;
             if (args[0] == "/elevated")
@@ -691,9 +678,6 @@ namespace winsw
             Console.WriteLine("       Missing arguments triggers the service mode");
             Console.WriteLine();
             PrintAvailableCommands();
-            Console.WriteLine();
-            Console.WriteLine("Extra options:");
-            Console.WriteLine("  /redirect   redirect the wrapper's STDOUT and STDERR to the specified file");
             Console.WriteLine();
             PrintVersion();
             Console.WriteLine("More info: https://github.com/winsw/winsw");

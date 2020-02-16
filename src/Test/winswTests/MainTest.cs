@@ -51,9 +51,6 @@ namespace winswTests
             Assert.That(cliOut, Does.Contain("help"));
             Assert.That(cliOut, Does.Contain("version"));
             // TODO: check all commands after the migration of ccommands to enum
-
-            // Extra options
-            Assert.That(cliOut, Does.Contain("/redirect"));
         }
 
         [Test]
