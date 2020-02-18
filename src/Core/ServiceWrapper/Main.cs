@@ -360,7 +360,6 @@ namespace winsw
                 Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(_process);
                 WaitForProcessToExit(stopProcess);
-                SignalShutdownComplete();
             }
 
             // Stop extensions
@@ -422,12 +421,7 @@ namespace winsw
                 effectiveWaitHint = (int)_descriptor.WaitHint.TotalMilliseconds;
             }
 
-            IntPtr handle = ServiceHandle;
-            _wrapperServiceStatus.checkPoint++;
-            _wrapperServiceStatus.waitHint = effectiveWaitHint;
-            // WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            _wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
-            Advapi32.SetServiceStatus(handle, _wrapperServiceStatus);
+            RequestAdditionalTime(effectiveWaitHint);
         }
 
         private void SignalShutdownComplete()
