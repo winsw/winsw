@@ -5,8 +5,6 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-    <RootNamespace>winsw</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
