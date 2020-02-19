@@ -532,7 +532,7 @@ namespace winsw
         /// <exception cref="Exception">Any unhandled exception</exception>
         public static void Run(string[] _args, ServiceDescriptor? descriptor = null)
         {
-            bool inCliMode = Console.OpenStandardInput() != Stream.Null;
+            bool inCliMode = _args.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptor();
