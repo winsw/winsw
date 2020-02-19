@@ -64,8 +64,6 @@ User documentation:
 * Use-cases:
   * [Self-restarting services](docs/self-restarting-service.md)
   * [Deferred file operations](docs/deferred-file-operations.md)
-* Configuration Management:
-  * [Puppet Forge Module](docs/puppetWinSW.md)
 
 Developer documentation:
 

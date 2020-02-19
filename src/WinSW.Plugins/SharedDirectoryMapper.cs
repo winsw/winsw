@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Xml;
 using log4net;
 using WinSW.Extensions;
 using WinSW.Util;
-using static WinSW.Plugins.SharedDirectoryMapper.NativeMethods;
+using static WinSW.Plugins.SharedDirectoryMapper.SharedDirectoryMapper.Native;
 
 namespace WinSW.Plugins.SharedDirectoryMapper
 {
@@ -90,6 +91,32 @@ namespace WinSW.Plugins.SharedDirectoryMapper
         {
             Win32Exception inner = new Win32Exception(error);
             throw new ExtensionException(this.Descriptor.Id, $"{this.DisplayName}: {message} {inner.Message}", inner);
+        }
+
+        internal static class Native
+        {
+            internal const uint RESOURCETYPE_DISK = 0x00000001;
+
+            private const string MprLibraryName = "mpr.dll";
+
+            [DllImport(MprLibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "WNetAddConnection2W")]
+            internal static extern int WNetAddConnection2(in NETRESOURCE netResource, string? password = null, string? userName = null, uint flags = 0);
+
+            [DllImport(MprLibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "WNetCancelConnection2W")]
+            internal static extern int WNetCancelConnection2(string name, uint flags = 0, bool force = false);
+
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            internal struct NETRESOURCE
+            {
+                public uint Scope;
+                public uint Type;
+                public uint DisplayType;
+                public uint Usage;
+                public string LocalName;
+                public string RemoteName;
+                public string Comment;
+                public string Provider;
+            }
         }
     }
 }

@@ -4,8 +4,7 @@
     <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-
-    <RootNamespace>winsw.Plugins.SharedDirectoryMapper</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
@@ -13,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\WinSWCore\WinSWCore.csproj" />
+    <ProjectReference Include="..\WinSW.Core\WinSW.Core.csproj" />
   </ItemGroup>
 
 </Project>

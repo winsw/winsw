@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,8 +12,6 @@
     <Company>CloudBees, Inc.</Company>
     <Product>Windows Service Wrapper</Product>
     <Copyright>Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors</Copyright>
-    <RootNamespace>winsw</RootNamespace>
-    <AssemblyName>WindowsService</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
@@ -31,9 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WinSWCore\WinSWCore.csproj" />
-    <ProjectReference Include="..\..\Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj" />
-    <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj" />
+    <ProjectReference Include="..\WinSW.Core\WinSW.Core.csproj" />
+    <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' == ''">
@@ -67,9 +64,8 @@
 
     <PropertyGroup>
       <InputAssemblies>"$(OutDir)$(TargetFileName)"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSWCore.dll"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)SharedDirectoryMapper.dll"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)RunawayProcessKiller.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Core.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Plugins.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
     </PropertyGroup>
