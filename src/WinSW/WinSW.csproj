@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishTrimmed>true</PublishTrimmed>
 
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
@@ -32,25 +33,17 @@
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
-  <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' == ''">
+  <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(PublishSingleFile)' != 'true'">
 
     <MakeDir Directories="$(ArtifactsDir)" />
-    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsDir)WinSW.NETCore31.zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsDir)WinSW.NETCore.$(PlatformTarget).zip" Overwrite="true" />
 
   </Target>
 
-  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' != ''">
-
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
-      <IdentifierSuffix>x64</IdentifierSuffix>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x86'">
-      <IdentifierSuffix>x86</IdentifierSuffix>
-    </PropertyGroup>
+  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(PublishSingleFile)' == 'true'">
 
     <MakeDir Directories="$(ArtifactsDir)" />
-    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsDir)WinSW.NETCore31.$(IdentifierSuffix).exe" />
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsDir)WinSW.NETCore.$(PlatformTarget).exe" />
 
   </Target>
 
@@ -58,7 +51,7 @@
   <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
-      <IdentifierSuffix>NET461</IdentifierSuffix>
+      <TargetFrameworkSuffix>NET461</TargetFrameworkSuffix>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -66,7 +59,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Core.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Plugins.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
-      <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
+      <OutputAssembly>"$(ArtifactsDir)WinSW.$(TargetFrameworkSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 
     <PropertyGroup>
