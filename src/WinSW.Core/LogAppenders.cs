@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Threading;
 using WinSW.Util;
 
 namespace WinSW
@@ -31,10 +30,10 @@ namespace WinSW
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
         /// </summary>
-        protected void CopyStream(StreamReader reader, StreamWriter writer)
+        protected async void CopyStreamAsync(StreamReader reader, StreamWriter writer)
         {
             string? line;
-            while ((line = reader.ReadLine()) != null)
+            while ((line = await reader.ReadLineAsync()) != null)
             {
                 writer.WriteLine(line);
             }
@@ -129,12 +128,12 @@ namespace WinSW
 
         protected override void LogOutput(StreamReader outputReader)
         {
-            new Thread(() => this.CopyStream(outputReader, this.CreateWriter(new FileStream(this.OutputLogFileName, this.FileMode)))).Start();
+            this.CopyStreamAsync(outputReader, this.CreateWriter(new FileStream(this.OutputLogFileName, this.FileMode)));
         }
 
         protected override void LogError(StreamReader errorReader)
         {
-            new Thread(() => this.CopyStream(errorReader, this.CreateWriter(new FileStream(this.ErrorLogFileName, this.FileMode)))).Start();
+            this.CopyStreamAsync(errorReader, this.CreateWriter(new FileStream(this.ErrorLogFileName, this.FileMode)));
         }
     }
 
@@ -181,25 +180,25 @@ namespace WinSW
 
         protected override void LogOutput(StreamReader outputReader)
         {
-            new Thread(() => this.CopyStreamWithDateRotation(outputReader, this.OutFilePattern)).Start();
+            this.CopyStreamWithDateRotationAsync(outputReader, this.OutFilePattern);
         }
 
         protected override void LogError(StreamReader errorReader)
         {
-            new Thread(() => this.CopyStreamWithDateRotation(errorReader, this.ErrFilePattern)).Start();
+            this.CopyStreamWithDateRotationAsync(errorReader, this.ErrFilePattern);
         }
 
         /// <summary>
         /// Works like the CopyStream method but does a log rotation based on time.
         /// </summary>
-        private void CopyStreamWithDateRotation(StreamReader reader, string ext)
+        private async void CopyStreamWithDateRotationAsync(StreamReader reader, string ext)
         {
             PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(this.Pattern, this.Period);
             periodicRollingCalendar.Init();
 
             StreamWriter writer = this.CreateWriter(new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Append));
             string? line;
-            while ((line = reader.ReadLine()) != null)
+            while ((line = await reader.ReadLineAsync()) != null)
             {
                 if (periodicRollingCalendar.ShouldRoll)
                 {
@@ -240,24 +239,24 @@ namespace WinSW
 
         protected override void LogOutput(StreamReader outputReader)
         {
-            new Thread(() => this.CopyStreamWithRotation(outputReader, this.OutFilePattern)).Start();
+            this.CopyStreamWithRotationAsync(outputReader, this.OutFilePattern);
         }
 
         protected override void LogError(StreamReader errorReader)
         {
-            new Thread(() => this.CopyStreamWithRotation(errorReader, this.ErrFilePattern)).Start();
+            this.CopyStreamWithRotationAsync(errorReader, this.ErrFilePattern);
         }
 
         /// <summary>
         /// Works like the CopyStream method but does a log rotation.
         /// </summary>
-        private void CopyStreamWithRotation(StreamReader reader, string ext)
+        private async void CopyStreamWithRotationAsync(StreamReader reader, string ext)
         {
             StreamWriter writer = this.CreateWriter(new FileStream(this.BaseLogFileName + ext, FileMode.Append));
             long fileLength = new FileInfo(this.BaseLogFileName + ext).Length;
 
             string? line;
-            while ((line = reader.ReadLine()) != null)
+            while ((line = await reader.ReadLineAsync()) != null)
             {
                 int lengthToWrite = (line.Length + Environment.NewLine.Length) * sizeof(char);
                 if (fileLength + lengthToWrite > this.SizeThreshold)
@@ -366,15 +365,15 @@ namespace WinSW
 
         protected override void LogOutput(StreamReader outputReader)
         {
-            new Thread(() => this.CopyStreamWithRotation(outputReader, this.OutFilePattern)).Start();
+            this.CopyStreamWithRotationAsync(outputReader, this.OutFilePattern);
         }
 
         protected override void LogError(StreamReader errorReader)
         {
-            new Thread(() => this.CopyStreamWithRotation(errorReader, this.ErrFilePattern)).Start();
+            this.CopyStreamWithRotationAsync(errorReader, this.ErrFilePattern);
         }
 
-        private void CopyStreamWithRotation(StreamReader reader, string extension)
+        private async void CopyStreamWithRotationAsync(StreamReader reader, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
             var fileLock = new object();
@@ -392,7 +391,7 @@ namespace WinSW
                 // Run at start
                 var tickTime = this.SetupRollTimer(autoRollAtTime);
                 var timer = new System.Timers.Timer(tickTime);
-                timer.Elapsed += (s, e) =>
+                timer.Elapsed += (_, _) =>
                 {
                     try
                     {
@@ -428,7 +427,7 @@ namespace WinSW
             }
 
             string? line;
-            while ((line = reader.ReadLine()) != null)
+            while ((line = await reader.ReadLineAsync()) != null)
             {
                 lock (fileLock)
                 {
