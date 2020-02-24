@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
 using log4net;
 using static WinSW.Native.ProcessApis;
 
@@ -194,32 +193,20 @@ namespace WinSW.Util
             // monitor the completion of the process
             if (callback != null)
             {
-                StartThread(() =>
+                processToStart.Exited += (_, _) =>
                 {
-                    processToStart.WaitForExit();
-                    callback(processToStart);
-                });
-            }
-        }
+                    try
+                    {
+                        callback(processToStart);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error("Thread failed unexpectedly", e);
+                    }
+                };
 
-        /// <summary>
-        /// Starts a thread that protects the execution with a try/catch block.
-        /// It appears that in .NET, unhandled exception in any thread causes the app to terminate
-        /// http://msdn.microsoft.com/en-us/library/ms228965.aspx
-        /// </summary>
-        public static void StartThread(ThreadStart main)
-        {
-            new Thread(() =>
-            {
-                try
-                {
-                    main();
-                }
-                catch (Exception e)
-                {
-                    Logger.Error("Thread failed unexpectedly", e);
-                }
-            }).Start();
+                processToStart.EnableRaisingEvents = true;
+            }
         }
     }
 
