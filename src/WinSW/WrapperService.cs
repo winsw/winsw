@@ -297,6 +297,7 @@ namespace WinSW
             this.LogEvent("Stopping " + this.descriptor.Id);
             Log.Info("Stopping " + this.descriptor.Id);
             this.orderlyShutdown = true;
+            this.process.EnableRaisingEvents = false;
 
             if (stopArguments is null)
             {
