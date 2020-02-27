@@ -51,7 +51,7 @@ namespace WinSW.Native
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool SetServiceObjectSecurity(IntPtr serviceHandle, SecurityInfos securityInformation, byte[] securityDescriptor);
 
-        [DllImport(Libraries.Advapi32)]
+        [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool SetServiceStatus(IntPtr serviceStatusHandle, in SERVICE_STATUS serviceStatus);
 
         // SERVICE_
@@ -152,7 +152,7 @@ namespace WinSW.Native
 
         internal struct SERVICE_STATUS
         {
-            public int ServiceType;
+            public ServiceType ServiceType;
             public ServiceControllerStatus CurrentState;
             public int ControlsAccepted;
             public int Win32ExitCode;
