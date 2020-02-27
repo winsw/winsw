@@ -117,9 +117,9 @@ namespace WinSW.Native
         }
 
         /// <exception cref="CommandException" />
-        internal Service OpenService(string serviceName)
+        internal Service OpenService(string serviceName, ServiceAccess access = ServiceAccess.ALL_ACCESS)
         {
-            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
+            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
             if (serviceHandle == IntPtr.Zero)
             {
                 Throw.Command.Win32Exception("Failed to open the service.");
@@ -168,6 +168,24 @@ namespace WinSW.Native
                 }
 
                 return status.CurrentState;
+            }
+        }
+
+        /// <exception cref="CommandException" />
+        internal void SetStatus(IntPtr statusHandle, ServiceControllerStatus state)
+        {
+            if (!QueryServiceStatus(this.handle, out SERVICE_STATUS status))
+            {
+                Throw.Command.Win32Exception("Failed to query service status.");
+            }
+
+            status.CheckPoint = 0;
+            status.WaitHint = 0;
+            status.CurrentState = state;
+
+            if (!SetServiceStatus(statusHandle, status))
+            {
+                Throw.Command.Win32Exception("Failed to set service status.");
             }
         }
 

@@ -17,8 +17,6 @@ namespace WinSW
 {
     public class WrapperService : ServiceBase, IEventLogger
     {
-        private ServiceApis.SERVICE_STATUS wrapperServiceStatus;
-
         private readonly Process process = new Process();
         private readonly ServiceDescriptor descriptor;
         private Dictionary<string, string>? envs;
@@ -415,13 +413,12 @@ namespace WinSW
             this.RequestAdditionalTime(serviceWaitHint);
         }
 
-        private void SignalShutdownComplete()
+        private void SignalStopped()
         {
-            IntPtr handle = this.ServiceHandle;
-            this.wrapperServiceStatus.CheckPoint++;
-            // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            this.wrapperServiceStatus.CurrentState = ServiceControllerStatus.Stopped;
-            ServiceApis.SetServiceStatus(handle, this.wrapperServiceStatus);
+            using ServiceManager scm = ServiceManager.Open();
+            using Service sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QUERY_STATUS);
+
+            sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
@@ -442,12 +439,17 @@ namespace WinSW
                     // if we finished orderly, report that to SCM.
                     // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
                     // restart the service automatically
-                    if (process.ExitCode == 0)
+                    try
                     {
-                        this.SignalShutdownComplete();
+                        if (process.ExitCode == 0)
+                        {
+                            this.SignalStopped();
+                        }
                     }
-
-                    Environment.Exit(process.ExitCode);
+                    finally
+                    {
+                        Environment.Exit(process.ExitCode);
+                    }
                 }
             }
 
