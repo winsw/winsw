@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
@@ -675,6 +676,14 @@ namespace winsw
                     {
                         sc.ChangeConfig(descriptor.ResetFailureAfter, actions);
                     }
+                }
+
+                if (descriptor.SecurityDescriptor != null)
+                {
+                    RawSecurityDescriptor rawSecurityDescriptor = new RawSecurityDescriptor(descriptor.SecurityDescriptor);
+                    byte[] securityDescriptorBytes = new byte[rawSecurityDescriptor.BinaryLength];
+                    rawSecurityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
+                    Advapi32.SetServiceObjectSecurity(/*TODO*/default, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
                 }
 
                 return;

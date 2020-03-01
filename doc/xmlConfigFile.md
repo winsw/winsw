@@ -230,6 +230,17 @@ This affects the behaviour of the failure actions (see `<onfailure>` above).
 In other words, this is the duration in which you consider the service has been running successfully. 
 Defaults to 1 day.
 
+
+### Security descriptor
+
+The security descriptor string for the service in SDDL form.
+
+For more information, see [Security Descriptor Definition Language](https://docs.microsoft.com/windows/win32/secauthz/security-descriptor-definition-language).
+
+```xml
+<securtityDescriptor></securtityDescriptor>
+```
+
 ### Service account
 It is possible to specify the useraccount (and password) that the service will run as. To do this, specify a `<serviceaccount>` element like this:
 
