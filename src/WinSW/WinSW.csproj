@@ -51,14 +51,14 @@
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0-windows' and '$(IncludeNativeLibrariesForSelfExtract)' != 'true'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
-    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsPublishDir)WinSW-$(PlatformTarget).zip" Overwrite="true" />
 
   </Target>
 
   <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0-windows' and '$(IncludeNativeLibrariesForSelfExtract)' == 'true'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
-    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).exe" />
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW-$(PlatformTarget).exe" />
 
   </Target>
 
