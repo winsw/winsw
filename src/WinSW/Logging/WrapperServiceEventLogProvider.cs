@@ -3,7 +3,7 @@
     /// <summary>
     /// Implements caching of the WindowsService reference in WinSW.
     /// </summary>
-    internal sealed class WrapperServiceEventLogProvider : IServiceEventLogProvider
+    internal sealed class WrapperServiceEventLogProvider
     {
         public WrapperService? Service { get; set; }
 
