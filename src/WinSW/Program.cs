@@ -1162,7 +1162,7 @@ namespace WinSW
         }
 
         /// <exception cref="FileNotFoundException" />
-        private static XmlServiceConfig LoadConfigAndInitLoggers(string? path, bool enableConsoleLogging)
+        private static XmlServiceConfig LoadConfigAndInitLoggers(string? path, bool inConsoleMode)
         {
             if (TestConfig != null)
             {
@@ -1177,8 +1177,11 @@ namespace WinSW
             var consoleLogLevel = Level.Info;
             var eventLogLevel = Level.Warn;
 
-            // console log
-            if (enableConsoleLogging)
+#if NET
+            var repository = LogManager.GetRepository(Assembly.GetExecutingAssembly());
+#endif
+
+            if (inConsoleMode)
             {
                 var consoleAppender = new WinSWConsoleAppender
                 {
@@ -1190,9 +1193,24 @@ namespace WinSW
 
                 BasicConfigurator.Configure(
 #if NET
-                    LogManager.GetRepository(Assembly.GetExecutingAssembly()),
+                    repository,
 #endif
                     consoleAppender);
+            }
+            else
+            {
+                var eventLogAppender = new ServiceEventLogAppender(WrapperService.eventLogProvider)
+                {
+                    Name = "Wrapper event log",
+                    Threshold = eventLogLevel,
+                };
+                eventLogAppender.ActivateOptions();
+
+                BasicConfigurator.Configure(
+#if NET
+                    repository,
+#endif
+                    eventLogAppender);
             }
 
             XmlServiceConfig config;
@@ -1213,7 +1231,7 @@ namespace WinSW
 
             // .wrapper.log
             string wrapperLogPath = Path.Combine(config.LogDirectory, config.BaseName + ".wrapper.log");
-            var wrapperLog = new FileAppender
+            var fileAppender = new FileAppender
             {
                 AppendToFile = true,
                 File = wrapperLogPath,
@@ -1223,22 +1241,13 @@ namespace WinSW
                 LockingModel = new FileAppender.MinimalLock(),
                 Layout = new PatternLayout("%date %-5level - %message%newline"),
             };
-            wrapperLog.ActivateOptions();
-
-            // event log
-            var systemEventLogger = new ServiceEventLogAppender(WrapperService.eventLogProvider)
-            {
-                Name = "Wrapper event log",
-                Threshold = eventLogLevel,
-            };
-            systemEventLogger.ActivateOptions();
+            fileAppender.ActivateOptions();
 
             BasicConfigurator.Configure(
 #if NET
-                LogManager.GetRepository(Assembly.GetExecutingAssembly()),
+                repository,
 #endif
-                wrapperLog,
-                systemEventLogger);
+                fileAppender);
 
             return config;
         }
