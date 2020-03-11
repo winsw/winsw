@@ -59,8 +59,8 @@ jobs:
       versioningScheme: byEnvVar
       versionEnvVar: BuildVersion
 
-  - publish: artifacts\publish\WinSW.NET461.exe
-    artifact: WinSW.NET461.exe_$(BuildConfiguration)
+  - publish: artifacts\publish\WinSW-net461.exe
+    artifact: WinSW-net461.exe_$(BuildConfiguration)
     displayName: Publish .NET 4.6.1
 
   - publish: artifacts\publish\WinSW-x64.zip

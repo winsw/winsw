@@ -65,10 +65,6 @@
   <!-- Merge plugins and other DLLs into the executable -->
   <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net5.0-windows'">
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
-      <TargetFrameworkSuffix>NET461</TargetFrameworkSuffix>
-    </PropertyGroup>
-
     <PropertyGroup>
       <InputAssemblies>"$(OutDir)$(TargetFileName)"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Core.dll"</InputAssemblies>
@@ -80,7 +76,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Numerics.Vectors.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Runtime.CompilerServices.Unsafe.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.ValueTuple.dll"</InputAssemblies>
-      <OutputAssembly>"$(ArtifactsPublishDir)WinSW.$(TargetFrameworkSuffix).exe"</OutputAssembly>
+      <OutputAssembly>"$(ArtifactsPublishDir)WinSW-$(TargetFramework).exe"</OutputAssembly>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -96,7 +92,7 @@
 
   <UsingTask TaskName="WinSW.Tasks.Trim" AssemblyFile="$(ArtifactsBinDir)WinSW.Tasks\$(Configuration)\net461\WinSW.Tasks.dll" />
   <Target Name="Trim" AfterTargets="Merge" Condition="'$(TargetFramework)' != 'net5.0-windows'">
-    <Trim Path="$(ArtifactsPublishDir)WinSW.$(TargetFrameworkSuffix).exe" />
+    <Trim Path="$(ArtifactsPublishDir)WinSW-$(TargetFramework).exe" />
   </Target>
 
 </Project>
