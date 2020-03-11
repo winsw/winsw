@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Management;
 #endif
 using System.Reflection;
+using System.Text;
 using DynamicProxy;
 #if FEATURE_CIM
 using Microsoft.Management.Infrastructure;
@@ -276,23 +277,23 @@ namespace WMI
                 if (method.Name == nameof(Win32Services.Select))
                 {
                     // select method to find instances
-                    string query = "SELECT * FROM " + this.className + " WHERE ";
+                    StringBuilder query = new StringBuilder("SELECT * FROM ").Append(this.className).Append(" WHERE ");
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         if (i != 0)
-                            query += " AND ";
+                            query.Append(" AND ");
 
-                        query += ' ' + Capitalize(methodParameters[i].Name!) + " = '" + arguments[i] + "'";
+                        query.Append(' ').Append(Capitalize(methodParameters[i].Name!)).Append(" = '").Append(arguments[i]).Append('\'');
                     }
 
 #if FEATURE_CIM
                     // TODO: support collections
-                    foreach (CimInstance cimInstance in this.cimSession.QueryInstances(CimNamespace, "WQL", query))
+                    foreach (CimInstance cimInstance in this.cimSession.QueryInstances(CimNamespace, "WQL", query.ToString()))
                     {
                         return ProxyFactory.GetInstance().Create(new InstanceHandler(this.cimSession, cimInstance), method.ReturnType, true);
                     }
 #else
-                    using ManagementObjectSearcher searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query));
+                    using ManagementObjectSearcher searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query.ToString()));
                     using ManagementObjectCollection results = searcher.Get();
                     // TODO: support collections
                     foreach (ManagementObject wmiObject in results)
