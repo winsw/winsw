@@ -29,7 +29,8 @@ namespace WinSW
         private readonly XmlServiceConfig config;
 
         private Process process = null!;
-        private volatile Process? poststartProcess;
+        private volatile Process? startingProcess;
+        private volatile Process? stoppingProcess;
 
         internal WinSWExtensionManager ExtensionManager { get; }
 
@@ -314,29 +315,29 @@ namespace WinSW
             this.process = this.StartProcess(this.config.Executable, startArguments, this.OnMainProcessExited, executableLogHandler);
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
-            try
+            string? poststartExecutable = this.config.PoststartExecutable;
+            if (poststartExecutable != null)
             {
-                string? poststartExecutable = this.config.PoststartExecutable;
-                if (poststartExecutable != null)
+                try
                 {
                     using Process process = StartProcessLocked();
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.");
                     process.StopDescendants(additionalStopTimeout);
-                    this.poststartProcess = null;
+                    this.startingProcess = null;
 
                     Process StartProcessLocked()
                     {
                         lock (this)
                         {
-                            return this.poststartProcess = this.StartProcess(poststartExecutable, this.config.PoststartArguments);
+                            return this.startingProcess = this.StartProcess(poststartExecutable, this.config.PoststartArguments);
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                }
             }
         }
 
@@ -350,10 +351,11 @@ namespace WinSW
             {
                 try
                 {
-                    using Process process = this.StartProcess(prestopExecutable, this.config.PrestopArguments);
+                    using Process process = StartProcessLocked(prestopExecutable, this.config.PrestopArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.");
                     process.StopDescendants(additionalStopTimeout);
+                    this.stoppingProcess = null;
                 }
                 catch (Exception e)
                 {
@@ -381,11 +383,12 @@ namespace WinSW
                 try
                 {
                     // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                    Process stopProcess = this.StartProcess(stopExecutable, stopArguments);
+                    using Process stopProcess = StartProcessLocked(stopExecutable, stopArguments);
 
                     Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
                     this.WaitForProcessToExit(stopProcess);
                     stopProcess.StopDescendants(additionalStopTimeout);
+                    this.stoppingProcess = null;
 
                     this.WaitForProcessToExit(this.process);
                     this.process.StopDescendants(this.config.StopTimeout);
@@ -397,17 +400,16 @@ namespace WinSW
                 }
             }
 
-            this.poststartProcess?.StopTree(additionalStopTimeout);
-
             string? poststopExecutable = this.config.PoststopExecutable;
             if (poststopExecutable != null)
             {
                 try
                 {
-                    using Process process = this.StartProcess(poststopExecutable, this.config.PoststopArguments);
+                    using Process process = StartProcessLocked(poststopExecutable, this.config.PoststopArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Post-stop process '{process.Format()}' exited with code {process.ExitCode}.");
                     process.StopDescendants(additionalStopTimeout);
+                    this.stoppingProcess = null;
                 }
                 catch (Exception e)
                 {
@@ -424,6 +426,14 @@ namespace WinSW
             }
 
             Log.Info("Finished " + this.config.Id);
+
+            Process StartProcessLocked(string executable, string? arguments)
+            {
+                lock (this)
+                {
+                    return this.stoppingProcess = this.StartProcess(executable, arguments);
+                }
+            }
         }
 
         private void WaitForProcessToExit(Process process)
@@ -477,7 +487,7 @@ namespace WinSW
 
             if (this.orderlyShutdown)
             {
-                this.LogInfo($"Child process '{display}' terminated with code {process.ExitCode}.");
+                this.LogInfo($"Child process '{display}' terminated.");
             }
             else
             {
@@ -487,7 +497,8 @@ namespace WinSW
 
                 lock (this)
                 {
-                    this.poststartProcess?.StopTree(new TimeSpan(TimeSpan.TicksPerMillisecond));
+                    this.startingProcess?.StopTree(additionalStopTimeout);
+                    this.stoppingProcess?.StopTree(additionalStopTimeout);
                 }
 
                 // if we finished orderly, report that to SCM.

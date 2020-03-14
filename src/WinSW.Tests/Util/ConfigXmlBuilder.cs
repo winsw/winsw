@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using WinSW.Plugins.RunawayProcessKiller;
 using WinSW.Tests.Extensions;
 using Xunit.Abstractions;
 
@@ -118,20 +117,6 @@ namespace WinSW.Tests.Util
         public ConfigXmlBuilder WithTag(string tagName, string value)
         {
             return this.WithRawEntry(string.Format("<{0}>{1}</{0}>", tagName, value));
-        }
-
-        public ConfigXmlBuilder WithRunawayProcessKiller(RunawayProcessKillerExtension ext, string extensionId = "killRunawayProcess", bool enabled = true)
-        {
-            var fullyQualifiedExtensionName = ExtensionTestBase.GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
-            StringBuilder str = new StringBuilder();
-            str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new object[] { enabled, fullyQualifiedExtensionName, extensionId });
-            str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.Pidfile);
-            str.AppendFormat("      <stopTimeout>{0}</stopTimeout>\n", ext.StopTimeout.TotalMilliseconds);
-            str.AppendFormat("      <checkWinSWEnvironmentVariable>{0}</checkWinSWEnvironmentVariable>\n", ext.CheckWinSWEnvironmentVariable);
-            str.Append("    </extension>\n");
-            this.ExtensionXmls.Add(str.ToString());
-
-            return this;
         }
 
         public ConfigXmlBuilder WithDownload(Download download)
