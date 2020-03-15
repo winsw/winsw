@@ -64,17 +64,18 @@ namespace winsw.Util
                 return;
             }
 
-            Logger.Info("Send SIGINT " + pid);
-            bool successful = SigIntHelper.SendSIGINTToProcess(proc, stopTimeout);
-            if (successful)
-            {
-                Logger.Info("SIGINT to " + pid + " successful");
-            }
-            else
+            // (bool sent, bool exited)
+            KeyValuePair<bool, bool> result = SignalHelper.SendCtrlCToProcess(proc, stopTimeout);
+            bool exited = result.Value;
+            if (!exited)
             {
                 try
                 {
-                    Logger.Warn("SIGINT to " + pid + " failed - Killing as fallback");
+                    bool sent = result.Key;
+                    if (sent)
+                    {
+                        Logger.Warn("Process " + pid + " did not respond to Ctrl+C signal - Killing as fallback");
+                    }
                     proc.Kill();
                 }
                 catch (Exception ex)
