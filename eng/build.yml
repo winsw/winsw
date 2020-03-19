@@ -16,69 +16,61 @@ variables:
 - name: InformationalVersion # do not rename (MSBuild property)
   value: 3.0.0+$(Build.SourceVersion)
 
-jobs:
-- job: Build
-  pool:
-    vmImage: windows-latest
-  strategy:
-    matrix:
-      Debug:
-        BuildConfiguration: Debug
-      Release:
-        BuildConfiguration: Release
-  steps:
-  - task: UseDotNet@2
-    displayName: Install .NET SDK
-    inputs:
-      packageType: sdk
-      version: 5.x
-      includePreviewVersions: true
-  - task: DotNetCoreCLI@2
-    displayName: Build
-    inputs:
-      command: build
-      projects: src\WinSW.sln
-      arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
-  - script: |
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion)
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion)
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
-    displayName: Build
-  - task: DotNetCoreCLI@2
-    displayName: Test
-    inputs:
-      command: test
-      projects: src\WinSW.Tests\WinSW.Tests.csproj
-      arguments: -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build
-  - task: NuGetCommand@2
-    displayName: Pack
-    inputs:
-      command: pack
-      packagesToPack: WinSW.nuspec
-      versioningScheme: byEnvVar
-      versionEnvVar: BuildVersion
+pool:
+  vmImage: windows-latest
+strategy:
+  matrix:
+    Debug:
+      BuildConfiguration: Debug
+    Release:
+      BuildConfiguration: Release
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: build
+    projects: src\WinSW.sln
+    arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
+- script: |
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
+  displayName: Build
+- task: DotNetCoreCLI@2
+  displayName: Test
+  inputs:
+    command: test
+    projects: src\WinSW.Tests\WinSW.Tests.csproj
+    arguments: -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build
+- task: NuGetCommand@2
+  displayName: Pack
+  inputs:
+    command: pack
+    packagesToPack: WinSW.nuspec
+    versioningScheme: byEnvVar
+    versionEnvVar: BuildVersion
 
-  - publish: artifacts\publish\WinSW-net461.exe
-    artifact: WinSW-net461.exe_$(BuildConfiguration)
-    displayName: Publish .NET 4.6.1
+- publish: artifacts\publish\WinSW-net461.exe
+  artifact: WinSW-net461.exe_$(BuildConfiguration)
+  displayName: Publish .NET 4.6.1
 
-  - publish: artifacts\publish\WinSW-x64.zip
-    artifact: WinSW-x64.zip_$(BuildConfiguration)
-    displayName: Publish .NET Core x64 .zip
+- publish: artifacts\publish\WinSW-x64.zip
+  artifact: WinSW-x64.zip_$(BuildConfiguration)
+  displayName: Publish .NET x64 .zip
 
-  - publish: artifacts\publish\WinSW-x86.zip
-    artifact: WinSW-x86.zip_$(BuildConfiguration)
-    displayName: Publish .NET Core x86 .zip
+- publish: artifacts\publish\WinSW-x86.zip
+  artifact: WinSW-x86.zip_$(BuildConfiguration)
+  displayName: Publish .NET x86 .zip
 
-  - publish: artifacts\publish\WinSW-x64.exe
-    artifact: WinSW-x64.exe_$(BuildConfiguration)
-    displayName: Publish .NET Core x64 .exe
+- publish: artifacts\publish\WinSW-x64.exe
+  artifact: WinSW-x64.exe_$(BuildConfiguration)
+  displayName: Publish .NET x64 .exe
 
-  - publish: artifacts\publish\WinSW-x86.exe
-    artifact: WinSW-x86.exe_$(BuildConfiguration)
-    displayName: Publish .NET Core x86 .exe
+- publish: artifacts\publish\WinSW-x86.exe
+  artifact: WinSW-x86.exe_$(BuildConfiguration)
+  displayName: Publish .NET x86 .exe
 
-  - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
-    artifact: WinSW.nupkg_$(BuildConfiguration)
-    displayName: Publish Nuget
+- publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
+  artifact: WinSW.nupkg_$(BuildConfiguration)
+  displayName: Publish Nuget
