@@ -15,7 +15,7 @@ More info about the wrapper is available in the projects GitHub repository.
     <authors>WinSW contributors</authors>
     <owners>Oleg Nenashev, Kohsuke Kawaguchi</owners>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/kohsuke/winsw</projectUrl>
+    <projectUrl>https://github.com/winsw/winsw</projectUrl>
     <!--<iconUrl>TODO</iconUrl>-->
     <copyright>Copyright (c) 2010-2016 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</copyright>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
