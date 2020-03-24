@@ -3,7 +3,7 @@ Release Notes
 
 ##### Newer releases
 
-See [GitHub Releases](https://github.com/kohsuke/winsw/releases)
+See [GitHub Releases](https://github.com/winsw/winsw/releases)
 
 ##### 2.3.0
 
