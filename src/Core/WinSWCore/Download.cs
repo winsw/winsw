@@ -6,9 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 #endif
 using System.Xml;
-#if !VNEXT
 using log4net;
-#endif
 using winsw.Util;
 
 namespace winsw
@@ -26,9 +24,7 @@ namespace winsw
             basic
         }
 
-#if !VNEXT
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Download));
-#endif
 
         public readonly string From;
         public readonly string To;
@@ -163,25 +159,57 @@ namespace winsw
                     throw new WebException("Code defect. Unsupported authentication type: " + Auth);
             }
 
-            string tmpFilePath = To + ".tmp";
-#if VNEXT
-            using (WebResponse response = await request.GetResponseAsync())
-#else
-            using (WebResponse response = request.GetResponse())
-#endif
-            using (Stream responseStream = response.GetResponseStream())
-            using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
+            bool supportsIfModifiedSince = false;
+            if (request is HttpWebRequest httpRequest && File.Exists(To))
             {
-#if VNEXT
-                await responseStream.CopyToAsync(tmpStream);
-#elif NET20
-                CopyStream(responseStream, tmpStream);
-#else
-                responseStream.CopyTo(tmpStream);
-#endif
+                supportsIfModifiedSince = true;
+                httpRequest.IfModifiedSince = File.GetLastWriteTime(To);
             }
 
-            FileHelper.MoveOrReplaceFile(To + ".tmp", To);
+            DateTime lastModified = default;
+            string tmpFilePath = To + ".tmp";
+            try
+            {
+#if VNEXT
+                using (WebResponse response = await request.GetResponseAsync())
+#else
+                using (WebResponse response = request.GetResponse())
+#endif
+                using (Stream responseStream = response.GetResponseStream())
+                using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
+                {
+                    if (supportsIfModifiedSince)
+                    {
+                        lastModified = ((HttpWebResponse)response).LastModified;
+                    }
+
+#if VNEXT
+                    await responseStream.CopyToAsync(tmpStream);
+#elif NET20
+                    CopyStream(responseStream, tmpStream);
+#else
+                    responseStream.CopyTo(tmpStream);
+#endif
+                }
+
+                FileHelper.MoveOrReplaceFile(To + ".tmp", To);
+
+                if (supportsIfModifiedSince)
+                {
+                    File.SetLastWriteTime(To, lastModified);
+                }
+            }
+            catch (WebException e)
+            {
+                if (supportsIfModifiedSince && ((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotModified)
+                {
+                    Logger.Info($"Skipped downloading unmodified resource '{From}'");
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 #if NET20
 
