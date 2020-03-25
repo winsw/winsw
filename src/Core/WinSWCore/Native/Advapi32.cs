@@ -35,7 +35,7 @@ namespace winsw.Native
         public void Dispose()
         {
             if (_handle != IntPtr.Zero)
-                Advapi32.CloseServiceHandle(_handle);
+                _ = Advapi32.CloseServiceHandle(_handle);
             _handle = IntPtr.Zero;
         }
     }
@@ -71,7 +71,7 @@ namespace winsw.Native
                     Marshal.StructureToPtr(actions[i], new IntPtr(sfa.lpsaActions.ToInt64() + i * len), false);
                 }
 
-                if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_FAILURE_ACTIONS, ref sfa))
+                if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_FAILURE_ACTIONS, sfa))
                     throw new Exception("Failed to change the failure actions", new Win32Exception());
             }
             finally
@@ -94,7 +94,7 @@ namespace winsw.Native
                 fDelayedAutostart = enabled
             };
 
-            if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, ref settings))
+            if (!Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_DELAYED_AUTO_START_INFO, settings))
             {
                 throw new Exception("Failed to change the DelayedAutoStart setting", new Win32Exception());
             }
@@ -103,7 +103,7 @@ namespace winsw.Native
         public void Dispose()
         {
             if (Handle != IntPtr.Zero)
-                Advapi32.CloseServiceHandle(Handle);
+                _ = Advapi32.CloseServiceHandle(Handle);
             Handle = IntPtr.Zero;
         }
     }
@@ -174,19 +174,16 @@ namespace winsw.Native
             // StringBuilder and size for the domain name
             StringBuilder domainName = new StringBuilder();
             int nameSize = 0;
-            // account-type variable for lookup
-            int accountType = 0;
 
             // get required buffer size
-            Advapi32.LookupAccountName(string.Empty, accountName, sid, ref sidSize, domainName, ref nameSize, ref accountType);
+            _ = Advapi32.LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref nameSize, out _);
 
             // allocate buffers
             domainName = new StringBuilder(nameSize);
             sid = Marshal.AllocHGlobal(sidSize);
 
             // lookup the SID for the account
-            bool result = Advapi32.LookupAccountName(string.Empty, accountName, sid, ref sidSize, domainName, ref nameSize,
-                                            ref accountType);
+            bool result = Advapi32.LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref nameSize, out _);
 
             // say what you're doing
             // Console.WriteLine("LookupAccountName result = " + result);
@@ -195,13 +192,11 @@ namespace winsw.Native
 
             if (!result)
             {
-                winErrorCode = Kernel32.GetLastError();
+                winErrorCode = Marshal.GetLastWin32Error();
                 Console.WriteLine("LookupAccountName failed: " + winErrorCode);
             }
             else
             {
-                // initialize an empty unicode-string
-                LSA_UNICODE_STRING systemName = default;
                 // combine all policies
                 const int access = (int)(
                     LSA_AccessPolicy.POLICY_AUDIT_LOG_ADMIN |
@@ -220,18 +215,8 @@ namespace winsw.Native
                     );
                 // initialize a pointer for the policy handle
 
-                // these attributes are not used, but LsaOpenPolicy wants them to exists
-                LSA_OBJECT_ATTRIBUTES objectAttributes = new LSA_OBJECT_ATTRIBUTES
-                {
-                    Length = 0,
-                    RootDirectory = IntPtr.Zero,
-                    Attributes = 0,
-                    SecurityDescriptor = IntPtr.Zero,
-                    SecurityQualityOfService = IntPtr.Zero
-                };
-
                 // get a policy handle
-                uint resultPolicy = Advapi32.LsaOpenPolicy(ref systemName, ref objectAttributes, access, out IntPtr policyHandle);
+                uint resultPolicy = Advapi32.LsaOpenPolicy(default, default, access, out IntPtr policyHandle);
                 winErrorCode = Advapi32.LsaNtStatusToWinError(resultPolicy);
 
                 if (winErrorCode != 0)
@@ -257,7 +242,7 @@ namespace winsw.Native
                         Console.WriteLine("LsaAddAccountRights failed: " + winErrorCode);
                     }
 
-                    Advapi32.LsaClose(policyHandle);
+                    _ = Advapi32.LsaClose(policyHandle);
                 }
 
                 Advapi32.FreeSid(sid);
@@ -273,52 +258,56 @@ namespace winsw.Native
     /// </summary>
     public class Advapi32
     {
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, IntPtr lpInfo);
+        private const string Advapi32LibraryName = "advapi32.dll";
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_FAILURE_ACTIONS sfa);
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
+        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, in SERVICE_FAILURE_ACTIONS lpInfo);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, ref SERVICE_DELAYED_AUTO_START sfa);
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
+        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, in SERVICE_DELAYED_AUTO_START lpInfo);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, uint dwAccess);
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenSCManagerW")]
+        internal static extern IntPtr OpenSCManager(string? lpMachineName, string? lpDatabaseName, uint dwDesiredAccess);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenServiceW")]
         internal static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
         internal static extern bool CloseServiceHandle(IntPtr hSCObject);
 
-        [DllImport("advapi32.DLL")]
-        public static extern bool SetServiceStatus(IntPtr hServiceStatus, ref SERVICE_STATUS lpServiceStatus);
+        [DllImport(Advapi32LibraryName)]
+        public static extern bool SetServiceStatus(IntPtr hServiceStatus, in SERVICE_STATUS lpServiceStatus);
 
-        [DllImport("advapi32.dll", PreserveSig = true)]
-        internal static extern uint LsaOpenPolicy(ref LSA_UNICODE_STRING SystemName, ref LSA_OBJECT_ATTRIBUTES ObjectAttributes, int DesiredAccess,
+        [DllImport(Advapi32LibraryName)]
+        internal static extern uint LsaOpenPolicy(
+            in LSA_UNICODE_STRING SystemName,
+            in LSA_OBJECT_ATTRIBUTES ObjectAttributes,
+            int DesiredAccess,
             out IntPtr PolicyHandle);
 
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
         internal static extern uint LsaAddAccountRights(IntPtr PolicyHandle, IntPtr AccountSid, LSA_UNICODE_STRING[] UserRights, uint CountOfRights);
 
-        [DllImport("advapi32")]
+        [DllImport(Advapi32LibraryName)]
         internal static extern void FreeSid(IntPtr pSid);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true, PreserveSig = true)]
-        internal static extern bool LookupAccountName(string lpSystemName, string lpAccountName, IntPtr psid, ref int cbsid, StringBuilder domainName,
-            ref int cbdomainLength, ref int use);
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "LookupAccountNameW")]
+        internal static extern bool LookupAccountName(
+            string? lpSystemName,
+            string lpAccountName,
+            IntPtr psid,
+            ref int cbsid,
+            StringBuilder domainName,
+            ref int cbdomainLength,
+            out int use);
 
-        [DllImport("advapi32.dll")]
+        [DllImport(Advapi32LibraryName)]
         internal static extern bool IsValidSid(IntPtr pSid);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
         internal static extern uint LsaClose(IntPtr ObjectHandle);
 
-        [DllImport("advapi32.dll", SetLastError = false)]
+        [DllImport(Advapi32LibraryName, SetLastError = false)]
         internal static extern uint LsaNtStatusToWinError(uint status);
     }
 
@@ -584,9 +573,7 @@ namespace winsw.Native
         /// </summary>
         public int dwResetPeriod;
 
-        [MarshalAs(UnmanagedType.LPWStr)]
         public string lpRebootMsg;
-        [MarshalAs(UnmanagedType.LPWStr)]
         public string lpCommand;
         public int cActions;
         public IntPtr/*SC_ACTION[]*/ lpsaActions;
@@ -596,7 +583,6 @@ namespace winsw.Native
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct SERVICE_DELAYED_AUTO_START
     {
-        [MarshalAs(UnmanagedType.Bool)]
         public bool fDelayedAutostart;
     }
 }
