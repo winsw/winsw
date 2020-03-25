@@ -1,7 +1,7 @@
 winsw: Windows service wrapper in less restrictive license
 =========================
 
-[![Github All Releases](https://img.shields.io/github/downloads/kohsuke/winsw/total.svg)](https://github.com/kohsuke/winsw/releases)
+[![Github All Releases](https://img.shields.io/github/downloads/winsw/winsw/total.svg)](https://github.com/winsw/winsw/releases)
 [![NuGet](https://img.shields.io/nuget/v/WinSW.svg)](https://www.nuget.org/packages/WinSW/)
 [![Build status](https://ci.appveyor.com/api/projects/status/i94752yal9iy77in?svg=true)](https://ci.appveyor.com/project/oleg-nenashev/winsw)
 [![Gitter](https://badges.gitter.im/winsw/winsw.svg)](https://gitter.im/winsw/winsw?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
@@ -15,7 +15,7 @@ See the [project manifest](MANIFEST.md).
 
 ### Download
 
-Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://github.com/kohsuke/winsw/releases) and [nuget.org](https://www.nuget.org/packages/WinSW/).
+Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://github.com/winsw/winsw/releases) and [nuget.org](https://www.nuget.org/packages/WinSW/).
 
 Due to historical reasons, the project also uses  [Jenkins Maven repository](https://jenkins.io/index.html)  as a secondary source. 
 Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
