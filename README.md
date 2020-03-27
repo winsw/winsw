@@ -1,9 +1,10 @@
 winsw: Windows service wrapper in less restrictive license
 =========================
 
-[![Github All Releases](https://img.shields.io/github/downloads/kohsuke/winsw/total.svg)](https://github.com/kohsuke/winsw/releases)
+[![Github All Releases](https://img.shields.io/github/downloads/winsw/winsw/total.svg)](https://github.com/winsw/winsw/releases)
 [![NuGet](https://img.shields.io/nuget/v/WinSW.svg)](https://www.nuget.org/packages/WinSW/)
 [![Build status](https://ci.appveyor.com/api/projects/status/rspft8kdb33g6cis?svg=true)](https://ci.appveyor.com/project/winsw/winsw)
+[![Gitter](https://badges.gitter.im/winsw/winsw.svg)](https://gitter.im/winsw/winsw?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
 Once you download the installation package, you can rename `winsw.exe` to any name, e.g. `myService.exe`.
@@ -14,7 +15,7 @@ See the [project manifest](MANIFEST.md).
 
 ### Download
 
-Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://github.com/kohsuke/winsw/releases) and [nuget.org](https://www.nuget.org/packages/WinSW/).
+Starting from WinSW `2.x`, the releases are being hosted on [GitHub](https://github.com/winsw/winsw/releases) and [nuget.org](https://www.nuget.org/packages/WinSW/).
 
 Due to historical reasons, the project also uses  [Jenkins Maven repository](https://jenkins.io/index.html)  as a secondary source. 
 Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 

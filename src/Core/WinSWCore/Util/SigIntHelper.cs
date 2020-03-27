@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using log4net;
-using winsw.Native;
 
 namespace winsw.Util
 {
@@ -10,15 +9,15 @@ namespace winsw.Util
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SigIntHelper));
 
-        private const string KERNEL32 = "kernel32.dll";
+        private const string Kernel32LibraryName = "kernel32.dll";
 
-        [DllImport(KERNEL32, SetLastError = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         private static extern bool AttachConsole(uint dwProcessId);
 
-        [DllImport(KERNEL32, SetLastError = true, ExactSpelling = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         private static extern bool FreeConsole();
 
-        [DllImport(KERNEL32)]
+        [DllImport(Kernel32LibraryName)]
         private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate? HandlerRoutine, bool Add);
 
         // Delegate type to be used as the Handler Routine for SCCH
@@ -34,8 +33,7 @@ namespace winsw.Util
             CTRL_SHUTDOWN_EVENT
         }
 
-        [DllImport(KERNEL32)]
-        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport(Kernel32LibraryName)]
         private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
 
         /// <summary>
@@ -49,8 +47,8 @@ namespace winsw.Util
             if (AttachConsole((uint)process.Id))
             {
                 // Disable Ctrl-C handling for our program
-                SetConsoleCtrlHandler(null, true);
-                GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
+                _ = SetConsoleCtrlHandler(null, true);
+                _ = GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
 
                 process.WaitForExit((int)shutdownTimeout.TotalMilliseconds);
 
@@ -58,7 +56,7 @@ namespace winsw.Util
                 bool success = FreeConsole();
                 if (!success)
                 {
-                    long errorCode = Kernel32.GetLastError();
+                    long errorCode = Marshal.GetLastWin32Error();
                     Logger.Warn("Failed to detach from console. Error code: " + errorCode);
                 }
 

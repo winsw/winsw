@@ -9,24 +9,25 @@ namespace winsw.Native
     /// </summary>
     public class Kernel32
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
+        public const uint CREATE_NEW_PROCESS_GROUP = 0x00000200;
+
+        private const string Kernel32LibraryName = "kernel32.dll";
+
+        [DllImport(Kernel32LibraryName, SetLastError = true)]
         public static extern bool SetStdHandle(int nStdHandle, SafeFileHandle handle);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport(Kernel32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "CreateProcessW")]
         public static extern bool CreateProcess(
             string? lpApplicationName,
-            string lpCommandLine,
+            string? lpCommandLine,
             IntPtr lpProcessAttributes,
             IntPtr lpThreadAttributes,
             bool bInheritHandles,
             uint dwCreationFlags,
             IntPtr lpEnvironment,
             string? lpCurrentDirectory,
-            [In] ref STARTUPINFO lpStartupInfo,
+            in STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
-
-        [DllImport("kernel32.dll")]
-        public static extern int GetLastError();
     }
 
     [StructLayout(LayoutKind.Sequential)]
