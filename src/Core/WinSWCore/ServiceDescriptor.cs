@@ -19,6 +19,8 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         protected readonly XmlDocument dom = new XmlDocument();
 
+        private readonly Dictionary<string, string> environmentVariables;
+
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         /// <summary>
@@ -83,6 +85,8 @@ namespace winsw
 
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
         /// <summary>
@@ -93,6 +97,8 @@ namespace winsw
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -537,25 +543,7 @@ namespace winsw
         /// <summary>
         /// Environment variable overrides
         /// </summary>
-        public Dictionary<string, string> EnvironmentVariables
-        {
-            get
-            {
-                Dictionary<string, string> map = new Dictionary<string, string>();
-                XmlNodeList nodeList = dom.SelectNodes("//env");
-                for (int i = 0; i < nodeList.Count; i++)
-                {
-                    XmlNode node = nodeList[i];
-                    string key = node.Attributes["name"].Value;
-                    string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"].Value);
-                    map[key] = value;
-
-                    Environment.SetEnvironmentVariable(key, value);
-                }
-
-                return map;
-            }
-        }
+        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
 
         /// <summary>
         /// List of downloads to be performed by the wrapper before starting
@@ -700,5 +688,22 @@ namespace winsw
         }
 
         public string? SecurityDescriptor => SingleElement("securityDescriptor", true);
+
+        private Dictionary<string, string> LoadEnvironmentVariables()
+        {
+            XmlNodeList nodeList = dom.SelectNodes("//env");
+            Dictionary<string, string> environment = new Dictionary<string, string>(nodeList.Count);
+            for (int i = 0; i < nodeList.Count; i++)
+            {
+                XmlNode node = nodeList[i];
+                string key = node.Attributes["name"].Value;
+                string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"].Value);
+                environment[key] = value;
+
+                Environment.SetEnvironmentVariable(key, value);
+            }
+
+            return environment;
+        }
     }
 }
