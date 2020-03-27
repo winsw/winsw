@@ -5,6 +5,7 @@
     <TargetFrameworks>net20;net40;net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
