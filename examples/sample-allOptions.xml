@@ -80,6 +80,14 @@ Their modification will not take affect without the service re-installation.
   <resetfailure>1 hour</resetfailure>
   -->
 
+  <!--
+    OPTION: securityDescriptor
+    The security descriptor string for the service in SDDL form.
+    For more information, see https://docs.microsoft.com/windows/win32/secauthz/security-descriptor-definition-language.
+  -->
+
+  <!--<securityDescriptor></securityDescriptor>-->
+
 <!--
 SECTION: Executable management
 -->

@@ -698,5 +698,7 @@ namespace winsw
                 return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);
             }
         }
+
+        public string? SecurityDescriptor => SingleElement("securityDescriptor", true);
     }
 }

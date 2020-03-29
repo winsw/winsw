@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 
 // ReSharper disable InconsistentNaming
@@ -277,6 +278,9 @@ namespace winsw.Native
 
         [DllImport(Advapi32LibraryName)]
         public static extern bool SetServiceStatus(IntPtr hServiceStatus, in SERVICE_STATUS lpServiceStatus);
+
+        [DllImport(Advapi32LibraryName)]
+        public static extern bool SetServiceObjectSecurity(IntPtr hService, SecurityInfos dwSecurityInformation, byte[] lpSecurityDescriptor);
 
         [DllImport(Advapi32LibraryName)]
         internal static extern uint LsaOpenPolicy(
