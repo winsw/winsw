@@ -536,7 +536,14 @@ namespace winsw
             bool inCliMode = _args.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= new ServiceDescriptor();
+            if(_args.Length > 1)
+            {
+                descriptor ??= new ServiceDescriptor(_args[1]);
+            }
+            else
+            {
+                descriptor ??= new ServiceDescriptor();
+            }
 
             // Configure the wrapper-internal logging.
             // STDIN and STDOUT of the child process will be handled independently.
