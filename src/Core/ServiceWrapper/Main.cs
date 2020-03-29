@@ -17,7 +17,6 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using Microsoft.Win32;
 using winsw.Extensions;
 using winsw.Logging;
 using winsw.Native;
@@ -643,47 +642,30 @@ namespace winsw
                     password,
                     descriptor.ServiceDependencies);
 
-                // update the description
-                /* Somehow this doesn't work, even though it doesn't report an error
-                Win32Service s = svc.Select(d.Id);
-                s.Description = d.Description;
-                s.Commit();
-                 */
+                using ServiceManager scm = new ServiceManager();
+                using Service sc = scm.Open(descriptor.Id);
 
-                // so using a classic method to set the description. Ugly.
-                Registry.LocalMachine
-                    .OpenSubKey("System")
-                    .OpenSubKey("CurrentControlSet")
-                    .OpenSubKey("Services")
-                    .OpenSubKey(descriptor.Id, true)
-                    .SetValue("Description", descriptor.Description);
+                sc.SetDescription(descriptor.Description);
 
                 var actions = descriptor.FailureActions;
-                var isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
-                if (actions.Count > 0 || isDelayedAutoStart)
+                if (actions.Count > 0)
                 {
-                    using ServiceManager scm = new ServiceManager();
-                    using Service sc = scm.Open(descriptor.Id);
+                    sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
+                }
 
-                    // Delayed auto start
-                    if (isDelayedAutoStart)
-                    {
-                        sc.SetDelayedAutoStart(true);
-                    }
-
-                    // Set the failure actions
-                    if (actions.Count > 0)
-                    {
-                        sc.ChangeConfig(descriptor.ResetFailureAfter, actions);
-                    }
+                var isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
+                if (isDelayedAutoStart)
+                {
+                    sc.SetDelayedAutoStart(true);
                 }
 
                 if (descriptor.SecurityDescriptor != null)
                 {
+                    // throws ArgumentException
                     RawSecurityDescriptor rawSecurityDescriptor = new RawSecurityDescriptor(descriptor.SecurityDescriptor);
                     byte[] securityDescriptorBytes = new byte[rawSecurityDescriptor.BinaryLength];
                     rawSecurityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
-                    Advapi32.SetServiceObjectSecurity(/*TODO*/default, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
+                    _ = Advapi32.SetServiceObjectSecurity(sc.Handle, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
                 }
 
                 return;

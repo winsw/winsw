@@ -41,16 +41,16 @@ namespace winsw.Native
         }
     }
 
-    public class Service : IDisposable
+    public struct Service : IDisposable
     {
-        internal IntPtr Handle;
+        public IntPtr Handle;
 
         internal Service(IntPtr service)
         {
             Handle = service;
         }
 
-        public void ChangeConfig(TimeSpan failureResetPeriod, List<SC_ACTION> actions)
+        public void SetFailureActions(TimeSpan failureResetPeriod, List<SC_ACTION> actions)
         {
             SERVICE_FAILURE_ACTIONS sfa = new SERVICE_FAILURE_ACTIONS
             {
@@ -99,6 +99,11 @@ namespace winsw.Native
             {
                 throw new Exception("Failed to change the DelayedAutoStart setting", new Win32Exception());
             }
+        }
+
+        public void SetDescription(string description)
+        {
+            _ = Advapi32.ChangeServiceConfig2(Handle, SERVICE_CONFIG_INFOLEVEL.SERVICE_CONFIG_DESCRIPTION, new SERVICE_DESCRIPTION { lpDescription = description });
         }
 
         public void Dispose()
@@ -266,6 +271,9 @@ namespace winsw.Native
 
         [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
         internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, in SERVICE_DELAYED_AUTO_START lpInfo);
+
+        [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
+        internal static extern bool ChangeServiceConfig2(IntPtr hService, SERVICE_CONFIG_INFOLEVEL dwInfoLevel, in SERVICE_DESCRIPTION lpInfo);
 
         [DllImport(Advapi32LibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenSCManagerW")]
         internal static extern IntPtr OpenSCManager(string? lpMachineName, string? lpDatabaseName, uint dwDesiredAccess);
@@ -588,5 +596,11 @@ namespace winsw.Native
     public struct SERVICE_DELAYED_AUTO_START
     {
         public bool fDelayedAutostart;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct SERVICE_DESCRIPTION
+    {
+        public string lpDescription;
     }
 }
