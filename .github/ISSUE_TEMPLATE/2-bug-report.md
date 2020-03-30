@@ -10,11 +10,18 @@ about: Create a bug report to help us improve
 
 Please clarify how to reproduce the issue.
 
+If you need to attach your configuration, please do it pelow:
+
+```xml
+TODO
+```
+
 ## Environment
 
 * WinSW version: TODO
 * WinSW package type: TODO (e.g. .NET 4.6.1 )
 * Windows version: TODO
+* Wrapped executable and version: TODO <!-- e.g. "internal project", "Jenkins 2.222.1"-->
 
 ## Possible Solution
 
