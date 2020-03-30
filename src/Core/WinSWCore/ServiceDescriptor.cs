@@ -114,7 +114,7 @@ namespace winsw
 
             XmlReader books = XmlReader.Create(BasePath + ".xml");
 
-            books.Read();
+            while (books.Read()) { }
         }
 
         private void booksSettingsValidationEventHandler(object sender, ValidationEventArgs e)
