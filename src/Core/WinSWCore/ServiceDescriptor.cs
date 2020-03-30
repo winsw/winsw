@@ -66,18 +66,13 @@ namespace winsw
 
             try
             {
-                dom.Load(BasePath + ".xml");
+                ValidateAndLoadXmlSchema();
             }
             catch (XmlException e)
             {
                 throw new InvalidDataException(e.Message, e);
             }
-
-            try
-            {
-                ValidateXmlSchema();
-            }
-            catch (Exception e)
+            catch (FileNotFoundException e)
             {
                 throw e;
             }
@@ -105,27 +100,37 @@ namespace winsw
             this.dom = dom;
         }
 
-        private void ValidateXmlSchema()
+        private void ValidateAndLoadXmlSchema()
         {
-            XmlReaderSettings booksettings = new XmlReaderSettings();
-            booksettings.Schemas.Add(null, BasePath + ".xsd");
-            booksettings.ValidationType = ValidationType.Schema;
-            booksettings.ValidationEventHandler += new ValidationEventHandler(booksSettingsValidationEventHandler);
+            XmlReaderSettings settings = new XmlReaderSettings();
 
-            XmlReader books = XmlReader.Create(BasePath + ".xml");
+            try
+            {
+                settings.Schemas.Add(null, BasePath + ".xsd");
+            }
+            catch (FileNotFoundException)
+            {
+                throw new FileNotFoundException("XSD file not found");
+            }
 
-            while (books.Read()) { }
+            settings.ValidationType = ValidationType.Schema;
+            settings.ValidationEventHandler += new ValidationEventHandler(XmlValidationEventHandler);
+            
+            using(XmlReader reader = XmlReader.Create(BasePath + ".xml"))
+            {
+                dom.Load(reader);
+            }
         }
 
-        private void booksSettingsValidationEventHandler(object sender, ValidationEventArgs e)
+        private void XmlValidationEventHandler(object sender, ValidationEventArgs e)
         {
             if (e.Severity == XmlSeverityType.Warning)
             {
-                throw new Exception("Warning in validation");
+                throw new XmlException("[Warning] XML validation - " + e.Message);
             }
             else if (e.Severity == XmlSeverityType.Error)
             {
-                throw new Exception("Error in validation");
+                throw new XmlException("[Error] XML validation - " + e.Message);
             }
         }
 
