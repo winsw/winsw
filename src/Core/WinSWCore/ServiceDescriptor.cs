@@ -90,36 +90,28 @@ namespace winsw
         }
 
         //This constructor is called when config file specified in command line
-        public ServiceDescriptor(string filename)
+        public ServiceDescriptor(string filepath)
         {
-            string p = ExecutablePath;
-            string baseName = filename;
-            if (baseName.EndsWith(".vshost"))
-                baseName = baseName.Substring(0, baseName.Length - 7);
+            BaseName = "";
+            BasePath = "";
 
-            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
-            while (true)
-            {
-                if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
-                    break;
+            if (filepath.EndsWith(".xml"))
+                filepath = filepath.Substring(0, filepath.Length - 4);
 
-                if (d.Parent is null)
-                    throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory or any parents");
-
-                d = d.Parent;
-            }
-
-            BaseName = baseName;
-            BasePath = Path.Combine(d.FullName, BaseName);
+            /*if (!File.Exists(filepath))
+                throw new FileNotFoundException("Unable to locate " + filepath + ".xml file");*/
 
             try
             {
-                dom.Load(BasePath + ".xml");
+                dom.Load(filepath + ".xml");
             }
             catch (XmlException e)
             {
                 throw new InvalidDataException(e.Message, e);
             }
+
+            string p = ExecutablePath;
+            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
 
             // register the base directory as environment variable so that future expansions can refer to this.
             Environment.SetEnvironmentVariable("BASE", d.FullName);
