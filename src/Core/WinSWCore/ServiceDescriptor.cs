@@ -634,19 +634,17 @@ namespace winsw
 
         protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
-        // ReSharper disable once InconsistentNaming
-        protected string? serviceAccountDomain => GetServiceAccountPart("domain");
+        protected string? ServiceAccountDomain => GetServiceAccountPart("domain");
 
-        // ReSharper disable once InconsistentNaming
-        protected string? serviceAccountName => GetServiceAccountPart("user");
+        protected string? ServiceAccountName => GetServiceAccountPart("user");
 
         public string? ServiceAccountPassword => GetServiceAccountPart("password");
 
-        public string ServiceAccountUser => (serviceAccountDomain ?? "NULL") + @"\" + (serviceAccountName ?? "NULL");
+        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
 
         public bool HasServiceAccount()
         {
-            return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
+            return !string.IsNullOrEmpty(ServiceAccountName);
         }
 
         public bool AllowServiceAcountLogonRight
