@@ -14,10 +14,10 @@ categories:
     label: removed
   - title: ⚠️ Deprecated
     label: deprecated
-  - title: 🚀 New features and improvements
-    labels:
-      - enhancement
-      - new-feature
+  - title: ":tada: New features"
+    label: new-feature
+  - title: 🚀 Enhancements
+    label: enhancement
   - title: 🐛 Bug Fixes
     label: bug
   - title: ":package: Packaging changes"
