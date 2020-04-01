@@ -1,12 +1,11 @@
-WinSW Developer Information
-===
+# WinSW Developer Information
 
 ### Build Environment
 
 * *winsw_key.snk* should be available in the project's root in order to build the executable
 * You can generate the certificate by running *generate-key.ps1*
 * The certificate is in *.gitignore* list. Please do not add it to the repository
- 
+
 ### Continuous Integration
 
 Project has a continuous integration flow being hosted by AppVeyor ([project page](https://ci.appveyor.com/project/winsw/winsw)).
@@ -23,16 +22,15 @@ For all these releases we use binaries being created by the special AppVeyor Job
 Here are the release steps:
 
 1. Integrate all pull requests you want to release to the master branch.
-2. Update [CHANGELOG](./CHANGELOG.md) and push changes to the master.
-3. Wait till the [AppVeyor build](https://ci.appveyor.com/project/winsw/winsw) finishes for the last commit.
-4. Go to the [winsw-release job page](https://ci.appveyor.com/project/oleg-nenashev/winsw-g2fwp).
-5. If you are doing a release with a new feature, bump the second digit in the _Version_ setting (e.g. to `2.N.${build}`) and change the next build number to `0`. In such case the version in assembly info will be `2.N.0`
-6. Run the [winsw-release](https://ci.appveyor.com/project/oleg-nenashev/winsw-g2fwp) build. 
+1. Update [CHANGELOG](./CHANGELOG.md) and push changes to the master.
+1. Wait till the [AppVeyor build](https://ci.appveyor.com/project/winsw/winsw) finishes for the last commit.
+1. Go to the [winsw-release job page](https://ci.appveyor.com/project/oleg-nenashev/winsw-g2fwp).
+1. If you are doing a release with a new feature, bump the second digit in the _Version_ setting (e.g. to `2.N.${build}`) and change the next build number to `0`. In such case the version in assembly info will be `2.N.0`
+1. Run the [winsw-release](https://ci.appveyor.com/project/oleg-nenashev/winsw-g2fwp) build. 
 Once it completes, ensure the version is correct.
-7. Click on the _Deploy_ button for the build.
+1. Click on the _Deploy_ button for the build.
 Then deploy changes to _GitHub Releases_ and NuGet using the available publishers.
-8. Go to [GitHub Releases](https://github.com/kohsuke/winsw/releases), find the published Release, click on _Edit release_ and then uncheck the _This is a pre-release_ checkbox to make the release public.
-
+1. Go to [GitHub Releases](https://github.com/winsw/winsw/releases), find the published Release, click on *Edit release* and then uncheck the *This is a pre-release* checkbox to make the release public.
 
 ### Releasing to the Maven repository (legacy)
 
