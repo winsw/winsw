@@ -33,7 +33,7 @@ namespace WinSW.Native
             internal static void Exception(string message, Exception inner)
             {
                 Debug.Assert(message.EndsWith("."));
-                throw new CommandException(message, inner);
+                throw new CommandException(message + ' ' + inner.Message, inner);
             }
 
             /// <exception cref="CommandException" />
