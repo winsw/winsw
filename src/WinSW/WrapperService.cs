@@ -568,6 +568,8 @@ namespace WinSW
             Debug.Assert(succeeded);
             succeeded = ConsoleApis.SetConsoleCtrlHandler(null, false); // inherited
             Debug.Assert(succeeded);
+            succeeded = ConsoleApis.SetConsoleOutputCP(ConsoleApis.CP_UTF8);
+            Debug.Assert(succeeded);
 
             Process process;
             try
