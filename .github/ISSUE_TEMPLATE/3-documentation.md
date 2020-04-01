@@ -1,5 +1,5 @@
 ---
-name: ":pencil: Documentation"
+name: "📝 Documentation"
 labels: documentation
 about: Let us know if any documentation is missing or could be improved
 ---
