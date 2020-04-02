@@ -1,13 +1,13 @@
-# WinSW Installation Guide
+# Installation guide
 
 This page provides WinSW installation guidelines for different cases.
 
-### Installation steps
+## Installation steps
 
 In order to setup WinSW, you commonly need to perform the following steps:
 
 1. Take *WinSW.exe* from the distribution, and rename it to your taste (such as *myapp.exe*)
-1. Write *myapp.xml* (see [XML Config File specification](xmlConfigFile.md) for more details)
+1. Write *myapp.xml* (see [XML config file specification](xmlConfigFile.md) for more details)
 1. Place those two files side by side, because that's how WinSW discovers its configuration.
 1. Run `myapp.exe install <OPTIONS>` in order to install the service wrapper.
 1. Optional - Perform additional configuration in the Windows Service Manager.
@@ -18,9 +18,9 @@ In order to setup WinSW, you commonly need to perform the following steps:
 
 There are some details for each step available below.
 
-### Installation step details
+## Installation step details
 
-#### Step 2. Configuration file
+### Step 2. Configuration file
 
 You write the configuration file that defines your service. 
 The example below is a primitive example being used in the Jenkins project:
@@ -39,7 +39,7 @@ The example below is a primitive example being used in the Jenkins project:
 
 The full specification of the configuration file is available [here](xmlConfigFile.md).
 
-#### Step 3. Service registration
+### Step 3. Service registration
  
 You can then install the service like:
 
@@ -54,7 +54,7 @@ Beyond these error codes, all the non-zero exit code should be assumed as a fail
 The Installer can be also started with the `/p` option.
 In such case it will prompt for an account name and password, which should be used as a service account.
 
-#### Step 4. Windows Service Manager
+### Step 4. Windows Service Manager
 
 Once the service is installed, you can start it from Windows Service Manager.
 If you open `Properties` for the service, you can also configure how the service should be launched. 
@@ -71,9 +71,9 @@ Once the start button is clicked, Windows will start *myapp.exe*,
   then *myapp.exe* will launch the executable specified in the configuration file (Java in this case). 
   If this process dies, *myapp.exe* will exit itself, and the service will be considered stopped.
 
-### Extra configuration options
+## Extra configuration options
 
-#### Making WinSW v1 compatible with .NET runtime 4.0+
+### Making WinSW v1 compatible with .NET runtime 4.0+
 
 **IMPORTANT:** *Starting from WinSW v2 the release offers a new binary, which targets the .NET Framework 4.0.
 Such configuration is no longer required.*
@@ -96,7 +96,7 @@ The way the runtime finds this file is by naming convention, so don't forget to 
 See [this post](http://www.davidmoore.info/2010/12/17/running-net-2-runtime-applications-under-the-net-4-runtime/) for more about this. 
 None of the other flags are needed.
 
-#### WinSW Offline mode and Authenticode
+### WinSW Offline mode and Authenticode
 
 To work with UAC-enabled Windows, winsw ships with a digital signature.
 This causes Windows to automatically verify this digital signature when the application is launched. 

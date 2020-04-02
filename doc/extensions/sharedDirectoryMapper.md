@@ -5,11 +5,11 @@ And sometimes it is impossible to workaround it due to the domain policies.
 
 This extension allows mapping external shared directories before starting up the executable.
 
-Since: [WinSW 2.0](../../CHANGELOG.md).
+Since: WinSW 2.0.
 
-### Usage
+## Usage
 
-The extension can be configured via the [XML Configuration File](../xmlConfigFile.md). 
+The extension can be configured via the [XML configuration file](../xmlConfigFile.md). 
 Configuration sample:
 
 ```xml
@@ -33,6 +33,6 @@ Configuration sample:
 </service>
 ```
 
-### Notes
+## Notes
 
 * If the extension fails to map the drive, the startup fails

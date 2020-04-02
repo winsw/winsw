@@ -1,4 +1,4 @@
-# WinSW XML Configuration File
+# XML configuration file
 
 This page describes the configuration file, which controls the behavior of the Windows service.
 
@@ -23,7 +23,7 @@ Example:
 </service>
 ```
 
-## Environment Variable Expansion in Configuration File
+## Environment variable expansion
 
 Configuration XML files can include environment variable expansions of the form `%Name%`. 
 Such occurrences, if found, will be automatically replaced by the actual values of the variables. 
@@ -90,7 +90,7 @@ Multiple elements can be used to specify multiple dependencies.
 
 Optionally set a different logging directory with `<logpath>` and startup `<logmode>`: reset (clear log), roll (move to \*.old) or append (default).
 
-See the [Logging and Error reporting page](loggingAndErrorReporting.md) for more info.
+See the [Logging and error reporting](loggingAndErrorReporting.md) page for more info.
 
 ### argument
 
@@ -149,6 +149,7 @@ This optional element can be specified multiple times if necessary to specify en
 ```
 
 ### interactive
+
 If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes. 
 If your program requires GUI, set this like the following:
 

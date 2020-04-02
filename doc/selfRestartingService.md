@@ -1,6 +1,6 @@
 # Self-restarting Windows services
 
-### Restarting from the spawned process
+## Restart from the spawned process
 
 To support self-restarting services, winsw exposes `WINSW_EXECUTABLE` environment variable into the forked process, 
   which refers to the full path of *WinSW.exe* that's managing the service.
