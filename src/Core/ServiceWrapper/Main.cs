@@ -280,7 +280,7 @@ namespace winsw
             // space.  This allows users to pad the arguments in the xml for readability
             // without breaking the application launching and keeps the log entries 
             // compact.
-            startarguments = startarguments.Replace("\t", "").Replace("\n", " ").Replace("\r", " ");
+            startarguments = startarguments.Replace("\t", " ").Replace("\n", " ").Replace("\r", " ");
             startarguments = string.Join(" ", startarguments.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries));
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
