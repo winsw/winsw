@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 #if VNEXT
 using System.Threading.Tasks;
@@ -276,12 +277,11 @@ namespace winsw
                 startarguments += " " + _descriptor.Arguments;
             }
 
-            // Collapsing newlines, line returns, tabs and multiple spaces into a single
-            // space.  This allows users to pad the arguments in the xml for readability
-            // without breaking the application launching and keeps the log entries 
-            // compact.
-            startarguments = startarguments.Replace("\t", " ").Replace("\n", " ").Replace("\r", " ");
-            startarguments = string.Join(" ", startarguments.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries));
+            // Collapsing whitespace such as newlines, line returns, tabs and multiple 
+            // spaces into a single space.  This allows users to pad the arguments in 
+            // the xml for readability without breaking the application launching and 
+            // keeps the log entries compact.
+            startarguments = Regex.Replace(startarguments, @"\s+", " ");
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
