@@ -95,15 +95,12 @@ namespace winsw
             BaseName = "";
             BasePath = "";
 
-            if (filepath.EndsWith(".xml"))
-                filepath = filepath.Substring(0, filepath.Length - 4);
-
-            /*if (!File.Exists(filepath))
-                throw new FileNotFoundException("Unable to locate " + filepath + ".xml file");*/
+            if (!File.Exists(filepath))
+                throw new FileNotFoundException("Unable to locate " + filepath + " file");
 
             try
             {
-                dom.Load(filepath + ".xml");
+                dom.Load(filepath);
             }
             catch (XmlException e)
             {
