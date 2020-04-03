@@ -276,6 +276,11 @@ namespace winsw
                 startarguments += " " + _descriptor.Arguments;
             }
 
+            // Removing any newlines that may have been introduced into the xml for readability.
+            // and collapsing multiple empty spaces into one.
+            startarguments = startarguments.Replace("\n", "").Replace("\r", "");
+            startarguments = string.Join(" ", startarguments.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries));
+
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
 
