@@ -276,11 +276,11 @@ namespace winsw
                 startarguments += " " + _descriptor.Arguments;
             }
 
-            // Collapsing newlines, line returns and multiple spaces into a single
+            // Collapsing newlines, line returns, tabs and multiple spaces into a single
             // space.  This allows users to pad the arguments in the xml for readability
             // without breaking the application launching and keeps the log entries 
             // compact.
-            startarguments = startarguments.Replace("\n", " ").Replace("\r", " ");
+            startarguments = startarguments.Replace("\t", "").Replace("\n", " ").Replace("\r", " ");
             startarguments = string.Join(" ", startarguments.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries));
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
