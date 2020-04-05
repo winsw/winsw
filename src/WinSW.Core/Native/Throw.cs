@@ -67,6 +67,7 @@ namespace WinSW.Native
             }
 
             /// <exception cref="CommandException" />
+            [DoesNotReturn]
             [MethodImpl(MethodImplOptions.NoInlining)]
             internal static void Win32Exception(string message)
             {
