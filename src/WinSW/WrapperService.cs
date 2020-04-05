@@ -21,11 +21,7 @@ namespace WinSW
 
         private static readonly int additionalStopTimeout = 1_000;
 
-        private static readonly ILog Log = LogManager.GetLogger(
-#if NET
-            Assembly.GetExecutingAssembly(),
-#endif
-            "WinSW");
+        private static readonly ILog Log = LogManager.GetLogger(typeof(WrapperService));
 
         private readonly XmlServiceConfig config;
 

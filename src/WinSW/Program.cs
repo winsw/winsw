@@ -1177,9 +1177,7 @@ namespace WinSW
             var consoleLogLevel = Level.Info;
             var eventLogLevel = Level.Warn;
 
-#if NET
             var repository = LogManager.GetRepository(Assembly.GetExecutingAssembly());
-#endif
 
             if (inConsoleMode)
             {
@@ -1191,11 +1189,7 @@ namespace WinSW
                 };
                 consoleAppender.ActivateOptions();
 
-                BasicConfigurator.Configure(
-#if NET
-                    repository,
-#endif
-                    consoleAppender);
+                BasicConfigurator.Configure(repository, consoleAppender);
             }
             else
             {
@@ -1206,11 +1200,7 @@ namespace WinSW
                 };
                 eventLogAppender.ActivateOptions();
 
-                BasicConfigurator.Configure(
-#if NET
-                    repository,
-#endif
-                    eventLogAppender);
+                BasicConfigurator.Configure(repository, eventLogAppender);
             }
 
             XmlServiceConfig config;
@@ -1243,11 +1233,7 @@ namespace WinSW
             };
             fileAppender.ActivateOptions();
 
-            BasicConfigurator.Configure(
-#if NET
-                repository,
-#endif
-                fileAppender);
+            BasicConfigurator.Configure(repository, fileAppender);
 
             return config;
         }
