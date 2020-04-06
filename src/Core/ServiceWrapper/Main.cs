@@ -277,11 +277,10 @@ namespace winsw
                 startarguments += " " + _descriptor.Arguments;
             }
 
-            // Collapsing whitespace such as newlines, line returns, tabs and multiple 
-            // spaces into a single space.  This allows users to pad the arguments in 
-            // the xml for readability without breaking the application launching and 
-            // keeps the log entries compact.
-            startarguments = Regex.Replace(startarguments, @"\s+", " ");
+            // Converting newlines, line returns, tabs into a single 
+            // space. This allows users to provide multi-line arguments
+            // in the xml for readability.
+            startarguments = Regex.Replace(startarguments, @"[\n\r\t]+", " ");
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
