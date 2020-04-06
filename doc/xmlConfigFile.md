@@ -60,13 +60,13 @@ It can be either absolute path, or you can just specify the executable name and 
 
 This element specifies the start mode of the Windows service. 
 It can be one of the following values: Boot, System, Automatic, or Manual. 
-For more information, see [ChangeStartMode method](https://docs.microsoft.com/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service).
+For more information, see the [ChangeStartMode method](https://docs.microsoft.com/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service).
 The default value is `Automatic`.
 
 ### delayedAutoStart
 
 This Boolean option enables the delayed start mode if the `Automatic` start mode is defined.
-More information about this mode is provided [here](https://blogs.technet.microsoft.com/askperf/2008/02/02/ws2008-startup-processes-and-delayed-automatic-start/).
+For more information, see [Startup Processes and Delayed Automatic Start](https://techcommunity.microsoft.com/t5/ask-the-performance-team/ws2008-startup-processes-and-delayed-automatic-start/ba-p/372692).
 
 Please note that this startup mode will not take affect on old Windows versions older than Windows 7 and Windows Server 2008.
 Windows service installation may fail in such case.
@@ -128,7 +128,7 @@ As such, to specify multiple arguments, you'll specify multiple elements.
 
 ### stoptimeout
 
-When the service is requested to stop, winsw first attempts to [GenerateConsoleCtrlEvent function](https://docs.microsoft.com/windows/console/generateconsolectrlevent) (similar to Ctrl+C), 
+When the service is requested to stop, winsw first attempts to send a Ctrl+C signal, 
   then wait for up to 15 seconds for the process to exit by itself gracefully. 
 A process failing to do that (or if the process does not have a console), 
   then winsw resorts to calling [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.
@@ -162,7 +162,7 @@ In those OSes, all that this does is to allow the user to switch to a separate w
 
 ### beeponshutdown
 
-This optional element is to emit [simple tone](https://docs.microsoft.com/windows/win32/api/utilapiset/nf-utilapiset-beep) when the service shuts down. 
+This optional element is to emit [simple tones](https://docs.microsoft.com/windows/win32/api/utilapiset/nf-utilapiset-beep) when the service shuts down. 
 This feature should be used only for debugging, as some operating systems and hardware do not support this functionality.
 
 ### download
@@ -173,15 +173,15 @@ This operation runs when the service is started, before the application specifie
 For servers requiring authentication some parameters must be specified depending on the type of authentication. Only the basic authentication requires additional sub-parameters. Supported authentication types are:
 
 * `none`:  default, must not be specified
-* `sspi`: Microsoft [authentication](https://en.wikipedia.org/wiki/Security_Support_Provider_Interface) including Kerberos, NTLM etc. 
+* `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi) including Kerberos, NTLM etc. 
 * `basic`: Basic authentication, sub-parameters:
 	* `user="UserName"`
 	* `password="Passw0rd"`
 	* `unsecureAuth="true": default="false"`
 
-The parameter “unsecureAuth” is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
+The parameter `unsecureAuth` is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
 
-For target servers using the HTTPS transfer protocol it is necessary, that the CA which issued the server certificate is trusted by the client. This is normally the situation when the server ist located in the Internet. When an organisation is using a self issued CA for the intranet this probably is not the case. In this case it is necessary to import the CA to the Certificate MMC of the Windows client. Have a look to the instructions on this [site](https://technet.microsoft.com/en-us/library/cc754841.aspx). The self issued CA must be imported to the Trusted Root Certification Authorities for the computer.
+For target servers using the HTTPS transfer protocol it is necessary, that the CA which issued the server certificate is trusted by the client. This is normally the situation when the server ist located in the Internet. When an organisation is using a self issued CA for the intranet this probably is not the case. In this case it is necessary to import the CA to the Certificate MMC of the Windows client. Have a look to the instructions on [Manage Trusted Root Certificates](https://docs.microsoft.com/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc754841(v=ws.11)). The self issued CA must be imported to the Trusted Root Certification Authorities for the computer.
 
 By default, the `download` command does not fail the service startup if the operation fails (e.g. `from` is not available).
 In order to force the download failure in such case, it is possible to specify the `failOnError` boolean attribute.

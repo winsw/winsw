@@ -48,7 +48,7 @@ myapp.exe install <OPTIONS>
 ```
 
 ... and you can use the exit code from these processes to determine whether the operation was successful. 
-Possible return error codes are described  [here](http://msdn.microsoft.com/en-us/library/aa389390%28VS.85%29.aspx). 
+Possible exit codes are described [here](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service#return-value). 
 Beyond these error codes, all the non-zero exit code should be assumed as a failure.
 
 The Installer can be also started with the `/p` option.
@@ -93,7 +93,7 @@ One way to deal with this is to ensure that .NET Framework 2.0 is installed thro
 ```
 
 The way the runtime finds this file is by naming convention, so don't forget to rename a file based on your actual executable name (e.g. *myapp.exe*). 
-See [this post](http://www.davidmoore.info/2010/12/17/running-net-2-runtime-applications-under-the-net-4-runtime/) for more about this. 
+For more information, see [How to: Configure an App to Support .NET Framework 4 or later versions](https://docs.microsoft.com/dotnet/framework/migration-guide/how-to-configure-an-app-to-support-net-framework-4-or-4-5).
 None of the other flags are needed.
 
 ### WinSW Offline mode and Authenticode

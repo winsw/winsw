@@ -17,12 +17,8 @@ See the [project manifest](MANIFEST.md).
 
 Starting from WinSW v2, the releases are being hosted on [GitHub](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
 
-Due to historical reasons, the project also uses  [Jenkins Maven repository](https://jenkins.io/index.html) as a secondary source. 
-Binaries are available [here](http://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
-
-The executables in all sources are [strong-named assemblies](https://msdn.microsoft.com/en-us/library/wd40t7ad%28v=vs.110%29.aspx), which are being signed by randomly generated keys.
-Do not rely on such strong names for security (as well as on other strong names as it recommended by Microsoft). 
-They provide a unique identity only.
+Due to historical reasons, the project also uses the [Jenkins](https://jenkins.io/) Maven repository as a secondary source. 
+Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
 
 ## Usage
 
@@ -88,8 +84,6 @@ This is a new baseline of WinSW with several major changes:
 * New release hosting: GitHub and NuGet
 * Migration of the logging subsystem to Apache log4net
 * Bugfixes
-
-See the full changelog in the [release notes](CHANGELOG.md).
 
 The version v2 is **fully compatible** with the v1 configuration file format, 
   hence the upgrade procedure just requires replacement of the executable file.
