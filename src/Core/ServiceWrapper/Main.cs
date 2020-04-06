@@ -280,7 +280,7 @@ namespace winsw
             // Converting newlines, line returns, tabs into a single 
             // space. This allows users to provide multi-line arguments
             // in the xml for readability.
-            startarguments = Regex.Replace(startarguments, @"[\n\r\t]+", " ");
+            startarguments = Regex.Replace(startarguments, @"\s*[\n\r\t]+\s*", " ");
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
