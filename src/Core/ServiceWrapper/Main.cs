@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 #if VNEXT
 using System.Threading.Tasks;
@@ -275,6 +276,11 @@ namespace winsw
             {
                 startarguments += " " + _descriptor.Arguments;
             }
+
+            // Converting newlines, line returns, tabs into a single 
+            // space. This allows users to provide multi-line arguments
+            // in the xml for readability.
+            startarguments = Regex.Replace(startarguments, @"\s*[\n\r]+\s*", " ");
 
             LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
             Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
