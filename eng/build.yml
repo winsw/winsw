@@ -7,9 +7,13 @@ pr:
 - master
 
 variables:
-  Revision: $[counter(format('{0}.{1}.{2}', variables.Major, variables.Minor, variables.Patch), 1)]
-  AssemblyVersion: $(Major).$(Minor).$(Patch)
-  PackageVersion: $(Major).$(Minor).$(Patch).$(Revision)
+- group: Version
+- name: Revision
+  value: $[counter(format('{0}.{1}.{2}', variables.Major, variables.Minor, variables.Patch), 1)]
+- name: AssemblyVersion
+  value: $(Major).$(Minor).$(Patch)
+- name: PackageVersion
+  value: $(Major).$(Minor).$(Patch).$(Revision)
 
 jobs:
 - template: template.yml
