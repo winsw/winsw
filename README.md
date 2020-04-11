@@ -1,4 +1,4 @@
-# WinSW: Windows Service Wrapper in less restrictive license
+# Windows Service Wrapper in less restrictive license
 
 [![Github All Releases](https://img.shields.io/github/downloads/winsw/winsw/total?style=flat-square)](https://github.com/winsw/winsw/releases)
 [![NuGet](https://img.shields.io/nuget/v/WinSW?style=flat-square)](https://www.nuget.org/packages/WinSW/)
@@ -17,7 +17,7 @@ See the [project manifest](MANIFEST.md).
 
 WinSW offers executables for .NET Framework 2.0, 4.0 and 4.6.1.
 It can run on Windows platforms which have these versions of .NET framework installed.
-For systems without .NET Framework, the project provides native 64bit and 32bit executables which are based on .NET Core 3.1.
+For systems without .NET Framework, the project provides native 64-bit and 32-bit executables which are based on .NET Core 3.1.
 
 More executables can be added upon request.
 
@@ -72,8 +72,8 @@ Developer documentation:
 ## Contributing
 
 Contributions are welcome!
-No Clontributor Licence Agreement is needed, just submit your pull requests.
-See [the contributor guidelines](./CONTRIBUTING.md) for more information and guidelines.
+No Contributor License Agreement is needed, just submit your pull requests.
+See the [contributing guidelines](./CONTRIBUTING.md) for more information.
 
 ## License
 
