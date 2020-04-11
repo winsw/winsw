@@ -183,7 +183,7 @@ namespace winsw.Util
             processToStart.Start();
             Logger.Info("Started process " + processToStart.Id);
 
-            if (priority != null && priority.Value != ProcessPriorityClass.Normal)
+            if (priority != null)
             {
                 processToStart.PriorityClass = priority.Value;
             }
