@@ -107,20 +107,12 @@ namespace winsw
 
             Assembly a = Assembly.GetExecutingAssembly();
 
-            try
+            using (Stream schemaStream = a.GetManifestResourceStream("winsw.XMLSchema.xsd"))
             {
-                using (Stream schemaStream = a.GetManifestResourceStream("winsw.XMLSchema.xsd"))
+                using (XmlReader schemaReader = XmlReader.Create(schemaStream))
                 {
-                    using (XmlReader schemaReader = XmlReader.Create(schemaStream))
-                    {
-                        settings.Schemas.Add(null, schemaReader);
-                    }
-
+                    settings.Schemas.Add(null, schemaReader);
                 }
-            }
-            catch(Exception e)
-            {
-                throw e;
             }
 
             settings.ValidationType = ValidationType.Schema;
