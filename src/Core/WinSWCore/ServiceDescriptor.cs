@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Schema;
@@ -104,13 +105,23 @@ namespace winsw
         {
             XmlReaderSettings settings = new XmlReaderSettings();
 
+            Assembly a = Assembly.GetExecutingAssembly();
+            string[] resourceNames = this.GetType().Assembly.GetManifestResourceNames();
+
             try
             {
-                settings.Schemas.Add(null, BasePath + ".xsd");
+                using (Stream schemaStream = a.GetManifestResourceStream("winsw.XMLSchema.xsd"))
+                {
+                    using (XmlReader schemaReader = XmlReader.Create(schemaStream))
+                    {
+                        settings.Schemas.Add(null, schemaReader);
+                    }
+
+                }
             }
-            catch (FileNotFoundException)
+            catch(Exception e)
             {
-                throw new FileNotFoundException("XSD file not found");
+                throw e;
             }
 
             settings.ValidationType = ValidationType.Schema;
