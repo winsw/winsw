@@ -106,7 +106,6 @@ namespace winsw
             XmlReaderSettings settings = new XmlReaderSettings();
 
             Assembly a = Assembly.GetExecutingAssembly();
-            string[] resourceNames = this.GetType().Assembly.GetManifestResourceNames();
 
             try
             {
