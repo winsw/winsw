@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 
 // ReSharper disable InconsistentNaming
@@ -321,6 +322,20 @@ namespace winsw.Native
 
         [DllImport(Advapi32LibraryName, SetLastError = false)]
         internal static extern uint LsaNtStatusToWinError(uint status);
+
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
+        public static extern bool OpenProcessToken(
+            IntPtr ProcessHandle,
+            TokenAccessLevels DesiredAccess,
+            out IntPtr TokenHandle);
+
+        [DllImport(Advapi32LibraryName, SetLastError = true)]
+        public static extern bool GetTokenInformation(
+          IntPtr TokenHandle,
+          TOKEN_INFORMATION_CLASS TokenInformationClass,
+          out TOKEN_ELEVATION TokenInformation,
+          int TokenInformationLength,
+          out int ReturnLength);
     }
 
     // http://msdn.microsoft.com/en-us/library/windows/desktop/bb545671(v=vs.85).aspx
@@ -602,5 +617,15 @@ namespace winsw.Native
     public struct SERVICE_DESCRIPTION
     {
         public string lpDescription;
+    }
+
+    public enum TOKEN_INFORMATION_CLASS
+    {
+        TokenElevation = 20,
+    }
+
+    public struct TOKEN_ELEVATION
+    {
+        public uint TokenIsElevated;
     }
 }

@@ -9,13 +9,15 @@ namespace winsw.Util
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SigIntHelper));
 
+        public const int ATTACH_PARENT_PROCESS = -1;
+
         private const string Kernel32LibraryName = "kernel32.dll";
 
         [DllImport(Kernel32LibraryName, SetLastError = true)]
-        private static extern bool AttachConsole(uint dwProcessId);
+        public static extern bool AttachConsole(int dwProcessId);
 
         [DllImport(Kernel32LibraryName, SetLastError = true)]
-        private static extern bool FreeConsole();
+        public static extern bool FreeConsole();
 
         [DllImport(Kernel32LibraryName)]
         private static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate? HandlerRoutine, bool Add);
@@ -44,7 +46,7 @@ namespace winsw.Util
         /// <returns>True if the process shut down successfully to the SIGINT, false if it did not.</returns>
         public static bool SendSIGINTToProcess(Process process, TimeSpan shutdownTimeout)
         {
-            if (AttachConsole((uint)process.Id))
+            if (AttachConsole(process.Id))
             {
                 // Disable Ctrl-C handling for our program
                 _ = SetConsoleCtrlHandler(null, true);

@@ -28,6 +28,12 @@ namespace winsw.Native
             string? lpCurrentDirectory,
             in STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
+
+        [DllImport(Kernel32LibraryName)]
+        public static extern IntPtr GetCurrentProcess();
+
+        [DllImport(Kernel32LibraryName)]
+        public static extern bool CloseHandle(IntPtr hObject);
     }
 
     [StructLayout(LayoutKind.Sequential)]

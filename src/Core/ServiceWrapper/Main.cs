@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -589,6 +591,26 @@ namespace winsw
                 args = args.GetRange(2, args.Count - 2);
             }
 
+            bool elevated;
+            if (args[0] == "/elevated")
+            {
+                elevated = true;
+
+                _ = SigIntHelper.FreeConsole();
+                _ = SigIntHelper.AttachConsole(SigIntHelper.ATTACH_PARENT_PROCESS);
+
+                args = args.GetRange(1, args.Count - 1);
+            }
+            else if (Environment.OSVersion.Version.Major == 5)
+            {
+                // Windows XP
+                elevated = true;
+            }
+            else
+            {
+                elevated = IsProcessElevated();
+            }
+
             switch (args[0].ToLower())
             {
                 case "install":
@@ -647,6 +669,12 @@ namespace winsw
 
             void Install()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Installing the service with id '" + descriptor.Id + "'");
 
                 // Check if the service exists
@@ -738,6 +766,12 @@ namespace winsw
 
             void Uninstall()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
                 if (s is null)
                 {
@@ -777,6 +811,12 @@ namespace winsw
 
             void Start()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Starting the service with id '" + descriptor.Id + "'");
                 if (s is null)
                     ThrowNoSuchService();
@@ -800,6 +840,12 @@ namespace winsw
 
             void Stop()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Stopping the service with id '" + descriptor.Id + "'");
                 if (s is null)
                     ThrowNoSuchService();
@@ -823,6 +869,12 @@ namespace winsw
 
             void Restart()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
                 if (s is null)
                     ThrowNoSuchService();
@@ -841,6 +893,11 @@ namespace winsw
 
             void RestartSelf()
             {
+                if (!elevated)
+                {
+                    throw new UnauthorizedAccessException("Access is denied.");
+                }
+
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
@@ -865,6 +922,12 @@ namespace winsw
 
             void Test()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.OnStart(args.ToArray());
                 Thread.Sleep(1000);
@@ -873,11 +936,51 @@ namespace winsw
 
             void TestWait()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.OnStart(args.ToArray());
                 Console.WriteLine("Press any key to stop the service...");
                 Console.Read();
                 wsvc.OnStop();
+            }
+
+            // [DoesNotReturn]
+            void Elevate()
+            {
+                using Process current = Process.GetCurrentProcess();
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    FileName = current.MainModule.FileName,
+#if NETCOREAPP
+                    Arguments = "/elevated " + string.Join(' ', args),
+#elif !NET20
+                    Arguments = "/elevated " + string.Join(" ", args),
+#else
+                    Arguments = "/elevated " + string.Join(" ", args.ToArray()),
+#endif
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                };
+
+                try
+                {
+                    using Process elevated = Process.Start(startInfo);
+
+                    elevated.WaitForExit();
+                    Environment.Exit(elevated.ExitCode);
+                }
+                catch (Win32Exception e) when (e.NativeErrorCode == Errors.ERROR_CANCELLED)
+                {
+                    Log.Fatal(e.Message);
+                    Environment.Exit(e.ErrorCode);
+                }
             }
         }
 
@@ -939,6 +1042,40 @@ namespace winsw
                 LogManager.GetRepository(Assembly.GetExecutingAssembly()),
 #endif
                 appenders.ToArray());
+        }
+
+        private static unsafe bool IsProcessElevated()
+        {
+            IntPtr process = Kernel32.GetCurrentProcess();
+            if (!Advapi32.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
+            {
+                ThrowWin32Exception("Failed to open process token.");
+            }
+
+            try
+            {
+                if (!Advapi32.GetTokenInformation(
+                    token,
+                    TOKEN_INFORMATION_CLASS.TokenElevation,
+                    out TOKEN_ELEVATION elevation,
+                    sizeof(TOKEN_ELEVATION),
+                    out _))
+                {
+                    ThrowWin32Exception("Failed to get token information");
+                }
+
+                return elevation.TokenIsElevated != 0;
+            }
+            finally
+            {
+                _ = Kernel32.CloseHandle(token);
+            }
+
+            static void ThrowWin32Exception(string message)
+            {
+                Win32Exception inner = new Win32Exception();
+                throw new Win32Exception(inner.NativeErrorCode, message + ' ' + inner.Message);
+            }
         }
 
         private static string ReadPassword()
