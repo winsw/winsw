@@ -1,8 +1,8 @@
-# winsw: Windows Service Wrapper in less restrictive license
+# Windows Service Wrapper in less restrictive license
 
 [![Github All Releases](https://img.shields.io/github/downloads/winsw/winsw/total?style=flat-square)](https://github.com/winsw/winsw/releases)
 [![NuGet](https://img.shields.io/nuget/v/WinSW?style=flat-square)](https://www.nuget.org/packages/WinSW/)
-[![Build Status](https://img.shields.io/appveyor/build/winsw/winsw?style=flat-square)](https://ci.appveyor.com/project/winsw/winsw)
+[![Build Status](https://img.shields.io/azure-devops/build/winsw/aabe43dd-6f6d-4660-b5dd-5b79e1e2ef4e/1?style=flat-square)](https://dev.azure.com/winsw/winsw/_build?definitionId=1&_a=summary)
 [![Gitter](https://img.shields.io/gitter/room/winsw/winsw?style=flat-square)](https://gitter.im/winsw/winsw?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![License](https://img.shields.io/github/license/winsw/winsw?style=flat-square)](LICENSE.txt)
 
@@ -13,12 +13,23 @@ Once you download the installation package, you can rename *WinSW.exe* to any na
 
 See the [project manifest](MANIFEST.md).
 
+## Supported platforms
+
+WinSW offers executables for .NET Framework 2.0, 4.0 and 4.6.1.
+It can run on Windows platforms which have these versions of .NET Framework installed.
+For systems without .NET Framework, the project provides native 64-bit and 32-bit executables which are based on .NET Core 3.1.
+
+More executables can be added upon request.
+
 ## Download
 
-Starting from WinSW v2, the releases are being hosted on [GitHub](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
+WinSW binaries are available on [GitHub Releases](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
 
-Due to historical reasons, the project also uses the [Jenkins](https://jenkins.io/) Maven repository as a secondary source. 
-Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). 
+Alternative sources:
+
+* [Maven packaging](https://github.com/jenkinsci/winsw-maven-packaging) for executables, hosted by the [Jenkins project](https://jenkins.io/). 
+Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/).
+* [Puppet](./doc/puppetWinSW.md), currently outdated (WinSW 1.x). Binaries are available on [Puppet Forge](https://forge.puppet.com/kenmaglio/winsw)
 
 ## Usage
 
@@ -40,14 +51,6 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 
 Most commands require Administrator privileges to execute. Since v2.8, WinSW will prompt for UAC in non-elevated sessions.
 
-## Supported .NET versions
-
-### WinSW v2
-
-WinSW v2 offers two executables, which declare .NET Frameworks 2.0 and 4.0 as targets.
-More executables can be added on-demand.
-Please create an issue if you need such executables.
-
 ## Documentation
 
 User documentation:
@@ -68,20 +71,11 @@ Developer documentation:
 
 * [Developer guide](DEVELOPER.md)
 
-## Release lines
+## Contributing
 
-### WinSW v2
-
-This is a new baseline of WinSW with several major changes:
-* Major documentation rework and update
-* New executable package targeting the .NET Framework 4.0. .NET Framework 2.0 is still supported.
-* [Extension engine](doc/extensions/extensions.md), which allows extending the wrapper's behavior. And a couple of extensions for it (Shared Directory Mapper, Runaway Process Killer)
-* New release hosting: GitHub and NuGet
-* Migration of the logging subsystem to Apache log4net
-* Bugfixes
-
-The version v2 is **fully compatible** with the v1 configuration file format, 
-  hence the upgrade procedure just requires replacement of the executable file.
+Contributions are welcome!
+No Contributor License Agreement is needed, just submit your pull requests.
+See the [contributing guidelines](./CONTRIBUTING.md) for more information.
 
 ## License
 

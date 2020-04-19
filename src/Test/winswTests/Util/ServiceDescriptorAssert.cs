@@ -11,28 +11,28 @@ namespace winswTests.Util
         // TODO: convert to Extension attributes once the .NET dependency is upgraded
         // BTW there is a way to get them working in .NET2, but KISS
 
-        public static void AssertPropertyIsDefault(ServiceDescriptor d, string property)
+        public static void AssertPropertyIsDefault(ServiceDescriptor desc, string property)
         {
             PropertyInfo actualProperty = typeof(ServiceDescriptor).GetProperty(property);
-            Assert.IsNotNull(actualProperty, "Cannot find property " + property + " in the service descriptor" + d);
-            PropertyInfo defaultProperty = typeof(DefaultWinSWSettings).GetProperty(property);
-            Assert.IsNotNull(defaultProperty, "Cannot find property " + property + " in the default settings");
+            Assert.That(actualProperty, Is.Not.Null);
 
-            Assert.AreEqual(defaultProperty.GetValue(ServiceDescriptor.Defaults, null), actualProperty.GetValue(d, null),
-                "Value of property " + property + " does not equal to the default one");
+            PropertyInfo defaultProperty = typeof(DefaultWinSWSettings).GetProperty(property);
+            Assert.That(defaultProperty, Is.Not.Null);
+
+            Assert.That(actualProperty.GetValue(desc, null), Is.EqualTo(defaultProperty.GetValue(ServiceDescriptor.Defaults, null)));
         }
 
-        public static void AssertPropertyIsDefault(ServiceDescriptor d, List<string> properties)
+        public static void AssertPropertyIsDefault(ServiceDescriptor desc, List<string> properties)
         {
             foreach (var prop in properties)
             {
-                AssertPropertyIsDefault(d, prop);
+                AssertPropertyIsDefault(desc, prop);
             }
         }
 
-        public static void AssertAllOptionalPropertiesAreDefault(ServiceDescriptor d)
+        public static void AssertAllOptionalPropertiesAreDefault(ServiceDescriptor desc)
         {
-            AssertPropertyIsDefault(d, AllOptionalProperties);
+            AssertPropertyIsDefault(desc, AllOptionalProperties);
         }
 
         private static List<string> AllProperties

@@ -17,37 +17,34 @@ namespace winswTests.Configuration
         [Test]
         public void AllOptionsConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor d = DoLoad("allOptions");
+            ServiceDescriptor desc = Load("allOptions");
 
-            Assert.AreEqual("myapp", d.Id);
-            Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
-            Assert.AreEqual("This service is a service created from a sample configuration", d.Description);
-            Assert.AreEqual("%BASE%\\myExecutable.exe", d.Executable);
+            Assert.That(desc.Id, Is.EqualTo("myapp"));
+            Assert.That(desc.Caption, Is.EqualTo("MyApp Service (powered by WinSW)"));
+            Assert.That(desc.Description, Is.EqualTo("This service is a service created from a sample configuration"));
+            Assert.That(desc.Executable, Is.EqualTo("%BASE%\\myExecutable.exe"));
 
-            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
+            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
         }
 
         [Test]
         public void MinimalConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor d = DoLoad("minimal");
+            ServiceDescriptor desc = Load("minimal");
 
-            Assert.AreEqual("myapp", d.Id);
-            Assert.AreEqual("MyApp Service (powered by WinSW)", d.Caption);
-            Assert.AreEqual("This service is a service created from a minimal configuration", d.Description);
-            Assert.AreEqual("%BASE%\\myExecutable.exe", d.Executable);
+            Assert.That(desc.Id, Is.EqualTo("myapp"));
+            Assert.That(desc.Caption, Is.EqualTo("MyApp Service (powered by WinSW)"));
+            Assert.That(desc.Description, Is.EqualTo("This service is a service created from a minimal configuration"));
+            Assert.That(desc.Executable, Is.EqualTo("%BASE%\\myExecutable.exe"));
 
-            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(d);
+            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
         }
 
-        private ServiceDescriptor DoLoad(string exampleName)
+        private ServiceDescriptor Load(string exampleName)
         {
-            var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string path = Path.GetFullPath(dir + "\\..\\..\\..\\..\\..\\..\\examples\\sample-" + exampleName + ".xml");
-            if (!File.Exists(path))
-            {
-                throw new FileNotFoundException("Cannot find the XML file " + path, path);
-            }
+            var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string path = Path.GetFullPath($@"{directory}\..\..\..\..\..\..\examples\sample-{exampleName}.xml");
+            Assert.That(path, Does.Exist);
 
             XmlDocument dom = new XmlDocument();
             dom.Load(path);

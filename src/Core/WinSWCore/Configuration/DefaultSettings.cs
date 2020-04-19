@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Xml;
 using WMI;
 
@@ -33,7 +32,7 @@ namespace winsw.Configuration
         public string? Startarguments => null;
         public string? StopExecutable => null;
         public string? Stoparguments => null;
-        public string WorkingDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        public string WorkingDirectory => Path.GetDirectoryName(ExecutablePath)!;
         public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
         public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
         public bool StopParentProcessFirst => false;

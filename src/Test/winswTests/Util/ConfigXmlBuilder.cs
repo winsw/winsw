@@ -126,27 +126,37 @@ namespace winswTests.Util
 
         public ConfigXmlBuilder WithDownload(Download download)
         {
-            StringBuilder str = new StringBuilder();
-            str.AppendFormat("<download from=\"{0}\" to=\"{1}\" failOnError=\"{2}\"", new object[] { download.From, download.To, download.FailOnError });
+            StringBuilder xml = new StringBuilder();
+            xml.Append($"<download from=\"{download.From}\" to=\"{download.To}\" failOnError=\"{download.FailOnError}\"");
 
             // Authentication
             if (download.Auth != Download.AuthType.none)
             {
-                str.AppendFormat(" auth=\"{0}\"", download.Auth);
+                xml.Append($" auth=\"{download.Auth}\"");
                 if (download.Auth == Download.AuthType.basic)
                 {
-                    str.AppendFormat(" user=\"{0}\" password=\"{1}\"", new object[] { download.Username, download.Password });
+                    string username = download.Username;
+                    if (username != null)
+                    {
+                        xml.Append($" user=\"{username}\"");
+                    }
+
+                    string password = download.Password;
+                    if (password != null)
+                    {
+                        xml.Append($" password=\"{password}\"");
+                    }
                 }
 
                 if (download.UnsecureAuth)
                 {
-                    str.AppendFormat(" unsecureAuth=\"true\"");
+                    xml.Append(" unsecureAuth=\"true\"");
                 }
             }
 
-            str.Append("/>");
+            xml.Append("/>");
 
-            return WithRawEntry(str.ToString());
+            return WithRawEntry(xml.ToString());
         }
 
         public ConfigXmlBuilder WithDelayedAutoStart()

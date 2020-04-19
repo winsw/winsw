@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
 
     <RootNamespace>winsw.Plugins.SharedDirectoryMapper</RootNamespace>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>

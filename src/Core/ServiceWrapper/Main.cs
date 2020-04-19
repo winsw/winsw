@@ -756,6 +756,12 @@ namespace winsw
                     rawSecurityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
                     _ = Advapi32.SetServiceObjectSecurity(sc.Handle, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
                 }
+
+                string eventLogSource = descriptor.Id;
+                if (!EventLog.SourceExists(eventLogSource))
+                {
+                    EventLog.CreateEventSource(eventLogSource, "Application");
+                }
             }
 
             void Uninstall()
