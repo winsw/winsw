@@ -76,7 +76,11 @@ For example, in the above example, the log of Jan 1, 2013 gets written to `myapp
 The syntax of the autoRollAtTime is specified by [TimeSpan.ToString(String)](https://docs.microsoft.com/dotnet/api/system.timespan.tostring#System_TimeSpan_ToString_System_String_).
 For example, in the above example, at the start of the day it will roll the file over.
 
-### Optional settings (broken in all versions)
+### Automatic archiving of logs
+
+:exclamation: This feature is reported to be broken in recent WinSW versions.
+It is a potential subject for removal.
+
 
 ```xml
 <log mode="roll-by-size-time">
