@@ -78,7 +78,7 @@ For example, in the above example, at the start of the day it will roll the file
 
 ### Automatic archiving of logs
 
-:exclamation: This feature is reported to be broken in recent WinSW versions.
+:warning: This feature is reported to be broken in recent WinSW versions.
 It is a potential subject for removal.
 
 
