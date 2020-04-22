@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using NUnit.Framework;
 using winsw;
+using winsw.Native;
 using winswTests.Util;
 using WMI;
 
@@ -440,6 +442,28 @@ $@"<service>
 
             var sd = bldr.ToServiceDescriptor();
             Assert.That(sd.DelayedAutoStart, Is.EqualTo(enabled));
+        }
+
+        [Test]
+        public void ValidateAndLoadXmlSchemaTest()
+        {
+            const string seedXml = "<service>" +
+  "<id>myapp</id> " +
+  "<name>MyApp Service (powered by WinSW)</name>" +
+  "<description>This service is a service created from a minimal configuration</description>" +
+"</service>";
+
+            var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            try
+            {
+                serviceDescriptor.ValidateAndLoadXmlSchema();
+                Assert.Fail();
+            }
+            catch (FileNotFoundException)
+            {
+                Assert.Pass();
+            }
         }
     }
 }

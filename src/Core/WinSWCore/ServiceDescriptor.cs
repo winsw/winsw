@@ -101,7 +101,7 @@ namespace winsw
             this.dom = dom;
         }
 
-        private void ValidateAndLoadXmlSchema()
+        public void ValidateAndLoadXmlSchema()
         {
             XmlReaderSettings settings = new XmlReaderSettings();
 
