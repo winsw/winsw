@@ -455,9 +455,9 @@ $@"<service>
 "</service>";
 
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-
             var reader = XmlReader.Create(new StringReader(seedXml));
-            serviceDescriptor.ValidateAndLoadXmlSchema(reader);
+
+            Assert.That(() => serviceDescriptor.ValidateAndLoadXmlSchema(reader), Throws.TypeOf<XmlException>());
         }
     }
 }
