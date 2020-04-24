@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Xml;
 using NUnit.Framework;
 using winsw;
 using winsw.Native;
@@ -455,15 +456,8 @@ $@"<service>
 
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            try
-            {
-                serviceDescriptor.ValidateAndLoadXmlSchema();
-                Assert.Fail();
-            }
-            catch (FileNotFoundException)
-            {
-                Assert.Pass();
-            }
+            var reader = XmlReader.Create(new StringReader(seedXml));
+            serviceDescriptor.ValidateAndLoadXmlSchema(reader);
         }
     }
 }

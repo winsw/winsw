@@ -67,7 +67,7 @@ namespace winsw
 
             try
             {
-                ValidateAndLoadXmlSchema();
+                ValidateAndLoadXmlSchema(GetXMLReader());
             }
             catch (XmlException e)
             {
@@ -101,7 +101,7 @@ namespace winsw
             this.dom = dom;
         }
 
-        public void ValidateAndLoadXmlSchema()
+        public void ValidateAndLoadXmlSchema(XmlReader reader)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
 
@@ -117,11 +117,13 @@ namespace winsw
 
             settings.ValidationType = ValidationType.Schema;
             settings.ValidationEventHandler += new ValidationEventHandler(XmlValidationEventHandler);
-            
-            using(XmlReader reader = XmlReader.Create(BasePath + ".xml"))
-            {
-                dom.Load(reader);
-            }
+
+            dom.Load(reader);
+        }
+
+        private XmlReader GetXMLReader()
+        {
+            return XmlReader.Create(BasePath + ".xml");
         }
 
         private void XmlValidationEventHandler(object sender, ValidationEventArgs e)
