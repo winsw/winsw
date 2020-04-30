@@ -448,12 +448,12 @@ $@"<service>
         [Test]
         public void ValidateAndLoadXmlSchemaTest()
         {
-            const string seedXml = @"<service>
+            const string seedXml = @"<id>
                                         <id>myapp</id>
                                         <name>appname</name>
                                         <description>app description</description>
                                         <executable>jenkins</executable>
-                                   </service>";
+                                   </id>";
 
             
             var dom = new XmlDocument();
