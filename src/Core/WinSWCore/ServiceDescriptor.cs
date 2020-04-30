@@ -103,7 +103,10 @@ namespace winsw
 
         public void ValidateAndLoadXmlSchema(XmlReader reader)
         {
-            XmlReaderSettings settings = new XmlReaderSettings();
+            XmlReaderSettings settings =  new XmlReaderSettings();
+
+            settings.ValidationType = ValidationType.Schema;
+            settings.ValidationEventHandler += new ValidationEventHandler(XmlValidationEventHandler);
 
             Assembly a = Assembly.GetExecutingAssembly();
 
@@ -115,10 +118,9 @@ namespace winsw
                 }
             }
 
-            settings.ValidationType = ValidationType.Schema;
-            settings.ValidationEventHandler += new ValidationEventHandler(XmlValidationEventHandler);
+            var new_reader = XmlReader.Create(reader, settings);
 
-            dom.Load(reader);
+            dom.Load(new_reader);
         }
 
         private XmlReader GetXMLReader()
