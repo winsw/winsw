@@ -36,6 +36,7 @@ namespace winsw
         public readonly string? Password;
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
+        public readonly string? ProxyServer;
 
         public string ShortId => $"(download from {From})";
 
@@ -75,11 +76,13 @@ namespace winsw
             AuthType auth = AuthType.none,
             string? username = null,
             string? password = null,
-            bool unsecureAuth = false)
+            bool unsecureAuth = false,
+            string? proxyServer = null)
         {
             From = from;
             To = to;
             FailOnError = failOnError;
+            ProxyServer = proxyServer;
             Auth = auth;
             Username = username;
             Password = password;
@@ -98,6 +101,7 @@ namespace winsw
 
             // All arguments below are optional
             FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
+            ProxyServer = XmlHelper.SingleAttribute<string>(n, "proxyServer", null);
 
             Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.none);
             Username = XmlHelper.SingleAttribute<string>(n, "user", null);
@@ -147,6 +151,10 @@ namespace winsw
 #endif
         {
             WebRequest request = WebRequest.Create(From);
+            if (!string.IsNullOrEmpty(ProxyServer))
+            {
+                request.Proxy = new WebProxy(ProxyServer);
+            }
 
             switch (Auth)
             {
