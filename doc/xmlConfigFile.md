@@ -186,6 +186,8 @@ For target servers using the HTTPS transfer protocol it is necessary, that the C
 By default, the `download` command does not fail the service startup if the operation fails (e.g. `from` is not available).
 In order to force the download failure in such case, it is possible to specify the `failOnError` boolean attribute.
 
+To specify a custom proxy you can put your proxy URL in the parameter `proxyServer`.
+
 Examples:
 
 ```xml
@@ -193,12 +195,14 @@ Examples:
 
 <download from="http://example.com/some.dat" to="%BASE%\some.dat" failOnError="true"/>
 
+<download from="http://example.com/some.dat" to="%BASE%\some.dat" proxyServer="http://192.168.1.5:80/"/>
+
 <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
 
 <download from="https://example.com/some.dat" to="%BASE%\some.dat" failOnError="true"
           auth="basic" user="aUser" password="aPassw0rd" />
 
-<download from="http://example.com/some.dat" to="%BASE%\some.dat"
+<download from="http://example.com/some.dat" to="%BASE%\some.dat" proxyServer="http://192.168.1.5:80/"
           auth="basic" unsecureAuth="true"
           user="aUser" password="aPassw0rd" />
 ```
