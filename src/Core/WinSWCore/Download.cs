@@ -36,7 +36,7 @@ namespace winsw
         public readonly string? Password;
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
-        public readonly string? ProxyServer;
+        public readonly string? Proxy;
 
         public string ShortId => $"(download from {From})";
 
@@ -77,12 +77,12 @@ namespace winsw
             string? username = null,
             string? password = null,
             bool unsecureAuth = false,
-            string? proxyServer = null)
+            string? proxy = null)
         {
             From = from;
             To = to;
             FailOnError = failOnError;
-            ProxyServer = proxyServer;
+            Proxy = proxy;
             Auth = auth;
             Username = username;
             Password = password;
@@ -101,7 +101,7 @@ namespace winsw
 
             // All arguments below are optional
             FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
-            ProxyServer = XmlHelper.SingleAttribute<string>(n, "proxyServer", null);
+            Proxy = XmlHelper.SingleAttribute<string>(n, "proxy", null);
 
             Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.none);
             Username = XmlHelper.SingleAttribute<string>(n, "user", null);
@@ -151,9 +151,27 @@ namespace winsw
 #endif
         {
             WebRequest request = WebRequest.Create(From);
-            if (!string.IsNullOrEmpty(ProxyServer))
+            if (!string.IsNullOrEmpty(Proxy))
             {
-                request.Proxy = new WebProxy(ProxyServer);
+                if (Proxy.Contains("@"))
+                {
+                    // Extract proxy credentials
+                    int credsFrom = Proxy.IndexOf("://") + 3;
+                    int credsTo = Proxy.IndexOf("@");
+                    string completeCredsStr = Proxy.Substring(credsFrom, credsTo - credsFrom);
+                    int credsSeparator = completeCredsStr.IndexOf(":");
+
+                    string proxyAddress = Proxy.Replace(completeCredsStr + "@", "");
+                    string username = completeCredsStr.Substring(0, credsSeparator);
+                    string password = completeCredsStr.Substring(credsSeparator + 1);
+                    ICredentials credentials = new NetworkCredential(username, password);
+
+                    request.Proxy = new WebProxy(proxyAddress, false, null, credentials);
+                }
+                else
+                {
+                    request.Proxy = new WebProxy(Proxy);
+                }
             }
 
             switch (Auth)
