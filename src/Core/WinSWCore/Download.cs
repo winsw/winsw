@@ -153,24 +153,14 @@ namespace winsw
             WebRequest request = WebRequest.Create(From);
             if (!string.IsNullOrEmpty(Proxy))
             {
-                if (Proxy.Contains("@"))
+                CustomProxyInformation proxyInformation = new CustomProxyInformation(Proxy);
+                if (proxyInformation.Credentials != null)
                 {
-                    // Extract proxy credentials
-                    int credsFrom = Proxy.IndexOf("://") + 3;
-                    int credsTo = Proxy.IndexOf("@");
-                    string completeCredsStr = Proxy.Substring(credsFrom, credsTo - credsFrom);
-                    int credsSeparator = completeCredsStr.IndexOf(":");
-
-                    string proxyAddress = Proxy.Replace(completeCredsStr + "@", "");
-                    string username = completeCredsStr.Substring(0, credsSeparator);
-                    string password = completeCredsStr.Substring(credsSeparator + 1);
-                    ICredentials credentials = new NetworkCredential(username, password);
-
-                    request.Proxy = new WebProxy(proxyAddress, false, null, credentials);
+                    request.Proxy = new WebProxy(proxyInformation.ServerAddress, false, null, proxyInformation.Credentials);
                 }
                 else
                 {
-                    request.Proxy = new WebProxy(Proxy);
+                    request.Proxy = new WebProxy(proxyInformation.ServerAddress);
                 }
             }
 
@@ -246,8 +236,8 @@ namespace winsw
                 }
             }
         }
-#if NET20
 
+#if NET20
         private static void CopyStream(Stream source, Stream destination)
         {
             byte[] buffer = new byte[8192];
@@ -258,5 +248,32 @@ namespace winsw
             }
         }
 #endif
+    }
+
+    public class CustomProxyInformation
+    {
+        public string ServerAddress { get; set; }
+        public NetworkCredential? Credentials { get; set; }
+
+        public CustomProxyInformation(string proxy)
+        {
+            if (proxy.Contains("@"))
+            {
+                // Extract proxy credentials
+                int credsFrom = proxy.IndexOf("://") + 3;
+                int credsTo = proxy.LastIndexOf("@");
+                string completeCredsStr = proxy.Substring(credsFrom, credsTo - credsFrom);
+                int credsSeparator = completeCredsStr.IndexOf(":");
+
+                string username = completeCredsStr.Substring(0, credsSeparator);
+                string password = completeCredsStr.Substring(credsSeparator + 1);
+                Credentials = new NetworkCredential(username, password);
+                ServerAddress = proxy.Replace(completeCredsStr + "@", "");
+            }
+            else
+            {
+                ServerAddress = proxy;
+            }
+        }
     }
 }

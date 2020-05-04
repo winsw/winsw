@@ -202,6 +202,35 @@ namespace winswTests
             Assert.That(() => GetSingleEntry(sd), Throws.TypeOf<InvalidDataException>().With.Message.StartsWith("Cannot parse <auth> Enum value from string 'digest'"));
         }
 
+        [TestCase("http://", "127.0.0.1:80", "egarcia", "Passw0rd")]
+        [TestCase("https://", "myurl.com.co:2298", "MyUsername", "P@ssw:rd")]
+        [TestCase("http://", "192.168.0.8:3030")]
+        public void Proxy_Credentials(string protocol, string address, string username = null, string password = null)
+        {
+            CustomProxyInformation cpi;
+            if (string.IsNullOrEmpty(username))
+            {
+                cpi = new CustomProxyInformation(protocol + address + "/");
+            }
+            else
+            {
+                cpi = new CustomProxyInformation(protocol + username + ":" + password + "@" + address + "/");
+            }
+
+            Assert.That(cpi.ServerAddress, Is.EqualTo(protocol + address + "/"));
+
+            if (string.IsNullOrEmpty(username))
+            {
+                Assert.IsNull(cpi.Credentials);
+            }
+            else
+            {
+                Assert.IsNotNull(cpi.Credentials);
+                Assert.That(cpi.Credentials.UserName, Is.EqualTo(username));
+                Assert.That(cpi.Credentials.Password, Is.EqualTo(password));
+            }
+        }
+
         private Download GetSingleEntry(ServiceDescriptor sd)
         {
             var downloads = sd.Downloads.ToArray();
