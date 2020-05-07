@@ -36,6 +36,7 @@ namespace winsw
         public readonly string? Password;
         public readonly bool UnsecureAuth;
         public readonly bool FailOnError;
+        public readonly string? Proxy;
 
         public string ShortId => $"(download from {From})";
 
@@ -75,11 +76,13 @@ namespace winsw
             AuthType auth = AuthType.none,
             string? username = null,
             string? password = null,
-            bool unsecureAuth = false)
+            bool unsecureAuth = false,
+            string? proxy = null)
         {
             From = from;
             To = to;
             FailOnError = failOnError;
+            Proxy = proxy;
             Auth = auth;
             Username = username;
             Password = password;
@@ -98,6 +101,7 @@ namespace winsw
 
             // All arguments below are optional
             FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
+            Proxy = XmlHelper.SingleAttribute<string>(n, "proxy", null);
 
             Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.none);
             Username = XmlHelper.SingleAttribute<string>(n, "user", null);
@@ -147,6 +151,18 @@ namespace winsw
 #endif
         {
             WebRequest request = WebRequest.Create(From);
+            if (!string.IsNullOrEmpty(Proxy))
+            {
+                CustomProxyInformation proxyInformation = new CustomProxyInformation(Proxy);
+                if (proxyInformation.Credentials != null)
+                {
+                    request.Proxy = new WebProxy(proxyInformation.ServerAddress, false, null, proxyInformation.Credentials);
+                }
+                else
+                {
+                    request.Proxy = new WebProxy(proxyInformation.ServerAddress);
+                }
+            }
 
             switch (Auth)
             {
@@ -220,8 +236,8 @@ namespace winsw
                 }
             }
         }
-#if NET20
 
+#if NET20
         private static void CopyStream(Stream source, Stream destination)
         {
             byte[] buffer = new byte[8192];
@@ -232,5 +248,32 @@ namespace winsw
             }
         }
 #endif
+    }
+
+    public class CustomProxyInformation
+    {
+        public string ServerAddress { get; set; }
+        public NetworkCredential? Credentials { get; set; }
+
+        public CustomProxyInformation(string proxy)
+        {
+            if (proxy.Contains("@"))
+            {
+                // Extract proxy credentials
+                int credsFrom = proxy.IndexOf("://") + 3;
+                int credsTo = proxy.LastIndexOf("@");
+                string completeCredsStr = proxy.Substring(credsFrom, credsTo - credsFrom);
+                int credsSeparator = completeCredsStr.IndexOf(":");
+
+                string username = completeCredsStr.Substring(0, credsSeparator);
+                string password = completeCredsStr.Substring(credsSeparator + 1);
+                Credentials = new NetworkCredential(username, password);
+                ServerAddress = proxy.Replace(completeCredsStr + "@", "");
+            }
+            else
+            {
+                ServerAddress = proxy;
+            }
+        }
     }
 }
