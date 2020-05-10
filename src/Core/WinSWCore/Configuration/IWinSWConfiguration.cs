@@ -26,9 +26,9 @@ namespace winsw.Configuration
 
         // Executable management
         string Arguments { get; }
-        string? Startarguments { get; }
+        string? StartArguments { get; }
         string? StopExecutable { get; }
-        string? Stoparguments { get; }
+        string? StopArguments { get; }
         string WorkingDirectory { get; }
         ProcessPriorityClass Priority { get; }
         TimeSpan StopTimeout { get; }

@@ -185,7 +185,7 @@ namespace winsw
         public string? StopExecutable => SingleElement("stopexecutable", true);
 
         /// <summary>
-        /// Arguments or multiple optional argument elements which overrule the arguments element.
+        /// <c>arguments</c> or multiple optional <c>argument</c> elements which overrule the arguments element.
         /// </summary>
         public string Arguments
         {
@@ -193,33 +193,56 @@ namespace winsw
             {
                 string? arguments = AppendTags("argument", null);
 
-                if (arguments is null)
-                {
-                    XmlNode? argumentsNode = dom.SelectSingleNode("//arguments");
-
-                    if (argumentsNode is null)
-                    {
-                        return Defaults.Arguments;
-                    }
-
-                    return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
-                }
-                else
+                if (!(arguments is null))
                 {
                     return arguments;
                 }
+
+                XmlNode? argumentsNode = dom.SelectSingleNode("//arguments");
+
+                return argumentsNode is null ? Defaults.Arguments : Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
         /// <summary>
-        /// Multiple optional startargument elements.
+        /// <c>startarguments</c> or multiple optional <c>startargument</c> elements.
         /// </summary>
-        public string? Startarguments => AppendTags("startargument", Defaults.Startarguments);
+        public string? StartArguments
+        {
+            get
+            {
+                string? startArguments = AppendTags("startargument", null);
+
+                if (!(startArguments is null))
+                {
+                    return startArguments;
+                }
+
+                XmlNode? startArgumentsNode = dom.SelectSingleNode("//startarguments");
+
+                return startArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(startArgumentsNode.InnerText);
+            }
+        }
 
         /// <summary>
-        /// Multiple optional stopargument elements.
+        /// <c>stoparguments</c> or multiple optional <c>stopargument</c> elements.
         /// </summary>
-        public string? Stoparguments => AppendTags("stopargument", Defaults.Stoparguments);
+        public string? StopArguments
+        {
+            get
+            {
+                string? stopArguments = AppendTags("stopargument", null);
+
+                if (!(stopArguments is null))
+                {
+                    return stopArguments;
+                }
+
+                XmlNode? stopArgumentsNode = dom.SelectSingleNode("//stoparguments");
+
+                return stopArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(stopArgumentsNode.InnerText);
+            }
+        }
 
         public string WorkingDirectory
         {
