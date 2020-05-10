@@ -455,13 +455,13 @@ $@"<service>
                                         <executable>jenkins</executable>
                                    </id>";
 
-            
-            var dom = new XmlDocument();
+            XmlDocument dom = new XmlDocument();
             dom.LoadXml(seedXml);
+
             var serviceDescriptor = new ServiceDescriptor(dom);
 
             var reader = XmlReader.Create(new StringReader(seedXml));
-            Assert.That(() => serviceDescriptor.ValidateAndLoadXmlSchema(reader), Throws.TypeOf<XmlException>());
+            Assert.That(() => serviceDescriptor.ValidateAndLoadXmlSchema(reader), Throws.Exception.TypeOf<XmlException>());
         }
     }
 }

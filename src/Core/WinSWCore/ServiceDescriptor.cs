@@ -140,7 +140,28 @@ namespace winsw
         public static ServiceDescriptor FromXML(string xml)
         {
             var dom = new XmlDocument();
-            dom.LoadXml(xml);
+            XmlReaderSettings settings = new XmlReaderSettings();
+            Assembly a = Assembly.GetExecutingAssembly();
+
+            settings.ValidationType = ValidationType.Schema;
+            settings.ValidationEventHandler += new ValidationEventHandler((object sender, ValidationEventArgs e) => {
+                if (e.Severity == XmlSeverityType.Error)
+                {
+                    throw new XmlException("[Error] XML validation - " + e.Message);
+                }
+            });
+
+            using (Stream schemaStream = a.GetManifestResourceStream("winsw.XMLSchema.xsd"))
+            {
+                using (XmlReader schemaReader = XmlReader.Create(schemaStream))
+                {
+                    settings.Schemas.Add(null, schemaReader);
+                }
+            }
+
+            var reader = XmlReader.Create(new StringReader(xml), settings);
+
+            dom.Load(reader);
             return new ServiceDescriptor(dom);
         }
 
