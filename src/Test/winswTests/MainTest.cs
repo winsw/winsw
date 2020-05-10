@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Principal;
 using System.ServiceProcess;
 using NUnit.Framework;
 using winsw;
@@ -8,8 +7,31 @@ using winswTests.Util;
 namespace winswTests
 {
     [TestFixture]
-    class MainTest
+    public class MainTest
     {
+        [Test]
+        public void TestInstall()
+        {
+            TestHelper.RequireProcessElevated();
+
+            try
+            {
+                _ = CLITestHelper.CLITest(new[] { "install" });
+
+                using ServiceController controller = new ServiceController(CLITestHelper.Id);
+                Assert.That(controller.DisplayName, Is.EqualTo(CLITestHelper.Name));
+                Assert.That(controller.CanStop, Is.False);
+                Assert.That(controller.CanShutdown, Is.False);
+                Assert.That(controller.CanPauseAndContinue, Is.False);
+                Assert.That(controller.Status, Is.EqualTo(ServiceControllerStatus.Stopped));
+                Assert.That(controller.ServiceType, Is.EqualTo(ServiceType.Win32OwnProcess));
+            }
+            finally
+            {
+                _ = CLITestHelper.CLITest(new[] { "uninstall" });
+            }
+        }
+
         [Test]
         public void PrintVersion()
         {

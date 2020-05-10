@@ -1,8 +1,4 @@
 ﻿using System.IO;
-using System.Net;
-#if VNEXT
-using System.Threading.Tasks;
-#endif
 using NUnit.Framework;
 using winsw;
 using winswTests.Util;
@@ -10,60 +6,10 @@ using winswTests.Util;
 namespace winswTests
 {
     [TestFixture]
-    class DownloadTest
+    public class DownloadConfigTests
     {
         private const string From = "https://www.nosuchhostexists.foo.myorg/foo.xml";
         private const string To = "%BASE%\\foo.xml";
-
-        [Test]
-#if VNEXT
-        public async Task DownloadFileAsync()
-#else
-        public void DownloadFile()
-#endif
-        {
-            string from = Path.GetTempFileName();
-            string to = Path.GetTempFileName();
-
-            try
-            {
-                const string contents = "WinSW";
-                File.WriteAllText(from, contents);
-#if VNEXT
-                await new Download(from, to).PerformAsync();
-#else
-                new Download(from, to).Perform();
-#endif
-                Assert.That(File.ReadAllText(to), Is.EqualTo(contents));
-            }
-            finally
-            {
-                File.Delete(from);
-                File.Delete(to);
-            }
-        }
-
-        [Test]
-        public void DownloadFile_NonExistent()
-        {
-            string from = Path.GetTempPath() + Path.GetRandomFileName();
-            string to = Path.GetTempFileName();
-
-            try
-            {
-                Assert.That(
-#if VNEXT
-                    async () => await new Download(from, to).PerformAsync(),
-#else
-                    () => new Download(from, to).Perform(),
-#endif
-                    Throws.TypeOf<WebException>());
-            }
-            finally
-            {
-                File.Delete(to);
-            }
-        }
 
         [Test]
         public void Roundtrip_Defaults()
