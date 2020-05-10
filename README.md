@@ -42,6 +42,7 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 * `uninstall` to uninstall the service. The opposite operation of above.
 * `start` to start the service. The service must have already been installed.
 * `stop` to stop the service.
+* `stopwait` to stop the service and wait until it's actually stopped.
 * `restart` to restart the service. If the service is not currently running, this command acts like `start`.
 * `status` to check the current status of the service.
   * This command prints one line to the console.

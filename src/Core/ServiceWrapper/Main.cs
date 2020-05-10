@@ -623,6 +623,10 @@ namespace winsw
                     Stop();
                     return;
 
+                case "stopwait":
+                    StopWait();
+                    return;
+
                 case "restart":
                     Restart();
                     return;
@@ -859,6 +863,25 @@ namespace winsw
                         throw;
                     }
                 }
+            }
+
+            void StopWait()
+            {
+                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
+                if (s is null)
+                    ThrowNoSuchService();
+
+                if (s.Started)
+                    s.StopService();
+
+                while (s != null && s.Started)
+                {
+                    Log.Info("Waiting the service to stop...");
+                    Thread.Sleep(1000);
+                    s = svc.Select(descriptor.Id);
+                }
+
+                Log.Info("The service stopped.");
             }
 
             void Restart()
@@ -1121,6 +1144,7 @@ namespace winsw
   uninstall   uninstall the service
   start       start the service (must be installed before)
   stop        stop the service
+  stopwait    stop the service and wait until it's actually stopped
   restart     restart the service
   restart!    self-restart (can be called from child processes)
   status      check the current status of the service
