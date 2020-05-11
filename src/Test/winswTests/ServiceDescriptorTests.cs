@@ -446,22 +446,17 @@ $@"<service>
         }
 
         [Test]
-        public void ValidateAndLoadXmlSchemaTest()
+        public void FromXMLTest()
         {
             const string seedXml = @"<id>
-                                        <id>myapp</id>
-                                        <name>appname</name>
-                                        <description>app description</description>
-                                        <executable>jenkins</executable>
-                                   </id>";
+  <id>myapp</id>
+  <name>MyApp Service (powered by WinSW)</name>
+  <description>This service is a service created from a minimal configuration</description>
+  <executable>%BASE%\myExecutable.exe</executable>
+</id>
+";
 
-            XmlDocument dom = new XmlDocument();
-            dom.LoadXml(seedXml);
-
-            var serviceDescriptor = new ServiceDescriptor(dom);
-
-            var reader = XmlReader.Create(new StringReader(seedXml));
-            Assert.That(() => serviceDescriptor.ValidateAndLoadXmlSchema(reader), Throws.Exception.TypeOf<XmlException>());
+            Assert.That(() => ServiceDescriptor.FromXML(seedXml), Throws.Exception.TypeOf<XmlException>());
         }
     }
 }

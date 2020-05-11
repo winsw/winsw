@@ -87,21 +87,21 @@
         
         
         <!-- extensions -->
-        <xs:element name="extensions">
+        <xs:element name="extensions" minOccurs="0" maxOccurs="unbounded">
           <xs:complexType>
             <xs:choice maxOccurs="unbounded">
               
               <!-- extension -->
-              <xs:element name="extension">
+              <xs:element name="extension" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:choice maxOccurs="unbounded">
-                    <xs:element type="xs:string" name="pidfile"/>
-                    <xs:element type="xs:short" name="stopTimeout"/>
-                    <xs:element type="xs:string" name="stopParentFirst"/>
-                    <xs:element type="xs:string" name="checkWinSWEnvironmentVariable"/>
+                    <xs:element type="xs:string" name="pidfile" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element type="xs:short" name="stopTimeout" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element type="xs:string" name="stopParentFirst" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element type="xs:string" name="checkWinSWEnvironmentVariable" minOccurs="0" maxOccurs="unbounded"/>
 
                     <!-- mapping -->
-                    <xs:element name="mapping">
+                    <xs:element name="mapping" minOccurs="0" maxOccurs="unbounded">
                       <xs:complexType>
                         <xs:choice maxOccurs="unbounded">
                           <xs:element name="map" maxOccurs="unbounded" minOccurs="0">

@@ -67,7 +67,8 @@ namespace winsw
 
             try
             {
-                ValidateAndLoadXmlSchema(GetXMLReader());
+                string xmlstring = File.ReadAllText(BasePath + ".xml");
+                dom = ServiceDescriptor.FromXML(xmlstring).dom;
             }
             catch (XmlException e)
             {
@@ -99,41 +100,6 @@ namespace winsw
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
-        }
-
-        public void ValidateAndLoadXmlSchema(XmlReader reader)
-        {
-            XmlReaderSettings settings =  new XmlReaderSettings();
-
-            settings.ValidationType = ValidationType.Schema;
-            settings.ValidationEventHandler += new ValidationEventHandler(XmlValidationEventHandler);
-
-            Assembly a = Assembly.GetExecutingAssembly();
-
-            using (Stream schemaStream = a.GetManifestResourceStream("winsw.XMLSchema.xsd"))
-            {
-                using (XmlReader schemaReader = XmlReader.Create(schemaStream))
-                {
-                    settings.Schemas.Add(null, schemaReader);
-                }
-            }
-
-            var new_reader = XmlReader.Create(reader, settings);
-
-            dom.Load(new_reader);
-        }
-
-        private XmlReader GetXMLReader()
-        {
-            return XmlReader.Create(BasePath + ".xml");
-        }
-
-        private void XmlValidationEventHandler(object sender, ValidationEventArgs e)
-        {
-            if (e.Severity == XmlSeverityType.Error)
-            {
-                throw new XmlException("[Error] XML validation - " + e.Message);
-            }
         }
 
         // ReSharper disable once InconsistentNaming
