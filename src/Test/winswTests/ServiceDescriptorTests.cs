@@ -446,7 +446,7 @@ $@"<service>
         }
 
         [Test]
-        public void FromXMLTest()
+        public void XmlValidationTest()
         {
             const string seedXml = @"<id>
   <id>myapp</id>
@@ -456,7 +456,7 @@ $@"<service>
 </id>
 ";
 
-            Assert.That(() => ServiceDescriptor.FromXML(seedXml), Throws.Exception.TypeOf<XmlException>());
+            Assert.That(() => ServiceDescriptor.XmlValidation(seedXml), Throws.Exception.TypeOf<XmlException>());
         }
     }
 }
