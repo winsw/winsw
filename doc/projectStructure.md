@@ -1,6 +1,6 @@
 # Project Structure
 
-:movie_camera: [You can find code dive session recorede video here](https://youtu.be/_adhRj19ESY)
+:movie_camera: [You can find code dive session recorded video here](https://youtu.be/_adhRj19ESY)
 
 ```
 |_ doc
