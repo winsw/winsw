@@ -58,8 +58,7 @@ This is the main executable project.
 
 #### :page_facing_up: Main.cs
 
-This file contains the entry point of the program. (Main method). This file includes the main flow of the program and has implemented the logics for command-line arguments.  
-ex : ```install, uninstall, start, stop, restart```
+This file contains the entry point of the program. (Main method). This file includes the main flow of the program and has implemented the logics for command-line arguments such as `install`, `uninstall`, `start`, `stop`, `restart`.
 
 ## :notebook: WinSWCore
 
@@ -85,14 +84,14 @@ ex : ```install, uninstall, start, stop, restart```
 
 #### :page_facing_up: ServiceDescriptor.cs
 
-This contains the logics for extracting configurations from the XML file. ```ServiceDescriptor``` class get XML file as an argument. Currently, configurations are provided on demand.
+This contains the logics for extracting configurations from the XML file. `ServiceDescriptor` class get XML file as an argument. Currently, configurations are provided on demand.
 
 ## :open_file_folder: Configuration
 
 #### :page_facing_up: IWinSWConfiguration.cs
 
-```IWinSWConfigurations``` interface contains all configurations.
+`IWinSWConfigurations` interface contains all configurations.
 
 #### :page_facing_up: DefaultSettings.cs
 
-This contains default values for all configurations which included in ```IWinSWConfiguration.cs```.
+This contains default values for all configurations which included in `IWinSWConfiguration.cs`.
