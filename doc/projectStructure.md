@@ -16,21 +16,21 @@
 
 ## :open_file_folder: doc
 
-This directory contains all the documents related to WinSW project.
+This directory contains all the documents related to the WinSW project.
 
 ## :open_file_folder: eng
 
 ### :page_facing_up: build.yaml  
 
-This contains Build configurations. We have another relase pipeline which is not yet added to this repository and will be added in later.  
+This contains Build configurations. We have another release pipeline that is not yet added to this repository and will be added in later.  
 
 ## :open_file_folder: examples
 
-This folder contains templates for configuration files. Currently there are XML configuration templates. YAML templates will be added in later.
+This folder contains templates for configuration files. Currently, there are XML configuration templates. YAML templates will be added in later.  
 
 ### :page_facing_up: sample-minimal.xml
 
-This contains a template for mandotory configurations.
+This contains a template for mandatory configurations.
 
 ### :page_facing_up: sample-allOptions.xml
 
@@ -38,7 +38,7 @@ This template contains all possible configurations with documentation.
 
 ## :open_file_folder: src
 
-This contains the implementation for the WinSW.
+This contains the implementation of the WinSW.
 
 ## :open_file_folder: Core
 
@@ -58,7 +58,7 @@ This is the main executable project.
 
 #### :page_facing_up: Main.cs
 
-This file contains the entry point of the program. (Main method). This file includes the main flow of the program and has implemented the logics for command line arguments.  
+This file contains the entry point of the program. (Main method). This file includes the main flow of the program and has implemented the logics for command-line arguments.  
 ex : ```install, uninstall, start, stop, restart```
 
 ## :notebook: WinSWCore
@@ -85,7 +85,7 @@ ex : ```install, uninstall, start, stop, restart```
 
 #### :page_facing_up: ServiceDescriptor.cs
 
-This contains the logics for extracting configurations from XML file. ```ServiceDescriptor``` class get XML file as a argument. Currently configuratinos are provided on demand.
+This contains the logics for extracting configurations from the XML file. ```ServiceDescriptor``` class get XML file as an argument. Currently, configurations are provided on demand.
 
 ## :open_file_folder: Configuration
 
