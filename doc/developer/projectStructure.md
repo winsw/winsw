@@ -30,8 +30,7 @@ This is the main executable project. This contains the main.cs which is the entr
 
 ### :page_facing_up: Main.cs
 
-This file contains the entry point of the program (Main method). This file includes the main flow of the program and has implemented the logics for following command line arguments.  
- ```install, uninstall, start, stop, stopwait, restart, restart!, status, test, testwait, help, version```
+This file contains the entry point of the program (Main method). This file includes the main flow of the program and has implemented the logics for command line arguments. You can find more details about command line arguments [here.](https://github.com/winsw/winsw#usage)
 
 ## :notebook: WinSWCore
 
@@ -39,8 +38,8 @@ WinSW library is the main component of the project. This contains the most impor
 
 ### :page_facing_up: ServiceDescriptor.cs
 
-This contains the logics for extracting configurations from XML file. ```ServiceDescriptor``` class get XML file as a argument. Currently configuratinos are provided on demand.
+This contains the logics for extracting configurations from XML file. `ServiceDescriptor` class get XML file as a argument. Currently configuratinos are provided on demand.
 
 ## :open_file_folder: Configuration
 
-This contains the interface for the configurations. ```IWinSWConfiguration.cs``` interface contains all configurations and  ```DefaultSettings.cs``` contains default values for the configurations.
+This contains the interface for the configurations. `IWinSWConfiguration.cs` interface contains all configurations and  `DefaultSettings.cs` contains default values for the configurations.
