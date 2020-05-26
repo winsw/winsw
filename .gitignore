@@ -9,3 +9,4 @@ obj
 /src/.vs/
 /src/Core/WinSWCore/WinSWCore.csproj.DotSettings
 /artifacts/
+/src/winsw.sln
