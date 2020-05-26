@@ -20,15 +20,15 @@ namespace winsw.Configuration
         // Installation
         bool AllowServiceAcountLogonRight { get; }
         string? ServiceAccountPassword { get; }
-        string ServiceAccountUser { get; }
-        List<Native.SC_ACTION> FailureActions { get; }
+        string? ServiceAccountUser { get; }
+        Native.SC_ACTION[] FailureActions { get; }
         TimeSpan ResetFailureAfter { get; }
 
         // Executable management
         string Arguments { get; }
-        string? Startarguments { get; }
+        string? StartArguments { get; }
         string? StopExecutable { get; }
-        string? Stoparguments { get; }
+        string? StopArguments { get; }
         string WorkingDirectory { get; }
         ProcessPriorityClass Priority { get; }
         TimeSpan StopTimeout { get; }

@@ -1,5 +1,4 @@
-Project manifest
-===
+# Project manifest
 
 Here is a cite from [Kohsuke Kawaguchi](https://github.com/kohsuke/), who is the original author of this project:
 

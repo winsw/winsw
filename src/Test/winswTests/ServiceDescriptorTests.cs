@@ -73,7 +73,7 @@ $@"<service>
 </service>";
 
             _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.Throws<ArgumentException>(() => _ = _extendedServiceDescriptor.StartMode);
+            Assert.That(() => _extendedServiceDescriptor.StartMode, Throws.ArgumentException);
         }
 
         [Test]
@@ -112,7 +112,7 @@ $@"<service>
         [Test]
         public void VerifyServiceLogonRight()
         {
-            Assert.That(_extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(true));
+            Assert.That(_extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.True);
         }
 
         [Test]
@@ -145,7 +145,7 @@ $@"<service>
         [Test]
         public void StopParentProcessFirstIsFalseByDefault()
         {
-            Assert.False(_extendedServiceDescriptor.StopParentProcessFirst);
+            Assert.That(_extendedServiceDescriptor.StopParentProcessFirst, Is.False);
         }
 
         [Test]
@@ -156,7 +156,7 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.True(serviceDescriptor.StopParentProcessFirst);
+            Assert.That(serviceDescriptor.StopParentProcessFirst, Is.True);
         }
 
         [Test]
@@ -200,7 +200,7 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.OutFileDisabled, Is.EqualTo(true));
+            Assert.That(serviceDescriptor.OutFileDisabled, Is.True);
         }
 
         [Test]
@@ -211,7 +211,7 @@ $@"<service>
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.ErrFileDisabled, Is.EqualTo(true));
+            Assert.That(serviceDescriptor.ErrFileDisabled, Is.True);
         }
 
         [Test]
@@ -251,7 +251,7 @@ $@"<service>
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as SizeBasedRollingLogAppender;
-            Assert.NotNull(logHandler);
+            Assert.That(logHandler, Is.Not.Null);
             Assert.That(logHandler.SizeTheshold, Is.EqualTo(112 * 1024));
             Assert.That(logHandler.FilesToKeep, Is.EqualTo(113));
         }
@@ -271,7 +271,7 @@ $@"<service>
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as TimeBasedRollingLogAppender;
-            Assert.NotNull(logHandler);
+            Assert.That(logHandler, Is.Not.Null);
             Assert.That(logHandler.Period, Is.EqualTo(7));
             Assert.That(logHandler.Pattern, Is.EqualTo("log pattern"));
         }
@@ -292,7 +292,7 @@ $@"<service>
             serviceDescriptor.BaseName = "service";
 
             var logHandler = serviceDescriptor.LogHandler as RollingSizeTimeLogAppender;
-            Assert.NotNull(logHandler);
+            Assert.That(logHandler, Is.Not.Null);
             Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
             Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
             Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0, 0, 0)));
@@ -310,7 +310,7 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
+            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.False);
         }
 
         [Test]
@@ -324,7 +324,7 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.EqualTo(false));
+            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.False);
         }
 
         [Test]

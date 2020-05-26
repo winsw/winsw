@@ -1,0 +1,96 @@
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+name: $(Major).$(Minor).$(Patch).$(Revision)
+
+trigger:
+- master
+
+pr:
+- master
+
+variables:
+- group: Version
+- name: Revision
+  value: $[counter(format('{0}.{1}.{2}', variables.Major, variables.Minor, variables.Patch), 1)]
+- name: BuildVersion
+  value: $(Major).$(Minor).$(Patch)
+- name: InformationalVersion # do not rename (MSBuild property)
+  value: $(Major).$(Minor).$(Patch)+$(Build.SourceVersion)
+
+jobs:
+- job: Build
+  pool:
+    vmImage: windows-latest
+  strategy:
+    matrix:
+      Debug:
+        BuildConfiguration: Debug
+      Release:
+        BuildConfiguration: Release
+  steps:
+  - script: |
+      dotnet build -c $(BuildConfiguration) src\winsw.sln -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 src\Core\ServiceWrapper\winsw.csproj -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x64 src\Core\ServiceWrapper\winsw.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x86 src\Core\ServiceWrapper\winsw.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+    displayName: Build
+  - task: NuGetToolInstaller@1
+    displayName: Install Nuget
+    inputs:
+      checkLatest: true
+  - task: NuGetCommand@2
+    displayName: Pack
+    inputs:
+      command: pack
+      packagesToPack: WinSW.nuspec
+      versioningScheme: byEnvVar
+      versionEnvVar: BuildVersion
+  - script: dotnet test -c $(BuildConfiguration) --no-build src\Test\winswTests\winswTests.csproj
+    displayName: Test
+  - task: PublishBuildArtifacts@1
+    displayName: Publish .NET 2.0
+    inputs:
+      PathtoPublish: artifacts\WinSW.NET2.exe
+      ArtifactName: WinSW.NET2.exe_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish .NET 4.0
+    inputs:
+      PathtoPublish: artifacts\WinSW.NET4.exe
+      ArtifactName: WinSW.NET4.exe_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish .NET 4.6.1
+    inputs:
+      PathtoPublish: artifacts\WinSW.NET461.exe
+      ArtifactName: WinSW.NET461.exe_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish .NET Core 3.1
+    inputs:
+      PathtoPublish: artifacts\WinSW.NETCore31.zip
+      ArtifactName: WinSW.NETCore31.zip_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish .NET Core 3.1 x64
+    inputs:
+      PathtoPublish: artifacts\WinSW.NETCore31.x64.exe
+      ArtifactName: WinSW.NETCore31.x64.exe_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish .NET Core 3.1 x86
+    inputs:
+      PathtoPublish: artifacts\WinSW.NETCore31.x86.exe
+      ArtifactName: WinSW.NETCore31.x86.exe_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Nuget
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
+      ArtifactName: WinSW.nupkg_$(BuildConfiguration)
+  - task: PublishBuildArtifacts@1
+    displayName: Publish full sample
+    condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
+    inputs:
+      PathtoPublish: examples\sample-allOptions.xml
+      ArtifactName: sample-allOptions.xml
+  - task: PublishBuildArtifacts@1
+    displayName: Publish minimal sample
+    condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
+    inputs:
+      PathtoPublish: examples\sample-minimal.xml
+      ArtifactName: sample-minimal.xml

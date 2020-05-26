@@ -55,7 +55,7 @@ namespace winsw.Util
                 throw new InvalidDataException("Attribute <" + attributeName + "> is missing in configuration XML");
             }
 
-            return SingleAttribute<TAttributeType>(node, attributeName, default);
+            return SingleAttribute<TAttributeType>(node, attributeName, default)!;
         }
 
         /// <summary>

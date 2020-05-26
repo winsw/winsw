@@ -5,7 +5,8 @@
     <TargetFrameworks>net20;net40;net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <Version><!-- Populated by AppVeyor --></Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
     <Company>CloudBees, Inc.</Company>
@@ -13,7 +14,6 @@
     <Copyright>Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors</Copyright>
     <RootNamespace>winsw</RootNamespace>
     <AssemblyName>WindowsService</AssemblyName>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,10 +29,6 @@
     <PackageReference Include="ilmerge" Version="3.0.29" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="manifest.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -101,7 +97,7 @@
 
     <PropertyGroup>
       <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
-      <ILMergeArgs>/keyfile:"$(AssemblyOriginatorKeyFile)" /targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
+      <ILMergeArgs>/targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
 

@@ -1,6 +1,6 @@
 # Configuration for Release Drafter: https://github.com/toolmantim/release-drafter
 name-template: WinSW v$NEXT_PATCH_VERSION
-tag-template: winsw-v$NEXT_PATCH_VERSION
+tag-template: v$NEXT_PATCH_VERSION
 # This repo follows the Semantic Versioning 2.0.0 approach: https://semver.org/
 version-template: $MAJOR.$MINOR.$PATCH
 
@@ -14,10 +14,10 @@ categories:
     label: removed
   - title: ⚠️ Deprecated
     label: deprecated
-  - title: 🚀 New features and improvements
-    labels:
-      - enhancement
-      - new-feature
+  - title: ":tada: New features"
+    label: new-feature
+  - title: 🚀 Enhancements
+    label: enhancement
   - title: 🐛 Bug Fixes
     label: bug
   - title: ":package: Packaging changes"

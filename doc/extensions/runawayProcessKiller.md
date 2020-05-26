@@ -1,5 +1,4 @@
-Runaway Process Killer Extension
-===
+# Runaway Process Killer extension
 
 In particular cases Windows service wrapper may leak the process after the service completion.
 It happens when WinSW gets terminated without executing the shutdown logic.
@@ -8,11 +7,11 @@ Examples: force kill of the service process, .NET Runtime crash, missing permiss
 Such runaway processes may conflict with the service process once it restarts.
 This extension allows preventing it by running the runaway process termination on startup before the executable gets started.
 
-Since: [WinSW 2.0](../../CHANGELOG.md).
+Since: WinSW 2.0.
 
-### Usage
+## Usage
 
-The extension can be configured via the [XML Configuration File](../xmlConfigFile.md). Configuration sample:
+The extension can be configured via the [XML configuration file](../xmlConfigFile.md). Configuration sample:
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -43,7 +42,7 @@ The extension can be configured via the [XML Configuration File](../xmlConfigFil
 </service>
 ```
 
-### Notes
+## Notes
 
 * The current implementation of the the extension checks only the root process (started executable)
 * If the runaway process is detected the entire, the entire process tree gets terminated

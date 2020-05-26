@@ -1,18 +1,43 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.ServiceProcess;
+using NUnit.Framework;
 using winsw;
 using winswTests.Util;
 
 namespace winswTests
 {
     [TestFixture]
-    class MainTest
+    public class MainTest
     {
+        [Test]
+        public void TestInstall()
+        {
+            TestHelper.RequireProcessElevated();
+
+            try
+            {
+                _ = CLITestHelper.CLITest(new[] { "install" });
+
+                using ServiceController controller = new ServiceController(CLITestHelper.Id);
+                Assert.That(controller.DisplayName, Is.EqualTo(CLITestHelper.Name));
+                Assert.That(controller.CanStop, Is.False);
+                Assert.That(controller.CanShutdown, Is.False);
+                Assert.That(controller.CanPauseAndContinue, Is.False);
+                Assert.That(controller.Status, Is.EqualTo(ServiceControllerStatus.Stopped));
+                Assert.That(controller.ServiceType, Is.EqualTo(ServiceType.Win32OwnProcess));
+            }
+            finally
+            {
+                _ = CLITestHelper.CLITest(new[] { "uninstall" });
+            }
+        }
+
         [Test]
         public void PrintVersion()
         {
             string expectedVersion = WrapperService.Version.ToString();
             string cliOut = CLITestHelper.CLITest(new[] { "version" });
-            StringAssert.Contains(expectedVersion, cliOut, "Expected that version contains " + expectedVersion);
+            Assert.That(cliOut, Does.Contain(expectedVersion));
         }
 
         [Test]
@@ -21,27 +46,26 @@ namespace winswTests
             string expectedVersion = WrapperService.Version.ToString();
             string cliOut = CLITestHelper.CLITest(new[] { "help" });
 
-            StringAssert.Contains(expectedVersion, cliOut, "Expected that help contains " + expectedVersion);
-            StringAssert.Contains("start", cliOut, "Expected that help refers start command");
-            StringAssert.Contains("help", cliOut, "Expected that help refers help command");
-            StringAssert.Contains("version", cliOut, "Expected that help refers version command");
+            Assert.That(cliOut, Does.Contain(expectedVersion));
+            Assert.That(cliOut, Does.Contain("start"));
+            Assert.That(cliOut, Does.Contain("help"));
+            Assert.That(cliOut, Does.Contain("version"));
             // TODO: check all commands after the migration of ccommands to enum
 
             // Extra options
-            StringAssert.Contains("/redirect", cliOut, "Expected that help message refers the redirect message");
+            Assert.That(cliOut, Does.Contain("/redirect"));
         }
 
         [Test]
         public void FailOnUnsupportedCommand()
         {
             const string commandName = "nonExistentCommand";
-            string expectedMessage = "Unknown command: " + commandName.ToLower();
-            CLITestResult res = CLITestHelper.CLIErrorTest(new[] { commandName });
+            string expectedMessage = "Unknown command: " + commandName;
+            CLITestResult result = CLITestHelper.CLIErrorTest(new[] { commandName });
 
-            Assert.True(res.HasException, "Expected an exception due to the wrong command");
-            StringAssert.Contains(expectedMessage, res.Out, "Expected the message about unknown command");
-            // ReSharper disable once PossibleNullReferenceException
-            StringAssert.Contains(expectedMessage, res.Exception.Message, "Expected the message about unknown command");
+            Assert.That(result.HasException, Is.True);
+            Assert.That(result.Out, Does.Contain(expectedMessage));
+            Assert.That(result.Exception.Message, Does.Contain(expectedMessage));
         }
 
         /// <summary>
@@ -51,7 +75,7 @@ namespace winswTests
         public void ShouldNotPrintLogsForStatusCommand()
         {
             string cliOut = CLITestHelper.CLITest(new[] { "status" });
-            StringAssert.AreEqualIgnoringCase("NonExistent\r\n", cliOut);
+            Assert.That(cliOut, Is.EqualTo("NonExistent" + Environment.NewLine).IgnoreCase);
         }
     }
 }

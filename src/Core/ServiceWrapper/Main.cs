@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 #if VNEXT
 using System.Threading.Tasks;
@@ -17,7 +20,6 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using Microsoft.Win32;
 using winsw.Extensions;
 using winsw.Logging;
 using winsw.Native;
@@ -29,7 +31,7 @@ namespace winsw
 {
     public class WrapperService : ServiceBase, EventLogger
     {
-        private SERVICE_STATUS _wrapperServiceStatus;
+        private ServiceApis.SERVICE_STATUS _wrapperServiceStatus;
 
         private readonly Process _process = new Process();
         private readonly ServiceDescriptor _descriptor;
@@ -266,26 +268,31 @@ namespace winsw
             }
 #endif
 
-            string? startarguments = _descriptor.Startarguments;
+            string? startArguments = _descriptor.StartArguments;
 
-            if (startarguments is null)
+            if (startArguments is null)
             {
-                startarguments = _descriptor.Arguments;
+                startArguments = _descriptor.Arguments;
             }
             else
             {
-                startarguments += " " + _descriptor.Arguments;
+                startArguments += " " + _descriptor.Arguments;
             }
 
-            LogEvent("Starting " + _descriptor.Executable + ' ' + startarguments);
-            Log.Info("Starting " + _descriptor.Executable + ' ' + startarguments);
+            // Converting newlines, line returns, tabs into a single 
+            // space. This allows users to provide multi-line arguments
+            // in the xml for readability.
+            startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
+
+            LogEvent("Starting " + _descriptor.Executable + ' ' + startArguments);
+            Log.Info("Starting " + _descriptor.Executable + ' ' + startArguments);
 
             // Load and start extensions
             ExtensionManager.LoadExtensions();
             ExtensionManager.FireOnWrapperStarted();
 
             LogHandler executableLogHandler = CreateExecutableLogHandler();
-            StartProcess(_process, startarguments, _descriptor.Executable, executableLogHandler, true);
+            StartProcess(_process, startArguments, _descriptor.Executable, executableLogHandler, true);
             ExtensionManager.FireOnProcessStarted(_process);
 
             _process.StandardInput.Close(); // nothing for you to read!
@@ -325,12 +332,12 @@ namespace winsw
         /// </summary>
         private void StopIt()
         {
-            string? stoparguments = _descriptor.Stoparguments;
+            string? stopArguments = _descriptor.StopArguments;
             LogEvent("Stopping " + _descriptor.Id);
             Log.Info("Stopping " + _descriptor.Id);
             _orderlyShutdown = true;
 
-            if (stoparguments is null)
+            if (stopArguments is null)
             {
                 try
                 {
@@ -347,7 +354,7 @@ namespace winsw
             {
                 SignalShutdownPending();
 
-                stoparguments += " " + _descriptor.Arguments;
+                stopArguments += " " + _descriptor.Arguments;
 
                 Process stopProcess = new Process();
                 string? executable = _descriptor.StopExecutable;
@@ -355,12 +362,11 @@ namespace winsw
                 executable ??= _descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                StartProcess(stopProcess, stoparguments, executable, null, false);
+                StartProcess(stopProcess, stopArguments, executable, null, false);
 
                 Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
                 WaitForProcessToExit(_process);
                 WaitForProcessToExit(stopProcess);
-                SignalShutdownComplete();
             }
 
             // Stop extensions
@@ -422,21 +428,16 @@ namespace winsw
                 effectiveWaitHint = (int)_descriptor.WaitHint.TotalMilliseconds;
             }
 
-            IntPtr handle = ServiceHandle;
-            _wrapperServiceStatus.checkPoint++;
-            _wrapperServiceStatus.waitHint = effectiveWaitHint;
-            // WriteEvent("SignalShutdownPending " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            _wrapperServiceStatus.currentState = (int)State.SERVICE_STOP_PENDING;
-            Advapi32.SetServiceStatus(handle, _wrapperServiceStatus);
+            RequestAdditionalTime(effectiveWaitHint);
         }
 
         private void SignalShutdownComplete()
         {
             IntPtr handle = ServiceHandle;
-            _wrapperServiceStatus.checkPoint++;
+            _wrapperServiceStatus.CheckPoint++;
             // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            _wrapperServiceStatus.currentState = (int)State.SERVICE_STOPPED;
-            Advapi32.SetServiceStatus(handle, _wrapperServiceStatus);
+            _wrapperServiceStatus.CurrentState = ServiceApis.ServiceState.STOPPED;
+            ServiceApis.SetServiceStatus(handle, _wrapperServiceStatus);
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
@@ -584,9 +585,94 @@ namespace winsw
                 args = args.GetRange(2, args.Count - 2);
             }
 
-            args[0] = args[0].ToLower();
-            if (args[0] == "install")
+            bool elevated;
+            if (args[0] == "/elevated")
             {
+                elevated = true;
+
+                _ = ConsoleApis.FreeConsole();
+                _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
+
+                args = args.GetRange(1, args.Count - 1);
+            }
+            else if (Environment.OSVersion.Version.Major == 5)
+            {
+                // Windows XP
+                elevated = true;
+            }
+            else
+            {
+                elevated = IsProcessElevated();
+            }
+
+            switch (args[0].ToLower())
+            {
+                case "install":
+                    Install();
+                    return;
+
+                case "uninstall":
+                    Uninstall();
+                    return;
+
+                case "start":
+                    Start();
+                    return;
+
+                case "stop":
+                    Stop();
+                    return;
+
+                case "stopwait":
+                    StopWait();
+                    return;
+
+                case "restart":
+                    Restart();
+                    return;
+
+                case "restart!":
+                    RestartSelf();
+                    return;
+
+                case "status":
+                    Status();
+                    return;
+
+                case "test":
+                    Test();
+                    return;
+
+                case "testwait":
+                    TestWait();
+                    return;
+
+                case "help":
+                case "--help":
+                case "-h":
+                case "-?":
+                case "/?":
+                    printHelp();
+                    return;
+
+                case "version":
+                    printVersion();
+                    return;
+
+                default:
+                    Console.WriteLine("Unknown command: " + args[0]);
+                    printAvailableCommandsInfo();
+                    throw new Exception("Unknown command: " + args[0]);
+            }
+
+            void Install()
+            {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Installing the service with id '" + descriptor.Id + "'");
 
                 // Check if the service exists
@@ -628,7 +714,7 @@ namespace winsw
 
                 if (setallowlogonasaserviceright)
                 {
-                    LogonAsAService.AddLogonAsAServiceRight(username!);
+                    Security.AddServiceLogonRight(descriptor.ServiceAccountDomain!, descriptor.ServiceAccountName!);
                 }
 
                 svc.Create(
@@ -643,54 +729,45 @@ namespace winsw
                     password,
                     descriptor.ServiceDependencies);
 
-                // update the description
-                /* Somehow this doesn't work, even though it doesn't report an error
-                Win32Service s = svc.Select(d.Id);
-                s.Description = d.Description;
-                s.Commit();
-                 */
+                using ServiceManager scm = ServiceManager.Open();
+                using Service sc = scm.OpenService(descriptor.Id);
 
-                // so using a classic method to set the description. Ugly.
-                Registry.LocalMachine
-                    .OpenSubKey("System")
-                    .OpenSubKey("CurrentControlSet")
-                    .OpenSubKey("Services")
-                    .OpenSubKey(descriptor.Id, true)
-                    .SetValue("Description", descriptor.Description);
+                sc.SetDescription(descriptor.Description);
 
                 var actions = descriptor.FailureActions;
+                if (actions.Length > 0)
+                {
+                    sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
+                }
+
                 var isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
-                if (actions.Count > 0 || isDelayedAutoStart)
+                if (isDelayedAutoStart)
                 {
-                    using ServiceManager scm = new ServiceManager();
-                    using Service sc = scm.Open(descriptor.Id);
-
-                    // Delayed auto start
-                    if (isDelayedAutoStart)
-                    {
-                        sc.SetDelayedAutoStart(true);
-                    }
-
-                    // Set the failure actions
-                    if (actions.Count > 0)
-                    {
-                        sc.ChangeConfig(descriptor.ResetFailureAfter, actions);
-                    }
+                    sc.SetDelayedAutoStart(true);
                 }
 
-                if (descriptor.SecurityDescriptor != null)
+                var securityDescriptor = descriptor.SecurityDescriptor;
+                if (securityDescriptor != null)
                 {
-                    RawSecurityDescriptor rawSecurityDescriptor = new RawSecurityDescriptor(descriptor.SecurityDescriptor);
-                    byte[] securityDescriptorBytes = new byte[rawSecurityDescriptor.BinaryLength];
-                    rawSecurityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
-                    Advapi32.SetServiceObjectSecurity(/*TODO*/default, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes);
+                    // throws ArgumentException
+                    sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
                 }
 
-                return;
+                string eventLogSource = descriptor.Id;
+                if (!EventLog.SourceExists(eventLogSource))
+                {
+                    EventLog.CreateEventSource(eventLogSource, "Application");
+                }
             }
 
-            if (args[0] == "uninstall")
+            void Uninstall()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
                 if (s is null)
                 {
@@ -726,12 +803,16 @@ namespace winsw
 
                     throw e;
                 }
-
-                return;
             }
 
-            if (args[0] == "start")
+            void Start()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Starting the service with id '" + descriptor.Id + "'");
                 if (s is null)
                     ThrowNoSuchService();
@@ -751,12 +832,16 @@ namespace winsw
                         throw;
                     }
                 }
-
-                return;
             }
 
-            if (args[0] == "stop")
+            void Stop()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Stopping the service with id '" + descriptor.Id + "'");
                 if (s is null)
                     ThrowNoSuchService();
@@ -776,12 +861,35 @@ namespace winsw
                         throw;
                     }
                 }
-
-                return;
             }
 
-            if (args[0] == "restart")
+            void StopWait()
             {
+                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
+                if (s is null)
+                    ThrowNoSuchService();
+
+                if (s.Started)
+                    s.StopService();
+
+                while (s != null && s.Started)
+                {
+                    Log.Info("Waiting the service to stop...");
+                    Thread.Sleep(1000);
+                    s = svc.Select(descriptor.Id);
+                }
+
+                Log.Info("The service stopped.");
+            }
+
+            void Restart()
+            {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
                 if (s is null)
                     ThrowNoSuchService();
@@ -796,25 +904,27 @@ namespace winsw
                 }
 
                 s.StartService();
-                return;
             }
 
-            if (args[0] == "restart!")
+            void RestartSelf()
             {
+                if (!elevated)
+                {
+                    throw new UnauthorizedAccessException("Access is denied.");
+                }
+
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
 
-                bool result = Kernel32.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, Kernel32.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
+                bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
                 }
-
-                return;
             }
 
-            if (args[0] == "status")
+            void Status()
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
                 if (s is null)
@@ -823,45 +933,70 @@ namespace winsw
                     Console.WriteLine("Started");
                 else
                     Console.WriteLine("Stopped");
-
-                return;
             }
 
-            if (args[0] == "test")
+            void Test()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.OnStart(args.ToArray());
                 Thread.Sleep(1000);
                 wsvc.OnStop();
-                return;
             }
 
-            if (args[0] == "testwait")
+            void TestWait()
             {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.OnStart(args.ToArray());
                 Console.WriteLine("Press any key to stop the service...");
                 Console.Read();
                 wsvc.OnStop();
-                return;
             }
 
-            if (args[0] == "help" || args[0] == "--help" || args[0] == "-h"
-                || args[0] == "-?" || args[0] == "/?")
+            // [DoesNotReturn]
+            void Elevate()
             {
-                printHelp();
-                return;
-            }
+                using Process current = Process.GetCurrentProcess();
 
-            if (args[0] == "version")
-            {
-                printVersion();
-                return;
-            }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    FileName = current.MainModule.FileName,
+#if NETCOREAPP
+                    Arguments = "/elevated " + string.Join(' ', args),
+#elif !NET20
+                    Arguments = "/elevated " + string.Join(" ", args),
+#else
+                    Arguments = "/elevated " + string.Join(" ", args.ToArray()),
+#endif
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                };
 
-            Console.WriteLine("Unknown command: " + args[0]);
-            printAvailableCommandsInfo();
-            throw new Exception("Unknown command: " + args[0]);
+                try
+                {
+                    using Process elevated = Process.Start(startInfo);
+
+                    elevated.WaitForExit();
+                    Environment.Exit(elevated.ExitCode);
+                }
+                catch (Win32Exception e) when (e.NativeErrorCode == Errors.ERROR_CANCELLED)
+                {
+                    Log.Fatal(e.Message);
+                    Environment.Exit(e.ErrorCode);
+                }
+            }
         }
 
         private static void InitLoggers(ServiceDescriptor d, bool enableCLILogging)
@@ -924,6 +1059,40 @@ namespace winsw
                 appenders.ToArray());
         }
 
+        internal static unsafe bool IsProcessElevated()
+        {
+            IntPtr process = ProcessApis.GetCurrentProcess();
+            if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
+            {
+                ThrowWin32Exception("Failed to open process token.");
+            }
+
+            try
+            {
+                if (!SecurityApis.GetTokenInformation(
+                    token,
+                    SecurityApis.TOKEN_INFORMATION_CLASS.TokenElevation,
+                    out SecurityApis.TOKEN_ELEVATION elevation,
+                    sizeof(SecurityApis.TOKEN_ELEVATION),
+                    out _))
+                {
+                    ThrowWin32Exception("Failed to get token information");
+                }
+
+                return elevation.TokenIsElevated != 0;
+            }
+            finally
+            {
+                _ = HandleApis.CloseHandle(token);
+            }
+
+            static void ThrowWin32Exception(string message)
+            {
+                Win32Exception inner = new Win32Exception();
+                throw new Win32Exception(inner.NativeErrorCode, message + ' ' + inner.Message);
+            }
+        }
+
         private static string ReadPassword()
         {
             StringBuilder buf = new StringBuilder();
@@ -973,6 +1142,7 @@ namespace winsw
   uninstall   uninstall the service
   start       start the service (must be installed before)
   stop        stop the service
+  stopwait    stop the service and wait until it's actually stopped
   restart     restart the service
   restart!    self-restart (can be called from child processes)
   status      check the current status of the service

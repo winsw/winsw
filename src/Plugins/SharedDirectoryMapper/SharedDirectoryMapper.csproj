@@ -4,9 +4,8 @@
     <TargetFrameworks>net20;net40;net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <Version><!-- Populated by AppVeyor --></Version>
+
     <RootNamespace>winsw.Plugins.SharedDirectoryMapper</RootNamespace>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>

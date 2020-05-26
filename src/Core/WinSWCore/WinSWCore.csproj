@@ -4,9 +4,9 @@
     <TargetFrameworks>net20;net40;net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <Version><!-- Populated by AppVeyor --></Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
     <RootNamespace>winsw</RootNamespace>
-    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,8 +18,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <!-- https://github.com/kohsuke/winsw/issues/411 -->
-    <!-- <PackageReference Include="Microsoft.Management.Infrastructure" Version="2.0.0" /> -->
     <PackageReference Include="System.Diagnostics.EventLog" Version="4.7.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />
     <PackageReference Include="System.Security.AccessControl" Version="4.7.0" />

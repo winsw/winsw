@@ -157,7 +157,7 @@ SECTION: Executable management
     This OPTION also enables termination of the executable via stop executable
   -->
   <!--
-  <stoparguments>-stop true</stoparguments>-->
+  <stoparguments>-stop true</stoparguments>
   -->
 <!-- 
 SECTION: Service management 

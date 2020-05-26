@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Xml;
 using WMI;
 
@@ -24,16 +23,16 @@ namespace winsw.Configuration
         // Installation
         public bool AllowServiceAcountLogonRight => false;
         public string? ServiceAccountPassword => null;
-        public string ServiceAccountUser => "NULL\\NULL";
-        public List<Native.SC_ACTION> FailureActions => new List<Native.SC_ACTION>(0);
+        public string? ServiceAccountUser => null;
+        public Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
         // Executable management
         public string Arguments => string.Empty;
-        public string? Startarguments => null;
+        public string? StartArguments => null;
         public string? StopExecutable => null;
-        public string? Stoparguments => null;
-        public string WorkingDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        public string? StopArguments => null;
+        public string WorkingDirectory => Path.GetDirectoryName(ExecutablePath)!;
         public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
         public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
         public bool StopParentProcessFirst => false;

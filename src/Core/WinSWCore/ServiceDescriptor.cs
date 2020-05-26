@@ -21,6 +21,8 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         protected readonly XmlDocument dom = new XmlDocument();
 
+        private readonly Dictionary<string, string> environmentVariables;
+
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         /// <summary>
@@ -93,6 +95,8 @@ namespace winsw
 
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
         /// <summary>
@@ -103,6 +107,8 @@ namespace winsw
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -217,7 +223,7 @@ namespace winsw
         public string? StopExecutable => SingleElement("stopexecutable", true);
 
         /// <summary>
-        /// Arguments or multiple optional argument elements which overrule the arguments element.
+        /// <c>arguments</c> or multiple optional <c>argument</c> elements which overrule the arguments element.
         /// </summary>
         public string Arguments
         {
@@ -225,33 +231,56 @@ namespace winsw
             {
                 string? arguments = AppendTags("argument", null);
 
-                if (arguments is null)
-                {
-                    XmlNode? argumentsNode = dom.SelectSingleNode("//arguments");
-
-                    if (argumentsNode is null)
-                    {
-                        return Defaults.Arguments;
-                    }
-
-                    return Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
-                }
-                else
+                if (!(arguments is null))
                 {
                     return arguments;
                 }
+
+                XmlNode? argumentsNode = dom.SelectSingleNode("//arguments");
+
+                return argumentsNode is null ? Defaults.Arguments : Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
         /// <summary>
-        /// Multiple optional startargument elements.
+        /// <c>startarguments</c> or multiple optional <c>startargument</c> elements.
         /// </summary>
-        public string? Startarguments => AppendTags("startargument", Defaults.Startarguments);
+        public string? StartArguments
+        {
+            get
+            {
+                string? startArguments = AppendTags("startargument", null);
+
+                if (!(startArguments is null))
+                {
+                    return startArguments;
+                }
+
+                XmlNode? startArgumentsNode = dom.SelectSingleNode("//startarguments");
+
+                return startArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(startArgumentsNode.InnerText);
+            }
+        }
 
         /// <summary>
-        /// Multiple optional stopargument elements.
+        /// <c>stoparguments</c> or multiple optional <c>stopargument</c> elements.
         /// </summary>
-        public string? Stoparguments => AppendTags("stopargument", Defaults.Stoparguments);
+        public string? StopArguments
+        {
+            get
+            {
+                string? stopArguments = AppendTags("stopargument", null);
+
+                if (!(stopArguments is null))
+                {
+                    return stopArguments;
+                }
+
+                XmlNode? stopArgumentsNode = dom.SelectSingleNode("//stoparguments");
+
+                return stopArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(stopArgumentsNode.InnerText);
+            }
+        }
 
         public string WorkingDirectory
         {
@@ -575,25 +604,7 @@ namespace winsw
         /// <summary>
         /// Environment variable overrides
         /// </summary>
-        public Dictionary<string, string> EnvironmentVariables
-        {
-            get
-            {
-                Dictionary<string, string> map = new Dictionary<string, string>();
-                XmlNodeList nodeList = dom.SelectNodes("//env");
-                for (int i = 0; i < nodeList.Count; i++)
-                {
-                    XmlNode node = nodeList[i];
-                    string key = node.Attributes["name"].Value;
-                    string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"].Value);
-                    map[key] = value;
-
-                    Environment.SetEnvironmentVariable(key, value);
-                }
-
-                return map;
-            }
-        }
+        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
 
         /// <summary>
         /// List of downloads to be performed by the wrapper before starting
@@ -622,17 +633,17 @@ namespace winsw
             }
         }
 
-        public List<SC_ACTION> FailureActions
+        public SC_ACTION[] FailureActions
         {
             get
             {
                 XmlNodeList? childNodes = dom.SelectNodes("//onfailure");
                 if (childNodes is null)
                 {
-                    return new List<SC_ACTION>(0);
+                    return new SC_ACTION[0];
                 }
 
-                List<SC_ACTION> result = new List<SC_ACTION>(childNodes.Count);
+                SC_ACTION[] result = new SC_ACTION[childNodes.Count];
                 for (int i = 0; i < childNodes.Count; i++)
                 {
                     XmlNode node = childNodes[i];
@@ -645,7 +656,7 @@ namespace winsw
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
                     XmlAttribute? delay = node.Attributes["delay"];
-                    result.Add(new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero));
+                    result[i] = new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero);
                 }
 
                 return result;
@@ -672,19 +683,17 @@ namespace winsw
 
         protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
-        // ReSharper disable once InconsistentNaming
-        protected string? serviceAccountDomain => GetServiceAccountPart("domain");
+        protected internal string? ServiceAccountDomain => GetServiceAccountPart("domain");
 
-        // ReSharper disable once InconsistentNaming
-        protected string? serviceAccountName => GetServiceAccountPart("user");
+        protected internal string? ServiceAccountName => GetServiceAccountPart("user");
 
         public string? ServiceAccountPassword => GetServiceAccountPart("password");
 
-        public string ServiceAccountUser => (serviceAccountDomain ?? "NULL") + @"\" + (serviceAccountName ?? "NULL");
+        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
 
         public bool HasServiceAccount()
         {
-            return !string.IsNullOrEmpty(serviceAccountDomain) && !string.IsNullOrEmpty(serviceAccountName);
+            return !string.IsNullOrEmpty(ServiceAccountName);
         }
 
         public bool AllowServiceAcountLogonRight
@@ -738,5 +747,22 @@ namespace winsw
         }
 
         public string? SecurityDescriptor => SingleElement("securityDescriptor", true);
+
+        private Dictionary<string, string> LoadEnvironmentVariables()
+        {
+            XmlNodeList nodeList = dom.SelectNodes("//env");
+            Dictionary<string, string> environment = new Dictionary<string, string>(nodeList.Count);
+            for (int i = 0; i < nodeList.Count; i++)
+            {
+                XmlNode node = nodeList[i];
+                string key = node.Attributes["name"].Value;
+                string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"].Value);
+                environment[key] = value;
+
+                Environment.SetEnvironmentVariable(key, value);
+            }
+
+            return environment;
+        }
     }
 }
