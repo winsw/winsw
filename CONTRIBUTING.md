@@ -26,3 +26,7 @@ dotnet build src\winsw.sln
 ```
 dotnet test src\Test\winswTests\winswTests.csproj
 ```
+
+## Project Structure
+
+You can find project structure guideline [here.](doc/developer/projectStructure.md)
