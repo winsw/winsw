@@ -71,8 +71,7 @@ namespace winsw
             {
                 using(var reader = new StreamReader(BasePath + ".xml"))
                 {
-                    string xml = reader.ReadToEnd();
-                    dom = ServiceDescriptor.XmlValidation(xml);
+                    dom = ServiceDescriptor.XmlValidation(reader);
                 }
             }
             catch (XmlException e)
@@ -110,11 +109,11 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         public static ServiceDescriptor FromXML(string xml)
         {
-            return new ServiceDescriptor(XmlValidation(xml));
+            return new ServiceDescriptor(XmlValidation(new StringReader(xml)));
         }
 
 
-        public static XmlDocument XmlValidation(string xml)
+        public static XmlDocument XmlValidation(TextReader textReader)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
             Assembly a = Assembly.GetExecutingAssembly();
@@ -135,7 +134,7 @@ namespace winsw
                 }
             }
 
-            var reader = XmlReader.Create(new StringReader(xml), settings);
+            var reader = XmlReader.Create(textReader, settings);
 
             var xmlDoc = new XmlDocument();
             xmlDoc.Load(reader);
