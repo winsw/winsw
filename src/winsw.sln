@@ -1,13 +1,12 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29709.97
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "winsw", "Core\ServiceWrapper\winsw.csproj", "{0DE77F55-ADE5-43C1-999A-0BC81153B039}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winsw", "Core\ServiceWrapper\winsw.csproj", "{0DE77F55-ADE5-43C1-999A-0BC81153B039}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "winswTests", "Test\winswTests\winswTests.csproj", "{93843402-842B-44B4-B303-AEE829BE0B43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "winswTests", "Test\winswTests\winswTests.csproj", "{93843402-842B-44B4-B303-AEE829BE0B43}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedDirectoryMapper", "Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj", "{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedDirectoryMapper", "Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj", "{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{077C2CEC-B687-4B53-86E9-C1A1BF5554E5}"
 EndProject
@@ -15,9 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{BC4A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{5297623A-1A95-4F89-9AAE-DA634081EC86}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinSWCore", "Core\WinSWCore\WinSWCore.csproj", "{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinSWCore", "Core\WinSWCore\WinSWCore.csproj", "{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunawayProcessKiller", "Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj", "{57284B7A-82A4-407A-B706-EBEA6BF8EA13}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunawayProcessKiller", "Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj", "{57284B7A-82A4-407A-B706-EBEA6BF8EA13}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AA414F46-B863-473A-A0E0-C2971B3396AE}"
 	ProjectSection(SolutionItems) = preProject
@@ -83,8 +82,5 @@ Global
 		{CA5C71DB-C5A8-4C27-BF83-8E6DAED9D6B5} = {BC4AD891-E87E-4F30-867C-FD8084A29E5D}
 		{9D0C63E2-B6FF-4A85-BD36-B3E5D7F27D06} = {5297623A-1A95-4F89-9AAE-DA634081EC86}
 		{57284B7A-82A4-407A-B706-EBEA6BF8EA13} = {BC4AD891-E87E-4F30-867C-FD8084A29E5D}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F2AA6073-6416-4C89-9143-F5F578E5819F}
 	EndGlobalSection
 EndGlobal
