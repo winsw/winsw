@@ -79,10 +79,6 @@ namespace winsw
             {
                 throw new InvalidDataException(e.Message, e);
             }
-            catch (FileNotFoundException e)
-            {
-                throw e;
-            }
 
             // register the base directory as environment variable so that future expansions can refer to this.
             Environment.SetEnvironmentVariable("BASE", d.FullName);
