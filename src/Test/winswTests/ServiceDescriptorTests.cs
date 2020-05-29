@@ -456,7 +456,7 @@ $@"<service>
 </id>
 ";
 
-            Assert.That(() => ServiceDescriptor.XmlValidation(new StringReader(seedXml)), Throws.Exception.TypeOf<XmlException>());
+            Assert.That(() => ServiceDescriptor.ValidateXMLSchema(new StringReader(seedXml)), Throws.Exception.TypeOf<XmlException>());
         }
     }
 }
