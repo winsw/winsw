@@ -365,4 +365,4 @@ This is useful when the main process is a console, which can respond to Ctrl+C c
 
 ## XML schema validation
 
-We are using embedded [XSD](../src/Core/WinSWCore/XMLSchema.xsd) file to validate XML configurations file schema. You can follow this schema file when creating the XML configuration file.
+We are using embedded [XSD schema file](../src/Core/WinSWCore/XMLSchema.xsd) to validate XML configurations file. You can follow this schema file when creating the XML configuration file.
