@@ -7,14 +7,6 @@
 *.rsuser
 *.suo
 *.user
-/eval
-/src/packages/
-/winsw_key.snk
-/winsw_key.pfx
-/src/.vs/
-/src/winsw.sln
-/src/Core/WinSWCore/WinSWCore.csproj.DotSettings
-/artifacts/
 *.userosscache
 *.sln.docstates
 
