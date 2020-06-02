@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace winsw.Configuration
+﻿namespace winsw.Configuration
 {
     public class YamlConfiguration
     {
-        readonly ServiceAccount? serviceAccount;
-        readonly BasicConfigs? basicConfigs;
+        public string? id { get; set; }
+        public string? name { get; set; }
+        public string? description { get; set; }
+        public string? executable { get; set; }
+        public string? workingdirectory { get; set; }
+
+        public ServiceAccount? serviceaccount { get; set; }
+        public Log? log { get; set; }
     }
 
     public class ServiceAccount
@@ -18,11 +20,13 @@ namespace winsw.Configuration
         public string allowservicelogon { get; set; }
     }
 
-    public class BasicConfigs
+    public class Log
     {
-        public string id { get; set; }
-        public string name { get; set; }
-        public string description { get; set; }
-        public string executable { get; set; }
+        public string sizeThreshold { get; set; }
+        public string keepFiles { get; set; }
+        public string pattern { get; set; }
+        public string autoRollAtTime { get; set; }
+        public string period { get; set; }
+        public string mod { get; set; }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.IO;
 using winsw.Configuration;
+using YamlDotNet.Serialization;
 
 namespace winsw
 {
     public class ServiceDescriptorYaml
     {
+        protected readonly YamlConfiguration configurations = new YamlConfiguration();
+
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         public string BasePath { get; set; }
@@ -24,11 +27,11 @@ namespace winsw
             DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
             {
-                if (File.Exists(Path.Combine(d.FullName, baseName + ".yaml")))
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
                     break;
 
                 if (d.Parent is null)
-                    throw new FileNotFoundException("Unable to locate " + baseName + ".yaml file within executable directory or any parents");
+                    throw new FileNotFoundException("Unable to locate " + baseName + ".yml file within executable directory or any parents");
 
                 d = d.Parent;
             }
@@ -36,14 +39,13 @@ namespace winsw
             BaseName = baseName;
             BasePath = Path.Combine(d.FullName, BaseName);
 
-            using(var reader = new StreamReader(BasePath + ".yaml"))
+            using(var reader = new StreamReader(BasePath + ".yml"))
             {
                 var file = reader.ReadToEnd();
-                Console.WriteLine(file);
-            }
+                var deserializer = new DeserializerBuilder().Build();
 
-            // yaml <> object - deserialization and schema validation
-            // Set environment data
+                configurations = deserializer.Deserialize<YamlConfiguration>(file);
+            }
         }
     }
 }
