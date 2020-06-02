@@ -1,0 +1,49 @@
+﻿using System;
+using System.IO;
+using winsw.Configuration;
+
+namespace winsw
+{
+    public class ServiceDescriptorYaml
+    {
+        public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+
+        public string BasePath { get; set; }
+
+        public string BaseName { get; set; }
+
+        public virtual string ExecutablePath => Defaults.ExecutablePath;
+
+        public ServiceDescriptorYaml()
+        {
+            string p = ExecutablePath;
+            string baseName = Path.GetFileNameWithoutExtension(p);
+            if (baseName.EndsWith(".vshost"))
+                baseName = baseName.Substring(0, baseName.Length - 7);
+
+            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
+            while (true)
+            {
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".yaml")))
+                    break;
+
+                if (d.Parent is null)
+                    throw new FileNotFoundException("Unable to locate " + baseName + ".yaml file within executable directory or any parents");
+
+                d = d.Parent;
+            }
+
+            BaseName = baseName;
+            BasePath = Path.Combine(d.FullName, BaseName);
+
+            using(var reader = new StreamReader(BasePath + ".yaml"))
+            {
+                var file = reader.ReadToEnd();
+                Console.WriteLine(file);
+            }
+
+            // yaml <> object - deserialization and schema validation
+            // Set environment data
+        }
+    }
+}
