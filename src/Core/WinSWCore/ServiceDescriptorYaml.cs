@@ -7,7 +7,7 @@ namespace winsw
 {
     public class ServiceDescriptorYaml
     {
-        protected readonly YamlConfiguration configurations = new YamlConfiguration();
+        public readonly YamlConfiguration configurations = new YamlConfiguration();
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
@@ -46,6 +46,18 @@ namespace winsw
 
                 configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
+        }
+
+        public ServiceDescriptorYaml(YamlConfiguration _configurations)
+        {
+            configurations = _configurations;
+        }
+
+        public static ServiceDescriptorYaml FromYaml(string yaml)
+        {
+            var deserializer = new DeserializerBuilder().Build();
+            var configs = deserializer.Deserialize<YamlConfiguration>(yaml);
+            return new ServiceDescriptorYaml(configs);
         }
     }
 }
