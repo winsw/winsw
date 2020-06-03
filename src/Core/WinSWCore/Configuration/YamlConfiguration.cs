@@ -1,32 +1,47 @@
-﻿namespace winsw.Configuration
+﻿using System.Collections.Generic;
+
+namespace winsw.Configuration
 {
     public class YamlConfiguration
     {
-        public string? id { get; set; }
-        public string? name { get; set; }
-        public string? description { get; set; }
-        public string? executable { get; set; }
-        public string? workingdirectory { get; set; }
+        public readonly string id;
+        public readonly string? name;
+        public readonly string? description;
+        public readonly string? executable;
+        public readonly string? workingdirectory;
 
-        public ServiceAccount? serviceaccount { get; set; }
-        public Log? log { get; set; }
+        public readonly ServiceAccount? serviceaccount;
+        public readonly Log? log;
+        public readonly List<Download>? download;
     }
 
     public class ServiceAccount
     {
-        public string name { get; set; }
-        public string domain { get; set; }
-        public string user { get; set; }
-        public string allowservicelogon { get; set; }
+        public readonly string? name;
+        public readonly string? domain;
+        public readonly string? user;
+        public readonly string? allowservicelogon;
     }
 
     public class Log
     {
-        public string sizeThreshold { get; set; }
-        public string keepFiles { get; set; }
-        public string pattern { get; set; }
-        public string autoRollAtTime { get; set; }
-        public string period { get; set; }
-        public string mod { get; set; }
+        public readonly string? sizeThreshold;
+        public readonly string? keepFiles;
+        public readonly string? pattern;
+        public readonly string? autoRollAtTime;
+        public readonly string? period;
+        public readonly string? mod;
+    }
+
+    public class Download
+    {
+        public readonly string from;
+        public readonly string to;
+        public readonly string auth;
+        public readonly string? username;
+        public readonly string? passsword;
+        public readonly bool unsecureAuth;
+        public readonly bool failOnError;
+        public readonly string? proxy;
     }
 }
