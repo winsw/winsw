@@ -196,7 +196,7 @@ namespace winsw
             for (int i = 0; i < downloads.Count; i++)
             {
                 Download download = downloads[i];
-                string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
+                string downloadMessage = $"Downloading: {download.from} to {download.to}. failOnError={download.failOnError.ToString()}";
                 LogEvent(downloadMessage);
                 Log.Info(downloadMessage);
                 tasks[i] = download.PerformAsync();
@@ -214,13 +214,13 @@ namespace winsw
                     if (tasks[i].IsFaulted)
                     {
                         Download download = downloads[i];
-                        string errorMessage = $"Failed to download {download.From} to {download.To}";
+                        string errorMessage = $"Failed to download {download.from} to {download.to}";
                         AggregateException exception = tasks[i].Exception!;
                         LogEvent($"{errorMessage}. {exception.Message}");
                         Log.Error(errorMessage, exception);
 
                         // TODO: move this code into the download logic
-                        if (download.FailOnError)
+                        if (download.failOnError)
                         {
                             exceptions.Add(new IOException(errorMessage, exception));
                         }
@@ -232,7 +232,7 @@ namespace winsw
 #else
             foreach (Download download in _descriptor.Downloads)
             {
-                string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
+                string downloadMessage = $"Downloading: {download.from} to {download.to}. failOnError={download.failOnError.ToString()}";
                 LogEvent(downloadMessage);
                 Log.Info(downloadMessage);
                 try
@@ -241,12 +241,12 @@ namespace winsw
                 }
                 catch (Exception e)
                 {
-                    string errorMessage = $"Failed to download {download.From} to {download.To}";
+                    string errorMessage = $"Failed to download {download.from} to {download.to}";
                     LogEvent($"{errorMessage}. {e.Message}");
                     Log.Error(errorMessage, e);
 
                     // TODO: move this code into the download logic
-                    if (download.FailOnError)
+                    if (download.failOnError)
                     {
                         throw new IOException(errorMessage, e);
                     }

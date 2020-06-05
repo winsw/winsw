@@ -1,7 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
 using winsw;
-using winsw.Configuration;
 
 namespace winswTests
 {
@@ -22,16 +21,20 @@ download:
     -
         from: www.github.com
         to: c://documents
+        auth: none
+
     -
         from: www.msd.com
-        to: d://docs";
+        to: d://docs
+        auth: sspi";
 
             var sd = ServiceDescriptorYaml.FromYaml(yaml);
             
-            foreach(Downloading item in sd.configurations.download)
+            foreach(Download item in sd.configurations.download)
             {
                 Console.WriteLine(item.from);
                 Console.WriteLine(item.to);
+                Console.WriteLine(item.auth);
             }
         }
     }
