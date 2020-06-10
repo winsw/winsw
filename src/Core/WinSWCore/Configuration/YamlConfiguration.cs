@@ -4,7 +4,7 @@ namespace winsw.Configuration
 {
     public class YamlConfiguration
     {
-        public string? id;
+        public string id;
         public string? name;
         public string? description;
         public string? executable;
