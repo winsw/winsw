@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net20;net40;net461;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -20,7 +20,14 @@
     <PackageReference Include="log4net" Version="2.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="CommandLineParser">
+      <Version>2.8.0</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
   </ItemGroup>
@@ -39,6 +46,12 @@
     <ProjectReference Include="..\WinSWCore\WinSWCore.csproj" />
     <ProjectReference Include="..\..\Plugins\RunawayProcessKiller\RunawayProcessKiller.csproj" />
     <ProjectReference Include="..\..\Plugins\SharedDirectoryMapper\SharedDirectoryMapper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <PackageReference Include="CommandLineParser">
+      <Version>2.8.0</Version>
+    </PackageReference>
   </ItemGroup>
 
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' == ''">
@@ -66,16 +79,6 @@
   <!-- Merge plugins and other DLLs into the executable -->
   <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
-      <TargetPlatform>v2</TargetPlatform>
-      <IdentifierSuffix>NET2</IdentifierSuffix>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-      <TargetPlatform>v4</TargetPlatform>
-      <IdentifierSuffix>NET4</IdentifierSuffix>
-    </PropertyGroup>
-
     <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
       <!-- v4.5+ -->
       <TargetPlatform>v4.5</TargetPlatform>
@@ -89,10 +92,6 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)RunawayProcessKiller.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)ICSharpCode.SharpZipLib.dll"</InputAssemblies>
     </PropertyGroup>
 
     <PropertyGroup>
