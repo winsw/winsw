@@ -89,7 +89,7 @@ namespace winsw
 
         public static void Run(object obj, ServiceDescriptor? descriptor = null)
         {
-            bool inConsoleMode = false;
+            bool inConsoleMode = true;
 
             Console.WriteLine(obj);
 
@@ -109,19 +109,21 @@ namespace winsw
 
             Log.Debug("Starting WinSW in console mode");
 
-            if (inConsoleMode)
-            {
-                PrintHelp();
-                return;
-            }
 
             // Get service info for the future use
             Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
             Win32Service? svc = svcs.Select(descriptor.Id);
 
-            bool elevated = false;
 
-            if (Environment.OSVersion.Version.Major == 5)
+            bool elevated;
+            if(obj is InstallOption)
+            {
+                elevated = true;
+
+                _ = ConsoleApis.FreeConsole();
+                _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
+            }
+            else if (Environment.OSVersion.Version.Major == 5)
             {
                 // Windows XP
                 elevated = true;
@@ -196,7 +198,6 @@ namespace winsw
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
             }
-
 
 
 
