@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.ServiceProcess;
 using NUnit.Framework;
 using winsw;
@@ -79,3 +79,4 @@ namespace winswTests
         }
     }
 }
+*/

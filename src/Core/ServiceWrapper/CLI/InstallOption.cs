@@ -5,7 +5,7 @@ namespace winsw.CLI
     [Verb("install", HelpText = "Install Windows Service Wrapper")]
     public class InstallOption : CliOption
     {
-        [Option("configFile", Required = true, HelpText = "Specify the Configuration file")]
+        [Option("configFile", Required = false, HelpText = "Specify the Configuration file")]
         public string configFile { get; set; }
 
         [Option("skipConfigValidation", Required = false, HelpText = "Enable configurations schema validation")]

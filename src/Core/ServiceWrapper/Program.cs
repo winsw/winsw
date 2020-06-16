@@ -89,7 +89,9 @@ namespace winsw
 
         public static void Run(object obj, ServiceDescriptor? descriptor = null)
         {
-            bool inConsoleMode = obj.Equals(typeof(StartOption));
+            bool inConsoleMode = false;
+
+            Console.WriteLine(obj);
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor = new ServiceDescriptor();
@@ -138,6 +140,7 @@ namespace winsw
                     elevate();
                     return;
                 case InstallOption installOption:
+                    Console.WriteLine("installing");
                     Install(installOption);
                     return;
                 case UninstallOption _:
