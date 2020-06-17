@@ -122,6 +122,7 @@ namespace winsw
 
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
+
             }
             else if (Environment.OSVersion.Version.Major == 5)
             {
@@ -135,12 +136,6 @@ namespace winsw
 
             switch (obj)
             {
-                case RedirectOption redirectOption:
-                    redirect(redirectOption.redirectTarget);
-                    return;
-                case ElevateOption _:
-                    elevate();
-                    return;
                 case InstallOption installOption:
                     Console.WriteLine("installing");
                     Install(installOption);
