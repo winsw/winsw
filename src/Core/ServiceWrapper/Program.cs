@@ -91,7 +91,7 @@ namespace winsw
         {
             var cliOption = (CliOption)obj;
 
-            bool inConsoleMode = true;//!string.IsNullOrEmpty(cliOption.ConfigFile);
+            bool inConsoleMode = true; //!string.IsNullOrEmpty(cliOption.ConfigFile);
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor = new ServiceDescriptor();
@@ -189,66 +189,7 @@ namespace winsw
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
             }
 
-            /*switch (args[0].ToLower())
-            {
-                case "install":
-                    Install();
-                    return;
 
-                case "uninstall":
-                    Uninstall();
-                    return;
-
-                case "start":
-                    Start();
-                    return;
-
-                case "stop":
-                    Stop();
-                    return;
-
-                case "stopwait":
-                    StopWait();
-                    return;
-
-                case "restart":
-                    Restart();
-                    return;
-
-                case "restart!":
-                    RestartSelf();
-                    return;
-
-                case "status":
-                    Status();
-                    return;
-
-                case "test":
-                    Test();
-                    return;
-
-                case "testwait":
-                    TestWait();
-                    return;
-
-                case "help":
-                case "--help":
-                case "-h":
-                case "-?":
-                case "/?":
-                    PrintHelp();
-                    return;
-
-                case "version":
-                    PrintVersion();
-                    return;
-
-                default:
-                    Console.WriteLine("Unknown command: " + args[0]);
-                    PrintAvailableCommands();
-                    throw new Exception("Unknown command: " + args[0]);
-            }
-*/
             void Install(InstallOption opts)
             {
                 if (!elevated)
