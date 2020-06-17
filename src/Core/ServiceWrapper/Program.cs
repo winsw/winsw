@@ -89,9 +89,9 @@ namespace winsw
 
         public static void Run(object obj, ServiceDescriptor? descriptor = null)
         {
-            bool inConsoleMode = true;
+            var cliOption = (CliOption)obj;
 
-            Console.WriteLine(obj);
+            bool inConsoleMode = !string.IsNullOrEmpty(cliOption.ConfigFile);
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor = new ServiceDescriptor();
@@ -116,7 +116,7 @@ namespace winsw
 
 
             bool elevated;
-            if(obj is InstallOption)
+            if(cliOption.Elevate)
             {
                 elevated = true;
 
@@ -137,7 +137,6 @@ namespace winsw
             switch (obj)
             {
                 case InstallOption installOption:
-                    Console.WriteLine("installing");
                     Install(installOption);
                     return;
                 case UninstallOption _:
