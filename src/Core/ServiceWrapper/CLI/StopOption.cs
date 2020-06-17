@@ -2,7 +2,7 @@
 
 namespace winsw.CLI
 {
-    [Verb("stop", HelpText = "Install Windows Service Wrapper")]
+    [Verb("stop", HelpText = "stop the service")]
     public class StopOption : CliOption
     {
     }

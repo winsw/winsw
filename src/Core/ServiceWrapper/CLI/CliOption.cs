@@ -7,13 +7,13 @@ namespace winsw.CLI
         [Option("configFile", HelpText = "Configurations File")]
         public string ConfigFile { get; set; }
 
-        [Option("elevate", HelpText = "Elevate")]
+        [Option("elevated", HelpText = "Elevated Command Prompt", Default = false)]
         public bool Elevate { get; set; }
 
         [Option("redirect", HelpText = "Redirect Logs")]
         public string RedirectPath { get; set; }
 
-        [Option("skipConfigValidation", Required = false, HelpText = "Enable configurations schema validation")]
+        [Option("skipConfigValidation", HelpText = "Enable configurations schema validation", Default = false)]
         public bool validation { get; set; }
     }
 }

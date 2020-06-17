@@ -2,7 +2,7 @@
 
 namespace winsw.CLI
 {
-    [Verb("uninstall", HelpText = "Install Windows Service Wrapper")]
+    [Verb("uninstall", HelpText = "uninstall the service")]
     public class UninstallOption : CliOption
     {
     }

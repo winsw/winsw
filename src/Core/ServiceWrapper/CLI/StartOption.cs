@@ -2,7 +2,7 @@
 
 namespace winsw.CLI
 {
-    [Verb("start", HelpText = "Install Windows Service Wrapper")]
+    [Verb("start", HelpText = "start the service (must be installed before)")]
     public class StartOption : CliOption
     {
     }

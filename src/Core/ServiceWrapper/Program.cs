@@ -91,7 +91,7 @@ namespace winsw
         {
             var cliOption = (CliOption)obj;
 
-            bool inConsoleMode = !string.IsNullOrEmpty(cliOption.ConfigFile);
+            bool inConsoleMode = true;//!string.IsNullOrEmpty(cliOption.ConfigFile);
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor = new ServiceDescriptor();
@@ -114,6 +114,10 @@ namespace winsw
             Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
             Win32Service? svc = svcs.Select(descriptor.Id);
 
+            if (!string.IsNullOrEmpty(cliOption.RedirectPath))
+            {
+                redirect(cliOption.RedirectPath);
+            }
 
             bool elevated;
             if(cliOption.Elevate)
@@ -184,16 +188,6 @@ namespace winsw
                 _ = Kernel32.SetStdHandle(-11, handle); // set stdout
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
             }
-
-            void elevate()
-            {
-                elevated = true;
-
-                _ = ConsoleApis.FreeConsole();
-                _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
-            }
-
-
 
             /*switch (args[0].ToLower())
             {

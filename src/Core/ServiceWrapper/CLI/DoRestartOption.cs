@@ -2,7 +2,7 @@
 
 namespace winsw.CLI
 {
-    [Verb("restart!", HelpText = "Force Restart")]
+    [Verb("restart!", HelpText = "self-restart (can be called from child processes)")]
     public class DoRestartOption : CliOption
     {
     }
