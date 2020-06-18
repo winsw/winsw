@@ -20,7 +20,7 @@ $@"<service>
   <description>The service.</description>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
-  <log mode="roll"></log>
+  <log mode=""roll""></log>
   <workingdirectory>C:\winsw\workdir</workingdirectory>
   <logpath>C:\winsw\logs</logpath>
 </service>";

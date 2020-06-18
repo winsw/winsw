@@ -28,7 +28,7 @@ $@"<service>
   <description>This service runs a slave for Jenkins continuous integration system.</description>
   <executable>C:\Program Files\Java\jre7\bin\java.exe</executable>
   <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
-  <log mode="roll"></log>
+  <log mode=""roll""></log>
   <extensions>
     <extension enabled=""true"" className=""{testExtension}"" id=""killRunawayProcess"">
       <pidfile>foo/bar/pid.txt</pidfile>
