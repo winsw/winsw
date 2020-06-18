@@ -164,12 +164,12 @@ namespace winsw
                 case StatusOption _:
                     Status();
                     return;
-                /*case TestOption testOption:
-                    Test();
-                    return;*/
-                /*case TestWaitOption testWaitOption:
-                    TestWait();
-                    return;*/
+                case TestOption testOption:
+                    Test(testOption);
+                    return;
+                case TestWaitOption testwaitOption:
+                    TestWait(testwaitOption);
+                    return;
                 default:
                     Console.WriteLine("Unknown command");
                     PrintAvailableCommands();
@@ -472,7 +472,7 @@ namespace winsw
                 Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
             }
 
-            /*void Test()
+            void Test(object obj)
             {
                 if (!elevated)
                 {
@@ -480,13 +480,15 @@ namespace winsw
                     return;
                 }
 
+                var arguments = CommandLine.Parser.Default.FormatCommandLine(obj).Split(' ');
+
                 WrapperService wsvc = new WrapperService(descriptor);
-                wsvc.RaiseOnStart(args.ToArray());
+                wsvc.RaiseOnStart(arguments);
                 Thread.Sleep(1000);
                 wsvc.RaiseOnStop();
-            }*/
+            }
 
-            /*void TestWait()
+            void TestWait(object obj)
             {
                 if (!elevated)
                 {
@@ -494,12 +496,14 @@ namespace winsw
                     return;
                 }
 
+                var arguments = CommandLine.Parser.Default.FormatCommandLine(obj).Split(' ');
+
                 WrapperService wsvc = new WrapperService(descriptor);
-                wsvc.RaiseOnStart(args.ToArray());
+                wsvc.RaiseOnStart(arguments);
                 Console.WriteLine("Press any key to stop the service...");
                 _ = Console.Read();
                 wsvc.RaiseOnStop();
-            }*/
+            }
 
             // [DoesNotReturn]
             void Elevate()
