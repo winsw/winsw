@@ -19,7 +19,7 @@ Example:
   <env name="JENKINS_HOME" value="%BASE%"/>
   <executable>java</executable>
   <arguments>-Xrs -Xmx256m -jar "%BASE%\jenkins.war" --httpPort=8080</arguments>
-  <logmode>rotate</logmode>
+  <log mode="roll"></log>
 </service>
 ```
 
