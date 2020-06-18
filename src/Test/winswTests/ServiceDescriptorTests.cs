@@ -28,7 +28,7 @@ $@"<service>
   <description>The service.</description>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
-  <logmode>rotate</logmode>
+  <log mode="roll"></log>
   <serviceaccount>
     <domain>{Domain}</domain>
     <user>{Username}</user>
@@ -57,8 +57,8 @@ $@"<service>
   <description>The service.</description>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
-  <startmode>rotate</startmode>
-  <logmode>rotate</logmode>
+  <startmode>roll</startmode>
+  <log mode="roll"></log>
   <serviceaccount>
     <domain>{Domain}</domain>
     <user>{Username}</user>
@@ -84,7 +84,7 @@ $@"<service>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
   <startmode>manual</startmode>
-  <logmode>rotate</logmode>
+  <log mode="roll"></log>
   <serviceaccount>
     <domain>{Domain}</domain>
     <user>{Username}</user>

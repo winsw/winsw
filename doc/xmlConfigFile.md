@@ -88,7 +88,7 @@ Multiple elements can be used to specify multiple dependencies.
 
 ### logging
 
-Optionally set a different logging directory with `<logpath>` and startup `<logmode>`: reset (clear log), roll (move to \*.old) or append (default).
+Optionally set a different logging directory with `<logpath>` and startup `mode`: append (default), reset (clear log), ignore, roll (move to `\*.old`).
 
 See the [Logging and error reporting](loggingAndErrorReporting.md) page for more info.
 

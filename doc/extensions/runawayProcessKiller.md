@@ -21,7 +21,7 @@ The extension can be configured via the [XML configuration file](../xmlConfigFil
   <description>This is a stub service.</description>
   <executable>%BASE%\sleep.bat</executable>
   <arguments></arguments>
-  <logmode>rotate</logmode>
+  <log mode="roll"></log>
 
   <extensions>
 	<!-- This is a sample configuration for the RunawayProcessKiller extension. -->

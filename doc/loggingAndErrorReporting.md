@@ -32,9 +32,9 @@ Throw away stdout and stderr, and do not produce any log files at all.
 <log mode="none"/>
 ```
 
-## Rotate mode
+## Roll mode
 
-Works like the append mode, but in addition, if the log file gets bigger than a set size, it gets rotated to *myapp.1.out.log*, *myapp.2.out.log* and so on. The nested `<sizeThreshold>` element specifies the rotation threshold in KB (defaults to 10MB), and the nested `<keepFiles>` element specifies the number of rotated files to keep (defaults to 8.)
+Works like the append mode, but in addition, if the log file gets bigger than a set size, it gets rolles to *myapp.1.out.log*, *myapp.2.out.log* and so on. The nested `<sizeThreshold>` element specifies the rotation threshold in KB (defaults to 10MB), and the nested `<keepFiles>` element specifies the number of rolles files to keep (defaults to 8.)
 
 ```xml
 <log mode="roll-by-size">
@@ -43,9 +43,9 @@ Works like the append mode, but in addition, if the log file gets bigger than a 
 </log>
 ```
 
-## Rotate by time mode
+## Roll by time mode
 
-Works like the rotate mode, except that instead of using the size as a threshold, use the time period as the threshold.
+Works like the roll mode, except that instead of using the size as a threshold, use the time period as the threshold.
 
 This configuration must accompany a nested `<pattern>` element, which specifies the timestamp pattern used as the log file name.
 
@@ -58,9 +58,9 @@ This configuration must accompany a nested `<pattern>` element, which specifies 
 The syntax of the pattern string is specified by [DateTime.ToString(String)](https://docs.microsoft.com/dotnet/api/system.datetime.tostring#System_DateTime_ToString_System_String_). 
 For example, in the above example, the log of Jan 1, 2013 gets written to `myapp.20130101.out.log` and `myapp.20130101.err.log`. 
 
-## Rotate by size and time mode
+## Roll by size and time mode
 
-Works in a combination of rotate size mode and rotate time mode, if the log file gets bigger than a set size, it gets rotated using `<pattern>` provided.
+Works in a combination of roll size mode and roll time mode, if the log file gets bigger than a set size, it gets rolles using `<pattern>` provided.
 
 ```xml
 <log mode="roll-by-size-time">
