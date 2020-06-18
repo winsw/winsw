@@ -76,10 +76,7 @@ namespace winsw
 
         private static void HandleErrors(IEnumerable<Error> errors)
         {
-            foreach(var err in errors)
-            {
-                Console.Error.WriteLine(err);
-            }
+            PrintAvailableCommands();
         }
 
         public static void RunParsed(object obj)
@@ -171,7 +168,6 @@ namespace winsw
                     TestWait(testwaitOption);
                     return;
                 default:
-                    Console.WriteLine("Unknown command");
                     PrintAvailableCommands();
                     throw new Exception("Unknown command");
             }
