@@ -88,10 +88,10 @@ namespace winsw
         {
             var cliOption = (CliOption)obj;
 
-            bool inConsoleMode = true; //!string.IsNullOrEmpty(cliOption.ConfigFile);
+            bool inConsoleMode = Parser.Default.FormatCommandLine(obj).Split(' ').Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor = new ServiceDescriptor();
+            descriptor ??= new ServiceDescriptor();
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
@@ -117,7 +117,7 @@ namespace winsw
             }
 
             bool elevated;
-            if(cliOption.Elevate)
+            if (cliOption.Elevate)
             {
                 elevated = true;
 
@@ -476,7 +476,7 @@ namespace winsw
                     return;
                 }
 
-                var arguments = CommandLine.Parser.Default.FormatCommandLine(obj).Split(' ');
+                var arguments = Parser.Default.FormatCommandLine(obj).Split(' ');
 
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.RaiseOnStart(arguments);
@@ -492,7 +492,7 @@ namespace winsw
                     return;
                 }
 
-                var arguments = CommandLine.Parser.Default.FormatCommandLine(obj).Split(' ');
+                var arguments = Parser.Default.FormatCommandLine(obj).Split(' ');
 
                 WrapperService wsvc = new WrapperService(descriptor);
                 wsvc.RaiseOnStart(arguments);
