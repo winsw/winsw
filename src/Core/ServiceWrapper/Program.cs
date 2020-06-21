@@ -174,8 +174,6 @@ namespace winsw
                 case TestWaitOption testwaitOption:
                     TestWait(testwaitOption);
                     return;
-                default:
-                    throw new Exception("Unknown command");
             }
 
 
