@@ -83,7 +83,7 @@ namespace winsw
 
         private static void HandleErrors(IEnumerable<Error> errors)
         {
-            PrintAvailableCommands();
+
         }
 
         public static void RunParsed(object obj)
@@ -175,7 +175,6 @@ namespace winsw
                     TestWait(testwaitOption);
                     return;
                 default:
-                    PrintAvailableCommands();
                     throw new Exception("Unknown command");
             }
 
