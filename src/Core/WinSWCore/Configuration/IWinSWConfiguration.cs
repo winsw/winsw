@@ -41,10 +41,14 @@ namespace winsw.Configuration
         TimeSpan SleepTime { get; }
         bool Interactive { get; }
 
-        // Logging
-        string LogDirectory { get; }
+        /// <summary>
+        /// Destination for logging.
+        /// If undefined, a default one should be used.
+        /// </summary>
+        string? LogDirectory { get; }
         // TODO: replace by enum
         string LogMode { get; }
+        Log? Log { get; }
 
         // Environment
         List<Download> Downloads { get; }

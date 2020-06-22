@@ -134,7 +134,7 @@ namespace winsw
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = _descriptor.LogHandler;
+            LogHandler logAppender = _descriptor.Log.createLogHandler();
             logAppender.EventLogger = this;
             return logAppender;
         }

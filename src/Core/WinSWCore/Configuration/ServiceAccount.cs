@@ -2,9 +2,10 @@
 {
     public class ServiceAccount
     {
-        public string? name;
+        public string? name { get; set; }
         public string? domain;
         public string? user;
+        public string? password { get; set; }
         public string? allowservicelogon;
     }
 }
