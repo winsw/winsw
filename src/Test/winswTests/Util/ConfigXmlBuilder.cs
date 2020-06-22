@@ -127,28 +127,28 @@ namespace winswTests.Util
         public ConfigXmlBuilder WithDownload(Download download)
         {
             StringBuilder xml = new StringBuilder();
-            xml.Append($"<download from=\"{download.From}\" to=\"{download.To}\" failOnError=\"{download.FailOnError}\"");
+            xml.Append($"<download from=\"{download.from}\" to=\"{download.to}\" failOnError=\"{download.failOnError}\"");
 
             // Authentication
-            if (download.Auth != Download.AuthType.none)
+            if (download.auth != Download.AuthType.none)
             {
-                xml.Append($" auth=\"{download.Auth}\"");
-                if (download.Auth == Download.AuthType.basic)
+                xml.Append($" auth=\"{download.auth}\"");
+                if (download.auth == Download.AuthType.basic)
                 {
-                    string username = download.Username;
+                    string username = download.username;
                     if (username != null)
                     {
                         xml.Append($" user=\"{username}\"");
                     }
 
-                    string password = download.Password;
+                    string password = download.password;
                     if (password != null)
                     {
                         xml.Append($" password=\"{password}\"");
                     }
                 }
 
-                if (download.UnsecureAuth)
+                if (download.unsecureAuth)
                 {
                     xml.Append(" unsecureAuth=\"true\"");
                 }
