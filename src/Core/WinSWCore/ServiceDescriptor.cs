@@ -321,17 +321,7 @@ namespace winsw
         /// <summary>
         /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
         /// </summary>
-        public string LogDirectory
-        {
-            get
-            {
-                XmlNode? loggingNode = dom.SelectSingleNode("//logpath");
-
-                return loggingNode is null
-                    ? Defaults.LogDirectory
-                    : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
-            }
-        }
+        public string LogDirectory { get => Log.Directory; }
 
         public string LogMode
         {
@@ -367,112 +357,126 @@ namespace winsw
             }
         }
 
-        public bool OutFileDisabled => SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
-
-        public bool ErrFileDisabled => SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
-
-        public string OutFilePattern
-        {
-            get
-            {
-                XmlNode? loggingName = dom.SelectSingleNode("//outfilepattern");
-
-                return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
-            }
+        public Log Log {
+            get {
+                return new XmlLogSettings(this);
+            } 
         }
 
-        public string ErrFilePattern
+        private class XmlLogSettings : Log
         {
-            get
-            {
-                XmlNode? loggingName = dom.SelectSingleNode("//errfilepattern");
+            private ServiceDescriptor d;
 
-                return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+            public XmlLogSettings(ServiceDescriptor d)
+            {
+                this.d = d;
             }
-        }
 
-        public LogHandler LogHandler
-        {
-            get
-            {
-                XmlElement? e = (XmlElement?)dom.SelectSingleNode("//logmode");
-
-                // this is more modern way, to support nested elements as configuration
-                e ??= (XmlElement?)dom.SelectSingleNode("//log")!; // WARNING: NRE
-
-                int sizeThreshold;
-                switch (LogMode)
+            private XmlElement e {
+                get
                 {
-                    case "rotate":
-                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+                    XmlElement? e = (XmlElement?)d.dom.SelectSingleNode("//logmode");
 
-                    case "none":
-                        return new IgnoreLogAppender();
-
-                    case "reset":
-                        return new ResetLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
-
-                    case "roll":
-                        return new RollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
-
-                    case "roll-by-time":
-                        XmlNode? patternNode = e.SelectSingleNode("pattern");
-                        if (patternNode is null)
-                        {
-                            throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
-                        }
-
-                        var pattern = patternNode.InnerText;
-                        int period = SingleIntElement(e, "period", 1);
-                        return new TimeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, pattern, period);
-
-                    case "roll-by-size":
-                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BYTES_PER_KB;
-                        int keepFiles = SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP);
-                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, keepFiles);
-
-                    case "append":
-                        return new DefaultLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
-
-                    case "roll-by-size-time":
-                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BYTES_PER_KB;
-                        XmlNode? filePatternNode = e.SelectSingleNode("pattern");
-                        if (filePatternNode is null)
-                        {
-                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration XML.");
-                        }
-
-                        XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
-                        TimeSpan? autoRollAtTime = null;
-                        if (autoRollAtTimeNode != null)
-                        {
-                            // validate it
-                            if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out TimeSpan autoRollAtTimeValue))
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
-
-                            autoRollAtTime = autoRollAtTimeValue;
-                        }
-
-                        XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
-                        int? zipolderthannumdays = null;
-                        if (zipolderthannumdaysNode != null)
-                        {
-                            // validate it
-                            if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
-
-                            zipolderthannumdays = zipolderthannumdaysValue;
-                        }
-
-                        XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
-                        string zipdateformat = zipdateformatNode is null ? "yyyyMM" : zipdateformatNode.InnerText;
-
-                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
-
-                    default:
-                        throw new InvalidDataException("Undefined logging mode: " + LogMode);
+                    // this is more modern way, to support nested elements as configuration
+                    e ??= (XmlElement?)d.dom.SelectSingleNode("//log")!; // WARNING: NRE
+                    return e;
                 }
             }
+
+            public override string? Mode { get => d.LogMode; }
+
+            public override string? Name { get => d.LogName; }
+
+            public override string? Directory
+            {
+                get
+                {
+                    XmlNode? loggingNode = d.dom.SelectSingleNode("//logpath");
+
+                    return loggingNode is null
+                        ? Defaults.LogDirectory
+                        : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
+                }
+            }
+
+            public override int? SizeThreshold { get => d.SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BYTES_PER_KB;  }
+
+            public override int? KeepFiles { get => d.SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP); }
+
+            public override int? Period { get => d.SingleIntElement(e, "period", 1); }
+
+            public override string? Pattern { 
+                get
+                {
+                    XmlNode? patternNode = e.SelectSingleNode("pattern");
+                    if (patternNode is null)
+                    {
+                        throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+                    }
+
+                    return patternNode.InnerText;
+                }
+            }
+
+            public override bool OutFileDisabled => d.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+
+            public override bool ErrFileDisabled => d.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+
+            public override string OutFilePattern
+            {
+                get
+                {
+                    XmlNode? loggingName = d.dom.SelectSingleNode("//outfilepattern");
+
+                    return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                }
+            }
+
+            public override string ErrFilePattern
+            {
+                get
+                {
+                    XmlNode? loggingName = d.dom.SelectSingleNode("//errfilepattern");
+
+                    return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                }
+            }
+
+            public override string AutoRollAtTime
+            {
+                get
+                {
+                    XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
+                    return autoRollAtTimeNode != null ? autoRollAtTimeNode.InnerText : null;
+                }
+            }
+
+
+            public override int? ZipOlderThanNumDays { 
+                get
+                {
+                    XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
+                    int? zipolderthannumdays = null;
+                    if (zipolderthannumdaysNode != null)
+                    {
+                        // validate it
+                        if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
+                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+
+                        zipolderthannumdays = zipolderthannumdaysValue;
+                    }
+                    return zipolderthannumdays;
+                }
+            }
+            public override string? ZipDateFormat
+            {
+                get
+                {
+                    XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
+                    return zipdateformatNode is null ? null : zipdateformatNode.InnerText;
+                }
+            }
+
         }
 
         /// <summary>

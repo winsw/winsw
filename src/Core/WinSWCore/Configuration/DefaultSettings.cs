@@ -46,13 +46,50 @@ namespace winsw.Configuration
         public bool Interactive => false;
 
         // Logging
+        public Log Log { get => new LogDefaults(this); }
         public string LogDirectory => Path.GetDirectoryName(ExecutablePath)!;
-        public string LogMode => "append";
+        public string LogMode => Log.Mode;
 
-        public bool OutFileDisabled => false;
-        public bool ErrFileDisabled => false;
-        public string OutFilePattern => ".out.log";
-        public string ErrFilePattern => ".err.log";
+        public bool OutFileDisabled => Log.OutFileDisabled;
+        public bool ErrFileDisabled => Log.ErrFileDisabled;
+        public string OutFilePattern => Log.OutFilePattern;
+        public string ErrFilePattern => Log.ErrFilePattern;
+
+        public class LogDefaults : Log
+        {
+            private DefaultWinSWSettings defaults;
+
+            public LogDefaults(DefaultWinSWSettings settings)
+            {
+                defaults = settings;
+            }
+
+
+            public override string Mode  => "append";
+
+            public override string? Name => throw new NotImplementedException();
+
+            public override string? Directory => throw new NotImplementedException();
+
+            public override int? SizeThreshold => throw new NotImplementedException();
+
+            public override int? KeepFiles => throw new NotImplementedException();
+
+            public override string? Pattern => throw new NotImplementedException();
+
+            public override int? Period => throw new NotImplementedException();
+
+            public override bool OutFileDisabled { get => false; }
+            public override bool ErrFileDisabled { get => false; }
+            public override string OutFilePattern { get => ".out.log"; }
+            public override string ErrFilePattern { get => ".err.log"; }
+
+            public override string? AutoRollAtTime => throw new NotImplementedException();
+
+            public override int? ZipOlderThanNumDays => throw new NotImplementedException();
+
+            public override string? ZipDateFormat => throw new NotImplementedException();
+        }
 
         // Environment
         public List<Download> Downloads => new List<Download>(0);
