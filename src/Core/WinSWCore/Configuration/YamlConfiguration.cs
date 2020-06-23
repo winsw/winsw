@@ -37,6 +37,79 @@ namespace winsw.Configuration
         string IWinSWConfiguration.LogDirectory => Log != null ? Log.Directory : null;
         string IWinSWConfiguration.LogMode => Log != null ? Log.Directory : null;
 
+        
+
+
+        [YamlMember(Alias = "download")]
+        public List<Download> Downloads { get; set; }
+
+        [YamlMember(Alias = "caption")]
+        public string? Caption { get; set; }
+
+        [YamlMember(Alias = "executablePath")]
+        public string? ExecutablePath { get; set; }
+
+        [YamlMember(Alias = "hideWindow")]
+        public bool HideWindow { get; set; }
+
+        [YamlMember(Alias = "allowServiceAcountLogonRight")]
+        public bool AllowServiceAcountLogonRight { get; set; }
+
+        [YamlMember(Alias = "arguments")]
+        public string? Arguments { get; set; }
+
+        [YamlMember(Alias = "startArguments")]
+        public string? StartArguments { get; set; }
+
+        [YamlMember(Alias = "stopExecutable")]
+        public string? StopExecutable { get; set; }
+
+        [YamlMember(Alias = "stopArguments")]
+        public string? StopArguments { get; set; }
+
+        [YamlMember(Alias = "stopParentProcessFirst")]
+        public bool StopParentProcessFirst { get; set; }
+        
+        [YamlMember(Alias = "resetFailureAfter")]
+        public TimeSpan ResetFailureAfter { get; set; }
+
+        [YamlMember(Alias = "stopTimeout")]
+        public TimeSpan StopTimeout { get; set; }
+        
+        [YamlMember(Alias = "startMode")]
+        public StartMode StartMode { get; set; }
+
+        [YamlMember(Alias = "serviceDependencies")]
+        public string[] ServiceDependencies { get; set; }
+
+        [YamlMember(Alias = "waitHint")]
+        public TimeSpan WaitHint { get; set; }
+
+        [YamlMember(Alias = "sleepTime")]
+        public TimeSpan SleepTime { get; set; }
+
+        [YamlMember(Alias = "interactive")]
+        public bool Interactive { get; set; }
+
+        [YamlMember(Alias = "priority")]
+        public ProcessPriorityClass Priority { get; set; }
+
+        [YamlMember(Alias = "beepOnShutdown")]
+        public bool BeepOnShutdown { get; set; }
+
+        [YamlMember(Alias = "environmentVariables")]
+        public Dictionary<string, string> EnvironmentVariables { get; set; }
+
+        [YamlMember(Alias = "failureActions")]
+        public SC_ACTION[] FailureActions { get; set; }
+
+
+
+
+
+        // TODO
+        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+
         public class YAMLLog : Log
         {
             [YamlMember(Alias = "mode")]
@@ -115,58 +188,16 @@ namespace winsw.Configuration
             public override string? ZipDateFormat => _ZipDateFormat;
         }
 
-        [YamlMember(Alias = "download")]
-        public List<Download>? Download { get; set; }
+        public struct YAML_SC_ACTION
+        {
+            private SC_ACTION scAction;
 
+            [YamlMember(Alias = "actionType")]
+            public SC_ACTION_TYPE Type => scAction.Type;
 
-        string IWinSWConfiguration.Caption => throw new NotImplementedException();
+            [YamlMember(Alias = "delay")]
+            public int Delay => scAction.Delay;
 
-        string IWinSWConfiguration.ExecutablePath => throw new NotImplementedException();
-
-        bool IWinSWConfiguration.HideWindow => throw new NotImplementedException();
-
-        bool IWinSWConfiguration.AllowServiceAcountLogonRight => throw new NotImplementedException();
-
-        // TODO: Implement configuration
-        SC_ACTION[] IWinSWConfiguration.FailureActions => new SC_ACTION[0];
-
-        TimeSpan IWinSWConfiguration.ResetFailureAfter => throw new NotImplementedException();
-
-
-        string IWinSWConfiguration.Arguments => throw new NotImplementedException();
-
-        string? IWinSWConfiguration.StartArguments => throw new NotImplementedException();
-
-        string? IWinSWConfiguration.StopExecutable => throw new NotImplementedException();
-
-        string? IWinSWConfiguration.StopArguments => throw new NotImplementedException();
-
-        string IWinSWConfiguration.WorkingDirectory => throw new NotImplementedException();
-
-        ProcessPriorityClass IWinSWConfiguration.Priority => throw new NotImplementedException();
-
-        TimeSpan IWinSWConfiguration.StopTimeout => throw new NotImplementedException();
-
-        bool IWinSWConfiguration.StopParentProcessFirst => throw new NotImplementedException();
-
-        StartMode IWinSWConfiguration.StartMode => throw new NotImplementedException();
-
-        string[] IWinSWConfiguration.ServiceDependencies => throw new NotImplementedException();
-
-        TimeSpan IWinSWConfiguration.WaitHint => throw new NotImplementedException();
-
-        TimeSpan IWinSWConfiguration.SleepTime => throw new NotImplementedException();
-
-        bool IWinSWConfiguration.Interactive => throw new NotImplementedException();
-
- 
-
-        List<Download> IWinSWConfiguration.Downloads => throw new NotImplementedException();
-
-        Dictionary<string, string> IWinSWConfiguration.EnvironmentVariables => throw new NotImplementedException();
-
-        bool IWinSWConfiguration.BeepOnShutdown => throw new NotImplementedException();
-
-        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+        }     
     }
 }
