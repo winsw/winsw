@@ -30,7 +30,7 @@ download:
 
             var sd = ServiceDescriptorYaml.FromYaml(yaml);
             
-            foreach(Download item in sd.configurations.Download)
+            foreach(Download item in sd.configurations.Downloads)
             {
                 Console.WriteLine(item.from);
                 Console.WriteLine(item.to);
