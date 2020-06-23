@@ -14,21 +14,27 @@ namespace winsw.Configuration
         public string Id { get; set; }
 
         [YamlMember(Alias = "name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         [YamlMember(Alias = "description")]
-        public string? Description { get; set; }
+        public string Description { get; set; }
 
         [YamlMember(Alias = "executable")]
-        public string? Executable { get; set; }
+        public string Executable { get; set; }
+
+        [YamlMember(Alias = "executablePath")]
+        public string ExecutablePath { get; set; }
+
+        [YamlMember(Alias = "hideWindow")]
+        public bool HideWindow { get; set; }
 
         [YamlMember(Alias = "workingdirectory")]
         public string? WorkingDirectory { get; set; }
 
         [YamlMember(Alias = "serviceaccount")]
         public ServiceAccount? ServiceAccount { get; set; }
-        string? IWinSWConfiguration.ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.password : null;
-        string? IWinSWConfiguration.ServiceAccountUser => ServiceAccount != null ? ServiceAccount.user : null;
+        string? IWinSWConfiguration.ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
+        string? IWinSWConfiguration.ServiceAccountUser => ServiceAccount != null ? ServiceAccount.User : null;
 
         [YamlMember(Alias = "log")]
         public YAMLLog? _YAMLLog { get; set; }
@@ -38,19 +44,11 @@ namespace winsw.Configuration
         string IWinSWConfiguration.LogMode => Log != null ? Log.Directory : null;
 
         
-
-
         [YamlMember(Alias = "download")]
         public List<Download> Downloads { get; set; }
 
         [YamlMember(Alias = "caption")]
-        public string? Caption { get; set; }
-
-        [YamlMember(Alias = "executablePath")]
-        public string? ExecutablePath { get; set; }
-
-        [YamlMember(Alias = "hideWindow")]
-        public bool HideWindow { get; set; }
+        public string Caption { get; set; }
 
         [YamlMember(Alias = "allowServiceAcountLogonRight")]
         public bool AllowServiceAcountLogonRight { get; set; }
@@ -106,9 +104,9 @@ namespace winsw.Configuration
         public List<YAML_SC_ACTION> YamlFailureActions { get; set; }
 
         
-        public struct YAML_SC_ACTION
+        public class YAML_SC_ACTION
         {
-            [YamlMember(Alias = "actionType")]
+            [YamlMember(Alias = "type")]
             public SC_ACTION_TYPE Type;
 
             [YamlMember(Alias = "delay")]

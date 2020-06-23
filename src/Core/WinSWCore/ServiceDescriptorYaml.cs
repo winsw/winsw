@@ -62,6 +62,37 @@ namespace winsw
             return new ServiceDescriptorYaml(configs);
         }
 
+        public string ID => configurations.Id;
+
+        public string Caption => configurations.Caption;
+
+        public string Description => configurations.Description;
+
+        public string Executable => configurations.Executable;
+
+        public bool HideWindow => configurations.HideWindow;
+
+        public string? StopExecutable => configurations.StopExecutable != null ? configurations.StopExecutable : Defaults.StopExecutable;
+
+        //TODO
+        public string? Arguments => configurations.Arguments != null ? configurations.Arguments : Defaults.Arguments;
+
+        //TODO
+        public string? StartArguments;
+
+        //TODO
+        public string? StopArguments;
+
+        public string WorkingDirectory => configurations.WorkingDirectory != null ? configurations.WorkingDirectory : Defaults.WorkingDirectory;
+
+
+
+
+
+
+
+
+
         public SC_ACTION[] FailureActions {
             get
             {
