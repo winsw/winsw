@@ -222,7 +222,7 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         public static int BYTES_PER_MB = 1024 * BYTES_PER_KB;
         // ReSharper disable once InconsistentNaming
-        public static int DEFAULT_SIZE_THRESHOLD = 10 * BYTES_PER_MB; // rotate every 10MB.
+        public static int DEFAULT_SIZE_THRESHOLD = 10 * BYTES_PER_MB; // roll every 10MB.
         // ReSharper disable once InconsistentNaming
         public static int DEFAULT_FILES_TO_KEEP = 8;
 
@@ -283,11 +283,11 @@ namespace winsw
                     }
                     catch (IOException e)
                     {
-                        EventLogger.LogEvent("Failed to rotate log: " + e.Message);
+                        EventLogger.LogEvent("Failed to roll log: " + e.Message);
                     }
 
                     // even if the log rotation fails, create a new one, or else
-                    // we'll infinitely try to rotate.
+                    // we'll infinitely try to roll.
                     writer = CreateWriter(new FileStream(BaseLogFileName + ext, FileMode.Create));
                     fileLength = new FileInfo(BaseLogFileName + ext).Length;
                 }
@@ -302,7 +302,7 @@ namespace winsw
     }
 
     /// <summary>
-    /// Rotate log when a service is newly started.
+    /// Roll log when a service is newly started.
     /// </summary>
     public class RollingLogAppender : SimpleLogAppender
     {
@@ -426,7 +426,7 @@ namespace winsw
                     {
                         try
                         {
-                            // rotate file
+                            // roll file
                             var now = DateTime.Now;
                             var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
                             var nextFileName =
@@ -435,7 +435,7 @@ namespace winsw
                             File.Move(logFile, nextFileName);
 
                             // even if the log rotation fails, create a new one, or else
-                            // we'll infinitely try to rotate.
+                            // we'll infinitely try to roll.
                             writer = CreateWriter(new FileStream(logFile, FileMode.Create));
                             fileLength = new FileInfo(logFile).Length;
                         }

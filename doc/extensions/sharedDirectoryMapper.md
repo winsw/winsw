@@ -20,7 +20,7 @@ Configuration sample:
   <description>This is a stub service.</description>
   <executable>%BASE%\sleep.bat</executable>
   <arguments></arguments>
-  <logmode>rotate</logmode>
+  <log mode="roll"></log>
 
   <extensions>
     <extension enabled="true" className="winsw.Plugins.SharedDirectoryMapper.SharedDirectoryMapper" id="mapNetworDirs">

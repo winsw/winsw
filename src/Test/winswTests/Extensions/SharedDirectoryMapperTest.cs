@@ -22,7 +22,7 @@ $@"<service>
   <description>This service runs a slave for Jenkins continuous integration system.</description>
   <executable>C:\Program Files\Java\jre7\bin\java.exe</executable>
   <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
-  <logmode>rotate</logmode>
+  <log mode=""roll""></log>
   <extensions>
     <extension enabled=""true"" className=""{testExtension}"" id=""mapNetworDirs"">
       <mapping>

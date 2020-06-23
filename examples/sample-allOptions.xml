@@ -231,8 +231,8 @@ SECTION:Logging
       * append - Rust update the existing log
       * none - Do not save executable logs to the disk
       * reset - Wipe the log files on startup
-      * roll - Rotate logs based on size
-      * roll-by-time - Rotate logs based on time
+      * roll - Roll logs based on size
+      * roll-by-time - Roll logs based on time
       * rotate - Rotate logs based on size, (8 logs, 10MB each). This mode is deprecated, use "roll"
     Default mode: append
     
