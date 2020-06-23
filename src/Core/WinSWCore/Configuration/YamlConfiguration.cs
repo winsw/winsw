@@ -100,15 +100,20 @@ namespace winsw.Configuration
         [YamlMember(Alias = "environmentVariables")]
         public Dictionary<string, string> EnvironmentVariables { get; set; }
 
-        [YamlMember(Alias = "failureActions")]
         public SC_ACTION[] FailureActions { get; set; }
 
+        [YamlMember(Alias = "failureActions")]
+        public List<YAML_SC_ACTION> YamlFailureActions { get; set; }
 
+        
+        public struct YAML_SC_ACTION
+        {
+            [YamlMember(Alias = "actionType")]
+            public SC_ACTION_TYPE Type;
 
-
-
-        // TODO
-        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+            [YamlMember(Alias = "delay")]
+            public TimeSpan Delay;
+        }
 
         public class YAMLLog : Log
         {
@@ -188,16 +193,11 @@ namespace winsw.Configuration
             public override string? ZipDateFormat => _ZipDateFormat;
         }
 
-        public struct YAML_SC_ACTION
-        {
-            private SC_ACTION scAction;
 
-            [YamlMember(Alias = "actionType")]
-            public SC_ACTION_TYPE Type => scAction.Type;
 
-            [YamlMember(Alias = "delay")]
-            public int Delay => scAction.Delay;
+        // TODO
+        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
 
-        }     
+
     }
 }

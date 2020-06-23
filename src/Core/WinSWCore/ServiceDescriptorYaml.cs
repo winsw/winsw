@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using winsw.Configuration;
+using winsw.Native;
 using YamlDotNet.Serialization;
 
 namespace winsw
@@ -58,6 +60,20 @@ namespace winsw
             var deserializer = new DeserializerBuilder().Build();
             var configs = deserializer.Deserialize<YamlConfiguration>(yaml);
             return new ServiceDescriptorYaml(configs);
+        }
+
+        public SC_ACTION[] FailureActions {
+            get
+            {
+                var arr = new List<SC_ACTION>();
+
+                foreach(var item in configurations.YamlFailureActions)
+                {
+                    arr.Add(new SC_ACTION(item.Type, item.Delay));
+                }
+
+                return arr.ToArray();
+            }
         }
     }
 }
