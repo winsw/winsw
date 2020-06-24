@@ -17,6 +17,6 @@ namespace winsw.Configuration
         public string? Password { get; set; }
 
         [YamlMember(Alias = "allowservicelogon")]
-        public string? AllowServiceLogon { get; set; }
+        public bool? AllowServiceAcountLogonRight { get; set; }
     }
 }

@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using winsw.Configuration;
 using winsw.Native;
 using YamlDotNet.Serialization;
 
 namespace winsw
 {
-    public class ServiceDescriptorYaml
+    public class ServiceDescriptorYaml 
     {
         public readonly YamlConfiguration configurations = new YamlConfiguration();
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+
+        private readonly Dictionary<string, string> environmentVariables;
 
         public string BasePath { get; set; }
 
@@ -48,11 +51,27 @@ namespace winsw
 
                 configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
+
+            Environment.SetEnvironmentVariable("BASE", d.FullName);
+
+            // ditto for ID
+            Environment.SetEnvironmentVariable("SERVICE_ID", Id);
+
+            // New name
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
+
+            // Also inject system environment variables
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
         }
+
 
         public ServiceDescriptorYaml(YamlConfiguration _configurations)
         {
             configurations = _configurations;
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
         public static ServiceDescriptorYaml FromYaml(string yaml)
@@ -62,7 +81,7 @@ namespace winsw
             return new ServiceDescriptorYaml(configs);
         }
 
-        public string ID => configurations.Id;
+        public string Id => configurations.Id;
 
         public string Caption => configurations.Caption;
 
@@ -74,23 +93,53 @@ namespace winsw
 
         public string? StopExecutable => configurations.StopExecutable != null ? configurations.StopExecutable : Defaults.StopExecutable;
 
-        //TODO
-        public string? Arguments => configurations.Arguments != null ? configurations.Arguments : Defaults.Arguments;
+        public bool DelayedAutoStart => configurations.DelayedAutoStart;
 
-        //TODO
-        public string? StartArguments;
+        public bool BeepOnShutdown => configurations.BeepOnShutdown;
 
-        //TODO
-        public string? StopArguments;
+        public TimeSpan WaitHint => configurations.WaitHint != TimeSpan.Zero ? configurations.WaitHint : Defaults.WaitHint;
+
+        public TimeSpan SleepTime => configurations.SleepTime != TimeSpan.Zero ? configurations.SleepTime : Defaults.SleepTime;
+
+        public bool Interactive => configurations.Interactive;
+
+        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
 
         public string WorkingDirectory => configurations.WorkingDirectory != null ? configurations.WorkingDirectory : Defaults.WorkingDirectory;
 
+        public List<Download> Downloads => configurations.Downloads;
+
+        public TimeSpan ResetFailureAfter => configurations.ResetFailureAfter != TimeSpan.Zero ? configurations.ResetFailureAfter : Defaults.ResetFailureAfter;
+
+        //service account
+        public bool AllowServiceAcountLogonRight
+        {
+            get
+            {
+                if(configurations.ServiceAccount.AllowServiceAcountLogonRight is null)
+                {
+                    return Defaults.AllowServiceAcountLogonRight;
+                }
+
+                return (bool)configurations.ServiceAccount.AllowServiceAcountLogonRight;
+            }
+        }
+
+        protected internal string? ServiceAccountDomain => configurations.ServiceAccount.Domain;
+
+        protected internal string? ServiceAccountName => configurations.ServiceAccount.Name;
+
+        public string? ServiceAccountPassword => configurations.ServiceAccount.Password;
+
+        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
+
+        public bool HasServiceAccount()
+        {
+            return !(configurations.ServiceAccount is null);
+        }
 
 
-
-
-
-
+        public TimeSpan StopTimeout => configurations.StopTimeout;
 
 
         public SC_ACTION[] FailureActions {
@@ -105,6 +154,49 @@ namespace winsw
 
                 return arr.ToArray();
             }
+        }
+
+
+        public string Arguments => GetArguments(configurations.Arguments, ArgType.arg);
+
+
+        public string? StartArguments => GetArguments(configurations.StartArguments, ArgType.startarg);
+
+
+        public string? StopArguments => GetArguments(configurations.StopArguments, ArgType.stoparg);
+
+        private string GetArguments(string args, ArgType type)
+        {
+
+            if(args is null)
+            {
+                switch (type)
+                {
+                    case ArgType.arg:
+                        return Defaults.Arguments;
+                    case ArgType.startarg:
+                        return Defaults.StartArguments;
+                    case ArgType.stoparg:
+                        return Defaults.StopArguments;
+                }
+            }
+
+            string newArgs = Regex.Replace(args, @"\\n", " ");
+            return newArgs;
+        }
+
+        private enum ArgType
+        {
+            arg = 0,
+            startarg = 1,
+            stoparg = 2
+        }
+
+
+        //TODO
+        private Dictionary<string, string> LoadEnvironmentVariables()
+        {
+            throw new NotImplementedException();
         }
     }
 }
