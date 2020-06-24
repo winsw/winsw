@@ -35,6 +35,8 @@ namespace winsw.Configuration
         public ServiceAccount? ServiceAccount { get; set; }
         string? IWinSWConfiguration.ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
         string? IWinSWConfiguration.ServiceAccountUser => ServiceAccount != null ? ServiceAccount.User : null;
+        bool IWinSWConfiguration.AllowServiceAcountLogonRight { get; }
+
 
         [YamlMember(Alias = "log")]
         public YAMLLog? _YAMLLog { get; set; }
@@ -50,8 +52,7 @@ namespace winsw.Configuration
         [YamlMember(Alias = "caption")]
         public string Caption { get; set; }
 
-        [YamlMember(Alias = "allowServiceAcountLogonRight")]
-        public bool AllowServiceAcountLogonRight { get; set; }
+        
 
         [YamlMember(Alias = "arguments")]
         public string? Arguments { get; set; }
@@ -103,7 +104,11 @@ namespace winsw.Configuration
         [YamlMember(Alias = "failureActions")]
         public List<YAML_SC_ACTION> YamlFailureActions { get; set; }
 
-        
+        [YamlMember(Alias = "delayedAutoStart")]
+        public bool DelayedAutoStart { get; set; }
+
+
+
         public class YAML_SC_ACTION
         {
             [YamlMember(Alias = "type")]
