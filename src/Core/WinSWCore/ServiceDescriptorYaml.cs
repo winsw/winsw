@@ -11,13 +11,13 @@ using YamlDotNet.Serialization;
 
 namespace winsw
 {
-    public class ServiceDescriptorYaml : IWinSWConfiguration
+    public class ServiceDescriptorYaml
     {
         public readonly YamlConfiguration configurations = new YamlConfiguration();
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
-        private readonly Dictionary<string, string> environmentVariables;
+        private readonly Dictionary<string, string> environmentVariables = new Dictionary<string, string>();
 
         public string BasePath { get; set; }
 
@@ -66,7 +66,7 @@ namespace winsw
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
 
-            this.environmentVariables = this.LoadEnvironmentVariables();
+            this.environmentVariables = LoadEnvironmentVariables;
         }
 
 
@@ -74,7 +74,7 @@ namespace winsw
         {
             configurations = _configurations;
 
-            this.environmentVariables = this.LoadEnvironmentVariables();
+            this.environmentVariables = LoadEnvironmentVariables;
         }
 
         public static ServiceDescriptorYaml FromYaml(string yaml)
@@ -112,21 +112,7 @@ namespace winsw
 
         public List<Download> Downloads => configurations.Downloads;
 
-        public TimeSpan ResetFailureAfter => configurations.ResetFailureAfter != TimeSpan.Zero ? configurations.ResetFailureAfter : Defaults.ResetFailureAfter;
-
-        //service account
-        public bool AllowServiceAcountLogonRight
-        {
-            get
-            {
-                if(configurations.ServiceAccount.AllowServiceAcountLogonRight is null)
-                {
-                    return Defaults.AllowServiceAcountLogonRight;
-                }
-
-                return (bool)configurations.ServiceAccount.AllowServiceAcountLogonRight;
-            }
-        }
+        public TimeSpan ResetFailureAfter => configurations.ResetFailureAfter != TimeSpan.Zero ? configurations.ResetFailureAfter : Defaults.ResetFailureAfter;        
 
         protected internal string? ServiceAccountDomain => configurations.ServiceAccount.Domain;
 
@@ -136,21 +122,61 @@ namespace winsw
 
         public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
 
-        public bool HasServiceAccount()
+        public TimeSpan StopTimeout => configurations.StopTimeout;
+
+        public string Arguments => GetArguments(configurations.Arguments, ArgType.arg);
+
+        public string? StartArguments => GetArguments(configurations.StartArguments, ArgType.startarg);
+
+        public string? StopArguments => GetArguments(configurations.StopArguments, ArgType.stoparg);
+
+        public ProcessPriorityClass Priority => configurations.Priority;
+
+        public bool StopParentProcessFirst => configurations.StopParentProcessFirst;
+
+        public StartMode StartMode => configurations.StartMode;
+
+        public string[] ServiceDependencies => configurations.ServiceDependencies;
+
+        private Dictionary<string, string> LoadEnvironmentVariables => configurations.EnvironmentVariables;
+
+        //TODO
+        public string? LogDirectory => throw new NotImplementedException();
+
+
+        //TODO
+        public string LogMode => throw new NotImplementedException();
+
+
+        //TODO
+        public Log? Log => throw new NotImplementedException();
+
+
+        //TODO
+        public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
+
+
+        public bool AllowServiceAcountLogonRight
         {
-            return !(configurations.ServiceAccount is null);
+            get
+            {
+                if (configurations.ServiceAccount.AllowServiceAcountLogonRight is null)
+                {
+                    return Defaults.AllowServiceAcountLogonRight;
+                }
+
+                return (bool)configurations.ServiceAccount.AllowServiceAcountLogonRight;
+            }
         }
 
 
-        public TimeSpan StopTimeout => configurations.StopTimeout;
-
-
-        public SC_ACTION[] FailureActions {
+        public SC_ACTION[] FailureActions
+        {
             get
             {
                 var arr = new List<SC_ACTION>();
 
-                foreach(var item in configurations.YamlFailureActions)
+                foreach (var item in configurations.YamlFailureActions)
                 {
                     arr.Add(new SC_ACTION(item.Type, item.Delay));
                 }
@@ -160,15 +186,12 @@ namespace winsw
         }
 
 
-        public string Arguments => GetArguments(configurations.Arguments, ArgType.arg);
+        public bool HasServiceAccount()
+        {
+            return !(configurations.ServiceAccount is null);
+        }
 
 
-        public string? StartArguments => GetArguments(configurations.StartArguments, ArgType.startarg);
-
-
-        public string? StopArguments => GetArguments(configurations.StopArguments, ArgType.stoparg);
-
-        
         private string GetArguments(string args, ArgType type)
         {
 
@@ -195,30 +218,5 @@ namespace winsw
             startarg = 1,
             stoparg = 2
         }
-
-
-        //TODO
-        private Dictionary<string, string> LoadEnvironmentVariables()
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public ProcessPriorityClass Priority => configurations.Priority;
-
-        public bool StopParentProcessFirst => configurations.StopParentProcessFirst;
-
-        public StartMode StartMode => configurations.StartMode;
-
-        public string[] ServiceDependencies => configurations.ServiceDependencies;
-
-        public string? LogDirectory => throw new NotImplementedException();
-
-        public string LogMode => throw new NotImplementedException();
-
-        public Log? Log => throw new NotImplementedException();
-
-        public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
-
     }
 }
