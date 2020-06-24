@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml;
 using winsw.Configuration;
 using winsw.Native;
+using WMI;
 using YamlDotNet.Serialization;
 
 namespace winsw
 {
-    public class ServiceDescriptorYaml 
+    public class ServiceDescriptorYaml : IWinSWConfiguration
     {
         public readonly YamlConfiguration configurations = new YamlConfiguration();
 
@@ -165,6 +168,7 @@ namespace winsw
 
         public string? StopArguments => GetArguments(configurations.StopArguments, ArgType.stoparg);
 
+        
         private string GetArguments(string args, ArgType type)
         {
 
@@ -198,5 +202,23 @@ namespace winsw
         {
             throw new NotImplementedException();
         }
+
+
+        public ProcessPriorityClass Priority => configurations.Priority;
+
+        public bool StopParentProcessFirst => configurations.StopParentProcessFirst;
+
+        public StartMode StartMode => configurations.StartMode;
+
+        public string[] ServiceDependencies => configurations.ServiceDependencies;
+
+        public string? LogDirectory => throw new NotImplementedException();
+
+        public string LogMode => throw new NotImplementedException();
+
+        public Log? Log => throw new NotImplementedException();
+
+        public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
+
     }
 }
