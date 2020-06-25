@@ -32,9 +32,9 @@ download:
             
             foreach(Download item in sd.configurations.Downloads)
             {
-                Console.WriteLine(item.from);
-                Console.WriteLine(item.to);
-                Console.WriteLine(item.auth);
+                Console.WriteLine(item.From);
+                Console.WriteLine(item.To);
+                Console.WriteLine(item.Auth);
             }
         }
     }
