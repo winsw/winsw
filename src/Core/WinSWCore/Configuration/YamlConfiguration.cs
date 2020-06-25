@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Xml;
 using winsw.Native;
 using WMI;
@@ -10,6 +11,10 @@ namespace winsw.Configuration
 {
     public class YamlConfiguration : IWinSWConfiguration
     {
+
+        public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+
+
         [YamlMember(Alias = "id")]
         public string Id { get; set; }
 
@@ -55,16 +60,28 @@ namespace winsw.Configuration
         
 
         [YamlMember(Alias = "arguments")]
-        public string? Arguments { get; set; }
+        public string? Arguments
+        {
+            get => GetArguments(Arguments, ArgType.arg);
+            set { }
+        }
 
         [YamlMember(Alias = "startArguments")]
-        public string? StartArguments { get; set; }
+        public string? StartArguments {
+            get => GetArguments(StartArguments, ArgType.startarg);
+            set { } 
+        }
+
+        [YamlMember(Alias = "stopArguments")]
+        public string? StopArguments {
+            get => GetArguments(StopArguments, ArgType.stoparg);
+            set { }
+        }
 
         [YamlMember(Alias = "stopExecutable")]
         public string? StopExecutable { get; set; }
 
-        [YamlMember(Alias = "stopArguments")]
-        public string? StopArguments { get; set; }
+        
 
         [YamlMember(Alias = "stopParentProcessFirst")]
         public bool StopParentProcessFirst { get; set; }
@@ -99,24 +116,72 @@ namespace winsw.Configuration
         [YamlMember(Alias = "environmentVariables")]
         public Dictionary<string, string> EnvironmentVariables { get; set; }
 
-        public SC_ACTION[] FailureActions { get; set; }
-
         [YamlMember(Alias = "failureActions")]
         public List<YAML_SC_ACTION> YamlFailureActions { get; set; }
 
         [YamlMember(Alias = "delayedAutoStart")]
         public bool DelayedAutoStart { get; set; }
 
-
-
         public class YAML_SC_ACTION
         {
             [YamlMember(Alias = "type")]
-            public SC_ACTION_TYPE Type;
+            private SC_ACTION_TYPE type;
 
             [YamlMember(Alias = "delay")]
-            public TimeSpan Delay;
+            private TimeSpan delay;
+
+            public SC_ACTION_TYPE Type { get => type; set => type = value; }
+            public TimeSpan Delay { get => delay; set => delay = value; }
         }
+
+
+        public SC_ACTION[] FailureActions
+        {
+            get
+            {
+                var arr = new List<SC_ACTION>();
+
+                foreach (var item in YamlFailureActions)
+                {
+                    arr.Add(new SC_ACTION(item.Type, item.Delay));
+                }
+
+                return arr.ToArray();
+            }
+        }
+
+        public bool HasServiceAccount()
+        {
+            return !(ServiceAccount is null);
+        }
+
+        private string GetArguments(string args, ArgType type)
+        {
+
+            if (args is null)
+            {
+                switch (type)
+                {
+                    case ArgType.arg:
+                        return Defaults.Arguments;
+                    case ArgType.startarg:
+                        return Defaults.StartArguments;
+                    case ArgType.stoparg:
+                        return Defaults.StopArguments;
+                }
+            }
+
+            string newArgs = Regex.Replace(args, @"\\n", " ");
+            return newArgs;
+        }
+
+        private enum ArgType
+        {
+            arg = 0,
+            startarg = 1,
+            stoparg = 2
+        }
+
 
         public class YAMLLog : Log
         {
@@ -200,7 +265,6 @@ namespace winsw.Configuration
 
         // TODO
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
-
 
     }
 }

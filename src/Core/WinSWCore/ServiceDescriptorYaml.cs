@@ -17,7 +17,7 @@ namespace winsw
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
-        private readonly Dictionary<string, string> environmentVariables = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> environmentVariables;
 
         public string BasePath { get; set; }
 
@@ -58,15 +58,15 @@ namespace winsw
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", configurations.Id);
 
             // New name
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
 
-            this.environmentVariables = LoadEnvironmentVariables;
+            this.environmentVariables = configurations.EnvironmentVariables;
         }
 
 
@@ -74,7 +74,7 @@ namespace winsw
         {
             configurations = _configurations;
 
-            this.environmentVariables = LoadEnvironmentVariables;
+            this.environmentVariables = configurations.EnvironmentVariables;
         }
 
         public static ServiceDescriptorYaml FromYaml(string yaml)
@@ -84,139 +84,5 @@ namespace winsw
             return new ServiceDescriptorYaml(configs);
         }
 
-        public string Id => configurations.Id;
-
-        public string Caption => configurations.Caption;
-
-        public string Description => configurations.Description;
-
-        public string Executable => configurations.Executable;
-
-        public bool HideWindow => configurations.HideWindow;
-
-        public string? StopExecutable => configurations.StopExecutable != null ? configurations.StopExecutable : Defaults.StopExecutable;
-
-        public bool DelayedAutoStart => configurations.DelayedAutoStart;
-
-        public bool BeepOnShutdown => configurations.BeepOnShutdown;
-
-        public TimeSpan WaitHint => configurations.WaitHint != TimeSpan.Zero ? configurations.WaitHint : Defaults.WaitHint;
-
-        public TimeSpan SleepTime => configurations.SleepTime != TimeSpan.Zero ? configurations.SleepTime : Defaults.SleepTime;
-
-        public bool Interactive => configurations.Interactive;
-
-        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
-
-        public string WorkingDirectory => configurations.WorkingDirectory != null ? configurations.WorkingDirectory : Defaults.WorkingDirectory;
-
-        public List<Download> Downloads => configurations.Downloads;
-
-        public TimeSpan ResetFailureAfter => configurations.ResetFailureAfter != TimeSpan.Zero ? configurations.ResetFailureAfter : Defaults.ResetFailureAfter;        
-
-        protected internal string? ServiceAccountDomain => configurations.ServiceAccount.Domain;
-
-        protected internal string? ServiceAccountName => configurations.ServiceAccount.Name;
-
-        public string? ServiceAccountPassword => configurations.ServiceAccount.Password;
-
-        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
-
-        public TimeSpan StopTimeout => configurations.StopTimeout;
-
-        public string Arguments => GetArguments(configurations.Arguments, ArgType.arg);
-
-        public string? StartArguments => GetArguments(configurations.StartArguments, ArgType.startarg);
-
-        public string? StopArguments => GetArguments(configurations.StopArguments, ArgType.stoparg);
-
-        public ProcessPriorityClass Priority => configurations.Priority;
-
-        public bool StopParentProcessFirst => configurations.StopParentProcessFirst;
-
-        public StartMode StartMode => configurations.StartMode;
-
-        public string[] ServiceDependencies => configurations.ServiceDependencies;
-
-        private Dictionary<string, string> LoadEnvironmentVariables => configurations.EnvironmentVariables;
-
-        //TODO
-        public string? LogDirectory => throw new NotImplementedException();
-
-
-        //TODO
-        public string LogMode => throw new NotImplementedException();
-
-
-        //TODO
-        public Log? Log => throw new NotImplementedException();
-
-
-        //TODO
-        public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
-
-
-        public bool AllowServiceAcountLogonRight
-        {
-            get
-            {
-                if (configurations.ServiceAccount.AllowServiceAcountLogonRight is null)
-                {
-                    return Defaults.AllowServiceAcountLogonRight;
-                }
-
-                return (bool)configurations.ServiceAccount.AllowServiceAcountLogonRight;
-            }
-        }
-
-
-        public SC_ACTION[] FailureActions
-        {
-            get
-            {
-                var arr = new List<SC_ACTION>();
-
-                foreach (var item in configurations.YamlFailureActions)
-                {
-                    arr.Add(new SC_ACTION(item.Type, item.Delay));
-                }
-
-                return arr.ToArray();
-            }
-        }
-
-
-        public bool HasServiceAccount()
-        {
-            return !(configurations.ServiceAccount is null);
-        }
-
-
-        private string GetArguments(string args, ArgType type)
-        {
-
-            if(args is null)
-            {
-                switch (type)
-                {
-                    case ArgType.arg:
-                        return Defaults.Arguments;
-                    case ArgType.startarg:
-                        return Defaults.StartArguments;
-                    case ArgType.stoparg:
-                        return Defaults.StopArguments;
-                }
-            }
-
-            string newArgs = Regex.Replace(args, @"\\n", " ");
-            return newArgs;
-        }
-
-        private enum ArgType
-        {
-            arg = 0,
-            startarg = 1,
-            stoparg = 2
-        }
     }
 }
