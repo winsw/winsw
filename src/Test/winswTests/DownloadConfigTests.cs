@@ -22,11 +22,11 @@ namespace winswTests
             var loaded = GetSingleEntry(sd);
 
             // Check default values
-            Assert.That(loaded.failOnError, Is.False);
-            Assert.That(loaded.auth, Is.EqualTo(Download.AuthType.none));
-            Assert.That(loaded.username, Is.Null);
-            Assert.That(loaded.password, Is.Null);
-            Assert.That(loaded.unsecureAuth, Is.False);
+            Assert.That(loaded.FailOnError, Is.False);
+            Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.none));
+            Assert.That(loaded.Username, Is.Null);
+            Assert.That(loaded.Password, Is.Null);
+            Assert.That(loaded.UnsecureAuth, Is.False);
         }
 
         [Test]
@@ -40,11 +40,11 @@ namespace winswTests
             var loaded = GetSingleEntry(sd);
 
             // Check default values
-            Assert.That(loaded.failOnError, Is.True);
-            Assert.That(loaded.auth, Is.EqualTo(Download.AuthType.basic));
-            Assert.That(loaded.username, Is.EqualTo("aUser"));
-            Assert.That(loaded.password, Is.EqualTo("aPassword"));
-            Assert.That(loaded.unsecureAuth, Is.True);
+            Assert.That(loaded.FailOnError, Is.True);
+            Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.basic));
+            Assert.That(loaded.Username, Is.EqualTo("aUser"));
+            Assert.That(loaded.Password, Is.EqualTo("aPassword"));
+            Assert.That(loaded.UnsecureAuth, Is.True);
         }
 
         [Test]
@@ -58,11 +58,11 @@ namespace winswTests
             var loaded = GetSingleEntry(sd);
 
             // Check default values
-            Assert.That(loaded.failOnError, Is.False);
-            Assert.That(loaded.auth, Is.EqualTo(Download.AuthType.sspi));
-            Assert.That(loaded.username, Is.Null);
-            Assert.That(loaded.password, Is.Null);
-            Assert.That(loaded.unsecureAuth, Is.False);
+            Assert.That(loaded.FailOnError, Is.False);
+            Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.sspi));
+            Assert.That(loaded.Username, Is.Null);
+            Assert.That(loaded.Password, Is.Null);
+            Assert.That(loaded.UnsecureAuth, Is.False);
         }
 
         [TestCase("http://")]
@@ -105,9 +105,9 @@ namespace winswTests
                 .ToServiceDescriptor(true);
 
             var loaded = GetSingleEntry(sd);
-            Assert.That(loaded.from, Is.EqualTo(From));
-            Assert.That(loaded.to, Is.EqualTo(To));
-            Assert.That(loaded.failOnError, Is.EqualTo(failOnError), "Unexpected FailOnError value");
+            Assert.That(loaded.From, Is.EqualTo(From));
+            Assert.That(loaded.To, Is.EqualTo(To));
+            Assert.That(loaded.FailOnError, Is.EqualTo(failOnError), "Unexpected FailOnError value");
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace winswTests
                 .ToServiceDescriptor(true);
 
             var loaded = GetSingleEntry(sd);
-            Assert.That(loaded.failOnError, Is.False);
+            Assert.That(loaded.FailOnError, Is.False);
         }
 
         [TestCase("sspi")]
@@ -134,7 +134,7 @@ namespace winswTests
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"" + authType + "\"/>")
                     .ToServiceDescriptor(true);
             var loaded = GetSingleEntry(sd);
-            Assert.That(loaded.auth, Is.EqualTo(Download.AuthType.sspi));
+            Assert.That(loaded.Auth, Is.EqualTo(Download.AuthType.sspi));
         }
 
         [Test]
