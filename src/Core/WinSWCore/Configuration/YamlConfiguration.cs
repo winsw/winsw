@@ -45,7 +45,7 @@ namespace winsw.Configuration
         public Log? Log => _YAMLLog;
 
         [YamlMember(Alias = "download")]
-        public List<Download> _Downloads { get; set; }
+        public List<YamlDownload> _Downloads { get; set; }
 
         [YamlMember(Alias = "arguments")]
         public string? _Arguments { get; set; }
@@ -179,6 +179,33 @@ namespace winsw.Configuration
             public override string? ZipDateFormat => _ZipDateFormat;
         }
 
+        public class YamlDownload : Download
+        {
+            [YamlMember(Alias = "from")]
+            public string _From;
+
+            [YamlMember(Alias = "to")]
+            public string _To;
+
+            [YamlMember(Alias = "auth")]
+            public AuthType _Auth;
+
+            [YamlMember(Alias = "username")]
+            public string? _Username;
+
+            [YamlMember(Alias = "password")]
+            public string? _Password;
+
+            [YamlMember(Alias = "unsecureAuth")]
+            public bool _UnsecureAuth;
+
+            [YamlMember(Alias = "failOnError")]
+            public bool _FailOnError;
+
+            [YamlMember(Alias = "proxy")]
+            public string? _Proxy;
+
+        }
 
 
         public class YamlFailureAction
@@ -219,6 +246,31 @@ namespace winsw.Configuration
             arg = 0,
             startarg = 1,
             stoparg = 2
+        }
+
+        private List<Download> GetDownloads(List<YamlDownload> downloads)
+        {
+            if (downloads is null)
+            {
+                return Defaults.Downloads;
+            }
+
+            var result = new List<Download>(downloads.Count);
+
+            foreach (var item in downloads)
+            {
+                result.Add(new Download(
+                    item._From,
+                    item._To,
+                    item._FailOnError,
+                    item._Auth,
+                    item._Username,
+                    item._Password,
+                    item._UnsecureAuth,
+                    item._Proxy));
+            }
+
+            return result;
         }
 
 
@@ -273,7 +325,7 @@ namespace winsw.Configuration
 
         public TimeSpan SleepTime => _SleepTime.Equals(TimeSpan.Zero) ? Defaults.SleepTime : _SleepTime;
 
-        public List<Download> Downloads => _Downloads is null ? Defaults.Downloads : _Downloads;
+        public List<Download> Downloads => GetDownloads(_Downloads);
 
         public Dictionary<string, string> EnvironmentVariables => _EnvironmentVariables is null ? 
             Defaults.EnvironmentVariables :
