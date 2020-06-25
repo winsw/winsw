@@ -57,7 +57,7 @@ namespace winsw.Configuration
         public string? _StopArguments { get; set; }
 
         [YamlMember(Alias = "stopExecutable")]
-        public string? StopExecutable { get; set; }
+        public string? _StopExecutable { get; set; }
 
         [YamlMember(Alias = "stopParentProcessFirst")]
         public bool StopParentProcessFirst { get; set; }
@@ -284,11 +284,15 @@ namespace winsw.Configuration
 
         public string Caption => string.IsNullOrEmpty(_Caption) ? Defaults.Caption : _Caption;
 
-        public string Arguments => GetArguments(Arguments, ArgType.arg);
+        public string Arguments => GetArguments(_Arguments, ArgType.arg);
 
-        public string? StartArguments => GetArguments(StartArguments, ArgType.startarg);
+        public string? StartArguments => GetArguments(_StartArguments, ArgType.startarg);
 
-        public string? StopArguments => GetArguments(StopArguments, ArgType.stoparg);
+        public string? StopArguments => GetArguments(_StopArguments, ArgType.stoparg);
+
+        public string? StopExecutable => _StopExecutable is null ?
+            Defaults.StopExecutable :
+            null;
 
         public SC_ACTION[] FailureActions
         {
@@ -309,8 +313,8 @@ namespace winsw.Configuration
             Defaults.ResetFailureAfter : 
             _ResetFailureAfter;
 
-        public string WorkingDirectory => string.IsNullOrEmpty(_WorkingDirectory) ? 
-            Defaults.WorkingDirectory : 
+        public string WorkingDirectory => string.IsNullOrEmpty(_WorkingDirectory) ?
+            Defaults.WorkingDirectory :
             _WorkingDirectory;
 
         public ProcessPriorityClass Priority => _Priority is 0 ? Defaults.Priority : _Priority;
