@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Text.RegularExpressions;
-using System.Xml;
 using winsw.Configuration;
-using winsw.Native;
-using WMI;
 using YamlDotNet.Serialization;
 
 namespace winsw
