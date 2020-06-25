@@ -65,9 +65,9 @@ namespace winsw
         }
 
 
-        public ServiceDescriptorYaml(YamlConfiguration _configurations)
+        public ServiceDescriptorYaml(YamlConfiguration configs)
         {
-            configurations = _configurations;
+            configurations = configs;
 
             this.environmentVariables = configurations.EnvironmentVariables;
         }
