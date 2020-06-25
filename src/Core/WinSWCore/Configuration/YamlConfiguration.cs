@@ -95,7 +95,7 @@ namespace winsw.Configuration
         public Dictionary<string, string> _EnvironmentVariables { get; set; }
 
         [YamlMember(Alias = "failureActions")]
-        public List<YAML_SC_ACTION> YamlFailureActions { get; set; }
+        public List<YamlFailureAction> YamlFailureActions { get; set; }
 
         [YamlMember(Alias = "delayedAutoStart")]
         public bool DelayedAutoStart { get; set; }
@@ -181,7 +181,7 @@ namespace winsw.Configuration
 
 
 
-        public class YAML_SC_ACTION
+        public class YamlFailureAction
         {
             [YamlMember(Alias = "type")]
             private SC_ACTION_TYPE type;
