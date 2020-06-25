@@ -12,6 +12,8 @@ namespace winsw.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
+        public static DefaultWinSWSettings defaults = new DefaultWinSWSettings();
+
         public string Id => throw new InvalidOperationException(nameof(Id) + " must be specified.");
         public string Caption => throw new InvalidOperationException(nameof(Caption) + " must be specified.");
         public string Description => throw new InvalidOperationException(nameof(Description) + " must be specified.");
@@ -46,7 +48,7 @@ namespace winsw.Configuration
         public bool Interactive => false;
 
         // Logging
-        public Log Log { get => new LogDefaults(this); }
+        public Log Log { get => new LogDefaults(); }
         public string LogDirectory => Path.GetDirectoryName(ExecutablePath)!;
         public string LogMode => Log.Mode;
 
@@ -57,14 +59,7 @@ namespace winsw.Configuration
 
         public class LogDefaults : Log
         {
-            private DefaultWinSWSettings defaults;
-
-            public LogDefaults(DefaultWinSWSettings settings)
-            {
-                defaults = settings;
-            }
-
-
+            
             public override string Mode  => "append";
 
             public override string? Name => throw new NotImplementedException();
