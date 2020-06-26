@@ -14,25 +14,25 @@ namespace winsw.Configuration
         public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         [YamlMember(Alias = "id")]
-        string _Id { get; set; }
+        string? _Id { get; set; }
 
         [YamlMember(Alias = "name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [YamlMember(Alias = "description")]
-        public string _Description { get; set; }
+        public string? _Description { get; set; }
 
         [YamlMember(Alias = "executable")]
-        public string _Executable { get; set; }
+        public string? _Executable { get; set; }
 
         [YamlMember(Alias = "executablePath")]
-        public string _ExecutablePath { get; set; }
+        public string? _ExecutablePath { get; set; }
 
         [YamlMember(Alias = "caption")]
-        public string _Caption { get; set; }
+        public string? _Caption { get; set; }
 
         [YamlMember(Alias = "hideWindow")]
-        public bool HideWindow { get; set; }
+        public bool? _HideWindow { get; set; }
 
         [YamlMember(Alias = "workingdirectory")]
         public string? _WorkingDirectory { get; set; }
@@ -41,11 +41,11 @@ namespace winsw.Configuration
         public ServiceAccount? ServiceAccount { get; set; }
 
         [YamlMember(Alias = "log")]
-        public YAMLLog? _YAMLLog { get; set; }
+        public YamlLog? _YAMLLog { get; set; }
         public Log? Log => _YAMLLog;
 
         [YamlMember(Alias = "download")]
-        public List<YamlDownload> _Downloads { get; set; }
+        public List<YamlDownload>? _Downloads { get; set; }
 
         [YamlMember(Alias = "arguments")]
         public string? _Arguments { get; set; }
@@ -60,48 +60,46 @@ namespace winsw.Configuration
         public string? _StopExecutable { get; set; }
 
         [YamlMember(Alias = "stopParentProcessFirst")]
-        public bool StopParentProcessFirst { get; set; }
+        public bool? _StopParentProcessFirst { get; set; }
         
         [YamlMember(Alias = "resetFailureAfter")]
-        public TimeSpan _ResetFailureAfter { get; set; }
+        public TimeSpan? _ResetFailureAfter { get; set; }
 
         [YamlMember(Alias = "stopTimeout")]
-        public TimeSpan _StopTimeout { get; set; }
+        public TimeSpan? _StopTimeout { get; set; }
         
-
-        //[TODO] - set default value
         [YamlMember(Alias = "startMode")]
-        public StartMode StartMode { get; set; }
+        public StartMode? _StartMode { get; set; }
 
         [YamlMember(Alias = "serviceDependencies")]
-        public string[] _ServiceDependencies { get; set; }
+        public string[]? _ServiceDependencies { get; set; }
 
         [YamlMember(Alias = "waitHint")]
-        public TimeSpan _WaitHint { get; set; }
+        public TimeSpan? _WaitHint { get; set; }
 
         [YamlMember(Alias = "sleepTime")]
-        public TimeSpan _SleepTime { get; set; }
+        public TimeSpan? _SleepTime { get; set; }
 
         [YamlMember(Alias = "interactive")]
-        public bool Interactive { get; set; }
+        public bool? _Interactive { get; set; }
 
         [YamlMember(Alias = "priority")]
-        public ProcessPriorityClass _Priority { get; set; }
+        public ProcessPriorityClass? _Priority { get; set; }
 
         [YamlMember(Alias = "beepOnShutdown")]
         public bool BeepOnShutdown { get; set; }
 
         [YamlMember(Alias = "environmentVariables")]
-        public Dictionary<string, string> _EnvironmentVariables { get; set; }
+        public Dictionary<string, string>? _EnvironmentVariables { get; set; }
 
         [YamlMember(Alias = "failureActions")]
-        public List<YamlFailureAction> YamlFailureActions { get; set; }
+        public List<YamlFailureAction>? YamlFailureActions { get; set; }
 
         [YamlMember(Alias = "delayedAutoStart")]
         public bool DelayedAutoStart { get; set; }
 
 
-        public class YAMLLog : Log
+        public class YamlLog : Log
         {
             [YamlMember(Alias = "mode")]
             public string? _Mode { get; set; }
@@ -134,10 +132,10 @@ namespace winsw.Configuration
             public bool _ErrFileDisabled { get; set; }
 
             [YamlMember(Alias = "outFilePattern")]
-            public string _OutFilePattern;
+            public string? _OutFilePattern;
 
             [YamlMember(Alias = "errFilePattern")]
-            public string _ErrFilePattern;
+            public string? _ErrFilePattern;
 
 
             // Zip options
@@ -221,7 +219,7 @@ namespace winsw.Configuration
         }
 
 
-        private string GetArguments(string args, ArgType type)
+        private string? GetArguments(string? args, ArgType type)
         {
 
             if (args is null)
@@ -248,7 +246,7 @@ namespace winsw.Configuration
             stoparg = 2
         }
 
-        private List<Download> GetDownloads(List<YamlDownload> downloads)
+        private List<Download> GetDownloads(List<YamlDownload>? downloads)
         {
             if (downloads is null)
             {
@@ -284,6 +282,14 @@ namespace winsw.Configuration
 
         public string Caption => string.IsNullOrEmpty(_Caption) ? Defaults.Caption : _Caption;
 
+        public bool HideWindow => _HideWindow is null ? Defaults.HideWindow : (bool)_HideWindow;
+
+        public bool StopParentProcessFirst => _StopParentProcessFirst is null ?
+            Defaults.StopParentProcessFirst :
+            (bool)_StopParentProcessFirst;
+
+        public StartMode StartMode => _StartMode is null ? Defaults.StartMode : (StartMode)_StartMode;
+
         public string Arguments => GetArguments(_Arguments, ArgType.arg);
 
         public string? StartArguments => GetArguments(_StartArguments, ArgType.startarg);
@@ -309,25 +315,27 @@ namespace winsw.Configuration
             }
         }
 
-        public TimeSpan ResetFailureAfter => _ResetFailureAfter.Equals(TimeSpan.Zero) ? 
+        public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ? 
             Defaults.ResetFailureAfter : 
-            _ResetFailureAfter;
+            (TimeSpan)_ResetFailureAfter;
 
         public string WorkingDirectory => string.IsNullOrEmpty(_WorkingDirectory) ?
             Defaults.WorkingDirectory :
             _WorkingDirectory;
 
-        public ProcessPriorityClass Priority => _Priority is 0 ? Defaults.Priority : _Priority;
+        public ProcessPriorityClass Priority => _Priority is null ? Defaults.Priority : (ProcessPriorityClass)_Priority;
 
-        public TimeSpan StopTimeout => _StopTimeout.Equals(TimeSpan.Zero) ? Defaults.StopTimeout : _StopTimeout;
+        public TimeSpan StopTimeout => _StopTimeout is null ? Defaults.StopTimeout : (TimeSpan)_StopTimeout;
 
         public string[] ServiceDependencies => _ServiceDependencies is null ? 
             Defaults.ServiceDependencies : 
             _ServiceDependencies;
 
-        public TimeSpan WaitHint => _WaitHint.Equals(TimeSpan.Zero) ? Defaults.WaitHint : _WaitHint;
+        public TimeSpan WaitHint => _WaitHint is null ? Defaults.WaitHint : (TimeSpan)_WaitHint;
 
-        public TimeSpan SleepTime => _SleepTime.Equals(TimeSpan.Zero) ? Defaults.SleepTime : _SleepTime;
+        public TimeSpan SleepTime => _SleepTime is null ? Defaults.SleepTime : (TimeSpan)_SleepTime;
+
+        public bool Interactive => _Interactive is null ? Defaults.Interactive : (bool)_Interactive;
 
         public List<Download> Downloads => GetDownloads(_Downloads);
 
