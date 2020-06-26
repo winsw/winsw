@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using log4net;
+using winsw.Configuration;
 
 namespace winsw.Extensions
 {
@@ -9,11 +10,11 @@ namespace winsw.Extensions
     {
         public Dictionary<string, IWinSWExtension> Extensions { get; private set; }
 
-        public ServiceDescriptor ServiceDescriptor { get; private set; }
+        public IWinSWConfiguration ServiceDescriptor { get; private set; }
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
-        public WinSWExtensionManager(ServiceDescriptor serviceDescriptor)
+        public WinSWExtensionManager(IWinSWConfiguration serviceDescriptor)
         {
             ServiceDescriptor = serviceDescriptor;
             Extensions = new Dictionary<string, IWinSWExtension>();

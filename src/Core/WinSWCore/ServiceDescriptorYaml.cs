@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using winsw.Configuration;
+using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
 namespace winsw
@@ -42,13 +43,17 @@ namespace winsw
             BaseName = baseName;
             BasePath = Path.Combine(d.FullName, BaseName);
 
-            using(var reader = new StreamReader(BasePath + ".yml"))
+
+            using (var reader = new StreamReader(BasePath + ".yml"))
             {
                 var file = reader.ReadToEnd();
                 var deserializer = new DeserializerBuilder().Build();
 
                 configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
+
+            configurations.BaseName = BaseName;
+            configurations.BasePath = BasePath;
 
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 

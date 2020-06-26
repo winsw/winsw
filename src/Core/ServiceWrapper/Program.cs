@@ -18,6 +18,7 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
+using winsw.Configuration;
 using winsw.Logging;
 using winsw.Native;
 using winsw.Util;
@@ -82,6 +83,8 @@ namespace winsw
         }
 
         private static void HandleErrors(IEnumerable<Error> errors)
+        
+        public static void Run(string[] argsArray, IWinSWConfiguration? descriptor = null)
         {
 
         }
@@ -98,7 +101,10 @@ namespace winsw
             bool inConsoleMode = obj.GetType().Name != "EmptyArgs"; 
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= new ServiceDescriptor();
+            descriptor ??= new ServiceDescriptorYaml().configurations;
+
+            Console.WriteLine(descriptor.Id);
+            Console.WriteLine(descriptor.Arguments);
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
@@ -536,7 +542,7 @@ namespace winsw
         [DoesNotReturn]
         private static void ThrowNoSuchService() => throw new WmiException(ReturnValue.NoSuchService);
 
-        private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
+        private static void InitLoggers(IWinSWConfiguration descriptor, bool enableConsoleLogging)
         {
             // TODO: Make logging levels configurable
             Level fileLogLevel = Level.Debug;

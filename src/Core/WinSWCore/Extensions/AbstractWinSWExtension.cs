@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using winsw.Configuration;
 
 namespace winsw.Extensions
 {
@@ -33,6 +34,11 @@ namespace winsw.Extensions
         public virtual void OnProcessTerminated(System.Diagnostics.Process process)
         {
             // Do nothing
+        }
+
+        public void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

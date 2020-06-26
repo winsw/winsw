@@ -714,6 +714,7 @@ namespace winsw
 
         public string? SecurityDescriptor => SingleElement("securityDescriptor", true);
 
+        
         private Dictionary<string, string> LoadEnvironmentVariables()
         {
             XmlNodeList nodeList = dom.SelectNodes("//env");
@@ -730,5 +731,14 @@ namespace winsw
 
             return environment;
         }
+
+
+
+        List<string> IWinSWConfiguration.ExtensionIds { get => ExtensionIds; }
+        string? IWinSWConfiguration.ServiceAccountDomain { get => ServiceAccountDomain; }
+        string? IWinSWConfiguration.ServiceAccountName { get => ServiceAccountName; }
+        bool IWinSWConfiguration.DelayedAutoStart { get => DelayedAutoStart; }
+        string? IWinSWConfiguration.SecurityDescriptor { get => SecurityDescriptor; }
+
     }
 }

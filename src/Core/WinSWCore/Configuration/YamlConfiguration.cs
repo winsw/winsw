@@ -14,7 +14,7 @@ namespace winsw.Configuration
         public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         [YamlMember(Alias = "id")]
-        string? _Id { get; set; }
+        public string? _Id { get; set; }
 
         [YamlMember(Alias = "name")]
         public string? Name { get; set; }
@@ -61,13 +61,13 @@ namespace winsw.Configuration
 
         [YamlMember(Alias = "stopParentProcessFirst")]
         public bool? _StopParentProcessFirst { get; set; }
-        
+
         [YamlMember(Alias = "resetFailureAfter")]
         public TimeSpan? _ResetFailureAfter { get; set; }
 
         [YamlMember(Alias = "stopTimeout")]
         public TimeSpan? _StopTimeout { get; set; }
-        
+
         [YamlMember(Alias = "startMode")]
         public StartMode? _StartMode { get; set; }
 
@@ -98,6 +98,8 @@ namespace winsw.Configuration
         [YamlMember(Alias = "delayedAutoStart")]
         public bool DelayedAutoStart { get; set; }
 
+        [YamlMember(Alias = "securityDescriptor")]
+        public string? _SecurityDescriptor { get; set; }
 
         public class YamlLog : Log
         {
@@ -235,8 +237,8 @@ namespace winsw.Configuration
                 }
             }
 
-            string newArgs = Regex.Replace(args, @"\\n", " ");
-            return newArgs;
+            //string newArgs = Regex.Replace(args, @"\\n", " ");
+            return args;
         }
 
         private enum ArgType
@@ -277,7 +279,7 @@ namespace winsw.Configuration
         public string Description => string.IsNullOrEmpty(_Description) ? Defaults.Description : _Description;
 
         public string Executable => string.IsNullOrEmpty(_Executable) ? Defaults.Executable : _Executable;
-        
+
         public string ExecutablePath => string.IsNullOrEmpty(_ExecutablePath) ? Defaults.ExecutablePath : _ExecutablePath;
 
         public string Caption => string.IsNullOrEmpty(_Caption) ? Defaults.Caption : _Caption;
@@ -304,6 +306,11 @@ namespace winsw.Configuration
         {
             get
             {
+                if(YamlFailureActions is null)
+                {
+                    return new List<SC_ACTION>(0).ToArray();
+                }
+
                 var arr = new List<SC_ACTION>();
 
                 foreach (var item in YamlFailureActions)
@@ -315,8 +322,8 @@ namespace winsw.Configuration
             }
         }
 
-        public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ? 
-            Defaults.ResetFailureAfter : 
+        public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ?
+            Defaults.ResetFailureAfter :
             (TimeSpan)_ResetFailureAfter;
 
         public string WorkingDirectory => string.IsNullOrEmpty(_WorkingDirectory) ?
@@ -327,8 +334,8 @@ namespace winsw.Configuration
 
         public TimeSpan StopTimeout => _StopTimeout is null ? Defaults.StopTimeout : (TimeSpan)_StopTimeout;
 
-        public string[] ServiceDependencies => _ServiceDependencies is null ? 
-            Defaults.ServiceDependencies : 
+        public string[] ServiceDependencies => _ServiceDependencies is null ?
+            Defaults.ServiceDependencies :
             _ServiceDependencies;
 
         public TimeSpan WaitHint => _WaitHint is null ? Defaults.WaitHint : (TimeSpan)_WaitHint;
@@ -339,18 +346,18 @@ namespace winsw.Configuration
 
         public List<Download> Downloads => GetDownloads(_Downloads);
 
-        public Dictionary<string, string> EnvironmentVariables => _EnvironmentVariables is null ? 
+        public Dictionary<string, string> EnvironmentVariables => _EnvironmentVariables is null ?
             Defaults.EnvironmentVariables :
             _EnvironmentVariables;
 
         //Service Account
         public string? ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
 
-        public string? ServiceAccountUser => ServiceAccount is null ? 
-            null : 
+        public string? ServiceAccountUser => ServiceAccount is null ?
+            null :
             (ServiceAccount.Domain ?? ".") + "\\" + ServiceAccount.Name;
 
-        
+
         public bool AllowServiceAcountLogonRight => ServiceAccount.AllowServiceAcountLogonRight is null ?
             Defaults.AllowServiceAcountLogonRight :
             (bool)ServiceAccount.AllowServiceAcountLogonRight;
@@ -362,12 +369,31 @@ namespace winsw.Configuration
 
 
         //Log
-        public string LogDirectory => Log != null ? Log.Directory : Defaults.LogDirectory;
+        public string? LogDirectory => Log != null ? Log.Directory : Defaults.LogDirectory;
 
         public string LogMode => Log != null ? Log.Mode : Defaults.LogMode;
 
         // TODO
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
 
+
+        public string? ServiceAccountDomain => ServiceAccount.Domain;
+
+        public string? ServiceAccountName => ServiceAccount.Name;
+
+        public string? SecurityDescriptor => _SecurityDescriptor;
+
+
+        public string BaseName { get; set; }
+
+        public string BasePath { get; set; }
+
+        public List<string> ExtensionIds {
+            get
+            {
+                return new List<string>(0);
+            }
+            set { }
+        }
     }
 }
