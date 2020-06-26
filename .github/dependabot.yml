@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "nuget"
+    directory: "/"
+    # Check the npm registry for updates every day (weekdays)
+    schedule:
+      interval: "daily"
