@@ -14,7 +14,7 @@ namespace winsw.Configuration
         public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         [YamlMember(Alias = "id")]
-        string? _Id { get; set; }
+        public string? _Id { get; set; }
 
         [YamlMember(Alias = "name")]
         public string? Name { get; set; }
@@ -304,8 +304,12 @@ namespace winsw.Configuration
         {
             get
             {
-                var arr = new List<SC_ACTION>();
+                if (YamlFailureActions is null)
+                {
+                    return new SC_ACTION[0];
+                }
 
+                var arr = new List<SC_ACTION>();
                 foreach (var item in YamlFailureActions)
                 {
                     arr.Add(new SC_ACTION(item.Type, item.Delay));
@@ -362,7 +366,7 @@ namespace winsw.Configuration
 
 
         //Log
-        public string LogDirectory => Log != null ? Log.Directory : Defaults.LogDirectory;
+        public string? LogDirectory => Log != null ? Log.Directory : Defaults.LogDirectory;
 
         public string LogMode => Log != null ? Log.Mode : Defaults.LogMode;
 
