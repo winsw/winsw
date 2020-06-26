@@ -95,5 +95,26 @@ namespace winsw.Configuration
 
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
+
+        public bool HasServiceAccount()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        //Yaml-support-merge-test
+        public string BasePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public List<string> ExtensionIds => throw new NotImplementedException();
+
+        public string? ServiceAccountDomain => throw new NotImplementedException();
+
+        public string? ServiceAccountName => throw new NotImplementedException();
+
+        public string? SecurityDescriptor => throw new NotImplementedException();
+
+        public string BaseName => throw new NotImplementedException();
+
+        
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using winsw.Configuration;
 
 namespace winsw.Extensions
 {
@@ -27,7 +28,7 @@ namespace winsw.Extensions
         /// </summary>
         /// <param name="descriptor">Service descriptor</param>
         /// <param name="node">Configuration node</param>
-        void Configure(ServiceDescriptor descriptor, XmlNode node);
+        void Configure(IWinSWConfiguration descriptor, XmlNode node);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.

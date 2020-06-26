@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 #endif
 using log4net;
+using winsw.Configuration;
 using winsw.Extensions;
 using winsw.Logging;
 using winsw.Native;
@@ -22,7 +23,7 @@ namespace winsw
         private ServiceApis.SERVICE_STATUS _wrapperServiceStatus;
 
         private readonly Process _process = new Process();
-        private readonly ServiceDescriptor _descriptor;
+        private readonly IWinSWConfiguration _descriptor;
         private Dictionary<string, string>? _envs;
 
         internal WinSWExtensionManager ExtensionManager { get; private set; }
@@ -54,7 +55,7 @@ namespace winsw
         /// </summary>
         public bool IsShuttingDown => _systemShuttingdown;
 
-        public WrapperService(ServiceDescriptor descriptor)
+        public WrapperService(IWinSWConfiguration descriptor)
         {
             _descriptor = descriptor;
             ServiceName = _descriptor.Id;
