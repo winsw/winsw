@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 #if VNEXT
 using System.IO.Compression;
@@ -331,6 +332,7 @@ namespace winsw
         public TimeSpan? AutoRollAtTime { get; private set; }
         public int? ZipOlderThanNumDays { get; private set; }
         public string ZipDateFormat { get; private set; }
+        public int? ZipDaysToKeep { get; private set; }
 
         public RollingSizeTimeLogAppender(
             string logDirectory,
@@ -343,7 +345,8 @@ namespace winsw
             string filePattern,
             TimeSpan? autoRollAtTime,
             int? zipolderthannumdays,
-            string zipdateformat)
+            string zipdateformat,
+            int? zipDaysToKeep)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             SizeTheshold = sizeThreshold;
@@ -351,6 +354,7 @@ namespace winsw
             AutoRollAtTime = autoRollAtTime;
             ZipOlderThanNumDays = zipolderthannumdays;
             ZipDateFormat = zipdateformat;
+            ZipDaysToKeep = zipDaysToKeep;
         }
 
         protected override void LogOutput(StreamReader outputReader)
@@ -478,6 +482,30 @@ namespace winsw
             catch (Exception e)
             {
                 EventLogger.LogEvent($"Failed to Zip files. Error {e.Message}");
+            }
+
+            if(!(ZipDaysToKeep is null) && ZipDaysToKeep != 0)
+            {
+                try
+                {
+                    List<string> ZipFiles = new List<string>(Directory.GetFiles(directory, zipFileBaseName + ".*.zip"));
+                    for (int days = 0; days <= ZipDaysToKeep; days++)
+                    {
+                        string zipFilePattern = DateTime.Now.AddDays((double)(-(days + ZipOlderThanNumDays))).ToString(ZipDateFormat);
+                        string zipFilePath = Path.Combine(directory, $"{zipFileBaseName}.{zipFilePattern}.zip");
+                        ZipFiles.Remove(zipFilePath);
+                    }
+                    foreach ( string zipFilePath in ZipFiles)
+                    {
+                        if (File.Exists(zipFilePath))
+                        {
+                            File.Delete(zipFilePath);
+                        }
+                    }
+                } catch (Exception e)
+                {
+                    EventLogger.LogEvent($"Failed to delete old zip files. Error {e.Message}");
+                }
             }
         }
 

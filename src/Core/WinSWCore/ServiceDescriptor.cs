@@ -467,7 +467,18 @@ namespace winsw
                         XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
                         string zipdateformat = zipdateformatNode is null ? "yyyyMM" : zipdateformatNode.InnerText;
 
-                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
+                        XmlNode? zipdaystokeepNode = e.SelectSingleNode("zipDaysToKeep");
+                        int? zipdaystokeep = null;
+                        if (zipdaystokeepNode != null)
+                        {
+                            // validate it
+                            if (!int.TryParse(zipdaystokeepNode.InnerText, out int zipdaystokeepValue))
+                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipDaysToKeep does not match the int format found in configuration XML.");
+
+                            zipdaystokeep = zipdaystokeepValue;
+                        }
+
+                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat, zipdaystokeep);
 
                     default:
                         throw new InvalidDataException("Undefined logging mode: " + LogMode);
