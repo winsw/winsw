@@ -6,36 +6,64 @@ namespace winswTests
 {
     class ServiceDescriptorYamlTest
     {
+
+        private string MinimalYaml = @"id: myapp
+caption: This is a test
+executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
+description: This is test winsw";
+
+
         [Test]
-        public void YamlDeserializingTest()
+        public void Simple_yaml_parsing_test()
         {
-            string yaml = @"id: myapp
-name: myappname
-description: appdescription
-serviceaccount:
-    name: buddhika
-    user: hackerbuddy
-log:
-    sizeThreshold: 45
-download:
-    -
-        from: www.github.com
-        to: c://documents
-        auth: none
+            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).configurations;
 
-    -
-        from: www.msd.com
-        to: d://docs
-        auth: sspi";
+            Assert.AreEqual("myapp", configs.Id);
+            Assert.AreEqual("This is a test", configs.Caption);
+            Assert.AreEqual("C:\\Program Files\\Java\\jdk1.8.0_241\\bin\\java.exe", configs.Executable);
+            Assert.AreEqual("This is test winsw", configs.Description);
+        }
 
-            var sd = ServiceDescriptorYaml.FromYaml(yaml);
-            
-            foreach(Download item in sd.configurations.Downloads)
+        [Test]
+        public void Must_implemented_value_test()
+        {
+            string yml = @"caption: This is a test
+executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
+description: This is test winsw";
+
+            void getId()
             {
-                Console.WriteLine(item.From);
-                Console.WriteLine(item.To);
-                Console.WriteLine(item.Auth);
+                var id = ServiceDescriptorYaml.FromYaml(yml).configurations.Id;
             }
+
+            Assert.That(() => getId(), Throws.TypeOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public void Default_value_map_test()
+        {
+            var executablePath = ServiceDescriptorYaml.FromYaml(MinimalYaml).configurations.ExecutablePath;
+
+            Assert.IsNotNull(executablePath);
+        }
+
+        [Test]
+        public void Simple_download_parsing_test()
+        {
+            var yml = @"download:
+    -
+        from: www.sample.com
+        to: c://tmp
+    -
+        from: www.sample2.com
+        to: d://tmp
+    -
+        from: www.sample3.com
+        to: d://temp";
+
+            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+
+            Assert.AreEqual(3, configs.Downloads.Count);
         }
     }
 }
