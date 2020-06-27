@@ -16,6 +16,10 @@
     <AssemblyName>WindowsService</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <ILMergeVersion>3.0.40</ILMergeVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
   </ItemGroup>
@@ -26,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <PackageReference Include="ilmerge" Version="3.0.29" />
+    <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -96,7 +100,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
+      <ILMerge>$(NuGetPackageRoot)ilmerge\$(ILMergeVersion)\tools\net452\ILMerge.exe</ILMerge>
       <ILMergeArgs>/targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
