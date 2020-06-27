@@ -488,18 +488,48 @@ namespace winsw
             {
                 try
                 {
+                    //Get all the zipfiles that might match the naming pattern
                     List<string> ZipFiles = new List<string>(Directory.GetFiles(directory, zipFileBaseName + ".*.zip"));
-                    for (int days = 0; days <= ZipDaysToKeep; days++)
-                    {
-                        string zipFilePattern = DateTime.Now.AddDays((double)(-(days + ZipOlderThanNumDays))).ToString(ZipDateFormat);
-                        string zipFilePath = Path.Combine(directory, $"{zipFileBaseName}.{zipFilePattern}.zip");
-                        ZipFiles.Remove(zipFilePath);
-                    }
+                    //Now delete the ones we don't want to keep, skipping any that don't match the naming pattern
                     foreach ( string zipFilePath in ZipFiles)
                     {
                         if (File.Exists(zipFilePath))
                         {
-                            File.Delete(zipFilePath);
+                            //ZipDateFormat could contain literal characters, including the '.', so this gets a bit tricky
+                            string fileNameOnly = Path.GetFileNameWithoutExtension(zipFilePath);
+                            string[] parts = fileNameOnly.Split('.');
+                            string datePart;
+                            if(parts.Length > 2)
+                            {
+                                datePart = parts[1];
+                                for(int index = 2; index < parts.Length; index++)
+                                {
+                                    datePart += "." + parts[index];
+                                }
+                            }
+                            else
+                            {
+                                datePart = parts[parts.Length - 1];
+                            }
+                            //EventLogger.LogEvent($"{zipFilePath}: datePart = {datePart}");
+                            if (DateTime.TryParseExact(datePart, ZipDateFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime date))
+                            {
+                                //the date portion of the name matches the configured ZipDateFormat
+                                if (date.CompareTo(DateTime.Now.AddDays((double)(-ZipDaysToKeep - ZipOlderThanNumDays))) < 0)
+                                {
+                                    //the file is older than the configured ZipDaysToKeep. Also take the configured ZipOlderThanNumDays into account as ZipDaysToKeep should only apply to zip files
+                                    //EventLogger.LogEvent($"{zipFilePath}: datePart matches format {datePart} : {ZipDateFormat}, is older than {ZipDaysToKeep + ZipOlderThanNumDays} days, deleting ");
+                                    File.Delete(zipFilePath);
+                                }
+                                //else
+                                //{
+                                //    EventLogger.LogEvent($"{zipFilePath}: datePart matches format {datePart} : {ZipDateFormat}, is younger than {ZipDaysToKeep + ZipOlderThanNumDays} days, not deleting ");
+                                //}
+                            }
+                            //else
+                            //{
+                            //    EventLogger.LogEvent($"datePart does not match format {datePart} : {ZipDateFormat}, not deleting {zipFilePath}");
+                            //}
                         }
                     }
                 } catch (Exception e)
