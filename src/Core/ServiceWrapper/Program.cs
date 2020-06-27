@@ -103,8 +103,6 @@ namespace winsw
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptorYaml().configurations;
 
-            Console.WriteLine(descriptor.Id);
-            Console.WriteLine(descriptor.Arguments);
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.

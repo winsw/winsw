@@ -60,8 +60,11 @@ namespace winsw.Configuration
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
 
-        public string BasePath { get; set; }
 
+        public string BaseName { get; }
+
+        public string BasePath { get; }
+        
         public List<string> ExtensionIds { get;  }
 
         public bool HasServiceAccount();
@@ -74,7 +77,6 @@ namespace winsw.Configuration
 
         public string? SecurityDescriptor { get;  }
 
-        public string BaseName { get;  }
 
     }
 }
