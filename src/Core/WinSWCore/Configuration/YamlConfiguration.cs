@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
+using System.IO;
 using System.Xml;
 using winsw.Native;
 using WMI;
@@ -11,6 +11,7 @@ namespace winsw.Configuration
 {
     public class YamlConfiguration : IWinSWConfiguration
     {
+
         public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         [YamlMember(Alias = "id")]
@@ -42,8 +43,7 @@ namespace winsw.Configuration
 
         [YamlMember(Alias = "log")]
         public YamlLog? _YAMLLog { get; set; }
-        public Log? Log => _YAMLLog;
-
+        
         [YamlMember(Alias = "download")]
         public List<YamlDownload>? _Downloads { get; set; }
 
@@ -103,6 +103,14 @@ namespace winsw.Configuration
 
         public class YamlLog : Log
         {
+
+            private YamlConfiguration configs;
+
+            public YamlLog(YamlConfiguration c)
+            {
+                configs = c;
+            }
+
             [YamlMember(Alias = "mode")]
             public string? _Mode { get; set; }
 
@@ -121,17 +129,19 @@ namespace winsw.Configuration
             [YamlMember(Alias = "pattern")]
             public string? _Pattern { get; set; }
 
-
             [YamlMember(Alias = "period")]
             public int? _Period { get; set; }
+
+            [YamlMember(Alias = "logpath")]
+            public string? _LogPath { get; set; }
 
 
             // Filters
             [YamlMember(Alias = "outFileDisabled")]
-            public bool _OutFileDisabled { get; set; }
+            public bool? _OutFileDisabled { get; set; }
 
             [YamlMember(Alias = "errFileDisabled")]
-            public bool _ErrFileDisabled { get; set; }
+            public bool? _ErrFileDisabled { get; set; }
 
             [YamlMember(Alias = "outFilePattern")]
             public string? _OutFilePattern;
@@ -150,31 +160,76 @@ namespace winsw.Configuration
             [YamlMember(Alias = "zipDateFormat")]
             public string? _ZipDateFormat { get; set; }
 
-            public override string? Mode => _Mode;
+            public override string? Mode => string.IsNullOrEmpty(_Mode) ?
+                DefaultWinSWSettings.DefaultLogSettings.Mode :
+                _Mode;
+            
+            public override string? Name => string.IsNullOrEmpty(_Name) ?
+                configs.BaseName :
+                Environment.ExpandEnvironmentVariables(_Name);
+            
+            public override string? Directory => string.IsNullOrEmpty(_LogPath) ?
+                configs.Defaults.LogDirectory :
+                Environment.ExpandEnvironmentVariables(_LogPath);
+           
 
-            public override string? Name => _Name;
+            public override int? SizeThreshold => _SizeThreshold is null ?
+                1024 * 10 * RollingSizeTimeLogAppender.BYTES_PER_KB :
+                _SizeThreshold * RollingSizeTimeLogAppender.BYTES_PER_KB;
+            
 
-            public override string? Directory => _Directory;
+            public override int? KeepFiles => _KeepFiles is null ?
+                SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP :
+                _KeepFiles;
 
-            public override int? SizeThreshold => _SizeThreshold;
 
-            public override int? KeepFiles => _KeepFiles;
+            public override string? Pattern
+            {
+                get
+                {
+                    if(_Pattern != null)
+                    {
+                        return _Pattern;
+                    }
 
-            public override string? Pattern => _Pattern;
+                    throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+                }
+            }
 
-            public override int? Period => _Period;
+            public override int? Period => _Period is null ? 1 : _Period;
 
-            public override bool OutFileDisabled => _OutFileDisabled;
+            public override bool OutFileDisabled => _OutFileDisabled is null ?
+                configs.Defaults.OutFileDisabled :
+                (bool)_OutFileDisabled;
 
-            public override bool ErrFileDisabled => _ErrFileDisabled;
+            public override bool ErrFileDisabled => _ErrFileDisabled is null ?
+                configs.Defaults.ErrFileDisabled :
+                (bool)_ErrFileDisabled;
 
-            public override string OutFilePattern => _OutFilePattern;
+            public override string OutFilePattern => string.IsNullOrEmpty(_OutFilePattern) ?
+                configs.Defaults.OutFilePattern :
+                Environment.ExpandEnvironmentVariables(_OutFilePattern);
 
-            public override string ErrFilePattern => _ErrFilePattern;
+            public override string ErrFilePattern => string.IsNullOrEmpty(_ErrFilePattern) ?
+                configs.Defaults.ErrFilePattern :
+                Environment.ExpandEnvironmentVariables(_ErrFilePattern);
 
             public override string? AutoRollAtTime => _AutoRollAtTime;
 
-            public override int? ZipOlderThanNumDays => _ZipOlderThanNumDays;
+            public override int? ZipOlderThanNumDays
+            {
+                get
+                {
+                    if (_ZipOlderThanNumDays != null)
+                    {
+                        return _ZipOlderThanNumDays;
+                    }
+
+                    throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+
+
+                }
+            }
 
             public override string? ZipDateFormat => _ZipDateFormat;
         }
@@ -369,6 +424,8 @@ namespace winsw.Configuration
 
 
         //Log
+        public Log? Log => _YAMLLog is null ? new YamlLog(this) : _YAMLLog;
+
         public string? LogDirectory => Log != null ? Log.Directory : Defaults.LogDirectory;
 
         public string LogMode => Log != null ? Log.Mode : Defaults.LogMode;
@@ -377,16 +434,17 @@ namespace winsw.Configuration
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
 
 
+
+
+        public string BaseName => Defaults.BaseName;
+
+        public string BasePath => Defaults.BasePath;
+
         public string? ServiceAccountDomain => ServiceAccount.Domain;
 
         public string? ServiceAccountName => ServiceAccount.Name;
 
         public string? SecurityDescriptor => _SecurityDescriptor;
-
-
-        public string BaseName { get; set; }
-
-        public string BasePath { get; set; }
 
         public List<string> ExtensionIds {
             get
@@ -395,5 +453,7 @@ namespace winsw.Configuration
             }
             set { }
         }
+
+        
     }
 }

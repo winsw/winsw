@@ -1,34 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using winsw.Configuration;
-using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
 namespace winsw
 {
     public class ServiceDescriptorYaml
     {
-        public readonly YamlConfiguration configurations = new YamlConfiguration();
+        public readonly YamlConfiguration configurations;
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
-        private readonly Dictionary<string, string> environmentVariables;
-
-        public string BasePath { get; set; }
-
-        public string BaseName { get; set; }
-
-        public virtual string ExecutablePath => Defaults.ExecutablePath;
-
         public ServiceDescriptorYaml()
         {
-            string p = ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(p);
-            if (baseName.EndsWith(".vshost"))
-                baseName = baseName.Substring(0, baseName.Length - 7);
+            var baseName = Defaults.BaseName;
+            var basePath = Defaults.BasePath;
 
-            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
+            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(Defaults.ExecutablePath));
             while (true)
             {
                 if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
@@ -40,11 +28,7 @@ namespace winsw
                 d = d.Parent;
             }
 
-            BaseName = baseName;
-            BasePath = Path.Combine(d.FullName, BaseName);
-
-
-            using (var reader = new StreamReader(BasePath + ".yml"))
+            using (var reader = new StreamReader(basePath + ".yml"))
             {
                 var file = reader.ReadToEnd();
                 var deserializer = new DeserializerBuilder().Build();
@@ -52,29 +36,23 @@ namespace winsw
                 configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
 
-            configurations.BaseName = BaseName;
-            configurations.BasePath = BasePath;
-
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
             // ditto for ID
             Environment.SetEnvironmentVariable("SERVICE_ID", configurations.Id);
 
             // New name
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, Defaults.ExecutablePath);
 
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
 
-            this.environmentVariables = configurations.EnvironmentVariables;
         }
 
 
         public ServiceDescriptorYaml(YamlConfiguration configs)
         {
             configurations = configs;
-
-            this.environmentVariables = configurations.EnvironmentVariables;
         }
 
         public static ServiceDescriptorYaml FromYaml(string yaml)

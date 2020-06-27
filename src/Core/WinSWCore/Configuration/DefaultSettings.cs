@@ -12,7 +12,8 @@ namespace winsw.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
-        public static DefaultWinSWSettings defaults = new DefaultWinSWSettings();
+
+        public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
 
         public string Id => throw new InvalidOperationException(nameof(Id) + " must be specified.");
         public string Caption => throw new InvalidOperationException(nameof(Caption) + " must be specified.");
@@ -57,6 +58,7 @@ namespace winsw.Configuration
         public string OutFilePattern => Log.OutFilePattern;
         public string ErrFilePattern => Log.ErrFilePattern;
 
+
         public class LogDefaults : Log
         {
             
@@ -96,14 +98,30 @@ namespace winsw.Configuration
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
 
-        public bool HasServiceAccount()
+
+
+        public string BaseName
         {
-            throw new NotImplementedException();
+            get
+            {
+                string baseName = Path.GetFileNameWithoutExtension(ExecutablePath);
+                if (baseName.EndsWith(".vshost"))
+                    baseName = baseName.Substring(0, baseName.Length - 7);
+
+                return baseName;
+            }
         }
 
+        public string BasePath
+        {
+            get
+            {
+                DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(ExecutablePath));
+                var basePath = Path.Combine(d.FullName, BaseName);
 
-        //Yaml-support-merge-test
-        public string BasePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+                return basePath;
+            }
+        }
 
         public List<string> ExtensionIds => throw new NotImplementedException();
 
@@ -113,8 +131,10 @@ namespace winsw.Configuration
 
         public string? SecurityDescriptor => throw new NotImplementedException();
 
-        public string BaseName => throw new NotImplementedException();
+        public bool HasServiceAccount()
+        {
+            throw new NotImplementedException();
+        }
 
-        
     }
 }
