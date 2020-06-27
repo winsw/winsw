@@ -43,7 +43,6 @@ namespace winsw.Configuration
 
         [YamlMember(Alias = "log")]
         public YamlLog? _YAMLLog { get; set; }
-
         [YamlMember(Alias = "download")]
         public List<YamlDownload>? _Downloads { get; set; }
 
@@ -176,7 +175,6 @@ namespace winsw.Configuration
             public override int? SizeThreshold => _SizeThreshold is null ?
                 1024 * 10 * RollingSizeTimeLogAppender.BYTES_PER_KB :
                 _SizeThreshold * RollingSizeTimeLogAppender.BYTES_PER_KB;
-
 
             public override int? KeepFiles => _KeepFiles is null ?
                 SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP :
@@ -452,7 +450,6 @@ namespace winsw.Configuration
             }
             set { }
         }
-
 
     }
 }
