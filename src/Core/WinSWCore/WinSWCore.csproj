@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
-    <PackageReference Include="SharpZipLib" Version="0.86.0" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
   </ItemGroup>
 
 </Project>
