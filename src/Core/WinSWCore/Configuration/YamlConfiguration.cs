@@ -43,7 +43,7 @@ namespace winsw.Configuration
 
         [YamlMember(Alias = "log")]
         public YamlLog? _YAMLLog { get; set; }
-        
+
         [YamlMember(Alias = "download")]
         public List<YamlDownload>? _Downloads { get; set; }
 
@@ -163,20 +163,20 @@ namespace winsw.Configuration
             public override string? Mode => string.IsNullOrEmpty(_Mode) ?
                 DefaultWinSWSettings.DefaultLogSettings.Mode :
                 _Mode;
-            
+
             public override string? Name => string.IsNullOrEmpty(_Name) ?
                 configs.BaseName :
                 Environment.ExpandEnvironmentVariables(_Name);
-            
+
             public override string? Directory => string.IsNullOrEmpty(_LogPath) ?
                 configs.Defaults.LogDirectory :
                 Environment.ExpandEnvironmentVariables(_LogPath);
-           
+
 
             public override int? SizeThreshold => _SizeThreshold is null ?
                 1024 * 10 * RollingSizeTimeLogAppender.BYTES_PER_KB :
                 _SizeThreshold * RollingSizeTimeLogAppender.BYTES_PER_KB;
-            
+
 
             public override int? KeepFiles => _KeepFiles is null ?
                 SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP :
@@ -187,7 +187,7 @@ namespace winsw.Configuration
             {
                 get
                 {
-                    if(_Pattern != null)
+                    if (_Pattern != null)
                     {
                         return _Pattern;
                     }
@@ -226,8 +226,6 @@ namespace winsw.Configuration
                     }
 
                     throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
-
-
                 }
             }
 
@@ -361,9 +359,9 @@ namespace winsw.Configuration
         {
             get
             {
-                if(YamlFailureActions is null)
+                if (YamlFailureActions is null)
                 {
-                    return new List<SC_ACTION>(0).ToArray();
+                    return new SC_ACTION[0];
                 }
 
                 var arr = new List<SC_ACTION>();
@@ -446,7 +444,8 @@ namespace winsw.Configuration
 
         public string? SecurityDescriptor => _SecurityDescriptor;
 
-        public List<string> ExtensionIds {
+        public List<string> ExtensionIds
+        {
             get
             {
                 return new List<string>(0);
@@ -454,6 +453,6 @@ namespace winsw.Configuration
             set { }
         }
 
-        
+
     }
 }

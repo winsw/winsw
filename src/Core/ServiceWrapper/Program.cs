@@ -82,27 +82,25 @@ namespace winsw
                 .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
         }
 
-        private static void HandleErrors(IEnumerable<Error> errors)
+        private static void HandleErrors(IEnumerable<Error> errors) {
         
-        public static void Run(string[] argsArray, IWinSWConfiguration? descriptor = null)
-        {
-
         }
+        
 
         public static void RunParsed(object obj)
         {
             Run(obj, null);
         }
 
-        public static void Run(object obj, ServiceDescriptor? descriptor = null)
+        public static void Run(object obj, IWinSWConfiguration? descriptor = null)
         {
             var cliOption = (CliOption)obj;
 
-            bool inConsoleMode = obj.GetType().Name != "EmptyArgs"; 
+            bool inConsoleMode = obj.GetType().Name != "EmptyArgs";
+
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= new ServiceDescriptorYaml().configurations;
-
+            descriptor = new ServiceDescriptorYaml().configurations;
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
