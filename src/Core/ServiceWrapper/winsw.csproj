@@ -22,10 +22,6 @@
     <Version>2.9.2</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <ILMergeVersion>3.0.40</ILMergeVersion>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
   </ItemGroup>
@@ -36,7 +32,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
+    <PackageReference Include="ilmerge" Version="3.0.29" />
+    <PackageReference Include="ilmerge" Version="3.0.40" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
