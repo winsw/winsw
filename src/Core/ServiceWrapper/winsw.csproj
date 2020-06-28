@@ -102,7 +102,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
+      <ILMerge>$(NuGetPackageRoot)ilmerge\$(ILMergeVersion)\tools\net452\ILMerge.exe</ILMerge>
       <ILMergeArgs>/targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
