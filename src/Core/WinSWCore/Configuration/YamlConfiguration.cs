@@ -105,6 +105,11 @@ namespace winsw.Configuration
 
             private YamlConfiguration configs;
 
+            public YamlLog()
+            {
+
+            }
+
             public YamlLog(YamlConfiguration c)
             {
                 configs = c;

@@ -98,9 +98,28 @@ namespace winsw
 
             bool inConsoleMode = obj.GetType().Name != "EmptyArgs";
 
-
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor = new ServiceDescriptorYaml().configurations;
+            
+            var extension = Path.GetExtension(cliOption.ConfigFile);
+
+            switch (extension)
+            {
+                case ".yaml":
+                case ".yml":
+                    Console.WriteLine("WinSW Starting with YAML");
+                    descriptor = new ServiceDescriptorYaml().configurations;
+                    break;
+                
+                case ".xml":
+                    Console.WriteLine("WinSW Starting with XML");
+                    descriptor = new ServiceDescriptor();
+                    break;
+                default:
+                    Console.WriteLine("Config File not specified. WinSW Starting with XML");
+                    descriptor = new ServiceDescriptor();
+                    break;
+            }
+           
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
