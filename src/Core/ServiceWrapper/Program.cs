@@ -139,7 +139,7 @@ namespace winsw
             Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
             Win32Service? svc = svcs.Select(descriptor.Id);
 
-            if (!string.IsNullOrEmpty(cliOption.RedirectPath))
+            if (!(cliOption.RedirectPath is null))
             {
                 redirect(cliOption.RedirectPath);
             }
