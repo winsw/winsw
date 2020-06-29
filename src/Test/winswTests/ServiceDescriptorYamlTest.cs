@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using NUnit.Framework;
 using winsw;
 
@@ -64,6 +66,42 @@ description: This is test winsw";
             var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
 
             Assert.AreEqual(3, configs.Downloads.Count);
+        }
+
+
+        [Test]
+        public void Log_defaults_when_log_not_specified()
+        {
+            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).configurations;
+            Assert.AreEqual(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)!, configs.LogDirectory);
+        }
+
+        [Test]
+        public void Log_defaults_when_log_specified_and_field_not_specified()
+        {
+            var yaml = @"id: myapp
+caption: This is a test
+executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
+description: This is test winsw
+log:
+  mode: rotate";
+
+            var configs = ServiceDescriptorYaml.FromYaml(yaml).configurations;
+            Assert.AreEqual(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)!, configs.LogDirectory);
+        }
+
+        [Test]
+        public void Log_defaults_when_log_and_field_specified()
+        {
+            var yaml = @"id: myapp
+caption: This is a test
+executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
+description: This is test winsw
+log:
+  mode: rotate";
+
+            var configs = ServiceDescriptorYaml.FromYaml(yaml).configurations;
+            Assert.AreEqual("rotate", configs.LogMode);
         }
     }
 }

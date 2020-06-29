@@ -50,8 +50,8 @@ namespace winsw.Configuration
 
         // Logging
         public Log Log { get => new LogDefaults(); }
-        public string LogDirectory => Path.GetDirectoryName(ExecutablePath)!;
-        public string LogMode => Log.Mode;
+        public string LogDirectory => DefaultLogSettings.Directory;
+        public string LogMode => DefaultLogSettings.Mode;
 
         public bool OutFileDisabled => Log.OutFileDisabled;
         public bool ErrFileDisabled => Log.ErrFileDisabled;
@@ -61,31 +61,39 @@ namespace winsw.Configuration
 
         public class LogDefaults : Log
         {
-            
+            readonly DefaultWinSWSettings defaults;
+
+            public LogDefaults()
+            {
+                defaults = new DefaultWinSWSettings();
+            }
+
             public override string Mode  => "append";
 
-            public override string? Name => throw new NotImplementedException();
+            public override string? Name => defaults.BaseName;
 
-            public override string? Directory => throw new NotImplementedException();
+            public override string Directory => Path.GetDirectoryName(defaults.ExecutablePath)!;
 
-            public override int? SizeThreshold => throw new NotImplementedException();
+            public override int? SizeThreshold => 1024 * 10 * RollingSizeTimeLogAppender.BYTES_PER_KB;
 
-            public override int? KeepFiles => throw new NotImplementedException();
+            public override int? KeepFiles => SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP;
 
-            public override string? Pattern => throw new NotImplementedException();
+            public override string? Pattern => 
+                throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
 
-            public override int? Period => throw new NotImplementedException();
+            public override int? Period => 1;
 
             public override bool OutFileDisabled { get => false; }
             public override bool ErrFileDisabled { get => false; }
             public override string OutFilePattern { get => ".out.log"; }
             public override string ErrFilePattern { get => ".err.log"; }
 
-            public override string? AutoRollAtTime => throw new NotImplementedException();
+            public override string? AutoRollAtTime => null;
 
-            public override int? ZipOlderThanNumDays => throw new NotImplementedException();
+            public override int? ZipOlderThanNumDays =>
+                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
 
-            public override string? ZipDateFormat => throw new NotImplementedException();
+            public override string? ZipDateFormat => null;
         }
 
         // Environment

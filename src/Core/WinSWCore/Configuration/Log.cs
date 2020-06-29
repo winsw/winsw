@@ -1,16 +1,15 @@
 ﻿using System;
 using System.IO;
-using YamlDotNet.Serialization;
 
 namespace winsw.Configuration
 {
     public abstract class Log
     {
-        public abstract string? Mode { get; }
+        public abstract string Mode { get; }
 
         public abstract string? Name { get; }
 
-        public abstract string? Directory { get; }
+        public abstract string Directory { get; }
 
         public abstract int? SizeThreshold { get; }
 
