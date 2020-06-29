@@ -397,9 +397,24 @@ namespace winsw.Configuration
 
         public List<Download> Downloads => GetDownloads(_Downloads);
 
-        public Dictionary<string, string> EnvironmentVariables => _EnvironmentVariables is null ?
-            Defaults.EnvironmentVariables :
-            _EnvironmentVariables;
+        public Dictionary<string, string> EnvironmentVariables {
+            get
+            {
+                if(_EnvironmentVariables is null)
+                {
+                    return Defaults.EnvironmentVariables;
+                }
+
+                var dictionary = new Dictionary<string, string>();
+                foreach(var item in _EnvironmentVariables)
+                {
+                    dictionary[item.Key] = Environment.ExpandEnvironmentVariables(item.Value);
+                }
+
+                return dictionary;
+            }
+        }
+        
 
         //Service Account
         public string? ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
