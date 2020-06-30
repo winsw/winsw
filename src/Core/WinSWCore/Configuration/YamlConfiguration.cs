@@ -89,7 +89,7 @@ namespace winsw.Configuration
         [YamlMember(Alias = "beepOnShutdown")]
         public bool BeepOnShutdown { get; set; }
 
-        [YamlMember(Alias = "environmentVariables")]
+        [YamlMember(Alias = "env")]
         public Dictionary<string, string>? _EnvironmentVariables { get; set; }
 
         [YamlMember(Alias = "failureActions")]
