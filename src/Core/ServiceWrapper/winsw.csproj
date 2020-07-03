@@ -17,9 +17,9 @@
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>winsw_key.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
-    <AssemblyVersion>2.9.2.0</AssemblyVersion>
-    <FileVersion>2.9.2.0</FileVersion>
-    <Version>2.9.2</Version>
+    <AssemblyVersion>2.9.3.0</AssemblyVersion>
+    <FileVersion>2.9.3.0</FileVersion>
+    <Version>2.9.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

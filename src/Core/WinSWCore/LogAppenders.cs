@@ -399,7 +399,7 @@ namespace winsw
                             var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
-                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
                             fileLength = new FileInfo(logFile).Length;
                         }
 
@@ -431,6 +431,7 @@ namespace winsw
                         try
                         {
                             // roll file
+                            writer.Dispose();
                             var now = DateTime.Now;
                             var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
                             var nextFileName =
@@ -440,12 +441,12 @@ namespace winsw
 
                             // even if the log rotation fails, create a new one, or else
                             // we'll infinitely try to roll.
-                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
                             fileLength = new FileInfo(logFile).Length;
                         }
                         catch (Exception e)
                         {
-                            EventLogger.LogEvent($"Failed to roll size time log: {e.Message}");
+                            EventLogger.LogEvent($"Failed to roll size time log {logFile}: {e.Message}");
                         }
                     }
 
@@ -474,9 +475,11 @@ namespace winsw
                     string sourceFileName = Path.GetFileName(path);
                     string zipFilePattern = fileInfo.LastAccessTimeUtc.ToString(ZipDateFormat);
                     string zipFilePath = Path.Combine(directory, $"{zipFileBaseName}.{zipFilePattern}.zip");
-                    ZipOneFile(path, sourceFileName, zipFilePath);
-
-                    File.Delete(path);
+                    bool zipResult = ZipOneFile(path, sourceFileName, zipFilePath);
+                    if (zipResult)
+                    {
+                        File.Delete(path);
+                    }
                 }
             }
             catch (Exception e)
@@ -540,9 +543,10 @@ namespace winsw
         }
 
 #if VNEXT
-        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
+        private bool ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
             ZipArchive? zipArchive = null;
+            bool result = true;
             try
             {
                 zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Update);
@@ -555,19 +559,33 @@ namespace winsw
             catch (Exception e)
             {
                 EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+                result = false;
             }
             finally
             {
                 zipArchive?.Dispose();
             }
+            return result;
         }
 #else
-        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
+        private bool ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
             ZipFile? zipFile = null;
+            bool result = true;
             try
             {
-                zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate));
+                if (File.Exists(zipFilePath))
+                {
+                    zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    //zipFile = new ZipFile(zipFilePath);
+                }
+                else
+                {
+                    
+                    zipFile = ZipFile.Create(File.Open(zipFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    //zipFile = ZipFile.Create(zipFilePath);
+                }
+
                 zipFile.BeginUpdate();
 
                 if (zipFile.FindEntry(entryName, false) < 0)
@@ -580,12 +598,14 @@ namespace winsw
             catch (Exception e)
             {
                 EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+                result = false;
                 zipFile?.AbortUpdate();
             }
             finally
             {
                 zipFile?.Close();
             }
+            return result;
         }
 #endif
 
