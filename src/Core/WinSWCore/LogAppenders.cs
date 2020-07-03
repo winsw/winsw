@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 #if VNEXT
 using System.IO.Compression;
@@ -331,6 +332,7 @@ namespace winsw
         public TimeSpan? AutoRollAtTime { get; private set; }
         public int? ZipOlderThanNumDays { get; private set; }
         public string ZipDateFormat { get; private set; }
+        public int? ZipDaysToKeep { get; private set; }
 
         public RollingSizeTimeLogAppender(
             string logDirectory,
@@ -343,7 +345,8 @@ namespace winsw
             string filePattern,
             TimeSpan? autoRollAtTime,
             int? zipolderthannumdays,
-            string zipdateformat)
+            string zipdateformat,
+            int? zipDaysToKeep)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             SizeTheshold = sizeThreshold;
@@ -351,6 +354,7 @@ namespace winsw
             AutoRollAtTime = autoRollAtTime;
             ZipOlderThanNumDays = zipolderthannumdays;
             ZipDateFormat = zipdateformat;
+            ZipDaysToKeep = zipDaysToKeep;
         }
 
         protected override void LogOutput(StreamReader outputReader)
@@ -395,7 +399,7 @@ namespace winsw
                             var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
-                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
                             fileLength = new FileInfo(logFile).Length;
                         }
 
@@ -427,6 +431,7 @@ namespace winsw
                         try
                         {
                             // roll file
+                            writer.Dispose();
                             var now = DateTime.Now;
                             var nextFileNumber = GetNextFileNumber(extension, baseDirectory, baseFileName, now);
                             var nextFileName =
@@ -436,12 +441,12 @@ namespace winsw
 
                             // even if the log rotation fails, create a new one, or else
                             // we'll infinitely try to roll.
-                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
                             fileLength = new FileInfo(logFile).Length;
                         }
                         catch (Exception e)
                         {
-                            EventLogger.LogEvent($"Failed to roll size time log: {e.Message}");
+                            EventLogger.LogEvent($"Failed to roll size time log {logFile}: {e.Message}");
                         }
                     }
 
@@ -470,21 +475,78 @@ namespace winsw
                     string sourceFileName = Path.GetFileName(path);
                     string zipFilePattern = fileInfo.LastAccessTimeUtc.ToString(ZipDateFormat);
                     string zipFilePath = Path.Combine(directory, $"{zipFileBaseName}.{zipFilePattern}.zip");
-                    ZipOneFile(path, sourceFileName, zipFilePath);
-
-                    File.Delete(path);
+                    bool zipResult = ZipOneFile(path, sourceFileName, zipFilePath);
+                    if (zipResult)
+                    {
+                        File.Delete(path);
+                    }
                 }
             }
             catch (Exception e)
             {
                 EventLogger.LogEvent($"Failed to Zip files. Error {e.Message}");
             }
+
+            if(!(ZipDaysToKeep is null) && ZipDaysToKeep != 0)
+            {
+                try
+                {
+                    //Get all the zipfiles that might match the naming pattern
+                    List<string> ZipFiles = new List<string>(Directory.GetFiles(directory, zipFileBaseName + ".*.zip"));
+                    //Now delete the ones we don't want to keep, skipping any that don't match the naming pattern
+                    foreach ( string zipFilePath in ZipFiles)
+                    {
+                        if (File.Exists(zipFilePath))
+                        {
+                            //ZipDateFormat could contain literal characters, including the '.', so this gets a bit tricky
+                            string fileNameOnly = Path.GetFileNameWithoutExtension(zipFilePath);
+                            string[] parts = fileNameOnly.Split('.');
+                            string datePart;
+                            if(parts.Length > 2)
+                            {
+                                datePart = parts[1];
+                                for(int index = 2; index < parts.Length; index++)
+                                {
+                                    datePart += "." + parts[index];
+                                }
+                            }
+                            else
+                            {
+                                datePart = parts[parts.Length - 1];
+                            }
+                            //EventLogger.LogEvent($"{zipFilePath}: datePart = {datePart}");
+                            if (DateTime.TryParseExact(datePart, ZipDateFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime date))
+                            {
+                                //the date portion of the name matches the configured ZipDateFormat
+                                if (date.CompareTo(DateTime.Now.AddDays((double)(-ZipDaysToKeep - ZipOlderThanNumDays))) < 0)
+                                {
+                                    //the file is older than the configured ZipDaysToKeep. Also take the configured ZipOlderThanNumDays into account as ZipDaysToKeep should only apply to zip files
+                                    //EventLogger.LogEvent($"{zipFilePath}: datePart matches format {datePart} : {ZipDateFormat}, is older than {ZipDaysToKeep + ZipOlderThanNumDays} days, deleting ");
+                                    File.Delete(zipFilePath);
+                                }
+                                //else
+                                //{
+                                //    EventLogger.LogEvent($"{zipFilePath}: datePart matches format {datePart} : {ZipDateFormat}, is younger than {ZipDaysToKeep + ZipOlderThanNumDays} days, not deleting ");
+                                //}
+                            }
+                            //else
+                            //{
+                            //    EventLogger.LogEvent($"datePart does not match format {datePart} : {ZipDateFormat}, not deleting {zipFilePath}");
+                            //}
+                        }
+                    }
+                } catch (Exception e)
+                {
+                    EventLogger.LogEvent($"Failed to delete old zip files. Error {e.Message}");
+                }
+            }
         }
 
 #if VNEXT
-        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
+        private bool ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
             ZipArchive? zipArchive = null;
+            bool result = true;
             try
             {
                 zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Update);
@@ -497,19 +559,33 @@ namespace winsw
             catch (Exception e)
             {
                 EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+                result = false;
             }
             finally
             {
                 zipArchive?.Dispose();
             }
+            return result;
         }
 #else
-        private void ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
+        private bool ZipOneFile(string sourceFilePath, string entryName, string zipFilePath)
         {
             ZipFile? zipFile = null;
+            bool result = true;
             try
             {
-                zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate));
+                if (File.Exists(zipFilePath))
+                {
+                    zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    //zipFile = new ZipFile(zipFilePath);
+                }
+                else
+                {
+                    
+                    zipFile = ZipFile.Create(File.Open(zipFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
+                    //zipFile = ZipFile.Create(zipFilePath);
+                }
+
                 zipFile.BeginUpdate();
 
                 if (zipFile.FindEntry(entryName, false) < 0)
@@ -522,12 +598,14 @@ namespace winsw
             catch (Exception e)
             {
                 EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+                result = false;
                 zipFile?.AbortUpdate();
             }
             finally
             {
                 zipFile?.Close();
             }
+            return result;
         }
 #endif
 

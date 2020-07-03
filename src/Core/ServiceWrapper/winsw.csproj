@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -14,10 +14,12 @@
     <Copyright>Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors</Copyright>
     <RootNamespace>winsw</RootNamespace>
     <AssemblyName>WindowsService</AssemblyName>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <ILMergeVersion>3.0.40</ILMergeVersion>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>winsw_key.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <AssemblyVersion>2.9.3.0</AssemblyVersion>
+    <FileVersion>2.9.3.0</FileVersion>
+    <Version>2.9.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
+    <PackageReference Include="ilmerge" Version="3.0.29" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -100,7 +102,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <ILMerge>$(NuGetPackageRoot)ilmerge\$(ILMergeVersion)\tools\net452\ILMerge.exe</ILMerge>
+      <ILMerge>$(NuGetPackageRoot)ilmerge\3.0.29\tools\net452\ILMerge.exe</ILMerge>
       <ILMergeArgs>/targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
