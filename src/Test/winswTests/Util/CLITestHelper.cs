@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 
 namespace winswTests.Util
 {
@@ -115,13 +115,13 @@ $@"<service>
 
         public Exception Exception { get; }
 
-        public bool HasException => Exception != null;
+        public bool HasException => this.Exception != null;
 
         public CLITestResult(string output, string error, Exception exception = null)
         {
-            Out = output;
-            Error = error;
-            Exception = exception;
+            this.Out = output;
+            this.Error = error;
+            this.Exception = exception;
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 using winswTests.Util;
 
 namespace winswTests
@@ -111,7 +111,7 @@ namespace winswTests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    await new Download(source, dest, false, Download.AuthType.none).PerformAsync();
+                    await new Download(source, dest, false, Download.AuthType.None).PerformAsync();
                     Assert.That(File.ReadAllBytes(dest), Is.EqualTo(this.contents));
                 },
                 context =>
@@ -136,7 +136,7 @@ namespace winswTests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    await new Download(source, dest, false, Download.AuthType.basic, username, password, true).PerformAsync();
+                    await new Download(source, dest, false, Download.AuthType.Basic, username, password, true).PerformAsync();
                     Assert.That(File.ReadAllBytes(dest), Is.EqualTo(this.contents));
                 },
                 context =>

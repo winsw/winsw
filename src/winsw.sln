@@ -20,6 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunawayProcessKiller", "Plu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AA414F46-B863-473A-A0E0-C2971B3396AE}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		..\examples\sample-allOptions.xml = ..\examples\sample-allOptions.xml
 		..\examples\sample-minimal.xml = ..\examples\sample-minimal.xml
 	EndProjectSection

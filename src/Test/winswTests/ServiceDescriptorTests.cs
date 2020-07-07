@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 using winswTests.Util;
 using WMI;
 
@@ -38,13 +38,13 @@ $@"<service>
   <workingdirectory>{ExpectedWorkingDirectory}</workingdirectory>
   <logpath>C:\logs</logpath>
 </service>";
-            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
         [Test]
         public void DefaultStartMode()
         {
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
         }
 
         [Test]
@@ -69,8 +69,8 @@ $@"<service>
   <logpath>C:\logs</logpath>
 </service>";
 
-            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(() => _extendedServiceDescriptor.StartMode, Throws.ArgumentException);
+            this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            Assert.That(() => this._extendedServiceDescriptor.StartMode, Throws.ArgumentException);
         }
 
         [Test]
@@ -95,35 +95,35 @@ $@"<service>
   <logpath>C:\logs</logpath>
 </service>";
 
-            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+            this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
         }
 
         [Test]
         public void VerifyWorkingDirectory()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + this._extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
         }
 
         [Test]
         public void VerifyServiceLogonRight()
         {
-            Assert.That(_extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.True);
+            Assert.That(this._extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.True);
         }
 
         [Test]
         public void VerifyUsername()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + this._extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(this._extendedServiceDescriptor.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
         }
 
         [Test]
         public void VerifyPassword()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + this._extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(this._extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
         }
 
         [Test]
@@ -142,7 +142,7 @@ $@"<service>
         [Test]
         public void StopParentProcessFirstIsFalseByDefault()
         {
-            Assert.That(_extendedServiceDescriptor.StopParentProcessFirst, Is.False);
+            Assert.That(this._extendedServiceDescriptor.StopParentProcessFirst, Is.False);
         }
 
         [Test]

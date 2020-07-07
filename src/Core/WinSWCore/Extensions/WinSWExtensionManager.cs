@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Xml;
 using log4net;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     public class WinSWExtensionManager
     {
@@ -15,8 +15,8 @@ namespace winsw.Extensions
 
         public WinSWExtensionManager(ServiceDescriptor serviceDescriptor)
         {
-            ServiceDescriptor = serviceDescriptor;
-            Extensions = new Dictionary<string, IWinSWExtension>();
+            this.ServiceDescriptor = serviceDescriptor;
+            this.Extensions = new Dictionary<string, IWinSWExtension>();
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace winsw.Extensions
         /// <exception cref="Exception">Start failure</exception>
         public void FireOnWrapperStarted()
         {
-            foreach (var ext in Extensions)
+            foreach (var ext in this.Extensions)
             {
                 try
                 {
@@ -47,7 +47,7 @@ namespace winsw.Extensions
         /// </summary>
         public void FireBeforeWrapperStopped()
         {
-            foreach (var ext in Extensions)
+            foreach (var ext in this.Extensions)
             {
                 try
                 {
@@ -66,7 +66,7 @@ namespace winsw.Extensions
         /// <param name="process">Process</param>
         public void FireOnProcessStarted(System.Diagnostics.Process process)
         {
-            foreach (var ext in Extensions)
+            foreach (var ext in this.Extensions)
             {
                 try
                 {
@@ -85,7 +85,7 @@ namespace winsw.Extensions
         /// <param name="process">Process</param>
         public void FireOnProcessTerminated(System.Diagnostics.Process process)
         {
-            foreach (var ext in Extensions)
+            foreach (var ext in this.Extensions)
             {
                 try
                 {
@@ -101,16 +101,16 @@ namespace winsw.Extensions
         // TODO: Implement loading of external extensions. Current version supports internal hack
         #region Extension load management
 
+        /// <summary>
         /// Loads extensions according to the configuration file.
         /// </summary>
-        /// <param name="logger">Logger</param>
         /// <exception cref="Exception">Loading failure</exception>
         public void LoadExtensions()
         {
-            var extensionIds = ServiceDescriptor.ExtensionIds;
+            var extensionIds = this.ServiceDescriptor.ExtensionIds;
             foreach (string extensionId in extensionIds)
             {
-                LoadExtension(extensionId);
+                this.LoadExtension(extensionId);
             }
         }
 
@@ -118,16 +118,15 @@ namespace winsw.Extensions
         /// Loads extensions from the configuration file
         /// </summary>
         /// <param name="id">Extension ID</param>
-        /// <param name="logger">Logger</param>
         /// <exception cref="Exception">Loading failure</exception>
         private void LoadExtension(string id)
         {
-            if (Extensions.ContainsKey(id))
+            if (this.Extensions.ContainsKey(id))
             {
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            XmlNode? extensionsConfig = ServiceDescriptor.ExtensionsConfiguration;
+            XmlNode? extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
             XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
             {
@@ -137,11 +136,11 @@ namespace winsw.Extensions
             var descriptor = WinSWExtensionDescriptor.FromXml(configNode);
             if (descriptor.Enabled)
             {
-                IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 try
                 {
-                    extension.Configure(ServiceDescriptor, configNode);
+                    extension.Configure(this.ServiceDescriptor, configNode);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
@@ -149,7 +148,7 @@ namespace winsw.Extensions
                     throw ex;
                 }
 
-                Extensions.Add(id, extension);
+                this.Extensions.Add(id, extension);
                 Log.Info("Extension loaded: " + id);
             }
             else

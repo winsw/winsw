@@ -1,7 +1,7 @@
 ﻿using System.Xml;
-using winsw.Util;
+using WinSW.Util;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     /// <summary>
     /// Describes WinSW extensions in <see cref="IWinSWExtension"/>
@@ -28,9 +28,9 @@ namespace winsw.Extensions
 
         private WinSWExtensionDescriptor(string id, string className, bool enabled)
         {
-            Id = id;
-            Enabled = enabled;
-            ClassName = className;
+            this.Id = id;
+            this.Enabled = enabled;
+            this.ClassName = className;
         }
 
         public static WinSWExtensionDescriptor FromXml(XmlElement node)

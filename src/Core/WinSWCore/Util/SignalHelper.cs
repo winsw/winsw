@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using log4net;
-using winsw.Native;
+using WinSW.Native;
 
-namespace winsw.Util
+namespace WinSW.Util
 {
     internal static class SignalHelper
     {

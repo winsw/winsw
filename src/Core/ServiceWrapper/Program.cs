@@ -18,13 +18,13 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using winsw.Logging;
-using winsw.Native;
-using winsw.Util;
+using WinSW.Logging;
+using WinSW.Native;
+using WinSW.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
-namespace winsw
+namespace WinSW
 {
     public static class Program
     {
@@ -86,8 +86,8 @@ namespace winsw
             }
 
             // Get service info for the future use
-            Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
-            Win32Service? svc = svcs.Select(descriptor.Id);
+            IWin32Services svcs = new WmiRoot().GetCollection<IWin32Services>();
+            IWin32Service? svc = svcs.Select(descriptor.Id);
 
             var args = new List<string>(Array.AsReadOnly(argsArray));
             if (args[0] == "/redirect")
@@ -452,7 +452,6 @@ namespace winsw
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
-
                 bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
@@ -537,6 +536,7 @@ namespace winsw
         {
             // TODO: Make logging levels configurable
             Level fileLogLevel = Level.Debug;
+
             // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted
             // This is a workaround till there is a better command line parsing, which will allow determining
             Level consoleLogLevel = Level.Info;
@@ -581,7 +581,7 @@ namespace winsw
             {
                 Name = "Wrapper event log",
                 Threshold = eventLogLevel,
-                provider = WrapperService.eventLogProvider,
+                Provider = WrapperService.eventLogProvider,
             };
             systemEventLogger.ActivateOptions();
             appenders.Add(systemEventLogger);

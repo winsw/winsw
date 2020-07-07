@@ -5,7 +5,7 @@ using System.Management;
 using System.Threading;
 using log4net;
 
-namespace winsw.Util
+namespace WinSW.Util
 {
     /// <summary>
     /// Provides helper classes for Process Management
@@ -76,6 +76,7 @@ namespace winsw.Util
                     {
                         Logger.Warn("Process " + pid + " did not respond to Ctrl+C signal - Killing as fallback");
                     }
+
                     proc.Kill();
                 }
                 catch (Exception ex)
@@ -126,14 +127,14 @@ namespace winsw.Util
         /// Once the process exits, the callback will be invoked.
         /// </summary>
         /// <param name="processToStart">Process object to be used</param>
-        /// <param name="arguments">Arguments to be passed</param>
         /// <param name="executable">Executable, which should be invoked</param>
+        /// <param name="arguments">Arguments to be passed</param>
         /// <param name="envVars">Additional environment variables</param>
         /// <param name="workingDirectory">Working directory</param>
         /// <param name="priority">Priority</param>
         /// <param name="callback">Completion callback. If null, the completion won't be monitored</param>
-        /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         /// <param name="redirectStdin">Redirect standard input</param>
+        /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         public static void StartProcessAndCallbackForExit(
             Process processToStart,
             string? executable = null,
@@ -161,6 +162,7 @@ namespace winsw.Util
                 foreach (string key in envVars.Keys)
                 {
                     Environment.SetEnvironmentVariable(key, envVars[key]);
+
                     // DONTDO: ps.EnvironmentVariables[key] = envs[key];
                     // bugged (lower cases all variable names due to StringDictionary being used, see http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=326163)
                 }
@@ -178,7 +180,7 @@ namespace winsw.Util
             if (logHandler != null)
             {
                 Logger.Debug("Forwarding logs of the process " + processToStart + " to " + logHandler);
-                logHandler.log(processToStart.StandardOutput, processToStart.StandardError);
+                logHandler.Log(processToStart.StandardOutput, processToStart.StandardError);
             }
 
             // monitor the completion of the process
