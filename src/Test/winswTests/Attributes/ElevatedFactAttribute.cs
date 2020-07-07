@@ -1,8 +1,7 @@
 ﻿using System;
-using winsw;
 using Xunit;
 
-namespace winswTests
+namespace WinSW.Tests
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     internal sealed class ElevatedFactAttribute : FactAttribute

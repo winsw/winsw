@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using log4net;
-using winsw.Util;
+using WinSW.Util;
 
-namespace winsw
+namespace WinSW
 {
     /// <summary>
     /// Specify the download activities prior to the launch.
@@ -17,9 +17,9 @@ namespace winsw
     {
         public enum AuthType
         {
-            none = 0,
-            sspi,
-            basic
+            None = 0,
+            Sspi,
+            Basic
         }
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Download));
@@ -33,7 +33,7 @@ namespace winsw
         public readonly bool FailOnError;
         public readonly string? Proxy;
 
-        public string ShortId => $"(download from {From})";
+        public string ShortId => $"(download from {this.From})";
 
 #if NET461
         static Download()
@@ -48,20 +48,20 @@ namespace winsw
             string from,
             string to,
             bool failOnError = false,
-            AuthType auth = AuthType.none,
+            AuthType auth = AuthType.None,
             string? username = null,
             string? password = null,
             bool unsecureAuth = false,
             string? proxy = null)
         {
-            From = from;
-            To = to;
-            FailOnError = failOnError;
-            Proxy = proxy;
-            Auth = auth;
-            Username = username;
-            Password = password;
-            UnsecureAuth = unsecureAuth;
+            this.From = from;
+            this.To = to;
+            this.FailOnError = failOnError;
+            this.Proxy = proxy;
+            this.Auth = auth;
+            this.Username = username;
+            this.Password = password;
+            this.UnsecureAuth = unsecureAuth;
         }
 
         /// <summary>
@@ -71,36 +71,36 @@ namespace winsw
         /// <exception cref="InvalidDataException">The required attribute is missing or the configuration is invalid</exception>
         internal Download(XmlElement n)
         {
-            From = XmlHelper.SingleAttribute<string>(n, "from");
-            To = XmlHelper.SingleAttribute<string>(n, "to");
+            this.From = XmlHelper.SingleAttribute<string>(n, "from");
+            this.To = XmlHelper.SingleAttribute<string>(n, "to");
 
             // All arguments below are optional
-            FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
-            Proxy = XmlHelper.SingleAttribute<string>(n, "proxy", null);
+            this.FailOnError = XmlHelper.SingleAttribute(n, "failOnError", false);
+            this.Proxy = XmlHelper.SingleAttribute<string>(n, "proxy", null);
 
-            Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.none);
-            Username = XmlHelper.SingleAttribute<string>(n, "user", null);
-            Password = XmlHelper.SingleAttribute<string>(n, "password", null);
-            UnsecureAuth = XmlHelper.SingleAttribute(n, "unsecureAuth", false);
+            this.Auth = XmlHelper.EnumAttribute(n, "auth", AuthType.None);
+            this.Username = XmlHelper.SingleAttribute<string>(n, "user", null);
+            this.Password = XmlHelper.SingleAttribute<string>(n, "password", null);
+            this.UnsecureAuth = XmlHelper.SingleAttribute(n, "unsecureAuth", false);
 
-            if (Auth == AuthType.basic)
+            if (this.Auth == AuthType.Basic)
             {
                 // Allow it only for HTTPS or for UnsecureAuth
-                if (!From.StartsWith("https:") && !UnsecureAuth)
+                if (!this.From.StartsWith("https:") && !this.UnsecureAuth)
                 {
-                    throw new InvalidDataException("Warning: you're sending your credentials in clear text to the server " + ShortId +
+                    throw new InvalidDataException("Warning: you're sending your credentials in clear text to the server " + this.ShortId +
                                                    "If you really want this you must enable 'unsecureAuth' in the configuration");
                 }
 
                 // Also fail if there is no user/password
-                if (Username is null)
+                if (this.Username is null)
                 {
-                    throw new InvalidDataException("Basic Auth is enabled, but username is not specified " + ShortId);
+                    throw new InvalidDataException("Basic Auth is enabled, but username is not specified " + this.ShortId);
                 }
 
-                if (Password is null)
+                if (this.Password is null)
                 {
-                    throw new InvalidDataException("Basic Auth is enabled, but password is not specified " + ShortId);
+                    throw new InvalidDataException("Basic Auth is enabled, but password is not specified " + this.ShortId);
                 }
             }
         }
@@ -121,10 +121,10 @@ namespace winsw
         /// </exception>
         public async Task PerformAsync()
         {
-            WebRequest request = WebRequest.Create(From);
-            if (!string.IsNullOrEmpty(Proxy))
+            WebRequest request = WebRequest.Create(this.From);
+            if (!string.IsNullOrEmpty(this.Proxy))
             {
-                CustomProxyInformation proxyInformation = new CustomProxyInformation(Proxy);
+                CustomProxyInformation proxyInformation = new CustomProxyInformation(this.Proxy!);
                 if (proxyInformation.Credentials != null)
                 {
                     request.Proxy = new WebProxy(proxyInformation.ServerAddress, false, null, proxyInformation.Credentials);
@@ -135,35 +135,35 @@ namespace winsw
                 }
             }
 
-            switch (Auth)
+            switch (this.Auth)
             {
-                case AuthType.none:
+                case AuthType.None:
                     // Do nothing
                     break;
 
-                case AuthType.sspi:
+                case AuthType.Sspi:
                     request.UseDefaultCredentials = true;
                     request.PreAuthenticate = true;
                     request.Credentials = CredentialCache.DefaultCredentials;
                     break;
 
-                case AuthType.basic:
-                    SetBasicAuthHeader(request, Username!, Password!);
+                case AuthType.Basic:
+                    this.SetBasicAuthHeader(request, this.Username!, this.Password!);
                     break;
 
                 default:
-                    throw new WebException("Code defect. Unsupported authentication type: " + Auth);
+                    throw new WebException("Code defect. Unsupported authentication type: " + this.Auth);
             }
 
             bool supportsIfModifiedSince = false;
-            if (request is HttpWebRequest httpRequest && File.Exists(To))
+            if (request is HttpWebRequest httpRequest && File.Exists(this.To))
             {
                 supportsIfModifiedSince = true;
-                httpRequest.IfModifiedSince = File.GetLastWriteTime(To);
+                httpRequest.IfModifiedSince = File.GetLastWriteTime(this.To);
             }
 
             DateTime lastModified = default;
-            string tmpFilePath = To + ".tmp";
+            string tmpFilePath = this.To + ".tmp";
             try
             {
                 using (WebResponse response = await request.GetResponseAsync())
@@ -178,18 +178,18 @@ namespace winsw
                     await responseStream.CopyToAsync(tmpStream);
                 }
 
-                FileHelper.MoveOrReplaceFile(To + ".tmp", To);
+                FileHelper.MoveOrReplaceFile(this.To + ".tmp", this.To);
 
                 if (supportsIfModifiedSince)
                 {
-                    File.SetLastWriteTime(To, lastModified);
+                    File.SetLastWriteTime(this.To, lastModified);
                 }
             }
             catch (WebException e)
             {
                 if (supportsIfModifiedSince && ((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotModified)
                 {
-                    Logger.Info($"Skipped downloading unmodified resource '{From}'");
+                    Logger.Info($"Skipped downloading unmodified resource '{this.From}'");
                 }
                 else
                 {
@@ -201,8 +201,9 @@ namespace winsw
 
     public class CustomProxyInformation
     {
-        public string ServerAddress { get; set; }
-        public NetworkCredential? Credentials { get; set; }
+        public string ServerAddress { get; }
+
+        public NetworkCredential? Credentials { get; }
 
         public CustomProxyInformation(string proxy)
         {
@@ -216,12 +217,12 @@ namespace winsw
 
                 string username = completeCredsStr.Substring(0, credsSeparator);
                 string password = completeCredsStr.Substring(credsSeparator + 1);
-                Credentials = new NetworkCredential(username, password);
-                ServerAddress = proxy.Replace(completeCredsStr + "@", "");
+                this.Credentials = new NetworkCredential(username, password);
+                this.ServerAddress = proxy.Replace(completeCredsStr + "@", null);
             }
             else
             {
-                ServerAddress = proxy;
+                this.ServerAddress = proxy;
             }
         }
     }

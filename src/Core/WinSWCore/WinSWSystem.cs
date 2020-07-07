@@ -1,4 +1,4 @@
-﻿namespace winsw
+﻿namespace WinSW
 {
     /// <summary>
     /// Class, which contains generic information about WinSW runtime.
@@ -9,17 +9,17 @@
         /// <summary>
         /// Prefix for all environment variables being injected for WinSW
         /// </summary>
-        public static readonly string SYSTEM_EVNVVAR_PREFIX = "WINSW_";
+        public static readonly string SystemEnvVarPrefix = "WINSW_";
 
         /// <summary>
         /// Variable, which points to the service ID.
         /// It may be used to determine runaway processes.
         /// </summary>
-        public static string ENVVAR_NAME_SERVICE_ID => SYSTEM_EVNVVAR_PREFIX + "SERVICE_ID";
+        public static string EnvVarNameServiceId => SystemEnvVarPrefix + "SERVICE_ID";
 
         /// <summary>
         /// Variable, which specifies path to the executable being launched by WinSW.
         /// </summary>
-        public static string ENVVAR_NAME_EXECUTABLE_PATH => SYSTEM_EVNVVAR_PREFIX + "EXECUTABLE";
+        public static string EnvVarNameExecutablePath => SystemEnvVarPrefix + "EXECUTABLE";
     }
 }

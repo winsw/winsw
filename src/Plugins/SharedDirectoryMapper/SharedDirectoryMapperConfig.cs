@@ -1,22 +1,24 @@
 ﻿using System.Xml;
-using winsw.Util;
+using WinSW.Util;
 
-namespace winsw.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins.SharedDirectoryMapper
 {
     /// <summary>
     /// Stores configuration entries for SharedDirectoryMapper extension.
     /// </summary>
     public class SharedDirectoryMapperConfig
     {
-        public bool EnableMapping { get; set; }
-        public string Label { get; set; }
-        public string UNCPath { get; set; }
+        public bool EnableMapping { get; }
+
+        public string Label { get; }
+
+        public string UNCPath { get; }
 
         public SharedDirectoryMapperConfig(bool enableMapping, string label, string uncPath)
         {
-            EnableMapping = enableMapping;
-            Label = label;
-            UNCPath = uncPath;
+            this.EnableMapping = enableMapping;
+            this.Label = label;
+            this.UNCPath = uncPath;
         }
 
         public static SharedDirectoryMapperConfig FromXml(XmlElement node)

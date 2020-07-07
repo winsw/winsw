@@ -4,11 +4,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using winsw;
-using winswTests.Util;
+using WinSW.Tests.Util;
 using Xunit;
 
-namespace winswTests
+namespace WinSW.Tests
 {
     public class DownloadTests : IDisposable
     {
@@ -107,7 +106,7 @@ namespace winswTests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    await new Download(source, dest, false, Download.AuthType.none).PerformAsync();
+                    await new Download(source, dest, false, Download.AuthType.None).PerformAsync();
                     Assert.Equal(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>
@@ -132,7 +131,7 @@ namespace winswTests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    await new Download(source, dest, false, Download.AuthType.basic, username, password, true).PerformAsync();
+                    await new Download(source, dest, false, Download.AuthType.Basic, username, password, true).PerformAsync();
                     Assert.Equal(this.contents, File.ReadAllBytes(dest));
                 },
                 context =>

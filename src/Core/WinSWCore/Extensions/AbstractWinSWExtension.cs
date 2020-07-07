@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     public abstract class AbstractWinSWExtension : IWinSWExtension
     {

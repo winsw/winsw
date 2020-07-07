@@ -3,10 +3,10 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using winsw.Plugins.SharedDirectoryMapper;
+using WinSW.Plugins.SharedDirectoryMapper;
 using Xunit;
 
-namespace winswTests.Extensions
+namespace WinSW.Tests.Extensions
 {
     // TODO: Assert.Throws<ExtensionException>
     public class SharedDirectoryMapperTests

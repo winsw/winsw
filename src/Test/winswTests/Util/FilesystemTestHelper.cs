@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace winswTests.Util
+namespace WinSW.Tests.Util
 {
-    class FilesystemTestHelper
+    internal class FilesystemTestHelper
     {
         /// <summary>
         /// Creates a temporary directory for testing.

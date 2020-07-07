@@ -1,16 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using winsw;
-using winsw.Configuration;
+using WinSW.Configuration;
 using Xunit;
 
-namespace winswTests.Util
+namespace WinSW.Tests.Util
 {
     public static class ServiceDescriptorAssert
     {
         // TODO: convert to Extension attributes once the .NET dependency is upgraded
         // BTW there is a way to get them working in .NET2, but KISS
-
         public static void AssertPropertyIsDefault(ServiceDescriptor desc, string property)
         {
             PropertyInfo actualProperty = typeof(ServiceDescriptor).GetProperty(property);

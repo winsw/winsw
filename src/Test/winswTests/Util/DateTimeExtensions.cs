@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace winswTests.Util
+namespace WinSW.Tests.Util
 {
     internal static class DateTimeExtensions
     {

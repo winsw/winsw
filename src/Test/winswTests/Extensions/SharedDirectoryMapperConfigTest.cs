@@ -1,15 +1,14 @@
-﻿using winsw;
-using winsw.Extensions;
-using winsw.Plugins.SharedDirectoryMapper;
+﻿using WinSW.Extensions;
+using WinSW.Plugins.SharedDirectoryMapper;
 using Xunit;
 
-namespace winswTests.Extensions
+namespace WinSW.Tests.Extensions
 {
     public class SharedDirectoryMapperConfigTest : ExtensionTestBase
     {
-        readonly ServiceDescriptor _testServiceDescriptor;
+        private readonly ServiceDescriptor testServiceDescriptor;
 
-        readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
+        private readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
         public SharedDirectoryMapperConfigTest()
         {
@@ -22,13 +21,13 @@ $@"<service>
   <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
   <log mode=""roll""></log>
   <extensions>
-    <extension enabled=""true"" className=""{testExtension}"" id=""mapNetworDirs"">
+    <extension enabled=""true"" className=""{this.testExtension}"" id=""mapNetworDirs"">
       <mapping>
         <map enabled=""false"" label=""N:"" uncpath=""\\UNC""/>
         <map enabled=""false"" label=""M:"" uncpath=""\\UNC2""/>
       </mapping>
     </extension>
-    <extension enabled=""true"" className=""{testExtension}"" id=""mapNetworDirs2"">
+    <extension enabled=""true"" className=""{this.testExtension}"" id=""mapNetworDirs2"">
       <mapping>
         <map enabled=""false"" label=""X:"" uncpath=""\\UNC""/>
         <map enabled=""false"" label=""Y:"" uncpath=""\\UNC2""/>
@@ -36,13 +35,13 @@ $@"<service>
     </extension>
   </extensions>
 </service>";
-            _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this.testServiceDescriptor = ServiceDescriptor.FromXml(seedXml);
         }
 
         [Fact]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
             manager.LoadExtensions();
             Assert.Equal(2, manager.Extensions.Count);
         }
@@ -50,7 +49,7 @@ $@"<service>
         [Fact]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();

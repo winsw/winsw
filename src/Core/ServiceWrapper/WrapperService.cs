@@ -8,36 +8,37 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
-using winsw.Extensions;
-using winsw.Logging;
-using winsw.Native;
-using winsw.Util;
+using WinSW.Extensions;
+using WinSW.Logging;
+using WinSW.Native;
+using WinSW.Util;
 
-namespace winsw
+namespace WinSW
 {
-    public class WrapperService : ServiceBase, EventLogger
+    public class WrapperService : ServiceBase, IEventLogger
     {
-        private ServiceApis.SERVICE_STATUS _wrapperServiceStatus;
+        private ServiceApis.SERVICE_STATUS wrapperServiceStatus;
 
-        private readonly Process _process = new Process();
-        private readonly ServiceDescriptor _descriptor;
-        private Dictionary<string, string>? _envs;
+        private readonly Process process = new Process();
+        private readonly ServiceDescriptor descriptor;
+        private Dictionary<string, string>? envs;
 
-        internal WinSWExtensionManager ExtensionManager { get; private set; }
+        internal WinSWExtensionManager ExtensionManager { get; }
 
         private static readonly ILog Log = LogManager.GetLogger(
 #if NETCOREAPP
             Assembly.GetExecutingAssembly(),
 #endif
             "WinSW");
+
         internal static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
         /// so don't try to kill us when the child exits.
         /// </summary>
-        private bool _orderlyShutdown;
-        private bool _systemShuttingdown;
+        private bool orderlyShutdown;
+        private bool systemShuttingdown;
 
         /// <summary>
         /// Version of Windows service wrapper
@@ -50,24 +51,25 @@ namespace winsw
         /// <summary>
         /// Indicates that the system is shutting down.
         /// </summary>
-        public bool IsShuttingDown => _systemShuttingdown;
+        public bool IsShuttingDown => this.systemShuttingdown;
 
         public WrapperService(ServiceDescriptor descriptor)
         {
-            _descriptor = descriptor;
-            ServiceName = _descriptor.Id;
-            ExtensionManager = new WinSWExtensionManager(_descriptor);
-            CanShutdown = true;
-            CanStop = true;
-            CanPauseAndContinue = false;
-            AutoLog = true;
-            _systemShuttingdown = false;
+            this.descriptor = descriptor;
+            this.ServiceName = this.descriptor.Id;
+            this.ExtensionManager = new WinSWExtensionManager(this.descriptor);
+            this.CanShutdown = true;
+            this.CanStop = true;
+            this.CanPauseAndContinue = false;
+            this.AutoLog = true;
+            this.systemShuttingdown = false;
 
             // Register the event log provider
-            eventLogProvider.service = this;
+            eventLogProvider.Service = this;
         }
 
-        public WrapperService() : this(new ServiceDescriptor())
+        public WrapperService()
+            : this(new ServiceDescriptor())
         {
         }
 
@@ -77,9 +79,11 @@ namespace winsw
         /// </summary>
         private void HandleFileCopies()
         {
-            var file = _descriptor.BasePath + ".copies";
+            var file = this.descriptor.BasePath + ".copies";
             if (!File.Exists(file))
+            {
                 return; // nothing to handle
+            }
 
             try
             {
@@ -87,15 +91,15 @@ namespace winsw
                 string? line;
                 while ((line = tr.ReadLine()) != null)
                 {
-                    LogEvent("Handling copy: " + line);
+                    this.LogEvent("Handling copy: " + line);
                     string[] tokens = line.Split('>');
                     if (tokens.Length > 2)
                     {
-                        LogEvent("Too many delimiters in " + line);
+                        this.LogEvent("Too many delimiters in " + line);
                         continue;
                     }
 
-                    MoveFile(tokens[0], tokens[1]);
+                    this.MoveFile(tokens[0], tokens[1]);
                 }
             }
             finally
@@ -115,7 +119,7 @@ namespace winsw
             }
             catch (IOException e)
             {
-                LogEvent("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+                this.LogEvent("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
         }
 
@@ -125,21 +129,21 @@ namespace winsw
         /// <returns>Log Handler, which should be used for the spawned process</returns>
         private LogHandler CreateExecutableLogHandler()
         {
-            string logDirectory = _descriptor.LogDirectory;
+            string logDirectory = this.descriptor.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = _descriptor.LogHandler;
+            LogHandler logAppender = this.descriptor.LogHandler;
             logAppender.EventLogger = this;
             return logAppender;
         }
 
         public void LogEvent(string message)
         {
-            if (_systemShuttingdown)
+            if (this.systemShuttingdown)
             {
                 /* NOP - cannot call EventLog because of shutdown. */
             }
@@ -147,7 +151,7 @@ namespace winsw
             {
                 try
                 {
-                    EventLog.WriteEntry(message);
+                    this.EventLog.WriteEntry(message);
                 }
                 catch (Exception e)
                 {
@@ -158,7 +162,7 @@ namespace winsw
 
         public void LogEvent(string message, EventLogEntryType type)
         {
-            if (_systemShuttingdown)
+            if (this.systemShuttingdown)
             {
                 /* NOP - cannot call EventLog because of shutdown. */
             }
@@ -166,7 +170,7 @@ namespace winsw
             {
                 try
                 {
-                    EventLog.WriteEntry(message, type);
+                    this.EventLog.WriteEntry(message, type);
                 }
                 catch (Exception e)
                 {
@@ -177,24 +181,18 @@ namespace winsw
 
         protected override void OnStart(string[] args)
         {
-            _envs = _descriptor.EnvironmentVariables;
-            // TODO: Disabled according to security concerns in https://github.com/kohsuke/winsw/issues/54
-            // Could be restored, but unlikely it's required in event logs at all
-            /**
-            foreach (string key in _envs.Keys)
-            {
-                LogEvent("envar " + key + '=' + _envs[key]);
-            }*/
-            HandleFileCopies();
+            this.envs = this.descriptor.EnvironmentVariables;
+
+            this.HandleFileCopies();
 
             // handle downloads
-            List<Download> downloads = _descriptor.Downloads;
+            List<Download> downloads = this.descriptor.Downloads;
             Task[] tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
             {
                 Download download = downloads[i];
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
-                LogEvent(downloadMessage);
+                this.LogEvent(downloadMessage);
                 Log.Info(downloadMessage);
                 tasks[i] = download.PerformAsync();
             }
@@ -213,7 +211,7 @@ namespace winsw
                         Download download = downloads[i];
                         string errorMessage = $"Failed to download {download.From} to {download.To}";
                         AggregateException exception = tasks[i].Exception!;
-                        LogEvent($"{errorMessage}. {exception.Message}");
+                        this.LogEvent($"{errorMessage}. {exception.Message}");
                         Log.Error(errorMessage, exception);
 
                         // TODO: move this code into the download logic
@@ -227,34 +225,34 @@ namespace winsw
                 throw new AggregateException(exceptions);
             }
 
-            string? startArguments = _descriptor.StartArguments;
+            string? startArguments = this.descriptor.StartArguments;
 
             if (startArguments is null)
             {
-                startArguments = _descriptor.Arguments;
+                startArguments = this.descriptor.Arguments;
             }
             else
             {
-                startArguments += " " + _descriptor.Arguments;
+                startArguments += " " + this.descriptor.Arguments;
             }
 
-            // Converting newlines, line returns, tabs into a single 
+            // Converting newlines, line returns, tabs into a single
             // space. This allows users to provide multi-line arguments
             // in the xml for readability.
             startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
 
-            LogEvent("Starting " + _descriptor.Executable + ' ' + startArguments);
-            Log.Info("Starting " + _descriptor.Executable + ' ' + startArguments);
+            this.LogEvent("Starting " + this.descriptor.Executable + ' ' + startArguments);
+            Log.Info("Starting " + this.descriptor.Executable + ' ' + startArguments);
 
             // Load and start extensions
-            ExtensionManager.LoadExtensions();
-            ExtensionManager.FireOnWrapperStarted();
+            this.ExtensionManager.LoadExtensions();
+            this.ExtensionManager.FireOnWrapperStarted();
 
-            LogHandler executableLogHandler = CreateExecutableLogHandler();
-            StartProcess(_process, startArguments, _descriptor.Executable, executableLogHandler, true);
-            ExtensionManager.FireOnProcessStarted(_process);
+            LogHandler executableLogHandler = this.CreateExecutableLogHandler();
+            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler, true);
+            this.ExtensionManager.FireOnProcessStarted(this.process);
 
-            _process.StandardInput.Close(); // nothing for you to read!
+            this.process.StandardInput.Close(); // nothing for you to read!
         }
 
         protected override void OnShutdown()
@@ -263,8 +261,8 @@ namespace winsw
 
             try
             {
-                _systemShuttingdown = true;
-                StopIt();
+                this.systemShuttingdown = true;
+                this.StopIt();
             }
             catch (Exception ex)
             {
@@ -278,7 +276,7 @@ namespace winsw
 
             try
             {
-                StopIt();
+                this.StopIt();
             }
             catch (Exception ex)
             {
@@ -295,18 +293,18 @@ namespace winsw
         /// </summary>
         private void StopIt()
         {
-            string? stopArguments = _descriptor.StopArguments;
-            LogEvent("Stopping " + _descriptor.Id);
-            Log.Info("Stopping " + _descriptor.Id);
-            _orderlyShutdown = true;
+            string? stopArguments = this.descriptor.StopArguments;
+            this.LogEvent("Stopping " + this.descriptor.Id);
+            Log.Info("Stopping " + this.descriptor.Id);
+            this.orderlyShutdown = true;
 
             if (stopArguments is null)
             {
                 try
                 {
-                    Log.Debug("ProcessKill " + _process.Id);
-                    ProcessHelper.StopProcessTree(_process, _descriptor.StopTimeout);
-                    ExtensionManager.FireOnProcessTerminated(_process);
+                    Log.Debug("ProcessKill " + this.process.Id);
+                    ProcessHelper.StopProcessTree(this.process, this.descriptor.StopTimeout);
+                    this.ExtensionManager.FireOnProcessTerminated(this.process);
                 }
                 catch (InvalidOperationException)
                 {
@@ -315,48 +313,48 @@ namespace winsw
             }
             else
             {
-                SignalShutdownPending();
+                this.SignalShutdownPending();
 
-                stopArguments += " " + _descriptor.Arguments;
+                stopArguments += " " + this.descriptor.Arguments;
 
                 Process stopProcess = new Process();
-                string? executable = _descriptor.StopExecutable;
+                string? executable = this.descriptor.StopExecutable;
 
-                executable ??= _descriptor.Executable;
+                executable ??= this.descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                StartProcess(stopProcess, stopArguments, executable, null, false);
+                this.StartProcess(stopProcess, stopArguments, executable, null, false);
 
-                Log.Debug("WaitForProcessToExit " + _process.Id + "+" + stopProcess.Id);
-                WaitForProcessToExit(_process);
-                WaitForProcessToExit(stopProcess);
+                Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
+                this.WaitForProcessToExit(this.process);
+                this.WaitForProcessToExit(stopProcess);
             }
 
             // Stop extensions
-            ExtensionManager.FireBeforeWrapperStopped();
+            this.ExtensionManager.FireBeforeWrapperStopped();
 
-            if (_systemShuttingdown && _descriptor.BeepOnShutdown)
+            if (this.systemShuttingdown && this.descriptor.BeepOnShutdown)
             {
                 Console.Beep();
             }
 
-            Log.Info("Finished " + _descriptor.Id);
+            Log.Info("Finished " + this.descriptor.Id);
         }
 
         private void WaitForProcessToExit(Process processoWait)
         {
-            SignalShutdownPending();
+            this.SignalShutdownPending();
 
             int effectiveProcessWaitSleepTime;
-            if (_descriptor.SleepTime.TotalMilliseconds > int.MaxValue)
+            if (this.descriptor.SleepTime.TotalMilliseconds > int.MaxValue)
             {
-                Log.Warn("The requested sleep time " + _descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " +
+                Log.Warn("The requested sleep time " + this.descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " +
                     int.MaxValue + ". The value will be truncated");
                 effectiveProcessWaitSleepTime = int.MaxValue;
             }
             else
             {
-                effectiveProcessWaitSleepTime = (int)_descriptor.SleepTime.TotalMilliseconds;
+                effectiveProcessWaitSleepTime = (int)this.descriptor.SleepTime.TotalMilliseconds;
             }
 
             try
@@ -365,7 +363,7 @@ namespace winsw
 
                 while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
                 {
-                    SignalShutdownPending();
+                    this.SignalShutdownPending();
                     // WriteEvent("WaitForProcessToExit [repeat]");
                 }
             }
@@ -380,27 +378,27 @@ namespace winsw
         private void SignalShutdownPending()
         {
             int effectiveWaitHint;
-            if (_descriptor.WaitHint.TotalMilliseconds > int.MaxValue)
+            if (this.descriptor.WaitHint.TotalMilliseconds > int.MaxValue)
             {
-                Log.Warn("The requested WaitHint value (" + _descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
+                Log.Warn("The requested WaitHint value (" + this.descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
                     int.MaxValue + ". The value will be truncated");
                 effectiveWaitHint = int.MaxValue;
             }
             else
             {
-                effectiveWaitHint = (int)_descriptor.WaitHint.TotalMilliseconds;
+                effectiveWaitHint = (int)this.descriptor.WaitHint.TotalMilliseconds;
             }
 
-            RequestAdditionalTime(effectiveWaitHint);
+            this.RequestAdditionalTime(effectiveWaitHint);
         }
 
         private void SignalShutdownComplete()
         {
-            IntPtr handle = ServiceHandle;
-            _wrapperServiceStatus.CheckPoint++;
+            IntPtr handle = this.ServiceHandle;
+            this.wrapperServiceStatus.CheckPoint++;
             // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            _wrapperServiceStatus.CurrentState = ServiceControllerStatus.Stopped;
-            ServiceApis.SetServiceStatus(handle, _wrapperServiceStatus);
+            this.wrapperServiceStatus.CurrentState = ServiceControllerStatus.Stopped;
+            ServiceApis.SetServiceStatus(handle, this.wrapperServiceStatus);
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
@@ -411,25 +409,28 @@ namespace winsw
                 string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
                 try
                 {
-                    if (_orderlyShutdown)
+                    if (this.orderlyShutdown)
                     {
-                        LogEvent("Child process [" + msg + "] terminated with " + proc.ExitCode, EventLogEntryType.Information);
+                        this.LogEvent("Child process [" + msg + "] terminated with " + proc.ExitCode, EventLogEntryType.Information);
                     }
                     else
                     {
-                        LogEvent("Child process [" + msg + "] finished with " + proc.ExitCode, EventLogEntryType.Warning);
+                        this.LogEvent("Child process [" + msg + "] finished with " + proc.ExitCode, EventLogEntryType.Warning);
+
                         // if we finished orderly, report that to SCM.
                         // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
                         // restart the service automatically
                         if (proc.ExitCode == 0)
-                            SignalShutdownComplete();
+                        {
+                            this.SignalShutdownComplete();
+                        }
 
                         Environment.Exit(proc.ExitCode);
                     }
                 }
                 catch (InvalidOperationException ioe)
                 {
-                    LogEvent("WaitForExit " + ioe.Message);
+                    this.LogEvent("WaitForExit " + ioe.Message);
                 }
                 finally
                 {
@@ -442,13 +443,13 @@ namespace winsw
                 processToStart: processToStart,
                 executable: executable,
                 arguments: arguments,
-                envVars: _envs,
-                workingDirectory: _descriptor.WorkingDirectory,
-                priority: _descriptor.Priority,
+                envVars: this.envs,
+                workingDirectory: this.descriptor.WorkingDirectory,
+                priority: this.descriptor.Priority,
                 callback: OnProcessCompleted,
                 logHandler: logHandler,
                 redirectStdin: redirectStdin,
-                hideWindow: _descriptor.HideWindow);
+                hideWindow: this.descriptor.HideWindow);
         }
     }
 }

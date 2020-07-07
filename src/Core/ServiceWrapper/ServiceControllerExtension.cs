@@ -2,7 +2,7 @@
 using System.ServiceProcess;
 using TimeoutException = System.ServiceProcess.TimeoutException;
 
-namespace winsw
+namespace WinSW
 {
     internal static class ServiceControllerExtension
     {

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
-using winsw;
-using winswTests.Util;
+using WinSW.Tests.Util;
 using Xunit;
 
-namespace winswTests.Configuration
+namespace WinSW.Tests.Configuration
 {
     /// <summary>
     /// Tests example configuration files.

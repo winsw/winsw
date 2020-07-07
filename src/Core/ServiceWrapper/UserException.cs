@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace winsw
+namespace WinSW
 {
     internal sealed class UserException : Exception
     {
