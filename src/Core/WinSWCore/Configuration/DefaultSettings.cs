@@ -12,7 +12,8 @@ namespace winsw.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
-        public static DefaultWinSWSettings defaults = new DefaultWinSWSettings();
+
+        public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
 
         public string Id => throw new InvalidOperationException(nameof(Id) + " must be specified.");
         public string Caption => throw new InvalidOperationException(nameof(Caption) + " must be specified.");
@@ -49,41 +50,52 @@ namespace winsw.Configuration
 
         // Logging
         public Log Log { get => new LogDefaults(); }
-        public string LogDirectory => Path.GetDirectoryName(ExecutablePath)!;
-        public string LogMode => Log.Mode;
+        public string LogDirectory => DefaultLogSettings.Directory;
+        public string LogMode => DefaultLogSettings.Mode;
 
         public bool OutFileDisabled => Log.OutFileDisabled;
         public bool ErrFileDisabled => Log.ErrFileDisabled;
         public string OutFilePattern => Log.OutFilePattern;
         public string ErrFilePattern => Log.ErrFilePattern;
 
+
         public class LogDefaults : Log
         {
-            
-            public override string Mode  => "append";
+            readonly DefaultWinSWSettings defaults;
+            readonly ServiceDescriptorYaml serviceDescriptorYaml;
 
-            public override string? Name => throw new NotImplementedException();
+            public LogDefaults()
+            {
+                defaults = new DefaultWinSWSettings();
+                serviceDescriptorYaml = new ServiceDescriptorYaml();
+            }
 
-            public override string? Directory => throw new NotImplementedException();
+            public override string Mode => "append";
 
-            public override int? SizeThreshold => throw new NotImplementedException();
+            public override string? Name => serviceDescriptorYaml.BaseName;
 
-            public override int? KeepFiles => throw new NotImplementedException();
+            public override string Directory => Path.GetDirectoryName(defaults.ExecutablePath)!;
 
-            public override string? Pattern => throw new NotImplementedException();
+            public override int? SizeThreshold => 1024 * 10 * RollingSizeTimeLogAppender.BYTES_PER_KB;
 
-            public override int? Period => throw new NotImplementedException();
+            public override int? KeepFiles => SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP;
+
+            public override string? Pattern =>
+                throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+
+            public override int? Period => 1;
 
             public override bool OutFileDisabled { get => false; }
             public override bool ErrFileDisabled { get => false; }
             public override string OutFilePattern { get => ".out.log"; }
             public override string ErrFilePattern { get => ".err.log"; }
 
-            public override string? AutoRollAtTime => throw new NotImplementedException();
+            public override string? AutoRollAtTime => null;
 
-            public override int? ZipOlderThanNumDays => throw new NotImplementedException();
+            public override int? ZipOlderThanNumDays =>
+                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
 
-            public override string? ZipDateFormat => throw new NotImplementedException();
+            public override string? ZipDateFormat => null;
         }
 
         // Environment
@@ -95,5 +107,6 @@ namespace winsw.Configuration
 
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
+
     }
 }
