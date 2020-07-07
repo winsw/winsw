@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
+using System.IO;
 using System.Xml;
 using winsw.Native;
 using WMI;
@@ -11,6 +11,7 @@ namespace winsw.Configuration
 {
     public class YamlConfiguration : IWinSWConfiguration
     {
+
         public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         [YamlMember(Alias = "id")]
@@ -42,7 +43,6 @@ namespace winsw.Configuration
 
         [YamlMember(Alias = "log")]
         public YamlLog? _YAMLLog { get; set; }
-        public Log? Log => _YAMLLog;
 
         [YamlMember(Alias = "download")]
         public List<YamlDownload>? _Downloads { get; set; }
@@ -61,13 +61,13 @@ namespace winsw.Configuration
 
         [YamlMember(Alias = "stopParentProcessFirst")]
         public bool? _StopParentProcessFirst { get; set; }
-        
+
         [YamlMember(Alias = "resetFailureAfter")]
         public TimeSpan? _ResetFailureAfter { get; set; }
 
         [YamlMember(Alias = "stopTimeout")]
         public TimeSpan? _StopTimeout { get; set; }
-        
+
         [YamlMember(Alias = "startMode")]
         public StartMode? _StartMode { get; set; }
 
@@ -89,7 +89,7 @@ namespace winsw.Configuration
         [YamlMember(Alias = "beepOnShutdown")]
         public bool BeepOnShutdown { get; set; }
 
-        [YamlMember(Alias = "environmentVariables")]
+        [YamlMember(Alias = "env")]
         public Dictionary<string, string>? _EnvironmentVariables { get; set; }
 
         [YamlMember(Alias = "failureActions")]
@@ -98,17 +98,24 @@ namespace winsw.Configuration
         [YamlMember(Alias = "delayedAutoStart")]
         public bool DelayedAutoStart { get; set; }
 
+        [YamlMember(Alias = "securityDescriptor")]
+        public string? _SecurityDescriptor { get; set; }
 
         public class YamlLog : Log
         {
+
+            private readonly YamlConfiguration configs;
+
+            public YamlLog()
+            {
+                configs = new YamlConfiguration();
+            }
+
             [YamlMember(Alias = "mode")]
             public string? _Mode { get; set; }
 
             [YamlMember(Alias = "name")]
             public string? _Name { get; set; }
-
-            [YamlMember(Alias = "directory")]
-            public string? _Directory { get; set; }
 
             [YamlMember(Alias = "sizeThreshold")]
             public int? _SizeThreshold { get; set; }
@@ -119,17 +126,19 @@ namespace winsw.Configuration
             [YamlMember(Alias = "pattern")]
             public string? _Pattern { get; set; }
 
-
             [YamlMember(Alias = "period")]
             public int? _Period { get; set; }
+
+            [YamlMember(Alias = "logpath")]
+            public string? _LogPath { get; set; }
 
 
             // Filters
             [YamlMember(Alias = "outFileDisabled")]
-            public bool _OutFileDisabled { get; set; }
+            public bool? _OutFileDisabled { get; set; }
 
             [YamlMember(Alias = "errFileDisabled")]
-            public bool _ErrFileDisabled { get; set; }
+            public bool? _ErrFileDisabled { get; set; }
 
             [YamlMember(Alias = "outFilePattern")]
             public string? _OutFilePattern;
@@ -148,33 +157,78 @@ namespace winsw.Configuration
             [YamlMember(Alias = "zipDateFormat")]
             public string? _ZipDateFormat { get; set; }
 
-            public override string? Mode => _Mode;
+            public override string Mode => _Mode is null ?
+                DefaultWinSWSettings.DefaultLogSettings.Mode :
+                _Mode;
 
-            public override string? Name => _Name;
+            public override string? Name => _Name is null ?
+                DefaultWinSWSettings.DefaultLogSettings.Name :
+                Environment.ExpandEnvironmentVariables(_Name);
 
-            public override string? Directory => _Directory;
+            public override string Directory => _LogPath is null ?
+                DefaultWinSWSettings.DefaultLogSettings.Directory :
+                Environment.ExpandEnvironmentVariables(_LogPath);
 
-            public override int? SizeThreshold => _SizeThreshold;
+            public override int? SizeThreshold => _SizeThreshold is null ?
+                DefaultWinSWSettings.DefaultLogSettings.SizeThreshold :
+                _SizeThreshold * RollingSizeTimeLogAppender.BYTES_PER_KB;
 
-            public override int? KeepFiles => _KeepFiles;
+            public override int? KeepFiles => _KeepFiles is null ?
+                DefaultWinSWSettings.DefaultLogSettings.KeepFiles :
+                _KeepFiles;
 
-            public override string? Pattern => _Pattern;
 
-            public override int? Period => _Period;
+            public override string? Pattern
+            {
+                get
+                {
+                    if (_Pattern != null)
+                    {
+                        return _Pattern;
+                    }
 
-            public override bool OutFileDisabled => _OutFileDisabled;
+                    return DefaultWinSWSettings.DefaultLogSettings.Pattern;
+                }
+            }
 
-            public override bool ErrFileDisabled => _ErrFileDisabled;
+            public override int? Period => _Period is null ? 1 : _Period;
 
-            public override string OutFilePattern => _OutFilePattern;
+            public override bool OutFileDisabled => _OutFileDisabled is null ?
+                DefaultWinSWSettings.DefaultLogSettings.OutFileDisabled :
+                (bool)_OutFileDisabled;
 
-            public override string ErrFilePattern => _ErrFilePattern;
+            public override bool ErrFileDisabled => _ErrFileDisabled is null ?
+                configs.Defaults.ErrFileDisabled :
+                (bool)_ErrFileDisabled;
 
-            public override string? AutoRollAtTime => _AutoRollAtTime;
+            public override string OutFilePattern => _OutFilePattern is null ?
+                DefaultWinSWSettings.DefaultLogSettings.OutFilePattern :
+                Environment.ExpandEnvironmentVariables(_OutFilePattern);
 
-            public override int? ZipOlderThanNumDays => _ZipOlderThanNumDays;
+            public override string ErrFilePattern => _ErrFilePattern is null ?
+                DefaultWinSWSettings.DefaultLogSettings.ErrFilePattern :
+                Environment.ExpandEnvironmentVariables(_ErrFilePattern);
 
-            public override string? ZipDateFormat => _ZipDateFormat;
+            public override string? AutoRollAtTime => _AutoRollAtTime is null ?
+                DefaultWinSWSettings.DefaultLogSettings.AutoRollAtTime :
+                _AutoRollAtTime;
+
+            public override int? ZipOlderThanNumDays
+            {
+                get
+                {
+                    if (_ZipOlderThanNumDays != null)
+                    {
+                        return _ZipOlderThanNumDays;
+                    }
+
+                    return DefaultWinSWSettings.DefaultLogSettings.ZipOlderThanNumDays;
+                }
+            }
+
+            public override string? ZipDateFormat => _ZipDateFormat is null ?
+                DefaultWinSWSettings.DefaultLogSettings.ZipDateFormat :
+                _ZipDateFormat;
         }
 
         public class YamlDownload : Download
@@ -235,8 +289,7 @@ namespace winsw.Configuration
                 }
             }
 
-            string newArgs = Regex.Replace(args, @"\\n", " ");
-            return newArgs;
+            return Environment.ExpandEnvironmentVariables(args);
         }
 
         private enum ArgType
@@ -272,15 +325,15 @@ namespace winsw.Configuration
         }
 
 
-        public string Id => string.IsNullOrEmpty(_Id) ? Defaults.Id : _Id;
+        public string Id => _Id is null ? Defaults.Id : _Id;
 
-        public string Description => string.IsNullOrEmpty(_Description) ? Defaults.Description : _Description;
+        public string Description => _Description is null ? Defaults.Description : _Description;
 
-        public string Executable => string.IsNullOrEmpty(_Executable) ? Defaults.Executable : _Executable;
-        
-        public string ExecutablePath => string.IsNullOrEmpty(_ExecutablePath) ? Defaults.ExecutablePath : _ExecutablePath;
+        public string Executable => _Executable is null ? Defaults.Executable : _Executable;
 
-        public string Caption => string.IsNullOrEmpty(_Caption) ? Defaults.Caption : _Caption;
+        public string ExecutablePath => _ExecutablePath is null ? Defaults.ExecutablePath : _ExecutablePath;
+
+        public string Caption => _Caption is null ? Defaults.Caption : _Caption;
 
         public bool HideWindow => _HideWindow is null ? Defaults.HideWindow : (bool)_HideWindow;
 
@@ -310,6 +363,7 @@ namespace winsw.Configuration
                 }
 
                 var arr = new List<SC_ACTION>();
+
                 foreach (var item in YamlFailureActions)
                 {
                     arr.Add(new SC_ACTION(item.Type, item.Delay));
@@ -319,11 +373,11 @@ namespace winsw.Configuration
             }
         }
 
-        public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ? 
-            Defaults.ResetFailureAfter : 
+        public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ?
+            Defaults.ResetFailureAfter :
             (TimeSpan)_ResetFailureAfter;
 
-        public string WorkingDirectory => string.IsNullOrEmpty(_WorkingDirectory) ?
+        public string WorkingDirectory => _WorkingDirectory is null ?
             Defaults.WorkingDirectory :
             _WorkingDirectory;
 
@@ -331,8 +385,8 @@ namespace winsw.Configuration
 
         public TimeSpan StopTimeout => _StopTimeout is null ? Defaults.StopTimeout : (TimeSpan)_StopTimeout;
 
-        public string[] ServiceDependencies => _ServiceDependencies is null ? 
-            Defaults.ServiceDependencies : 
+        public string[] ServiceDependencies => _ServiceDependencies is null ?
+            Defaults.ServiceDependencies :
             _ServiceDependencies;
 
         public TimeSpan WaitHint => _WaitHint is null ? Defaults.WaitHint : (TimeSpan)_WaitHint;
@@ -343,18 +397,34 @@ namespace winsw.Configuration
 
         public List<Download> Downloads => GetDownloads(_Downloads);
 
-        public Dictionary<string, string> EnvironmentVariables => _EnvironmentVariables is null ? 
-            Defaults.EnvironmentVariables :
-            _EnvironmentVariables;
+        public Dictionary<string, string> EnvironmentVariables
+        {
+            get
+            {
+                if (_EnvironmentVariables is null)
+                {
+                    return Defaults.EnvironmentVariables;
+                }
+
+                var dictionary = new Dictionary<string, string>();
+                foreach (var item in _EnvironmentVariables)
+                {
+                    dictionary[item.Key] = Environment.ExpandEnvironmentVariables(item.Value);
+                }
+
+                return dictionary;
+            }
+        }
+
 
         //Service Account
         public string? ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
 
-        public string? ServiceAccountUser => ServiceAccount is null ? 
-            null : 
+        public string? ServiceAccountUser => ServiceAccount is null ?
+            null :
             (ServiceAccount.Domain ?? ".") + "\\" + ServiceAccount.Name;
 
-        
+
         public bool AllowServiceAcountLogonRight => ServiceAccount.AllowServiceAcountLogonRight is null ?
             Defaults.AllowServiceAcountLogonRight :
             (bool)ServiceAccount.AllowServiceAcountLogonRight;
@@ -366,9 +436,11 @@ namespace winsw.Configuration
 
 
         //Log
-        public string? LogDirectory => Log != null ? Log.Directory : Defaults.LogDirectory;
+        public Log Log => _YAMLLog is null ? (Log)DefaultWinSWSettings.DefaultLogSettings : _YAMLLog;
 
-        public string LogMode => Log != null ? Log.Mode : Defaults.LogMode;
+        public string LogDirectory => Log.Directory;
+
+        public string LogMode => Log.Mode;
 
         // TODO
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
