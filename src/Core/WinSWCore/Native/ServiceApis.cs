@@ -4,7 +4,7 @@ using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class ServiceApis
     {

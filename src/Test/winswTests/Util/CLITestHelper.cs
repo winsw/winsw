@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
-using winsw;
 using Xunit;
 
-namespace winswTests.Util
+namespace WinSW.Tests.Util
 {
     /// <summary>
     /// Helper for WinSW CLI testing
@@ -25,7 +24,7 @@ $@"<service>
   <logpath>C:\winsw\logs</logpath>
 </service>";
 
-        public static readonly ServiceDescriptor DefaultServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+        public static readonly ServiceDescriptor DefaultServiceDescriptor = ServiceDescriptor.FromXml(SeedXml);
 
         /// <summary>
         /// Runs a simle test, which returns the output CLI
@@ -115,13 +114,13 @@ $@"<service>
 
         public Exception Exception { get; }
 
-        public bool HasException => Exception != null;
+        public bool HasException => this.Exception != null;
 
         public CLITestResult(string output, string error, Exception exception = null)
         {
-            Out = output;
-            Error = error;
-            Exception = exception;
+            this.Out = output;
+            this.Error = error;
+            this.Exception = exception;
         }
     }
 }

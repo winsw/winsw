@@ -1,10 +1,9 @@
 ﻿using System;
 using System.ServiceProcess;
-using winsw;
-using winswTests.Util;
+using WinSW.Tests.Util;
 using Xunit;
 
-namespace winswTests
+namespace WinSW.Tests
 {
     public class MainTest
     {
@@ -47,6 +46,7 @@ namespace winswTests
             Assert.Contains("start", cliOut);
             Assert.Contains("help", cliOut);
             Assert.Contains("version", cliOut);
+
             // TODO: check all commands after the migration of ccommands to enum
         }
 

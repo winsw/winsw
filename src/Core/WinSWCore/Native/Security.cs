@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using static winsw.Native.SecurityApis;
+using static WinSW.Native.SecurityApis;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class Security
     {

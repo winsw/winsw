@@ -1,7 +1,7 @@
 ﻿using System.Xml;
-using winsw.Util;
+using WinSW.Util;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     /// <summary>
     /// Describes WinSW extensions in <see cref="IWinSWExtension"/>
@@ -14,23 +14,23 @@ namespace winsw.Extensions
         /// <summary>
         /// Unique extension ID
         /// </summary>
-        public string Id { get; private set; }
+        public string Id { get; }
 
         /// <summary>
         /// Exception is enabled
         /// </summary>
-        public bool Enabled { get; private set; }
+        public bool Enabled { get; }
 
         /// <summary>
         /// Extension classname
         /// </summary>
-        public string ClassName { get; private set; }
+        public string ClassName { get; }
 
         private WinSWExtensionDescriptor(string id, string className, bool enabled)
         {
-            Id = id;
-            Enabled = enabled;
-            ClassName = className;
+            this.Id = id;
+            this.Enabled = enabled;
+            this.ClassName = className;
         }
 
         public static WinSWExtensionDescriptor FromXml(XmlElement node)

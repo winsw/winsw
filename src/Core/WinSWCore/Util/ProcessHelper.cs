@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using log4net;
-using static winsw.Native.ProcessApis;
+using static WinSW.Native.ProcessApis;
 
-namespace winsw.Util
+namespace WinSW.Util
 {
     /// <summary>
     /// Provides helper classes for Process Management
@@ -73,8 +73,6 @@ namespace winsw.Util
         /// Stops the process.
         /// If the process cannot be stopped within the stop timeout, it gets killed
         /// </summary>
-        /// <param name="pid">PID of the process</param>
-        /// <param name="stopTimeout">Stop timeout</param>
         public static void StopProcess(Process process, TimeSpan stopTimeout)
         {
             Logger.Info("Stopping process " + process.Id);
@@ -97,6 +95,7 @@ namespace winsw.Util
                     {
                         Logger.Warn("Process " + process.Id + " did not respond to Ctrl+C signal - Killing as fallback");
                     }
+
                     process.Kill();
                 }
                 catch (Exception ex)
@@ -118,8 +117,6 @@ namespace winsw.Util
         /// Terminate process and its children.
         /// By default the child processes get terminated first.
         /// </summary>
-        /// <param name="pid">Process PID</param>
-        /// <param name="stopTimeout">Stop timeout (for each process)</param>
         public static void StopProcessTree(Process process, TimeSpan stopTimeout)
         {
             StopProcess(process, stopTimeout);
@@ -135,14 +132,14 @@ namespace winsw.Util
         /// Once the process exits, the callback will be invoked.
         /// </summary>
         /// <param name="processToStart">Process object to be used</param>
-        /// <param name="arguments">Arguments to be passed</param>
         /// <param name="executable">Executable, which should be invoked</param>
+        /// <param name="arguments">Arguments to be passed</param>
         /// <param name="envVars">Additional environment variables</param>
         /// <param name="workingDirectory">Working directory</param>
         /// <param name="priority">Priority</param>
         /// <param name="callback">Completion callback. If null, the completion won't be monitored</param>
-        /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         /// <param name="redirectStdin">Redirect standard input</param>
+        /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         public static void StartProcessAndCallbackForExit(
             Process processToStart,
             string? executable = null,
@@ -191,7 +188,7 @@ namespace winsw.Util
             if (logHandler != null)
             {
                 Logger.Debug("Forwarding logs of the process " + processToStart + " to " + logHandler);
-                logHandler.log(processToStart.StandardOutput, processToStart.StandardError);
+                logHandler.Log(processToStart.StandardOutput, processToStart.StandardError);
             }
 
             // monitor the completion of the process

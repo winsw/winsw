@@ -2,15 +2,15 @@
 using System.ComponentModel;
 using System.Xml;
 using log4net;
-using winsw.Extensions;
-using winsw.Util;
-using static winsw.Plugins.SharedDirectoryMapper.NativeMethods;
+using WinSW.Extensions;
+using WinSW.Util;
+using static WinSW.Plugins.SharedDirectoryMapper.NativeMethods;
 
-namespace winsw.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins.SharedDirectoryMapper
 {
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {
-        private readonly List<SharedDirectoryMapperConfig> _entries = new List<SharedDirectoryMapperConfig>();
+        private readonly List<SharedDirectoryMapperConfig> entries = new List<SharedDirectoryMapperConfig>();
 
         public override string DisplayName => "Shared Directory Mapper";
 
@@ -23,7 +23,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         public SharedDirectoryMapper(bool enableMapping, string directoryUNC, string driveLabel)
         {
             SharedDirectoryMapperConfig config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
-            this._entries.Add(config);
+            this.entries.Add(config);
         }
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
@@ -36,7 +36,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
                     if (mapNodes[i] is XmlElement mapElement)
                     {
                         var config = SharedDirectoryMapperConfig.FromXml(mapElement);
-                        this._entries.Add(config);
+                        this.entries.Add(config);
                     }
                 }
             }
@@ -44,7 +44,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
 
         public override void OnWrapperStarted()
         {
-            foreach (SharedDirectoryMapperConfig config in this._entries)
+            foreach (SharedDirectoryMapperConfig config in this.entries)
             {
                 string label = config.Label;
                 string uncPath = config.UNCPath;
@@ -72,7 +72,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
 
         public override void BeforeWrapperStopped()
         {
-            foreach (SharedDirectoryMapperConfig config in this._entries)
+            foreach (SharedDirectoryMapperConfig config in this.entries)
             {
                 string label = config.Label;
                 if (config.EnableMapping)

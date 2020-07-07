@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using winsw;
-using winsw.Extensions;
-using winsw.Plugins.RunawayProcessKiller;
-using winsw.Util;
-using winswTests.Util;
+using WinSW.Extensions;
+using WinSW.Plugins.RunawayProcessKiller;
+using WinSW.Tests.Util;
+using WinSW.Util;
 using Xunit;
 
-namespace winswTests.Extensions
+namespace WinSW.Tests.Extensions
 {
     public class RunawayProcessKillerExtensionTest : ExtensionTestBase
     {
-        readonly ServiceDescriptor _testServiceDescriptor;
+        private readonly ServiceDescriptor testServiceDescriptor;
 
-        readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
+        private readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
 
         public RunawayProcessKillerExtensionTest()
         {
@@ -27,19 +26,19 @@ $@"<service>
   <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
   <log mode=""roll""></log>
   <extensions>
-    <extension enabled=""true"" className=""{testExtension}"" id=""killRunawayProcess"">
+    <extension enabled=""true"" className=""{this.testExtension}"" id=""killRunawayProcess"">
       <pidfile>foo/bar/pid.txt</pidfile>
       <stopTimeout>5000</stopTimeout>
     </extension>
   </extensions>
 </service>";
-            _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this.testServiceDescriptor = ServiceDescriptor.FromXml(seedXml);
         }
 
         [Fact]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
             manager.LoadExtensions();
             _ = Assert.Single(manager.Extensions);
 
@@ -53,7 +52,7 @@ $@"<service>
         [Fact]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();
@@ -72,14 +71,14 @@ $@"<service>
             ps.Arguments = "/c pause";
             ps.UseShellExecute = false;
             ps.RedirectStandardOutput = true;
-            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID] = winswId;
+            ps.EnvironmentVariables[WinSWSystem.EnvVarNameServiceId] = winswId;
             proc.Start();
 
             try
             {
                 // Generate extension and ensure that the roundtrip is correct
                 var pidfile = Path.Combine(tmpDir, "process.pid");
-                var sd = ConfigXmlBuilder.create(id: winswId)
+                var sd = ConfigXmlBuilder.Create(id: winswId)
                     .WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile), extensionId)
                     .ToServiceDescriptor();
                 WinSWExtensionManager manager = new WinSWExtensionManager(sd);

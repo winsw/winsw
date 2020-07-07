@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
-using static winsw.Native.ServiceApis;
+using static WinSW.Native.ServiceApis;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     public enum SC_ACTION_TYPE
     {
@@ -198,7 +198,8 @@ namespace winsw.Native
         {
             fixed (SC_ACTION* actionsPtr = actions)
             {
-                if (!ChangeServiceConfig2(this.handle,
+                if (!ChangeServiceConfig2(
+                    this.handle,
                     ServiceConfigInfoLevels.FAILURE_ACTIONS,
                     new SERVICE_FAILURE_ACTIONS
                     {

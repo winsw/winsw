@@ -1,8 +1,10 @@
-﻿using System;
+﻿#pragma warning disable SA1310 // Field names should not contain underscore
+
+using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class ProcessApis
     {
@@ -46,12 +48,14 @@ namespace winsw.Native
         [StructLayout(LayoutKind.Sequential)]
         internal unsafe struct PROCESS_BASIC_INFORMATION
         {
+#pragma warning disable SA1306 // Field names should begin with lower-case letter
             private readonly IntPtr Reserved1;
             private readonly IntPtr PebBaseAddress;
             private readonly IntPtr Reserved2_1;
             private readonly IntPtr Reserved2_2;
             internal readonly IntPtr UniqueProcessId;
             internal readonly IntPtr InheritedFromUniqueProcessId;
+#pragma warning restore SA1306 // Field names should begin with lower-case letter
         }
 
         internal struct PROCESS_INFORMATION

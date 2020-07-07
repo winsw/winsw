@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace winswTests.Extensions
+namespace WinSW.Tests.Extensions
 {
     /// <summary>
     /// Base class for testing of WinSW Extensions.

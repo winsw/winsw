@@ -16,10 +16,10 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using winsw.Logging;
-using winsw.Native;
+using WinSW.Logging;
+using WinSW.Native;
 
-namespace winsw
+namespace WinSW
 {
     public static class Program
     {
@@ -456,7 +456,6 @@ namespace winsw
 
                         default:
                             throw;
-
                     }
                 }
             }
@@ -530,7 +529,6 @@ namespace winsw
 
                         default:
                             throw;
-
                     }
                 }
 
@@ -723,7 +721,7 @@ namespace winsw
             {
                 Name = "Wrapper event log",
                 Threshold = eventLogLevel,
-                provider = WrapperService.eventLogProvider,
+                Provider = WrapperService.eventLogProvider,
             };
             systemEventLogger.ActivateOptions();
             appenders.Add(systemEventLogger);

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace winsw.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins.SharedDirectoryMapper
 {
     internal static class NativeMethods
     {
