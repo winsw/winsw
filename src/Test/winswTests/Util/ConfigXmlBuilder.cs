@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using winsw;
-using winsw.Plugins.RunawayProcessKiller;
+using WinSW;
+using WinSW.Plugins.RunawayProcessKiller;
 using winswTests.Extensions;
 
 namespace winswTests.Util
@@ -25,8 +25,8 @@ namespace winswTests.Util
         // TODO: Switch to the initializer?
         private ConfigXmlBuilder()
         {
-            configEntries = new List<string>();
-            ExtensionXmls = new List<string>();
+            this.configEntries = new List<string>();
+            this.ExtensionXmls = new List<string>();
         }
 
         public static ConfigXmlBuilder create(string id = null, string name = null,
@@ -48,33 +48,33 @@ namespace winswTests.Util
         public string ToXMLString(bool dumpConfig = false)
         {
             StringBuilder str = new StringBuilder();
-            if (PrintXMLVersion)
+            if (this.PrintXMLVersion)
             {
                 // TODO: The encoding is generally wrong
                 str.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
             }
 
-            if (XMLComment != null)
+            if (this.XMLComment != null)
             {
-                str.AppendFormat("<!--{0}-->\n", XMLComment);
+                str.AppendFormat("<!--{0}-->\n", this.XMLComment);
             }
 
             str.Append("<service>\n");
-            str.AppendFormat("  <id>{0}</id>\n", Id);
-            str.AppendFormat("  <name>{0}</name>\n", Name);
-            str.AppendFormat("  <description>{0}</description>\n", Description);
-            str.AppendFormat("  <executable>{0}</executable>\n", Executable);
-            foreach (string entry in configEntries)
+            str.AppendFormat("  <id>{0}</id>\n", this.Id);
+            str.AppendFormat("  <name>{0}</name>\n", this.Name);
+            str.AppendFormat("  <description>{0}</description>\n", this.Description);
+            str.AppendFormat("  <executable>{0}</executable>\n", this.Executable);
+            foreach (string entry in this.configEntries)
             {
                 // We do not care much about pretty formatting here
                 str.AppendFormat("  {0}\n", entry);
             }
 
             // Extensions
-            if (ExtensionXmls.Count > 0)
+            if (this.ExtensionXmls.Count > 0)
             {
                 str.Append("  <extensions>\n");
-                foreach (string xml in ExtensionXmls)
+                foreach (string xml in this.ExtensionXmls)
                 {
                     str.Append(xml);
                 }
@@ -95,18 +95,18 @@ namespace winswTests.Util
 
         public ServiceDescriptor ToServiceDescriptor(bool dumpConfig = false)
         {
-            return ServiceDescriptor.FromXML(ToXMLString(dumpConfig));
+            return ServiceDescriptor.FromXML(this.ToXMLString(dumpConfig));
         }
 
         public ConfigXmlBuilder WithRawEntry(string entry)
         {
-            configEntries.Add(entry);
+            this.configEntries.Add(entry);
             return this;
         }
 
         public ConfigXmlBuilder WithTag(string tagName, string value)
         {
-            return WithRawEntry(string.Format("<{0}>{1}</{0}>", tagName, value));
+            return this.WithRawEntry(string.Format("<{0}>{1}</{0}>", tagName, value));
         }
 
         public ConfigXmlBuilder WithRunawayProcessKiller(RunawayProcessKillerExtension ext, string extensionId = "killRunawayProcess", bool enabled = true)
@@ -119,7 +119,7 @@ namespace winswTests.Util
             str.AppendFormat("      <stopParentFirst>{0}</stopParentFirst>\n", ext.StopParentProcessFirst);
             str.AppendFormat("      <checkWinSWEnvironmentVariable>{0}</checkWinSWEnvironmentVariable>\n", ext.CheckWinSWEnvironmentVariable);
             str.Append("    </extension>\n");
-            ExtensionXmls.Add(str.ToString());
+            this.ExtensionXmls.Add(str.ToString());
 
             return this;
         }
@@ -130,10 +130,10 @@ namespace winswTests.Util
             xml.Append($"<download from=\"{download.From}\" to=\"{download.To}\" failOnError=\"{download.FailOnError}\"");
 
             // Authentication
-            if (download.Auth != Download.AuthType.none)
+            if (download.Auth != Download.AuthType.None)
             {
                 xml.Append($" auth=\"{download.Auth}\"");
-                if (download.Auth == Download.AuthType.basic)
+                if (download.Auth == Download.AuthType.Basic)
                 {
                     string username = download.Username;
                     if (username != null)
@@ -156,12 +156,12 @@ namespace winswTests.Util
 
             xml.Append("/>");
 
-            return WithRawEntry(xml.ToString());
+            return this.WithRawEntry(xml.ToString());
         }
 
         public ConfigXmlBuilder WithDelayedAutoStart()
         {
-            return WithRawEntry("<delayedAutoStart/>");
+            return this.WithRawEntry("<delayedAutoStart/>");
         }
     }
 }

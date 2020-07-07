@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace winsw.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins.SharedDirectoryMapper
 {
     class SharedDirectoryMappingHelper
     {
@@ -42,7 +42,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         /// <exception cref="MapperException">Operation failure</exception>
         public void MapDirectory(string label, string uncPath)
         {
-            InvokeCommand("net.exe", " use " + label + " " + uncPath);
+            this.InvokeCommand("net.exe", " use " + label + " " + uncPath);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         /// <exception cref="MapperException">Operation failure</exception>
         public void UnmapDirectory(string label)
         {
-            InvokeCommand("net.exe", " use /DELETE /YES " + label);
+            this.InvokeCommand("net.exe", " use /DELETE /YES " + label);
         }
     }
 
@@ -64,8 +64,8 @@ namespace winsw.Plugins.SharedDirectoryMapper
         public MapperException(Process process, string command, string args)
             : base("Command " + command + " " + args + " failed with code " + process.ExitCode)
         {
-            Call = command + " " + args;
-            Process = process;
+            this.Call = command + " " + args;
+            this.Process = process;
         }
     }
 }

@@ -1,20 +1,20 @@
 ﻿using System.Diagnostics;
 
-namespace winsw.Logging
+namespace WinSW.Logging
 {
     /// <summary>
     /// Implements caching of the WindowsService reference in WinSW.
     /// </summary>
     public class WrapperServiceEventLogProvider : IServiceEventLogProvider
     {
-        public WrapperService? service { get; set; }
+        public WrapperService? Service { get; set; }
 
-        public EventLog? locate()
+        public EventLog? Locate()
         {
-            WrapperService? _service = service;
-            if (_service != null && !_service.IsShuttingDown)
+            WrapperService? service = this.Service;
+            if (service != null && !service.IsShuttingDown)
             {
-                return _service.EventLog;
+                return service.EventLog;
             }
 
             // By default return null

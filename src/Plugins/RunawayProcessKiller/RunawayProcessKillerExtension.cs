@@ -5,11 +5,11 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using log4net;
-using winsw.Extensions;
-using winsw.Util;
-using static winsw.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
+using WinSW.Extensions;
+using WinSW.Util;
+using static WinSW.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
 
-namespace winsw.Plugins.RunawayProcessKiller
+namespace WinSW.Plugins.RunawayProcessKiller
 {
     public partial class RunawayProcessKillerExtension : AbstractWinSWExtension
     {
@@ -183,13 +183,13 @@ namespace winsw.Plugins.RunawayProcessKiller
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
-            Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
-            StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
-            StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
-            ServiceId = descriptor.Id;
+            this.Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
+            this.StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
+            this.ServiceId = descriptor.Id;
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
-            CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
+            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }
 
         /// <summary>
@@ -200,16 +200,16 @@ namespace winsw.Plugins.RunawayProcessKiller
         {
             // Read PID file from the disk
             int pid;
-            if (File.Exists(Pidfile))
+            if (File.Exists(this.Pidfile))
             {
                 string pidstring;
                 try
                 {
-                    pidstring = File.ReadAllText(Pidfile);
+                    pidstring = File.ReadAllText(this.Pidfile);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Cannot read PID file from " + Pidfile, ex);
+                    Logger.Error("Cannot read PID file from " + this.Pidfile, ex);
                     return;
                 }
 
@@ -219,13 +219,13 @@ namespace winsw.Plugins.RunawayProcessKiller
                 }
                 catch (FormatException e)
                 {
-                    Logger.Error("Invalid PID file number in '" + Pidfile + "'. The runaway process won't be checked", e);
+                    Logger.Error("Invalid PID file number in '" + this.Pidfile + "'. The runaway process won't be checked", e);
                     return;
                 }
             }
             else
             {
-                Logger.Warn("The requested PID file '" + Pidfile + "' does not exist. The runaway process won't be checked");
+                Logger.Warn("The requested PID file '" + this.Pidfile + "' does not exist. The runaway process won't be checked");
                 return;
             }
 
@@ -243,9 +243,9 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Ensure the process references the service
-            string expectedEnvVarName = WinSWSystem.ENVVAR_NAME_SERVICE_ID;
+            string expectedEnvVarName = WinSWSystem.EnvVarNameServiceId;
             string? affiliatedServiceId = ReadEnvironmentVariable(proc.Handle, expectedEnvVarName);
-            if (affiliatedServiceId is null && CheckWinSWEnvironmentVariable)
+            if (affiliatedServiceId is null && this.CheckWinSWEnvironmentVariable)
             {
                 Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. "
                     + "The process has not been started by WinSW, hence it won't be terminated.");
@@ -254,10 +254,10 @@ namespace winsw.Plugins.RunawayProcessKiller
             }
 
             // Check the service ID value
-            if (CheckWinSWEnvironmentVariable && !ServiceId.Equals(affiliatedServiceId))
+            if (this.CheckWinSWEnvironmentVariable && !this.ServiceId.Equals(affiliatedServiceId))
             {
                 Logger.Warn("The process " + pid + " has been started by Windows service with ID='" + affiliatedServiceId + "'. "
-                    + "It is another service (current service id is '" + ServiceId + "'), hence the process won't be terminated.");
+                    + "It is another service (current service id is '" + this.ServiceId + "'), hence the process won't be terminated.");
                 return;
             }
 
@@ -265,7 +265,7 @@ namespace winsw.Plugins.RunawayProcessKiller
             StringBuilder bldr = new StringBuilder("Stopping the runaway process (pid=");
             bldr.Append(pid);
             bldr.Append(") and its children. Environment was ");
-            if (!CheckWinSWEnvironmentVariable)
+            if (!this.CheckWinSWEnvironmentVariable)
             {
                 bldr.Append("not ");
             }
@@ -285,14 +285,14 @@ namespace winsw.Plugins.RunawayProcessKiller
         /// <param name="process"></param>
         public override void OnProcessStarted(Process process)
         {
-            Logger.Info("Recording PID of the started process:" + process.Id + ". PID file destination is " + Pidfile);
+            Logger.Info("Recording PID of the started process:" + process.Id + ". PID file destination is " + this.Pidfile);
             try
             {
-                File.WriteAllText(Pidfile, process.Id.ToString());
+                File.WriteAllText(this.Pidfile, process.Id.ToString());
             }
             catch (Exception ex)
             {
-                Logger.Error("Cannot update the PID file " + Pidfile, ex);
+                Logger.Error("Cannot update the PID file " + this.Pidfile, ex);
             }
         }
     }

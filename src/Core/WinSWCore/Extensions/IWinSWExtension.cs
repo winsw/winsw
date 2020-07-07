@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     /// <summary>
     /// Interface for Win Service Wrapper Extension

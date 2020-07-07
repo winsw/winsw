@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Xml;
 using log4net;
-using winsw.Extensions;
-using winsw.Util;
+using WinSW.Extensions;
+using WinSW.Util;
 
-namespace winsw.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins.SharedDirectoryMapper
 {
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {
@@ -22,7 +22,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         public SharedDirectoryMapper(bool enableMapping, string directoryUNC, string driveLabel)
         {
             SharedDirectoryMapperConfig config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
-            _entries.Add(config);
+            this._entries.Add(config);
         }
 
         public override void Configure(ServiceDescriptor descriptor, XmlNode node)
@@ -35,7 +35,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
                     if (mapNodes[i] is XmlElement mapElement)
                     {
                         var config = SharedDirectoryMapperConfig.FromXml(mapElement);
-                        _entries.Add(config);
+                        this._entries.Add(config);
                     }
                 }
             }
@@ -43,40 +43,40 @@ namespace winsw.Plugins.SharedDirectoryMapper
 
         public override void OnWrapperStarted()
         {
-            foreach (SharedDirectoryMapperConfig config in _entries)
+            foreach (SharedDirectoryMapperConfig config in this._entries)
             {
                 if (config.EnableMapping)
                 {
-                    Logger.Info(DisplayName + ": Mapping shared directory " + config.UNCPath + " to " + config.Label);
+                    Logger.Info(this.DisplayName + ": Mapping shared directory " + config.UNCPath + " to " + config.Label);
                     try
                     {
-                        _mapper.MapDirectory(config.Label, config.UNCPath);
+                        this._mapper.MapDirectory(config.Label, config.UNCPath);
                     }
                     catch (MapperException ex)
                     {
-                        HandleMappingError(config, ex);
+                        this.HandleMappingError(config, ex);
                     }
                 }
                 else
                 {
-                    Logger.Warn(DisplayName + ": Mapping of " + config.Label + " is disabled");
+                    Logger.Warn(this.DisplayName + ": Mapping of " + config.Label + " is disabled");
                 }
             }
         }
 
         public override void BeforeWrapperStopped()
         {
-            foreach (SharedDirectoryMapperConfig config in _entries)
+            foreach (SharedDirectoryMapperConfig config in this._entries)
             {
                 if (config.EnableMapping)
                 {
                     try
                     {
-                        _mapper.UnmapDirectory(config.Label);
+                        this._mapper.UnmapDirectory(config.Label);
                     }
                     catch (MapperException ex)
                     {
-                        HandleMappingError(config, ex);
+                        this.HandleMappingError(config, ex);
                     }
                 }
             }
@@ -86,7 +86,7 @@ namespace winsw.Plugins.SharedDirectoryMapper
         {
             Logger.Error("Mapping of " + config.Label + " failed. STDOUT: " + ex.Process.StandardOutput.ReadToEnd()
                 + " \r\nSTDERR: " + ex.Process.StandardError.ReadToEnd(), ex);
-            throw new ExtensionException(Descriptor.Id, DisplayName + ": Mapping of " + config.Label + "failed", ex);
+            throw new ExtensionException(this.Descriptor.Id, this.DisplayName + ": Mapping of " + config.Label + "failed", ex);
         }
     }
 }
