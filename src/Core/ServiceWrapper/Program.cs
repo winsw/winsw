@@ -40,17 +40,10 @@ namespace winsw
 
             try
             {
-                if(args.Length == 0)
-                {
-                    RunParsed(new EmptyArgs());
-                }
-                else
-                {
-                    Parser.Default.ParseArguments(args, types)
+                Parser.Default.ParseArguments(args, types)
                         .WithParsed(RunParsed)
                         .WithNotParsed(HandleErrors);
-                }
-                
+
                 Log.Debug("Completed. Exit code is 0");
                 return 0;
             }
@@ -95,7 +88,9 @@ namespace winsw
         {
             var cliOption = (CliOption)obj;
 
-            bool inConsoleMode = obj.GetType().Name != "EmptyArgs"; 
+            bool inConsoleMode = obj.GetType().Name != "DefaultVerb";
+
+            Console.WriteLine(inConsoleMode);
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptor();
