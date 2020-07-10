@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using NUnit.Framework;
 using winsw;
 
@@ -64,6 +65,54 @@ description: This is test winsw";
             var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
 
             Assert.AreEqual(3, configs.Downloads.Count);
+        }
+
+        [Test]
+        public void Download_not_specified_test()
+        {
+            var yml = @"id: jenkins
+name: No Service Account
+";
+
+            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+
+            Assert.DoesNotThrow(() =>
+            {
+                var dowloads = configs.Downloads;
+            });
+        }
+
+        [Test]
+        public void Service_account_not_specified_test()
+        {
+            var yml = @"id: jenkins
+name: No Service Account
+";
+
+            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+
+            Assert.DoesNotThrow(() =>
+            {
+                var serviceAccount = configs.ServiceAccount.AllowServiceAcountLogonRight;
+            });
+        }
+
+        [Test]
+        public void Service_account_specified_but_fields_not_specified()
+        {
+            var yml = @"id: jenkins
+name: No Service Account
+serviceaccount:
+  user: testuser
+";
+
+            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+
+            Assert.DoesNotThrow(() =>
+            {
+                var serviceAccountName = configs.ServiceAccount.Name;
+                Console.WriteLine(serviceAccountName);
+            });
         }
     }
 }

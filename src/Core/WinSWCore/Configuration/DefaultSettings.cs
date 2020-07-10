@@ -12,7 +12,6 @@ namespace winsw.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
-
         public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
 
         public string Id => throw new InvalidOperationException(nameof(Id) + " must be specified.");
@@ -58,6 +57,15 @@ namespace winsw.Configuration
         public string OutFilePattern => Log.OutFilePattern;
         public string ErrFilePattern => Log.ErrFilePattern;
 
+
+        public ServiceAccount ServiceAccount => new ServiceAccount()
+        {
+            Name = null,
+            Domain = null,
+            User = null,
+            Password = null,
+            AllowServiceAcountLogonRight = false
+        };
 
         public class LogDefaults : Log
         {
