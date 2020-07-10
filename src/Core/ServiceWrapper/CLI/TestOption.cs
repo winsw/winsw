@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using System.Threading;
 using WMI;
 
 namespace winsw.CLI
@@ -8,7 +9,18 @@ namespace winsw.CLI
     {
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
-            throw new System.NotImplementedException();
+            if (!Program.elevated)
+            {
+                Elevate();
+                return;
+            }
+
+            var arguments = Parser.Default.FormatCommandLine(Program.cliOption).Split(' ');
+
+            WrapperService wsvc = new WrapperService(descriptor);
+            wsvc.RaiseOnStart(arguments);
+            Thread.Sleep(1000);
+            wsvc.RaiseOnStop();
         }
     }
 }

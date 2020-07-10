@@ -36,6 +36,8 @@ namespace winsw
 
         public static bool elevated;
 
+        public static CliOption cliOption;
+
         public static int Main(string[] args)
         {
             var types = LoadVerbs();
@@ -88,7 +90,7 @@ namespace winsw
 
         public static void Run(object obj, ServiceDescriptor? descriptor = null)
         {
-            var cliOption = (CliOption)obj;
+            cliOption = (CliOption)obj;
 
             bool inConsoleMode = obj.GetType().Name != "DefaultVerb";
 
@@ -147,9 +149,6 @@ namespace winsw
                 case StatusOption _:
                     Status();
                     return;
-                case TestOption testOption:
-                    Test(testOption);
-                    return;
                 case TestWaitOption testwaitOption:
                     TestWait(testwaitOption);
                     return;
@@ -173,22 +172,6 @@ namespace winsw
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
                 Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
-            }
-
-            void Test(object obj)
-            {
-                if (!elevated)
-                {
-                    Elevate();
-                    return;
-                }
-
-                var arguments = Parser.Default.FormatCommandLine(obj).Split(' ');
-
-                WrapperService wsvc = new WrapperService(descriptor);
-                wsvc.RaiseOnStart(arguments);
-                Thread.Sleep(1000);
-                wsvc.RaiseOnStop();
             }
 
             void TestWait(object obj)
