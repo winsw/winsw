@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using System;
 using WMI;
 
 namespace winsw.CLI
@@ -8,7 +9,8 @@ namespace winsw.CLI
     {
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
-            throw new System.NotImplementedException();
+            Program.Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
+            Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
         }
     }
 }

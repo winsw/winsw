@@ -146,9 +146,6 @@ namespace winsw
 
             switch (obj)
             {
-                case StatusOption _:
-                    Status();
-                    return;
                 case TestWaitOption testwaitOption:
                     TestWait(testwaitOption);
                     return;
@@ -165,13 +162,6 @@ namespace winsw
                 var handle = f.SafeFileHandle;
                 _ = Kernel32.SetStdHandle(-11, handle); // set stdout
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
-            }
-
-
-            void Status()
-            {
-                Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
-                Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
             }
 
             void TestWait(object obj)
