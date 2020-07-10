@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using System.Threading;
 using WMI;
 
 namespace winsw.CLI
@@ -8,7 +9,33 @@ namespace winsw.CLI
     {
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
-            throw new System.NotImplementedException();
+            var Log = Program.Log;
+
+            if (!Program.elevated)
+            {
+                Elevate();
+                return;
+            }
+
+            Log.Info("Stopping the service with id '" + descriptor.Id + "'");
+            if (svc is null)
+            {
+                Program.ThrowNoSuchService();
+            }
+
+            if (svc.Started)
+            {
+                svc.StopService();
+            }
+
+            while (svc != null && svc.Started)
+            {
+                Log.Info("Waiting the service to stop...");
+                Thread.Sleep(1000);
+                svc = svcs.Select(descriptor.Id);
+            }
+
+            Log.Info("The service stopped.");
         }
     }
 }

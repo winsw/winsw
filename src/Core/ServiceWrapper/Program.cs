@@ -144,9 +144,6 @@ namespace winsw
 
             switch (obj)
             {
-                case StopWaitOption _:
-                    StopWait();
-                    return;
                 case RestartOption _:
                     Restart();
                     return;
@@ -177,34 +174,7 @@ namespace winsw
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
             }
 
-            void StopWait()
-            {
-                if (!elevated)
-                {
-                    Elevate();
-                    return;
-                }
-
-                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    ThrowNoSuchService();
-                }
-
-                if (svc.Started)
-                {
-                    svc.StopService();
-                }
-
-                while (svc != null && svc.Started)
-                {
-                    Log.Info("Waiting the service to stop...");
-                    Thread.Sleep(1000);
-                    svc = svcs.Select(descriptor.Id);
-                }
-
-                Log.Info("The service stopped.");
-            }
+            
 
             void Restart()
             {
