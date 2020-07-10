@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
+using System.Xml.Schema;
 using winsw.Configuration;
 using winsw.Native;
 using winsw.Util;
@@ -67,7 +69,10 @@ namespace winsw
 
             try
             {
-                dom.Load(BasePath + ".xml");
+                using(var reader = new StreamReader(BasePath + ".xml"))
+                {
+                    dom = ServiceDescriptor.ValidateXMLSchema(reader);
+                }
             }
             catch (XmlException e)
             {
@@ -104,10 +109,38 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         public static ServiceDescriptor FromXML(string xml)
         {
-            var dom = new XmlDocument();
-            dom.LoadXml(xml);
-            return new ServiceDescriptor(dom);
+            return new ServiceDescriptor(ValidateXMLSchema(new StringReader(xml)));
         }
+
+
+        public static XmlDocument ValidateXMLSchema(TextReader textReader)
+        {
+            XmlReaderSettings settings = new XmlReaderSettings();
+            Assembly a = Assembly.GetExecutingAssembly();
+
+            settings.ValidationType = ValidationType.Schema;
+            settings.ValidationEventHandler += new ValidationEventHandler((object sender, ValidationEventArgs e) => {
+                if (e.Severity == XmlSeverityType.Error)
+                {
+                    throw new XmlException("[Error] XML validation - " + e.Message);
+                }
+            });
+
+            using (Stream schemaStream = a.GetManifestResourceStream("winsw.XMLSchema.xsd"))
+            {
+                using (XmlReader schemaReader = XmlReader.Create(schemaStream))
+                {
+                    settings.Schemas.Add(null, schemaReader);
+                }
+            }
+
+            var reader = XmlReader.Create(textReader, settings);
+
+            var xmlDoc = new XmlDocument();
+            xmlDoc.Load(reader);
+            return xmlDoc;
+        }
+
 
         private string SingleElement(string tagName)
         {

@@ -362,3 +362,7 @@ This is useful when the main process is a console, which can respond to Ctrl+C c
 ```xml
 <stopparentprocessfirst>true</stopparentprocessfirst>
 ```
+
+## XML schema validation
+
+We are using embedded [XSD schema file](../src/Core/WinSWCore/XMLSchema.xsd) to validate XML configuration files. You can follow this schema file when creating the XML configuration file.

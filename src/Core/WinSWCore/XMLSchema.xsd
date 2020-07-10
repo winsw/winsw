@@ -1,0 +1,140 @@
+﻿<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="service">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        
+        <xs:element name="id" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="executable" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="argument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="arguments" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="logmode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="workingdirectory" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="logpath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="delayedAutoStart" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="depend" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="startargument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="stopexecutable" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="stopargument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="stoptimeout" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="env" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="interactive" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="onfailure" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="securtityDescriptor" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="priority" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="stopparentprocessfirst" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="errfiledisabled" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="errfilepattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="logname" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="outfiledisabled" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="startmode" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="resetfailure" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="sleeptime" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="waithint" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="outfilepattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        
+
+        <!-- serviceaccount -->
+        <xs:element name="serviceaccount" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="domain" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="user" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="password" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="allowservicelogon" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+        <!-- serviceaccount -->
+        
+        
+        <!-- log -->
+        <xs:element name="log" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+              <xs:element name="sizeThreshold" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="keepFiles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="pattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="autoRollAtTime" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="period" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+            <xs:attribute type="xs:string" name="mode"/>
+          </xs:complexType>
+        </xs:element>
+        <!-- log -->
+        
+
+        <!-- download -->
+        <xs:element name="download" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="from"/>
+                <xs:attribute type="xs:string" name="to"/>
+                <xs:attribute type="xs:string" name="failOnError"/>
+                <xs:attribute type="xs:string" name="auth"/>
+                <xs:attribute type="xs:string" name="user"/>
+                <xs:attribute type="xs:string" name="password"/>
+                <xs:attribute type="xs:string" name="unsecureAuth"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <!-- download -->
+        
+        
+        <!-- extensions -->
+        <xs:element name="extensions" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+              
+              <!-- extension -->
+              <xs:element name="extension" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:choice maxOccurs="unbounded">
+                    <xs:element type="xs:string" name="pidfile" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element type="xs:short" name="stopTimeout" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element type="xs:string" name="stopParentFirst" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element type="xs:string" name="checkWinSWEnvironmentVariable" minOccurs="0" maxOccurs="unbounded"/>
+
+                    <!-- mapping -->
+                    <xs:element name="mapping" minOccurs="0" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:choice maxOccurs="unbounded">
+                          <xs:element name="map" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute type="xs:string" name="enabled" use="optional"/>
+                                  <xs:attribute type="xs:string" name="label" use="optional"/>
+                                  <xs:attribute type="xs:string" name="uncpath" use="optional"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:choice>
+                      </xs:complexType>
+                    </xs:element>
+                    <!-- mapping -->
+                    
+                  </xs:choice>
+                  <xs:attribute type="xs:string" name="enabled"/>
+                  <xs:attribute type="xs:string" name="true"/>
+                  <xs:attribute type="xs:string" name="className"/>
+                  <xs:attribute type="xs:string" name="id"/>
+                </xs:complexType>
+              </xs:element>
+              <!-- extension -->
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+        <!-- extensions -->
+        
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

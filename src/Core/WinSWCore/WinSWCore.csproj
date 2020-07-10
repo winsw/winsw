@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="XMLSchema.xsd" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
   </ItemGroup>
 
@@ -40,6 +44,10 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
     <PackageReference Include="SharpZipLib" Version="0.86.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="XMLSchema.xsd" />
   </ItemGroup>
 
 </Project>

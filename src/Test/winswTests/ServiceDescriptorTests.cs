@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Xml;
 using NUnit.Framework;
 using winsw;
+using winsw.Native;
 using winswTests.Util;
 using WMI;
 
@@ -440,6 +443,20 @@ $@"<service>
 
             var sd = bldr.ToServiceDescriptor();
             Assert.That(sd.DelayedAutoStart, Is.EqualTo(enabled));
+        }
+
+        [Test]
+        public void XmlValidationTest()
+        {
+            const string seedXml = @"<id>
+  <id>myapp</id>
+  <name>MyApp Service (powered by WinSW)</name>
+  <description>This service is a service created from a minimal configuration</description>
+  <executable>%BASE%\myExecutable.exe</executable>
+</id>
+";
+
+            Assert.That(() => ServiceDescriptor.FromXML(seedXml), Throws.TypeOf<XmlException>());
         }
     }
 }
