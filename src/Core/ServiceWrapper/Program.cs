@@ -144,9 +144,6 @@ namespace winsw
 
             switch (obj)
             {
-                case DoRestartOption _:
-                    RestartSelf();
-                    return;
                 case StatusOption _:
                     Status();
                     return;
@@ -171,24 +168,6 @@ namespace winsw
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
             }
 
-
-            void RestartSelf()
-            {
-                if (!elevated)
-                {
-                    throw new UnauthorizedAccessException("Access is denied.");
-                }
-
-                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-
-                // run restart from another process group. see README.md for why this is useful.
-
-                bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
-                if (!result)
-                {
-                    throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
-                }
-            }
 
             void Status()
             {
