@@ -144,9 +144,6 @@ namespace winsw
 
             switch (obj)
             {
-                case RestartOption _:
-                    Restart();
-                    return;
                 case DoRestartOption _:
                     RestartSelf();
                     return;
@@ -174,35 +171,6 @@ namespace winsw
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
             }
 
-            
-
-            void Restart()
-            {
-                if (!elevated)
-                {
-                    Elevate();
-                    return;
-                }
-
-                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    ThrowNoSuchService();
-                }
-
-                if (svc.Started)
-                {
-                    svc.StopService();
-                }
-
-                while (svc.Started)
-                {
-                    Thread.Sleep(1000);
-                    svc = svcs.Select(descriptor.Id)!;
-                }
-
-                svc.StartService();
-            }
 
             void RestartSelf()
             {
