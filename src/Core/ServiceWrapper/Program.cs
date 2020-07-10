@@ -144,9 +144,6 @@ namespace winsw
 
             switch (obj)
             {
-                case StartOption _:
-                    Start();
-                    return;
                 case StopOption _:
                     Stop();
                     return;
@@ -184,36 +181,7 @@ namespace winsw
             }
 
 
-            void Start()
-            {
-                if (!elevated)
-                {
-                    Elevate();
-                    return;
-                }
-
-                Log.Info("Starting the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    ThrowNoSuchService();
-                }
-
-                try
-                {
-                    svc.StartService();
-                }
-                catch (WmiException e)
-                {
-                    if (e.ErrorCode == ReturnValue.ServiceAlreadyRunning)
-                    {
-                        Log.Info($"The service with ID '{descriptor.Id}' has already been started");
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
+            
 
             void Stop()
             {
@@ -389,7 +357,7 @@ namespace winsw
         }
 
         [DoesNotReturn]
-        private static void ThrowNoSuchService() => throw new WmiException(ReturnValue.NoSuchService);
+        public static void ThrowNoSuchService() => throw new WmiException(ReturnValue.NoSuchService);
 
         private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
         {
