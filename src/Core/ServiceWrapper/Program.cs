@@ -119,7 +119,7 @@ namespace winsw
 
             if (!string.IsNullOrEmpty(cliOption.RedirectPath))
             {
-                redirect(cliOption.RedirectPath);
+                cliOption.redirect();
             }
 
 
@@ -144,44 +144,6 @@ namespace winsw
             // Run the Command
             cliOption.Run(descriptor, svcs, svc);
 
-            void redirect(string redirectTarget)
-            {
-                var f = new FileStream(redirectTarget, FileMode.Create);
-                var w = new StreamWriter(f) { AutoFlush = true };
-                Console.SetOut(w);
-                Console.SetError(w);
-
-                var handle = f.SafeFileHandle;
-                _ = Kernel32.SetStdHandle(-11, handle); // set stdout
-                _ = Kernel32.SetStdHandle(-12, handle); // set stder
-            }
-
-            // [DoesNotReturn]
-            void Elevate()
-            {
-                using Process current = Process.GetCurrentProcess();
-
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    FileName = current.MainModule.FileName,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                };
-
-                try
-                {
-                    using Process elevated = Process.Start(startInfo);
-
-                    elevated.WaitForExit();
-                    Environment.Exit(elevated.ExitCode);
-                }
-                catch (Win32Exception e) when (e.NativeErrorCode == Errors.ERROR_CANCELLED)
-                {
-                    Log.Fatal(e.Message);
-                    Environment.Exit(e.ErrorCode);
-                }
-            }
         }
 
         [DoesNotReturn]
