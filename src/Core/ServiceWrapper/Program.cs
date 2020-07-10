@@ -144,14 +144,6 @@ namespace winsw
             // Run the Command
             cliOption.Run(descriptor, svcs, svc);
 
-            switch (obj)
-            {
-                case TestWaitOption testwaitOption:
-                    TestWait(testwaitOption);
-                    return;
-            }
-
-
             void redirect(string redirectTarget)
             {
                 var f = new FileStream(redirectTarget, FileMode.Create);
@@ -162,23 +154,6 @@ namespace winsw
                 var handle = f.SafeFileHandle;
                 _ = Kernel32.SetStdHandle(-11, handle); // set stdout
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
-            }
-
-            void TestWait(object obj)
-            {
-                if (!elevated)
-                {
-                    Elevate();
-                    return;
-                }
-
-                var arguments = Parser.Default.FormatCommandLine(obj).Split(' ');
-
-                WrapperService wsvc = new WrapperService(descriptor);
-                wsvc.RaiseOnStart(arguments);
-                Console.WriteLine("Press any key to stop the service...");
-                _ = Console.Read();
-                wsvc.RaiseOnStop();
             }
 
             // [DoesNotReturn]
