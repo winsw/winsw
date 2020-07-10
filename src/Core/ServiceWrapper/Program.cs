@@ -144,9 +144,6 @@ namespace winsw
 
             switch (obj)
             {
-                case StopOption _:
-                    Stop();
-                    return;
                 case StopWaitOption _:
                     StopWait();
                     return;
@@ -178,40 +175,6 @@ namespace winsw
                 var handle = f.SafeFileHandle;
                 _ = Kernel32.SetStdHandle(-11, handle); // set stdout
                 _ = Kernel32.SetStdHandle(-12, handle); // set stder
-            }
-
-
-            
-
-            void Stop()
-            {
-                if (!elevated)
-                {
-                    Elevate();
-                    return;
-                }
-
-                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    ThrowNoSuchService();
-                }
-
-                try
-                {
-                    svc.StopService();
-                }
-                catch (WmiException e)
-                {
-                    if (e.ErrorCode == ReturnValue.ServiceCannotAcceptControl)
-                    {
-                        Log.Info($"The service with ID '{descriptor.Id}' is not running");
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
             }
 
             void StopWait()
