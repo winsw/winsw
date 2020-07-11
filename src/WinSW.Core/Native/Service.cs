@@ -100,7 +100,7 @@ namespace WinSW.Native
         }
 
         /// <exception cref="CommandException" />
-        internal unsafe (IntPtr Services, int Count) EnumerateServices()
+        internal ServiceEnumerator EnumerateServices()
         {
             int resume = 0;
             _ = EnumServicesStatus(
@@ -129,7 +129,7 @@ namespace WinSW.Native
                     Throw.Command.Win32Exception("Failed to enumerate services.");
                 }
 
-                return (services, count);
+                return new(services, count);
             }
             catch
             {
@@ -182,6 +182,31 @@ namespace WinSW.Native
             }
 
             this.handle = IntPtr.Zero;
+        }
+
+        internal ref struct ServiceEnumerator
+        {
+            private readonly IntPtr services;
+            private readonly int count;
+
+            private int index;
+
+            internal ServiceEnumerator(IntPtr services, int count)
+            {
+                this.services = services;
+                this.count = count;
+                this.index = -1;
+            }
+
+            public unsafe ENUM_SERVICE_STATUS* Current => (ENUM_SERVICE_STATUS*)this.services + this.index;
+
+            public void Dispose() => Marshal.FreeHGlobal(this.services);
+
+            public ServiceEnumerator GetEnumerator() => this;
+
+            public bool MoveNext() => ++this.index < this.count;
+
+            public void Reset() => throw new NotImplementedException();
         }
     }
 
