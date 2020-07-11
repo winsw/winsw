@@ -16,8 +16,6 @@ namespace winsw
 
         public string BasePath { get; set; }
 
-        public string BaseName { get; set; }
-
         public virtual string ExecutablePath => Defaults.ExecutablePath;
 
         public ServiceDescriptorYaml()
@@ -39,8 +37,7 @@ namespace winsw
                 d = d.Parent;
             }
 
-            BaseName = baseName;
-            BasePath = Path.Combine(d.FullName, BaseName);
+            BasePath = Path.Combine(d.FullName, baseName);
 
             using(var reader = new StreamReader(BasePath + ".yml"))
             {

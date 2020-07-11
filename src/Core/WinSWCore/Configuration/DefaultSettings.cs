@@ -70,17 +70,15 @@ namespace winsw.Configuration
         public class LogDefaults : Log
         {
             readonly DefaultWinSWSettings defaults;
-            readonly ServiceDescriptorYaml serviceDescriptorYaml;
 
             public LogDefaults()
             {
                 defaults = new DefaultWinSWSettings();
-                serviceDescriptorYaml = new ServiceDescriptorYaml();
             }
 
             public override string Mode => "append";
 
-            public override string? Name => serviceDescriptorYaml.BaseName;
+            public override string? Name => defaults.BaseName;
 
             public override string Directory => Path.GetDirectoryName(defaults.ExecutablePath)!;
 
@@ -115,6 +113,18 @@ namespace winsw.Configuration
 
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
+
+        public string BaseName
+        {
+            get
+            {
+                string baseName = Path.GetFileNameWithoutExtension(ExecutablePath);
+                if (baseName.EndsWith(".vshost"))
+                    baseName = baseName.Substring(0, baseName.Length - 7);
+
+                return baseName;
+            }
+        }
 
     }
 }
