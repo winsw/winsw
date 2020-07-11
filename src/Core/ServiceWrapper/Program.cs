@@ -36,7 +36,7 @@ namespace winsw
 
         public static bool elevated;
 
-        public static CliOption cliOption;
+        public static CLICommand cliOption;
 
         public static int Main(string[] args)
         {
@@ -90,7 +90,7 @@ namespace winsw
 
         public static void Run(object obj, ServiceDescriptor? descriptor = null)
         {
-            cliOption = (CliOption)obj;
+            cliOption = (CLICommand)obj;
 
             bool inConsoleMode = obj.GetType().Name != "DefaultVerb";
 

@@ -1,10 +1,11 @@
 ﻿using CommandLine;
+using System.Threading;
 using WMI;
 
 namespace winsw.CLI
 {
-    [Verb("stop", HelpText = "stop the service")]
-    public class StopOption : CliOption
+    [Verb("stopwait", HelpText = "stop the service and wait until it's actually stopped")]
+    public class StopWaitCommand : CLICommand
     {
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
@@ -22,21 +23,19 @@ namespace winsw.CLI
                 Program.ThrowNoSuchService();
             }
 
-            try
+            if (svc.Started)
             {
                 svc.StopService();
             }
-            catch (WmiException e)
+
+            while (svc != null && svc.Started)
             {
-                if (e.ErrorCode == ReturnValue.ServiceCannotAcceptControl)
-                {
-                    Log.Info($"The service with ID '{descriptor.Id}' is not running");
-                }
-                else
-                {
-                    throw;
-                }
+                Log.Info("Waiting the service to stop...");
+                Thread.Sleep(1000);
+                svc = svcs.Select(descriptor.Id);
             }
+
+            Log.Info("The service stopped.");
         }
     }
 }

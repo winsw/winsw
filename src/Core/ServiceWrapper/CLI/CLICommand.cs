@@ -8,7 +8,7 @@ using WMI;
 
 namespace winsw.CLI
 {
-    public abstract class CliOption
+    public abstract class CLICommand
     {
         [Option("configFile", HelpText = "Configurations File")]
         public string ConfigFile { get; set; }

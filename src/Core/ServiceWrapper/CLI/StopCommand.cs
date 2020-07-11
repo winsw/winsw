@@ -3,8 +3,8 @@ using WMI;
 
 namespace winsw.CLI
 {
-    [Verb("start", HelpText = "start the service (must be installed before)")]
-    public class StartOption : CliOption
+    [Verb("stop", HelpText = "stop the service")]
+    public class StopCommand : CLICommand
     {
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
@@ -16,7 +16,7 @@ namespace winsw.CLI
                 return;
             }
 
-            Log.Info("Starting the service with id '" + descriptor.Id + "'");
+            Log.Info("Stopping the service with id '" + descriptor.Id + "'");
             if (svc is null)
             {
                 Program.ThrowNoSuchService();
@@ -24,13 +24,13 @@ namespace winsw.CLI
 
             try
             {
-                svc.StartService();
+                svc.StopService();
             }
             catch (WmiException e)
             {
-                if (e.ErrorCode == ReturnValue.ServiceAlreadyRunning)
+                if (e.ErrorCode == ReturnValue.ServiceCannotAcceptControl)
                 {
-                    Log.Info($"The service with ID '{descriptor.Id}' has already been started");
+                    Log.Info($"The service with ID '{descriptor.Id}' is not running");
                 }
                 else
                 {
@@ -38,6 +38,5 @@ namespace winsw.CLI
                 }
             }
         }
-
     }
 }

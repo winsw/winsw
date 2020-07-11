@@ -1,11 +1,11 @@
 ﻿using CommandLine;
-using System;
+using System.Threading;
 using WMI;
 
 namespace winsw.CLI
 {
-    [Verb("testwait", HelpText = "starts the service and waits until a key is pressed then stops the service")]
-    public class TestWaitOption : CliOption
+    [Verb("test", HelpText = "check if the service can be started and then stopped")]
+    public class TestCommand : CLICommand
     {
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
@@ -19,8 +19,7 @@ namespace winsw.CLI
 
             WrapperService wsvc = new WrapperService(descriptor);
             wsvc.RaiseOnStart(arguments);
-            Console.WriteLine("Press any key to stop the service...");
-            _ = Console.Read();
+            Thread.Sleep(1000);
             wsvc.RaiseOnStop();
         }
     }
