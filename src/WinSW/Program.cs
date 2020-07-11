@@ -10,7 +10,6 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -889,39 +888,30 @@ namespace WinSW
                 if (all)
                 {
                     using var scm = ServiceManager.Open(ServiceManagerAccess.EnumerateService);
-                    (var services, int count) = scm.EnumerateServices();
-                    try
+                    int prevProcessId = -1;
+                    foreach (var status in scm.EnumerateServices())
                     {
-                        int prevProcessId = -1;
-                        for (int i = 0; i < count; i++)
+                        using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig | ServiceAccess.QueryStatus);
+                        if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
                         {
-                            var status = (ENUM_SERVICE_STATUS*)services + i;
-                            using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig | ServiceAccess.QueryStatus);
-                            if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
+                            int processId = sc.ProcessId;
+                            if (processId >= 0)
                             {
-                                int processId = sc.ProcessId;
-                                if (processId >= 0)
+                                if (prevProcessId >= 0)
                                 {
-                                    if (prevProcessId >= 0)
-                                    {
-                                        using var process = Process.GetProcessById(prevProcessId);
-                                        Draw(process, string.Empty, false);
-                                    }
+                                    using var process = Process.GetProcessById(prevProcessId);
+                                    Draw(process, string.Empty, false);
                                 }
-
-                                prevProcessId = processId;
                             }
-                        }
 
-                        if (prevProcessId >= 0)
-                        {
-                            using var process = Process.GetProcessById(prevProcessId);
-                            Draw(process, string.Empty, true);
+                            prevProcessId = processId;
                         }
                     }
-                    finally
+
+                    if (prevProcessId >= 0)
                     {
-                        Marshal.FreeHGlobal(services);
+                        using var process = Process.GetProcessById(prevProcessId);
+                        Draw(process, string.Empty, true);
                     }
                 }
                 else
@@ -996,22 +986,13 @@ namespace WinSW
             static unsafe void DevList()
             {
                 using var scm = ServiceManager.Open(ServiceManagerAccess.EnumerateService);
-                (var services, int count) = scm.EnumerateServices();
-                try
+                foreach (var status in scm.EnumerateServices())
                 {
-                    for (int i = 0; i < count; i++)
+                    using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig);
+                    if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
                     {
-                        var status = (ENUM_SERVICE_STATUS*)services + i;
-                        using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig);
-                        if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
-                        {
-                            Console.WriteLine(status->ToString());
-                        }
+                        Console.WriteLine(status->ToString());
                     }
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(services);
                 }
             }
 
