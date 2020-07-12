@@ -726,5 +726,9 @@ namespace winsw
 
             return environment;
         }
+
+        //TODO : Implement
+        string[] IWinSWConfiguration.ExtensionIds => throw new NotImplementedException();
+
     }
 }

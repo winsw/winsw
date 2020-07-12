@@ -55,5 +55,13 @@ namespace winsw.Configuration
 
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
+
+        string BaseName { get; }
+
+        string BasePath { get;  }
+
+        string[] ExtensionIds { get; }
+
+        LogHandler LogHandler { get; }
     }
 }

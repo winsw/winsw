@@ -63,5 +63,13 @@ namespace winsw.Configuration
 
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
+
+        public string BaseName => throw new NotImplementedException();
+
+        public string BasePath => throw new NotImplementedException();
+
+        public string[] ExtensionIds => throw new NotImplementedException();
+
+        public LogHandler LogHandler => throw new NotImplementedException();
     }
 }
