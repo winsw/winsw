@@ -442,5 +442,17 @@ namespace winsw.Configuration
         // TODO
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
 
+        //IWinSWConfiguration Support
+        public List<string> ExtensionIds => throw new NotImplementedException();
+
+        public string BaseName => throw new NotImplementedException();
+
+        public string BasePath => throw new NotImplementedException();
+
+        public string? ServiceAccountDomain => throw new NotImplementedException();
+
+        public string? ServiceAccountName => throw new NotImplementedException();
+
+        public string? SecurityDescriptor => throw new NotImplementedException();
     }
 }

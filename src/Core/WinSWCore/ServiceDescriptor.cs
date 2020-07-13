@@ -649,9 +649,9 @@ namespace winsw
 
         protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
 
-        protected internal string? ServiceAccountDomain => GetServiceAccountPart("domain");
+        public string? ServiceAccountDomain => GetServiceAccountPart("domain");
 
-        protected internal string? ServiceAccountName => GetServiceAccountPart("user");
+        public string? ServiceAccountName => GetServiceAccountPart("user");
 
         public string? ServiceAccountPassword => GetServiceAccountPart("password");
 

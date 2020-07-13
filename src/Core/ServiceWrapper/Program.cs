@@ -18,6 +18,7 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
+using winsw.Configuration;
 using winsw.Logging;
 using winsw.Native;
 using winsw.Util;
@@ -59,7 +60,7 @@ namespace winsw
             }
         }
 
-        public static void Run(string[] argsArray, ServiceDescriptor? descriptor = null)
+        public static void Run(string[] argsArray, IWinSWConfiguration? descriptor = null)
         {
             bool inConsoleMode = argsArray.Length > 0;
 
@@ -533,7 +534,7 @@ namespace winsw
         [DoesNotReturn]
         private static void ThrowNoSuchService() => throw new WmiException(ReturnValue.NoSuchService);
 
-        private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
+        private static void InitLoggers(IWinSWConfiguration descriptor, bool enableConsoleLogging)
         {
             // TODO: Make logging levels configurable
             Level fileLogLevel = Level.Debug;

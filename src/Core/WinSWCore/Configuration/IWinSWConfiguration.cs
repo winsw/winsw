@@ -59,5 +59,22 @@ namespace winsw.Configuration
 
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
+
+        //IWinSWConfiguration Support
+        List<string> ExtensionIds { get; }
+
+        string BaseName { get; }
+
+        string BasePath { get; }
+
+        bool HasServiceAccount();
+
+        string? ServiceAccountDomain { get; }
+
+        string? ServiceAccountName { get; }
+
+        bool DelayedAutoStart { get; }
+
+        string? SecurityDescriptor { get; }
     }
 }

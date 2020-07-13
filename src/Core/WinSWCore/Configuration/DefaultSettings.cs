@@ -126,5 +126,19 @@ namespace winsw.Configuration
             }
         }
 
+        public string BasePath => null;
+
+        public List<string> ExtensionIds => new List<string>(0);
+
+        public string? ServiceAccountDomain => null;
+
+        public string? ServiceAccountName => null;
+
+        public string? SecurityDescriptor => null;
+
+        public bool HasServiceAccount()
+        {
+            return false;
+        }
     }
 }
