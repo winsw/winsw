@@ -399,7 +399,7 @@ namespace winsw
                 }
             }
 
-            public override int? SizeThreshold { get => d.SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BYTES_PER_KB;  }
+            public override int? SizeThreshold { get => d.SingleIntElement(e, "sizeThreshold", 10 * 1024); }
 
             public override int? KeepFiles { get => d.SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP); }
 
