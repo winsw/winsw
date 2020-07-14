@@ -1,4 +1,6 @@
 ﻿using CommandLine;
+using log4net;
+using System.Threading;
 using WMI;
 
 namespace winsw.CLI
@@ -6,9 +8,14 @@ namespace winsw.CLI
     [Verb("stop", HelpText = "stop the service")]
     public class StopCommand : CLICommand
     {
+        [Option("wait", HelpText = "Stop Wait")]
+        public bool Wait { get; set; }
+
+        private ILog Log;
+
         public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
         {
-            var Log = Program.Log;
+            Log = Program.Log;
 
             if (!Program.elevated)
             {
@@ -22,6 +29,18 @@ namespace winsw.CLI
                 Program.ThrowNoSuchService();
             }
 
+            if (this.Wait)
+            {
+                this.StopWait(descriptor, svcs, svc);
+            }
+            else
+            {
+                this.Stop(descriptor, svc);
+            }
+        }
+
+        private void Stop(ServiceDescriptor descriptor, Win32Service? svc)
+        {
             try
             {
                 svc.StopService();
@@ -37,6 +56,23 @@ namespace winsw.CLI
                     throw;
                 }
             }
+        }
+
+        private void StopWait(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        {
+            if (svc.Started)
+            {
+                svc.StopService();
+            }
+
+            while (svc != null && svc.Started)
+            {
+                Log.Info("Waiting the service to stop...");
+                Thread.Sleep(1000);
+                svc = svcs.Select(descriptor.Id);
+            }
+
+            Log.Info("The service stopped.");
         }
     }
 }
