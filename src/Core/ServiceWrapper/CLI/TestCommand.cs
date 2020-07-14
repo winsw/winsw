@@ -15,10 +15,8 @@ namespace winsw.CLI
                 return;
             }
 
-            var arguments = Parser.Default.FormatCommandLine(Program.cliOption).Split(' ');
-
             WrapperService wsvc = new WrapperService(descriptor);
-            wsvc.RaiseOnStart(arguments);
+            wsvc.RaiseOnStart(new string[0]);
             Thread.Sleep(1000);
             wsvc.RaiseOnStop();
         }

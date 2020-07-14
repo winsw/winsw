@@ -15,10 +15,8 @@ namespace winsw.CLI
                 return;
             }
 
-            var arguments = Parser.Default.FormatCommandLine(Program.cliOption).Split(' ');
-
             WrapperService wsvc = new WrapperService(descriptor);
-            wsvc.RaiseOnStart(arguments);
+            wsvc.RaiseOnStart(new string[0]);
             Console.WriteLine("Press any key to stop the service...");
             _ = Console.Read();
             wsvc.RaiseOnStop();
