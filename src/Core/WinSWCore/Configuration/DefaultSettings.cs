@@ -123,7 +123,14 @@ namespace winsw.Configuration
             }
         }
 
-        public string BasePath => null;
+        public string BasePath
+        {
+            get
+            {
+                var d = new DirectoryInfo(Path.GetDirectoryName(ExecutablePath));
+                return Path.Combine(d.FullName, BaseName);
+            }
+        }
 
         public List<string> ExtensionIds => new List<string>(0);
 
