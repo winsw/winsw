@@ -2,7 +2,6 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using winsw.Native;
 using WMI;
 
@@ -15,9 +14,6 @@ namespace winsw.CLI
 
         [Option("elevated", HelpText = "Elevated Command Prompt", Default = false)]
         public bool Elevated { get; set; }
-
-        [Option("redirect", HelpText = "Redirect Logs")]
-        public string RedirectPath { get; set; }
 
         [Option("skipConfigValidation", HelpText = "Enable configurations schema validation", Default = false)]
         public bool validation { get; set; }
@@ -48,18 +44,6 @@ namespace winsw.CLI
                 Program.Log.Fatal(e.Message);
                 Environment.Exit(e.ErrorCode);
             }
-        }
-
-        public void redirect()
-        {
-            var f = new FileStream(RedirectPath, FileMode.Create);
-            var w = new StreamWriter(f) { AutoFlush = true };
-            Console.SetOut(w);
-            Console.SetError(w);
-
-            var handle = f.SafeFileHandle;
-            _ = Kernel32.SetStdHandle(-11, handle); // set stdout
-            _ = Kernel32.SetStdHandle(-12, handle); // set stder
         }
     }
 }

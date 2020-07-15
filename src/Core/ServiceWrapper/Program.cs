@@ -123,12 +123,6 @@ namespace winsw
             Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
             Win32Service? svc = svcs.Select(descriptor.Id);
 
-            if (!string.IsNullOrEmpty(cliOption.RedirectPath))
-            {
-                cliOption.redirect();
-            }
-
-
             if (cliOption.Elevated)
             {
                 elevated = true;
