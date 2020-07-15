@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net40;net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -74,6 +74,11 @@
       <IdentifierSuffix>NET461</IdentifierSuffix>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+      <TargetPlatform>v4</TargetPlatform>
+      <IdentifierSuffix>NET4</IdentifierSuffix>
+    </PropertyGroup>
+
 
     <PropertyGroup>
       <InputAssemblies>"$(OutDir)$(TargetFileName)"</InputAssemblies>
@@ -83,6 +88,10 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)CommandLine.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)ICSharpCode.SharpZipLib.dll"</InputAssemblies>
     </PropertyGroup>
 
     <PropertyGroup>
