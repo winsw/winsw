@@ -74,8 +74,14 @@ namespace winsw
 
         private static Type[] LoadVerbs()
         {
+#if NET40
+            return Assembly.GetExecutingAssembly().GetTypes().
+                Where(type => Attribute.IsDefined(type, typeof(VerbAttribute))).ToArray();
+#else
+
             return Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
+#endif
         }
 
         private static void HandleErrors(IEnumerable<Error> errors)
