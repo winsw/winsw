@@ -109,21 +109,21 @@ $@"<service>
         [Test]
         public void VerifyServiceLogonRight()
         {
-            Assert.That(_extendedServiceDescriptor.AllowServiceAcountLogonRight, Is.True);
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.True);
         }
 
         [Test]
         public void VerifyUsername()
         {
             Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
         }
 
         [Test]
         public void VerifyPassword()
         {
             Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccountPassword, Is.EqualTo(Password));
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.ServiceAccountPassword, Is.EqualTo(Password));
         }
 
         [Test]
@@ -307,7 +307,7 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.False);
+            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
         }
 
         [Test]
@@ -321,7 +321,7 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(serviceDescriptor.AllowServiceAcountLogonRight, Is.False);
+            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
         }
 
         [Test]

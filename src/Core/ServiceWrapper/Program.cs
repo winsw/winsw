@@ -223,17 +223,17 @@ namespace winsw
                 }
                 else
                 {
-                    if (descriptor.HasServiceAccount())
+                    if (descriptor.ServiceAccount.HasServiceAccount())
                     {
-                        username = descriptor.ServiceAccountUser;
-                        password = descriptor.ServiceAccountPassword;
-                        allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
+                        username = descriptor.ServiceAccount.ServiceAccountUser;
+                        password = descriptor.ServiceAccount.ServiceAccountPassword;
+                        allowServiceLogonRight = descriptor.ServiceAccount.AllowServiceAcountLogonRight;
                     }
                 }
 
                 if (allowServiceLogonRight)
                 {
-                    Security.AddServiceLogonRight(descriptor.ServiceAccountDomain!, descriptor.ServiceAccountName!);
+                    Security.AddServiceLogonRight(descriptor.ServiceAccount.ServiceAccountDomain!, descriptor.ServiceAccount.ServiceAccountName!);
                 }
 
                 svcs.Create(

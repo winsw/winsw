@@ -23,9 +23,6 @@ namespace winsw.Configuration
         public string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
 
         // Installation
-        public bool AllowServiceAcountLogonRight => false;
-        public string? ServiceAccountPassword => null;
-        public string? ServiceAccountUser => null;
         public Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
@@ -60,10 +57,10 @@ namespace winsw.Configuration
 
         public ServiceAccount ServiceAccount => new ServiceAccount()
         {
-            Name = null,
-            Domain = null,
-            User = null,
-            Password = null,
+            ServiceAccountName = null,
+            ServiceAccountDomain = null,
+            ServiceAccountUser = null,
+            ServiceAccountPassword = null,
             AllowServiceAcountLogonRight = false
         };
 
@@ -130,15 +127,6 @@ namespace winsw.Configuration
 
         public List<string> ExtensionIds => new List<string>(0);
 
-        public string? ServiceAccountDomain => null;
-
-        public string? ServiceAccountName => null;
-
         public string? SecurityDescriptor => null;
-
-        public bool HasServiceAccount()
-        {
-            return false;
-        }
     }
 }

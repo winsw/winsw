@@ -5,22 +5,26 @@ namespace winsw.Configuration
     public class ServiceAccount
     {
         [YamlMember(Alias = "user")]
-        public string? Name { get; set; }
+        public string? ServiceAccountName { get; set; }
 
         [YamlMember(Alias = "domain")]
-        public string? Domain { get; set; }
+        public string? ServiceAccountDomain { get; set; }
 
         [YamlMember(Alias = "Password")]
-        public string? Password { get; set; }
+        public string? ServiceAccountPassword { get; set; }
 
         [YamlMember(Alias = "allowservicelogon")]
-        public bool? AllowServiceAcountLogonRight { get; set; }
+        public bool AllowServiceAcountLogonRight { get; set; }
 
-        public string? User
+        public string? ServiceAccountUser
         {
-            get => Name is null ? null : (Domain ?? ".") + "\\" + Name;
+            get => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
             set { }
         }
-        
+
+        public bool HasServiceAccount()
+        {
+            return !string.IsNullOrEmpty(this.ServiceAccountName);
+        }
     }
 }

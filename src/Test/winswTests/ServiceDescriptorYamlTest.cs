@@ -109,8 +109,10 @@ serviceaccount:
 
             Assert.DoesNotThrow(() =>
             {
-                var serviceAccountName = configs.ServiceAccount.Name;
-                Console.WriteLine(serviceAccountName);
+                var user = configs.ServiceAccount.ServiceAccountUser;
+                var password = configs.ServiceAccount.ServiceAccountPassword;
+                var allowLogon = configs.ServiceAccount.AllowServiceAcountLogonRight;
+                var hasAccount = configs.ServiceAccount.HasServiceAccount();
             });
         }
     }

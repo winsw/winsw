@@ -18,9 +18,6 @@ namespace winsw.Configuration
         bool HideWindow { get; }
 
         // Installation
-        bool AllowServiceAcountLogonRight { get; }
-        string? ServiceAccountPassword { get; }
-        string? ServiceAccountUser { get; }
         Native.SC_ACTION[] FailureActions { get; }
         TimeSpan ResetFailureAfter { get; }
 
@@ -63,15 +60,12 @@ namespace winsw.Configuration
         //IWinSWConfiguration Support
         List<string> ExtensionIds { get; }
 
+        //Service Account
+        ServiceAccount ServiceAccount { get; }
+
         string BaseName { get; }
 
         string BasePath { get; }
-
-        bool HasServiceAccount();
-
-        string? ServiceAccountDomain { get; }
-
-        string? ServiceAccountName { get; }
 
         bool DelayedAutoStart { get; }
 

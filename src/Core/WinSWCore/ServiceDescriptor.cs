@@ -647,22 +647,27 @@ namespace winsw
             return null;
         }
 
-        protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
-
-        public string? ServiceAccountDomain => GetServiceAccountPart("domain");
-
-        public string? ServiceAccountName => GetServiceAccountPart("user");
-
-        public string? ServiceAccountPassword => GetServiceAccountPart("password");
-
-        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
-
-        public bool HasServiceAccount()
+        public ServiceAccount ServiceAccount
         {
-            return !string.IsNullOrEmpty(ServiceAccountName);
+            get
+            {
+                var serviceAccount = Defaults.ServiceAccount;
+
+                serviceAccount.ServiceAccountDomain = GetServiceAccountPart("domain");
+
+                serviceAccount.ServiceAccountName = GetServiceAccountPart("user");
+
+                serviceAccount.ServiceAccountPassword = GetServiceAccountPart("password");
+
+                serviceAccount.AllowServiceAcountLogonRight = AllowServiceAcountLogonRight;
+
+                return serviceAccount;
+            }
         }
 
-        public bool AllowServiceAcountLogonRight
+        protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
+
+        private bool AllowServiceAcountLogonRight
         {
             get
             {
@@ -713,6 +718,8 @@ namespace winsw
         }
 
         public string? SecurityDescriptor => SingleElement("securityDescriptor", true);
+
+        
 
         private Dictionary<string, string> LoadEnvironmentVariables()
         {

@@ -420,18 +420,6 @@ namespace winsw.Configuration
         //Service Account
         public ServiceAccount ServiceAccount => _ServiceAccount is null ? Defaults.ServiceAccount : _ServiceAccount;
 
-        public string? ServiceAccountPassword => ServiceAccount.Password;
-
-        public string? ServiceAccountUser => (ServiceAccount.Domain ?? ".") + "\\" + ServiceAccount.Name;
-
-        public bool AllowServiceAcountLogonRight => (bool)ServiceAccount.AllowServiceAcountLogonRight;
-
-        public bool HasServiceAccount()
-        {
-            return !(_ServiceAccount is null);
-        }
-
-
         //Log
         public Log Log => _YAMLLog is null ? Defaults.Log : _YAMLLog;
 
