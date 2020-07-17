@@ -6,17 +6,26 @@ namespace WinSW
 {
     internal static class ServiceControllerExtension
     {
-        internal static bool TryWaitForStatus(/*this*/ ServiceController serviceController, ServiceControllerStatus desiredStatus, TimeSpan timeout)
+        /// <exception cref="TimeoutException" />
+        internal static void WaitForStatus(this ServiceController serviceController, ServiceControllerStatus desiredStatus, ServiceControllerStatus pendingStatus)
         {
-            try
+            TimeSpan timeout = TimeSpan.FromSeconds(1);
+            for (; ; )
             {
-                serviceController.WaitForStatus(desiredStatus, timeout);
-                return true;
+                try
+                {
+                    serviceController.WaitForStatus(desiredStatus, timeout);
+                    break;
+                }
+                catch (TimeoutException) when (serviceController.Status == desiredStatus || serviceController.Status == pendingStatus)
+                {
+                }
             }
-            catch (TimeoutException)
-            {
-                return false;
-            }
+        }
+
+        internal static bool HasAnyStartedDependentService(this ServiceController serviceController)
+        {
+            return Array.Exists(serviceController.DependentServices, service => service.Status != ServiceControllerStatus.Stopped);
         }
     }
 }

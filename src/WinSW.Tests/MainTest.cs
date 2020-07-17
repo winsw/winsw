@@ -12,10 +12,10 @@ namespace WinSW.Tests
         {
             try
             {
-                _ = CLITestHelper.CLITest(new[] { "install" });
+                _ = CommandLineTestHelper.Test(new[] { "install" });
 
-                using ServiceController controller = new ServiceController(CLITestHelper.Id);
-                Assert.Equal(CLITestHelper.Name, controller.DisplayName);
+                using ServiceController controller = new ServiceController(CommandLineTestHelper.Id);
+                Assert.Equal(CommandLineTestHelper.Name, controller.DisplayName);
                 Assert.False(controller.CanStop);
                 Assert.False(controller.CanShutdown);
                 Assert.False(controller.CanPauseAndContinue);
@@ -24,42 +24,18 @@ namespace WinSW.Tests
             }
             finally
             {
-                _ = CLITestHelper.CLITest(new[] { "uninstall" });
+                _ = CommandLineTestHelper.Test(new[] { "uninstall" });
             }
         }
 
         [Fact]
-        public void PrintVersion()
+        public void FailOnUnknownCommand()
         {
-            string expectedVersion = WrapperService.Version.ToString();
-            string cliOut = CLITestHelper.CLITest(new[] { "version" });
-            Assert.Contains(expectedVersion, cliOut);
-        }
+            const string commandName = "unknown";
 
-        [Fact]
-        public void PrintHelp()
-        {
-            string expectedVersion = WrapperService.Version.ToString();
-            string cliOut = CLITestHelper.CLITest(new[] { "help" });
+            CommandLineTestResult result = CommandLineTestHelper.ErrorTest(new[] { commandName });
 
-            Assert.Contains(expectedVersion, cliOut);
-            Assert.Contains("start", cliOut);
-            Assert.Contains("help", cliOut);
-            Assert.Contains("version", cliOut);
-
-            // TODO: check all commands after the migration of ccommands to enum
-        }
-
-        [Fact]
-        public void FailOnUnsupportedCommand()
-        {
-            const string commandName = "nonExistentCommand";
-            string expectedMessage = "Unknown command: " + commandName;
-            CLITestResult result = CLITestHelper.CLIErrorTest(new[] { commandName });
-
-            Assert.True(result.HasException);
-            Assert.Contains(expectedMessage, result.Out);
-            Assert.Contains(expectedMessage, result.Exception.Message);
+            Assert.Equal($"Unrecognized command or argument '{commandName}'\r\n\r\n", result.Error);
         }
 
         /// <summary>
@@ -68,7 +44,7 @@ namespace WinSW.Tests
         [Fact]
         public void ShouldNotPrintLogsForStatusCommand()
         {
-            string cliOut = CLITestHelper.CLITest(new[] { "status" });
+            string cliOut = CommandLineTestHelper.Test(new[] { "status" });
             Assert.Equal("NonExistent" + Environment.NewLine, cliOut);
         }
     }

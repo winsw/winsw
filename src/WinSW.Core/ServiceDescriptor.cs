@@ -21,6 +21,8 @@ namespace WinSW
 
         private readonly Dictionary<string, string> environmentVariables;
 
+        internal static ServiceDescriptor? TestDescriptor;
+
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         /// <summary>
@@ -42,34 +44,17 @@ namespace WinSW
 
         public ServiceDescriptor()
         {
-            // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
-            // as well as trimming off ".vshost" suffix (which is used during debugging)
-            // Get the first parent to go into the recursive loop
-            string p = this.ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(p);
-            if (baseName.EndsWith(".vshost"))
+            string path = this.ExecutablePath;
+            string baseName = Path.GetFileNameWithoutExtension(path);
+            string baseDir = Path.GetDirectoryName(path)!;
+
+            if (!File.Exists(Path.Combine(baseDir, baseName + ".xml")))
             {
-                baseName = baseName.Substring(0, baseName.Length - 7);
-            }
-
-            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
-            while (true)
-            {
-                if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
-                {
-                    break;
-                }
-
-                if (d.Parent is null)
-                {
-                    throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory or any parents");
-                }
-
-                d = d.Parent;
+                throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory");
             }
 
             this.BaseName = baseName;
-            this.BasePath = Path.Combine(d.FullName, this.BaseName);
+            this.BasePath = Path.Combine(baseDir, baseName);
 
             try
             {
@@ -81,7 +66,45 @@ namespace WinSW
             }
 
             // register the base directory as environment variable so that future expansions can refer to this.
-            Environment.SetEnvironmentVariable("BASE", d.FullName);
+            Environment.SetEnvironmentVariable("BASE", baseDir);
+
+            // ditto for ID
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Id);
+
+            // New name
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
+
+            // Also inject system environment variables
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Id);
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
+        }
+
+        /// <exception cref="FileNotFoundException" />
+        public ServiceDescriptor(string path)
+        {
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException(null, path);
+            }
+
+            string baseName = Path.GetFileNameWithoutExtension(path);
+            string baseDir = Path.GetDirectoryName(Path.GetFullPath(path))!;
+
+            this.BaseName = baseName;
+            this.BasePath = Path.Combine(baseDir, baseName);
+
+            try
+            {
+                this.dom.Load(path);
+            }
+            catch (XmlException e)
+            {
+                throw new InvalidDataException(e.Message, e);
+            }
+
+            // register the base directory as environment variable so that future expansions can refer to this.
+            Environment.SetEnvironmentVariable("BASE", baseDir);
 
             // ditto for ID
             Environment.SetEnvironmentVariable("SERVICE_ID", this.Id);
@@ -105,6 +128,11 @@ namespace WinSW
             this.dom = dom;
 
             this.environmentVariables = this.LoadEnvironmentVariables();
+        }
+
+        internal static ServiceDescriptor Create(string? path)
+        {
+            return path != null ? new ServiceDescriptor(path) : TestDescriptor ?? new ServiceDescriptor();
         }
 
         public static ServiceDescriptor FromXml(string xml)

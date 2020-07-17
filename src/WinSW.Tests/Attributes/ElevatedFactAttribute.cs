@@ -4,9 +4,9 @@ using Xunit;
 namespace WinSW.Tests
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    internal sealed class ElevatedFactAttribute : FactAttribute
+    public sealed class ElevatedFactAttribute : FactAttribute
     {
-        internal ElevatedFactAttribute()
+        public ElevatedFactAttribute()
         {
             if (!Program.IsProcessElevated())
             {

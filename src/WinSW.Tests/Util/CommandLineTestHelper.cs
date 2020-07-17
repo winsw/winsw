@@ -7,7 +7,7 @@ namespace WinSW.Tests.Util
     /// <summary>
     /// Helper for WinSW CLI testing
     /// </summary>
-    public static class CLITestHelper
+    public static class CommandLineTestHelper
     {
         public const string Id = "WinSW.Tests";
         public const string Name = "WinSW Test Service";
@@ -33,28 +33,29 @@ $@"<service>
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>STDOUT if there's no exceptions</returns>
         /// <exception cref="Exception">Command failure</exception>
-        public static string CLITest(string[] arguments, ServiceDescriptor descriptor = null)
+        public static string Test(string[] arguments, ServiceDescriptor descriptor = null)
         {
             TextWriter tmpOut = Console.Out;
-            TextWriter tmpErr = Console.Error;
+            TextWriter tmpError = Console.Error;
 
             using StringWriter swOut = new StringWriter();
-            using StringWriter swErr = new StringWriter();
+            using StringWriter swError = new StringWriter();
 
             Console.SetOut(swOut);
-            Console.SetError(swErr);
+            Console.SetError(swError);
+            ServiceDescriptor.TestDescriptor = descriptor ?? DefaultServiceDescriptor;
             try
             {
-                Program.Run(arguments, descriptor ?? DefaultServiceDescriptor);
+                _ = Program.Run(arguments);
             }
             finally
             {
                 Console.SetOut(tmpOut);
-                Console.SetError(tmpErr);
+                Console.SetError(tmpError);
+                ServiceDescriptor.TestDescriptor = null;
             }
 
-            Assert.Equal(0, swErr.GetStringBuilder().Length);
-            Console.Write(swOut.ToString());
+            Assert.Equal(string.Empty, swError.ToString());
             return swOut.ToString();
         }
 
@@ -64,49 +65,44 @@ $@"<service>
         /// <param name="arguments">CLI arguments to be passed</param>
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>Test results</returns>
-        public static CLITestResult CLIErrorTest(string[] arguments, ServiceDescriptor descriptor = null)
+        public static CommandLineTestResult ErrorTest(string[] arguments, ServiceDescriptor descriptor = null)
         {
-            Exception testEx = null;
+            Exception exception = null;
+
             TextWriter tmpOut = Console.Out;
-            TextWriter tmpErr = Console.Error;
+            TextWriter tmpError = Console.Error;
 
             using StringWriter swOut = new StringWriter();
-            using StringWriter swErr = new StringWriter();
+            using StringWriter swError = new StringWriter();
 
             Console.SetOut(swOut);
-            Console.SetError(swErr);
+            Console.SetError(swError);
+            ServiceDescriptor.TestDescriptor = descriptor ?? DefaultServiceDescriptor;
+            Program.TestExceptionHandler = (e, _) => exception = e;
             try
             {
-                Program.Run(arguments, descriptor ?? DefaultServiceDescriptor);
+                _ = Program.Run(arguments);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                testEx = ex;
+                exception = e;
             }
             finally
             {
                 Console.SetOut(tmpOut);
-                Console.SetError(tmpErr);
+                Console.SetError(tmpError);
+                ServiceDescriptor.TestDescriptor = null;
+                Program.TestExceptionHandler = null;
             }
 
-            Console.WriteLine("\n>>> Output: ");
-            Console.Write(swOut.ToString());
-            Console.WriteLine("\n>>> Error: ");
-            Console.Write(swErr.ToString());
-            if (testEx != null)
-            {
-                Console.WriteLine("\n>>> Exception: ");
-                Console.WriteLine(testEx);
-            }
-
-            return new CLITestResult(swOut.ToString(), swErr.ToString(), testEx);
+            return new CommandLineTestResult(swOut.ToString(), swError.ToString(), exception);
         }
     }
 
     /// <summary>
     /// Aggregated test report
     /// </summary>
-    public class CLITestResult
+    public class CommandLineTestResult
     {
         public string Out { get; }
 
@@ -116,7 +112,7 @@ $@"<service>
 
         public bool HasException => this.Exception != null;
 
-        public CLITestResult(string output, string error, Exception exception = null)
+        public CommandLineTestResult(string output, string error, Exception exception = null)
         {
             this.Out = output;
             this.Error = error;
