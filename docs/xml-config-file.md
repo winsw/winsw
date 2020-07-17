@@ -209,7 +209,7 @@ Examples:
 
 This is another useful building block for developing a self-updating service.
 
-Since v2.7, if the destination file exists, WinSW will send its last write time in the `If-Modified-Since` header and skip downloading if `304 Not Modified` is received.
+Since 2.7, if the destination file exists, WinSW will send its last write time in the `If-Modified-Since` header and skip downloading if `304 Not Modified` is received.
 
 ### log
 

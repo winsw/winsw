@@ -75,7 +75,7 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
     * `Started` to indicate the service is currently running
     * `Stopped` to indicate that the service is installed but not currently running.
 
-Most commands require Administrator privileges to execute. Since v2.8, WinSW will prompt for UAC in non-elevated sessions.
+Most commands require Administrator privileges to execute. Since 2.8, WinSW will prompt for UAC in non-elevated sessions.
 
 ## Documentation
 
