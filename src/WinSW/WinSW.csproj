@@ -19,6 +19,10 @@
     <ILMergeVersion>3.0.40</ILMergeVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20303.1" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
   </ItemGroup>
@@ -59,6 +63,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Core.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Plugins.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)System.CommandLine.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(TargetFrameworkSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 

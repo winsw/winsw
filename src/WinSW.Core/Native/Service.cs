@@ -76,24 +76,6 @@ namespace WinSW.Native
             string? username,
             string? password)
         {
-            int arrayLength = 1;
-            for (int i = 0; i < dependencies.Length; i++)
-            {
-                arrayLength += dependencies[i].Length + 1;
-            }
-
-            StringBuilder? array = null;
-            if (dependencies.Length != 0)
-            {
-                array = new StringBuilder(arrayLength);
-                for (int i = 0; i < dependencies.Length; i++)
-                {
-                    _ = array.Append(dependencies[i]).Append('\0');
-                }
-
-                _ = array.Append('\0');
-            }
-
             IntPtr handle = ServiceApis.CreateService(
                 this.handle,
                 serviceName,
@@ -105,7 +87,7 @@ namespace WinSW.Native
                 executablePath,
                 default,
                 default,
-                array,
+                Service.GetNativeDependencies(dependencies),
                 username,
                 password);
             if (handle == IntPtr.Zero)
@@ -171,6 +153,29 @@ namespace WinSW.Native
             }
         }
 
+        internal static StringBuilder? GetNativeDependencies(string[] dependencies)
+        {
+            int arrayLength = 1;
+            for (int i = 0; i < dependencies.Length; i++)
+            {
+                arrayLength += dependencies[i].Length + 1;
+            }
+
+            StringBuilder? array = null;
+            if (dependencies.Length != 0)
+            {
+                array = new StringBuilder(arrayLength);
+                for (int i = 0; i < dependencies.Length; i++)
+                {
+                    _ = array.Append(dependencies[i]).Append('\0');
+                }
+
+                _ = array.Append('\0');
+            }
+
+            return array;
+        }
+
         /// <exception cref="CommandException" />
         internal void SetStatus(IntPtr statusHandle, ServiceControllerStatus state)
         {
@@ -192,7 +197,8 @@ namespace WinSW.Native
         /// <exception cref="CommandException" />
         internal void ChangeConfig(
             string displayName,
-            ServiceStartMode startMode)
+            ServiceStartMode startMode,
+            string[] dependencies)
         {
             if (!ChangeServiceConfig(
                 this.handle,
@@ -202,7 +208,7 @@ namespace WinSW.Native
                 null,
                 null,
                 IntPtr.Zero,
-                null,
+                GetNativeDependencies(dependencies),
                 null,
                 null,
                 displayName))
