@@ -12,6 +12,8 @@ Once you download the installation package, you can rename *WinSW.exe* to any na
 
 **We are actively developing WinSW v3. Please refer to the v2 branch for previous version documentation.**
 
+**Please help us prioritize items by :+1:, :-1: or comment on the issues!**
+
 ## Why?
 
 See the [project manifest](MANIFEST.md).
