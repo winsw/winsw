@@ -109,7 +109,6 @@ The zipDateFormat can only be used in conjection with autoRollAtTime, provide th
 
 ## Error reporting
 
-WinSW uses WMI underneath, and as such it uses its error code as the exit code. 
-For the complete list of exit codes, see [return values of the Create method of the Win32_Service class](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service#return-value).
+WinSW exits with code 0 on success. Any positive exit code is a [system error code](https://docs.microsoft.com/windows/win32/debug/system-error-codes).
 
 When winsw is running as a service, more detailed error information is reported to the Windows event log.
