@@ -23,7 +23,7 @@ See the [project manifest](MANIFEST.md).
 
 WinSW offers executables for .NET Framework 2.0, 4.0 and 4.6.1.
 It can run on Windows platforms which have these versions of .NET Framework installed.
-For systems without .NET Framework, the project provides native 64-bit and 32-bit executables which are based on .NET Core 3.1.
+For systems without .NET Framework, the project provides native 64-bit and 32-bit executables based on .NET Core.
 
 More executables can be added upon request.
 
