@@ -1,4 +1,4 @@
-# Windows Service Wrapper in less restrictive license
+# Windows Service Wrapper in a permissive license
 
 [![Github All Releases](https://img.shields.io/github/downloads/winsw/winsw/total?style=flat-square)](https://github.com/winsw/winsw/releases)
 [![GitHub Release](https://img.shields.io/github/v/release/winsw/winsw?include_prereleases&style=flat-square)](https://github.com/winsw/winsw/releases)
