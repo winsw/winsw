@@ -39,14 +39,34 @@ WinSW is being managed by configuration files: [Main XML configuration file](doc
 
 Your renamed *WinSW.exe* binary also accepts the following commands:
 
-* `install` to install the service to Windows Service Controller.
+* `install`
+
+  Install the service to Windows Service Controller.
   This command requires some preliminary steps described in the [Installation guide](docs/installation.md).
-* `uninstall` to uninstall the service. The opposite operation of above.
-* `start` to start the service. The service must have already been installed.
-* `stop` to stop the service.
-* `stopwait` to stop the service and wait until it's actually stopped.
-* `restart` to restart the service. If the service is not currently running, this command acts like `start`.
-* `status` to check the current status of the service.
+
+* `uninstall`
+
+  Uninstall the service. The opposite operation of above.
+
+* `start`
+
+  Start the service. The service must have already been installed.
+
+* `stop`
+
+  Stop the service.
+
+* `stopwait`
+
+  Stop the service and wait until it's actually stopped.
+
+* `restart`
+
+  Restart the service. If the service is not currently running, this command acts like `start`.
+
+* `status`
+
+  Check the current status of the service.
   * This command prints one line to the console.
     * `NonExistent` indicates the service is not currently installed
     * `Started` to indicate the service is currently running
