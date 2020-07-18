@@ -82,6 +82,7 @@ Most commands require Administrator privileges to execute. Since 2.8, WinSW will
 User documentation:
 
 * [Installation guide](docs/installation.md) - Describes the installation process for different systems and .NET versions
+* [Migration guide](docs/migration-guide.md) - Migrate to WinSW 3.x.
 * Configuration:
   * [Main XML configuration file](docs/xml-config-file.md)
   * [EXE configuration file](docs/exe-config-file.md)
