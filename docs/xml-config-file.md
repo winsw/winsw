@@ -327,6 +327,24 @@ To use the [NetworkService account](https://docs.microsoft.com/windows/win32/ser
 
 Note that this account does not have a password, so any password provided is ignored.
 
+#### `prompt`
+
+Optional. Prompts for a user name and a password.
+
+```xml
+<serviceaccount>
+  <prompt>dialog|console</prompt>
+<serviceaccount>
+```
+
+- `dialog`
+
+  Prompts using a dialog box.
+
+- `console`
+
+  Prompts at the console.
+
 ### Working directory
 
 Some services need to run with a working directory specified. 
