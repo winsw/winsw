@@ -40,10 +40,17 @@ namespace winsw
 
         public static int Main(string[] args)
         {
-            var types = LoadVerbs();
-
             try
             {
+                if (!handleIncorrectArgument(args))
+                {
+                    Console.WriteLine("Invalid command [" + args[0] + "]");
+                    PrintAvailableCommands();
+                    return -1;
+                }
+
+                var types = LoadVerbs();
+
                 Parser.Default.ParseArguments(args, types)
                         .WithParsed(RunParsed)
                         .WithNotParsed(HandleErrors);
@@ -70,6 +77,23 @@ namespace winsw
                 Console.Error.WriteLine(e);
                 return -1;
             }
+
+            
+        }
+
+        static bool handleIncorrectArgument(string[] args)
+        {
+            var argumentss = new List<string> { "install", "start", "uninstall", "restart", "restart!", "stop", "test", "status", "help", "version" };
+            if (args.Length == 0)
+            {
+                return true;
+            }
+
+            if (argumentss.Contains(args[0]))
+            {
+                return true;
+            }
+            return false;
         }
 
         private static Type[] LoadVerbs()
@@ -96,11 +120,9 @@ namespace winsw
 
         public static void Run(object obj, ServiceDescriptor? descriptor = null)
         {
+            bool inConsoleMode = obj.GetType() != typeof(DefaultCommand);
+
             cliOption = (CLICommand)obj;
-
-            bool inConsoleMode = obj.GetType().Name != "DefaultVerb";
-
-            Console.WriteLine(inConsoleMode);
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptor();
