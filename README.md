@@ -10,6 +10,8 @@
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
 Once you download the installation package, you can rename *WinSW.exe* to any name, e.g. *MyService.exe*.
 
+**We are actively developing WinSW v3. Please refer to the v2 branch for previous version docs.**
+
 ## Why?
 
 See the [project manifest](MANIFEST.md).
