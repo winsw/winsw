@@ -80,14 +80,19 @@ namespace DynamicProxy
 
             // Load "this"
             constructorIL.Emit(OpCodes.Ldarg_0);
+
             // Load first constructor parameter
             constructorIL.Emit(OpCodes.Ldarg_1);
+
             // Set the first parameter into the handler field
             constructorIL.Emit(OpCodes.Stfld, handlerField);
+
             // Load "this"
             constructorIL.Emit(OpCodes.Ldarg_0);
+
             // Call the super constructor
             constructorIL.Emit(OpCodes.Call, baseConstructor);
+
             // Constructor return
             constructorIL.Emit(OpCodes.Ret);
 
@@ -136,7 +141,8 @@ namespace DynamicProxy
                     methodInfo.Name,
                     /*MethodAttributes.Public | MethodAttributes.Virtual | */ methodInfo.Attributes & ~MethodAttributes.Abstract,
                     CallingConventions.Standard,
-                    methodInfo.ReturnType, methodParameters);
+                    methodInfo.ReturnType,
+                    methodParameters);
 
                 ILGenerator methodIL = methodBuilder.GetILGenerator();
 

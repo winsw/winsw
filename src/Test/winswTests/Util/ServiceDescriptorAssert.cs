@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
-using winsw;
-using winsw.Configuration;
+using WinSW;
+using WinSW.Configuration;
 
 namespace winswTests.Util
 {

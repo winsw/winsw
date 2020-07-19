@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 using winswTests.Util;
 using WMI;
 
@@ -28,7 +28,7 @@ $@"<service>
   <description>The service.</description>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
-  <logmode>rotate</logmode>
+  <log mode=""roll""></log>
   <serviceaccount>
     <domain>{Domain}</domain>
     <user>{Username}</user>
@@ -38,13 +38,13 @@ $@"<service>
   <workingdirectory>{ExpectedWorkingDirectory}</workingdirectory>
   <logpath>C:\logs</logpath>
 </service>";
-            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
         [Test]
         public void DefaultStartMode()
         {
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
         }
 
         [Test]
@@ -57,8 +57,8 @@ $@"<service>
   <description>The service.</description>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
-  <startmode>rotate</startmode>
-  <logmode>rotate</logmode>
+  <startmode>roll</startmode>
+  <log mode=""roll""></log>
   <serviceaccount>
     <domain>{Domain}</domain>
     <user>{Username}</user>
@@ -69,8 +69,8 @@ $@"<service>
   <logpath>C:\logs</logpath>
 </service>";
 
-            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(() => _extendedServiceDescriptor.StartMode, Throws.ArgumentException);
+            this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            Assert.That(() => this._extendedServiceDescriptor.StartMode, Throws.ArgumentException);
         }
 
         [Test]
@@ -84,7 +84,7 @@ $@"<service>
   <executable>node.exe</executable>
   <arguments>My Arguments</arguments>
   <startmode>manual</startmode>
-  <logmode>rotate</logmode>
+  <log mode=""roll""></log>
   <serviceaccount>
     <domain>{Domain}</domain>
     <user>{Username}</user>
@@ -95,15 +95,15 @@ $@"<service>
   <logpath>C:\logs</logpath>
 </service>";
 
-            _extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(_extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+            this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
         }
 
         [Test]
         public void VerifyWorkingDirectory()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + this._extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
         }
 
         [Test]
@@ -142,7 +142,7 @@ $@"<service>
         [Test]
         public void StopParentProcessFirstIsFalseByDefault()
         {
-            Assert.That(_extendedServiceDescriptor.StopParentProcessFirst, Is.False);
+            Assert.That(this._extendedServiceDescriptor.StopParentProcessFirst, Is.False);
         }
 
         [Test]

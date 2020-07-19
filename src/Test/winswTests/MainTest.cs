@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ServiceProcess;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 using winswTests.Util;
 
 namespace winswTests

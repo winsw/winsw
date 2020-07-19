@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class Kernel32
     {

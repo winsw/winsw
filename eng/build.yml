@@ -45,8 +45,12 @@ jobs:
       packagesToPack: WinSW.nuspec
       versioningScheme: byEnvVar
       versionEnvVar: BuildVersion
-  - script: dotnet test -c $(BuildConfiguration) --no-build src\Test\winswTests\winswTests.csproj
+  - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\Test\winswTests\winswTests.csproj
     displayName: Test
+  - script: dotnet tool restore
+    displayName: Restore tools
+  - script: dotnet tool run codecov -- -f "src\**\TestResults\*\coverage.cobertura.xml" --required
+    displayName: Upload code coverage reports
   - task: PublishBuildArtifacts@1
     displayName: Publish .NET 2.0
     inputs:
