@@ -225,6 +225,21 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 
+            try
+            {
+                string? prestartExecutable = this.descriptor.PrestartExecutable;
+                if (prestartExecutable != null)
+                {
+                    using Process process = this.StartProcess(prestartExecutable, this.descriptor.PrestartArguments);
+                    this.WaitForProcessToExit(process);
+                    Log.Info($"Pre-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+            }
+
             string? startArguments = this.descriptor.StartArguments;
 
             if (startArguments is null)
@@ -253,6 +268,26 @@ namespace WinSW
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
             this.process.StandardInput.Close(); // nothing for you to read!
+
+            try
+            {
+                string? poststartExecutable = this.descriptor.PoststartExecutable;
+                if (poststartExecutable != null)
+                {
+                    using Process process = this.StartProcess(poststartExecutable, this.descriptor.PoststartArguments);
+                    process.Exited += (sender, _) =>
+                    {
+                        Process process = (Process)sender!;
+                        Log.Info($"Post-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    };
+
+                    process.EnableRaisingEvents = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+            }
         }
 
         protected override void OnShutdown()
@@ -293,6 +328,21 @@ namespace WinSW
         /// </summary>
         private void StopIt()
         {
+            try
+            {
+                string? prestopExecutable = this.descriptor.PrestopExecutable;
+                if (prestopExecutable != null)
+                {
+                    using Process process = this.StartProcess(prestopExecutable, this.descriptor.PrestopArguments);
+                    this.WaitForProcessToExit(process);
+                    Log.Info($"Pre-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+            }
+
             string? stopArguments = this.descriptor.StopArguments;
             this.LogEvent("Stopping " + this.descriptor.Id);
             Log.Info("Stopping " + this.descriptor.Id);
@@ -307,7 +357,7 @@ namespace WinSW
             }
             else
             {
-                this.SignalShutdownPending();
+                this.SignalPending();
 
                 stopArguments += " " + this.descriptor.Arguments;
 
@@ -324,6 +374,21 @@ namespace WinSW
                 this.WaitForProcessToExit(stopProcess);
             }
 
+            try
+            {
+                string? poststopExecutable = this.descriptor.PoststopExecutable;
+                if (poststopExecutable != null)
+                {
+                    using Process process = this.StartProcess(poststopExecutable, this.descriptor.PoststopArguments);
+                    this.WaitForProcessToExit(process);
+                    Log.Info($"Post-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
+            }
+
             // Stop extensions
             this.ExtensionManager.FireBeforeWrapperStopped();
 
@@ -335,48 +400,23 @@ namespace WinSW
             Log.Info("Finished " + this.descriptor.Id);
         }
 
-        private void WaitForProcessToExit(Process processoWait)
+        private void WaitForProcessToExit(Process process)
         {
-            this.SignalShutdownPending();
+            this.SignalPending();
 
-            int effectiveProcessWaitSleepTime;
-            if (this.descriptor.SleepTime.TotalMilliseconds > int.MaxValue)
+            int processWaitHint = (int)Math.Min(this.descriptor.SleepTime.TotalMilliseconds, int.MaxValue);
+
+            while (!process.WaitForExit(processWaitHint))
             {
-                Log.Warn("The requested sleep time " + this.descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " +
-                    int.MaxValue + ". The value will be truncated");
-                effectiveProcessWaitSleepTime = int.MaxValue;
+                this.SignalPending();
             }
-            else
-            {
-                effectiveProcessWaitSleepTime = (int)this.descriptor.SleepTime.TotalMilliseconds;
-            }
-
-            // WriteEvent("WaitForProcessToExit [start]");
-
-            while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
-            {
-                this.SignalShutdownPending();
-                // WriteEvent("WaitForProcessToExit [repeat]");
-            }
-
-            // WriteEvent("WaitForProcessToExit [finished]");
         }
 
-        private void SignalShutdownPending()
+        private void SignalPending()
         {
-            int effectiveWaitHint;
-            if (this.descriptor.WaitHint.TotalMilliseconds > int.MaxValue)
-            {
-                Log.Warn("The requested WaitHint value (" + this.descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
-                    int.MaxValue + ". The value will be truncated");
-                effectiveWaitHint = int.MaxValue;
-            }
-            else
-            {
-                effectiveWaitHint = (int)this.descriptor.WaitHint.TotalMilliseconds;
-            }
+            int serviceWaitHint = (int)Math.Min(this.descriptor.WaitHint.TotalMilliseconds, int.MaxValue);
 
-            this.RequestAdditionalTime(effectiveWaitHint);
+            this.RequestAdditionalTime(serviceWaitHint);
         }
 
         private void SignalShutdownComplete()
@@ -427,6 +467,25 @@ namespace WinSW
                 logHandler: logHandler,
                 redirectStdin: redirectStdin,
                 hideWindow: this.descriptor.HideWindow);
+        }
+
+        private Process StartProcess(string executable, string? arguments)
+        {
+            var info = new ProcessStartInfo(executable, arguments)
+            {
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                WorkingDirectory = this.descriptor.WorkingDirectory,
+            };
+
+            Process process = Process.Start(info);
+            process.StandardInput.Close();
+            return process;
+        }
+
+        private static string GetDisplayName(Process process)
+        {
+            return $"{process.ProcessName} ({process.Id})";
         }
     }
 }
