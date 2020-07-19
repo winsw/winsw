@@ -13,7 +13,7 @@ Once you download the installation package, you can rename *WinSW.exe* to any na
 
 **We are actively developing WinSW v3. Please refer to the v2 branch for previous version documentation.**
 
-**Please help us prioritize items by :+1:, :-1: or comment on the issues!**
+**Please help us prioritize items by voting or commenting on the issues!**
 
 ## Why?
 
@@ -38,7 +38,7 @@ Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw
 
 ## Usage
 
-WinSW is being managed by configuration files: [Main XML configuration file](docs/xml-config-file.md) and [EXE configuration file](docs/exe-config-file.md).
+WinSW is being managed by the [XML configuration file](docs/xml-config-file.md).
 
 Your renamed *WinSW.exe* binary also accepts the following commands:
 
