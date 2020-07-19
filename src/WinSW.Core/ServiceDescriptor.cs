@@ -8,6 +8,7 @@ using System.Xml;
 using WinSW.Configuration;
 using WinSW.Native;
 using WinSW.Util;
+using Names = WinSW.Configuration.SettingNames;
 
 namespace WinSW
 {
@@ -249,6 +250,22 @@ namespace WinSW
                 return stopArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(stopArgumentsNode.InnerText);
             }
         }
+
+        public string? PrestartExecutable => this.GetExecutable(Names.Prestart);
+
+        public string? PrestartArguments => this.GetArguments(Names.Prestart);
+
+        public string? PoststartExecutable => this.GetExecutable(Names.Poststart);
+
+        public string? PoststartArguments => this.GetArguments(Names.Poststart);
+
+        public string? PrestopExecutable => this.GetExecutable(Names.Prestop);
+
+        public string? PrestopArguments => this.GetArguments(Names.Prestop);
+
+        public string? PoststopExecutable => this.GetExecutable(Names.Poststop);
+
+        public string? PoststopArguments => this.GetArguments(Names.Poststop);
 
         public string WorkingDirectory
         {
@@ -726,6 +743,18 @@ namespace WinSW
             }
 
             return environment;
+        }
+
+        private string? GetExecutable(string name)
+        {
+            string? text = this.dom.SelectSingleNode(Names.Service)?.SelectSingleNode(name)?.SelectSingleNode(Names.Executable)?.InnerText;
+            return text is null ? null : Environment.ExpandEnvironmentVariables(text);
+        }
+
+        private string? GetArguments(string name)
+        {
+            string? text = this.dom.SelectSingleNode(Names.Service)?.SelectSingleNode(name)?.SelectSingleNode(Names.Arguments)?.InnerText;
+            return text is null ? null : Environment.ExpandEnvironmentVariables(text);
         }
     }
 }

@@ -425,5 +425,49 @@ $@"<service>
             var sd = bldr.ToServiceDescriptor();
             Assert.Equal(enabled, sd.DelayedAutoStart);
         }
+
+        [Fact]
+        public void Additional_Executable_And_Arguments()
+        {
+            const string prestartExecutable = "1";
+            const string prestartArguments = "2";
+            const string poststartExecutable = "3";
+            const string poststartArguments = "4";
+            const string prestopExecutable = "5";
+            const string prestopArguments = "6";
+            const string poststopExecutable = "7";
+            const string poststopArguments = "8";
+
+            string seedXml =
+$@"<service>
+  <prestart>
+    <executable>{prestartExecutable}</executable>
+    <arguments>{prestartArguments}</arguments>
+  </prestart>
+  <poststart>
+    <executable>{poststartExecutable}</executable>
+    <arguments>{poststartArguments}</arguments>
+  </poststart>
+  <prestop>
+    <executable>{prestopExecutable}</executable>
+    <arguments>{prestopArguments}</arguments>
+  </prestop>
+  <poststop>
+    <executable>{poststopExecutable}</executable>
+    <arguments>{poststopArguments}</arguments>
+  </poststop>
+</service>";
+
+            ServiceDescriptor descriptor = ServiceDescriptor.FromXml(seedXml);
+
+            Assert.Equal(prestartExecutable, descriptor.PrestartExecutable);
+            Assert.Equal(prestartArguments, descriptor.PrestartArguments);
+            Assert.Equal(poststartExecutable, descriptor.PoststartExecutable);
+            Assert.Equal(poststartArguments, descriptor.PoststartArguments);
+            Assert.Equal(prestopExecutable, descriptor.PrestopExecutable);
+            Assert.Equal(prestopArguments, descriptor.PrestopArguments);
+            Assert.Equal(poststopExecutable, descriptor.PoststopExecutable);
+            Assert.Equal(poststopArguments, descriptor.PoststopArguments);
+        }
     }
 }
