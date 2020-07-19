@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using winsw;
+using WinSW;
 
 namespace winswTests.Util
 {

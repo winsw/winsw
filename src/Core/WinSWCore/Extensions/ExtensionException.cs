@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     public class ExtensionException : WinSWException
     {
@@ -9,15 +9,15 @@ namespace winsw.Extensions
         public ExtensionException(string extensionName, string message)
             : base(message)
         {
-            ExtensionId = extensionName;
+            this.ExtensionId = extensionName;
         }
 
         public ExtensionException(string extensionName, string message, Exception innerException)
             : base(message, innerException)
         {
-            ExtensionId = extensionName;
+            this.ExtensionId = extensionName;
         }
 
-        public override string Message => ExtensionId + ": " + base.Message;
+        public override string Message => this.ExtensionId + ": " + base.Message;
     }
 }

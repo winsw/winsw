@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using winsw.Configuration;
 
-namespace winsw.Extensions
+namespace WinSW.Extensions
 {
     /// <summary>
     /// Interface for Win Service Wrapper Extension

@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Xml;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 using winswTests.Util;
 
 namespace winswTests.Configuration

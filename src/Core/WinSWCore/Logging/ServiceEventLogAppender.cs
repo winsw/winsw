@@ -2,7 +2,7 @@
 using log4net.Appender;
 using log4net.Core;
 
-namespace winsw.Logging
+namespace WinSW.Logging
 {
     /// <summary>
     /// Implementes service Event log appender for log4j.
@@ -11,18 +11,18 @@ namespace winsw.Logging
     public class ServiceEventLogAppender : AppenderSkeleton
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public IServiceEventLogProvider provider { get; set; }
+        public IServiceEventLogProvider Provider { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-        override protected void Append(LoggingEvent loggingEvent)
+        protected override void Append(LoggingEvent loggingEvent)
         {
-            EventLog? eventLog = provider.locate();
+            EventLog? eventLog = this.Provider.Locate();
 
             // We write the event iff the provider is ready
-            eventLog?.WriteEntry(loggingEvent.RenderedMessage, toEventLogEntryType(loggingEvent.Level));
+            eventLog?.WriteEntry(loggingEvent.RenderedMessage, ToEventLogEntryType(loggingEvent.Level));
         }
 
-        private static EventLogEntryType toEventLogEntryType(Level level)
+        private static EventLogEntryType ToEventLogEntryType(Level level)
         {
             if (level.Value >= Level.Error.Value)
             {

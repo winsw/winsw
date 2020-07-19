@@ -1,4 +1,5 @@
 ﻿#if !NETCOREAPP
+#pragma warning disable SA1502 // Element should not be on a single line
 namespace System.Diagnostics.CodeAnalysis
 {
     /// <summary>Specifies that null is allowed as an input even if the corresponding type disallows it.</summary>

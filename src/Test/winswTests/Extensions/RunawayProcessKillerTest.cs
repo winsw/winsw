@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using NUnit.Framework;
-using winsw;
-using winsw.Extensions;
-using winsw.Plugins.RunawayProcessKiller;
-using winsw.Util;
+using WinSW;
+using WinSW.Extensions;
+using WinSW.Plugins.RunawayProcessKiller;
+using WinSW.Util;
 using winswTests.Util;
 
 namespace winswTests.Extensions
@@ -28,22 +28,22 @@ $@"<service>
   <description>This service runs a slave for Jenkins continuous integration system.</description>
   <executable>C:\Program Files\Java\jre7\bin\java.exe</executable>
   <arguments>-Xrs  -jar \""%BASE%\slave.jar\"" -jnlpUrl ...</arguments>
-  <logmode>rotate</logmode>
+  <log mode=""roll""></log>
   <extensions>
-    <extension enabled=""true"" className=""{testExtension}"" id=""killRunawayProcess"">
+    <extension enabled=""true"" className=""{this.testExtension}"" id=""killRunawayProcess"">
       <pidfile>foo/bar/pid.txt</pidfile>
       <stopTimeout>5000</stopTimeout>
       <stopParentFirst>true</stopParentFirst>
     </extension>
   </extensions>
 </service>";
-            _testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this._testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
         }
 
         [Test]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
             manager.LoadExtensions();
             Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
 
@@ -58,7 +58,7 @@ $@"<service>
         [Test]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(_testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();
@@ -80,7 +80,7 @@ $@"<service>
             ps.Arguments = "/c pause";
             ps.UseShellExecute = false;
             ps.RedirectStandardOutput = true;
-            ps.EnvironmentVariables[WinSWSystem.ENVVAR_NAME_SERVICE_ID] = winswId;
+            ps.EnvironmentVariables[WinSWSystem.EnvVarNameServiceId] = winswId;
             proc.Start();
 
             try
