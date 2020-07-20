@@ -656,52 +656,51 @@ namespace WinSW
 
         public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement("resetfailure", Defaults.ResetFailureAfter);
 
-        protected string? GetServiceAccountPart(string subNodeName)
+        protected string? GetServiceAccountPart(XmlNode node, string subNodeName)
         {
-            XmlNode? node = this.dom.SelectSingleNode("//serviceaccount");
-
-            if (node != null)
+            XmlNode? subNode = node.SelectSingleNode(subNodeName);
+            if (subNode != null)
             {
-                XmlNode? subNode = node.SelectSingleNode(subNodeName);
-                if (subNode != null)
-                {
-                    return subNode.InnerText;
-                }
+                return subNode.InnerText;
             }
 
             return null;
+        }
+
+        private bool ParseAllowServiceAcountLogonRight(string? logonRight)
+        {
+            if (logonRight != null && bool.TryParse(logonRight, out bool parsedvalue))
+            {
+                return parsedvalue;
+            }
+
+            return false;
         }
 
         public ServiceAccount ServiceAccount
         {
             get
             {
-                var serviceAccount = Defaults.ServiceAccount;
+                XmlNode? node = this.dom.SelectSingleNode("//serviceaccount");
 
-                serviceAccount.ServiceAccountDomain = this.GetServiceAccountPart("domain");
-
-                serviceAccount.ServiceAccountName = this.GetServiceAccountPart("user");
-
-                serviceAccount.ServiceAccountPassword = this.GetServiceAccountPart("password");
-
-                serviceAccount.AllowServiceAcountLogonRight = this.AllowServiceAcountLogonRight;
-
-                return serviceAccount;
-            }
-        }
-
-        protected string? AllowServiceLogon => this.GetServiceAccountPart("allowservicelogon");
-
-        private bool AllowServiceAcountLogonRight
-        {
-            get
-            {
-                if (this.AllowServiceLogon != null && bool.TryParse(this.AllowServiceLogon, out bool parsedvalue))
+                if (node is null)
                 {
-                    return parsedvalue;
+                    return Defaults.ServiceAccount;
                 }
 
-                return false;
+                var serviceAccount = Defaults.ServiceAccount;
+
+                serviceAccount.ServiceAccountDomain = this.GetServiceAccountPart(node, "domain");
+
+                serviceAccount.ServiceAccountName = this.GetServiceAccountPart(node, "user");
+
+                serviceAccount.ServiceAccountPassword = this.GetServiceAccountPart(node, "password");
+
+                var loginRight = this.GetServiceAccountPart(node, "allowservicelogon");
+
+                serviceAccount.AllowServiceAcountLogonRight = this.ParseAllowServiceAcountLogonRight(loginRight);
+
+                return serviceAccount;
             }
         }
 
