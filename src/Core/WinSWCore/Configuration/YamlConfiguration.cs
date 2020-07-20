@@ -5,6 +5,7 @@ using System.Xml;
 using WinSW.Native;
 using WMI;
 using YamlDotNet.Serialization;
+using static WinSW.Download;
 
 namespace WinSW.Configuration
 {
@@ -285,7 +286,7 @@ namespace WinSW.Configuration
             }
         }
 
-        public class YamlDownload : Download
+        public class YamlDownload
         {
             [YamlMember(Alias = "from")]
             public string FromYamlDownload { get; set; } = string.Empty;

@@ -40,11 +40,6 @@ namespace WinSW
 
         public string ShortId => $"(download from {this.From})";
 
-        public Download()
-        {
-
-        }
-
         static Download()
         {
 #if NET461
