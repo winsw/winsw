@@ -1,96 +1,94 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Xml;
-using winsw.Native;
+using WinSW.Native;
 using WMI;
 using YamlDotNet.Serialization;
 
-namespace winsw.Configuration
+namespace WinSW.Configuration
 {
     public class YamlConfiguration : IWinSWConfiguration
     {
-
         public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
         [YamlMember(Alias = "id")]
-        public string? _Id { get; set; }
+        public string? IdYaml { get; set; }
 
         [YamlMember(Alias = "name")]
-        public string? Name { get; set; }
+        public string? NameYaml { get; set; }
 
         [YamlMember(Alias = "description")]
-        public string? _Description { get; set; }
+        public string? DescriptionYaml { get; set; }
 
         [YamlMember(Alias = "executable")]
-        public string? _Executable { get; set; }
+        public string? ExecutableYaml { get; set; }
 
         [YamlMember(Alias = "executablePath")]
-        public string? _ExecutablePath { get; set; }
+        public string? ExecutablePathYaml { get; set; }
 
         [YamlMember(Alias = "caption")]
-        public string? _Caption { get; set; }
+        public string? CaptionYaml { get; set; }
 
         [YamlMember(Alias = "hideWindow")]
-        public bool? _HideWindow { get; set; }
+        public bool? HideWindowYaml { get; set; }
 
         [YamlMember(Alias = "workingdirectory")]
-        public string? _WorkingDirectory { get; set; }
+        public string? WorkingDirectoryYaml { get; set; }
 
         [YamlMember(Alias = "serviceaccount")]
-        public ServiceAccount? _ServiceAccount { get; set; }
+        public ServiceAccount? ServiceAccountYaml { get; set; }
 
         [YamlMember(Alias = "log")]
-        public YamlLog? _YAMLLog { get; set; }
+        public YamlLog? YAMLLog { get; set; }
 
         [YamlMember(Alias = "download")]
-        public List<YamlDownload>? _Downloads { get; set; }
+        public List<YamlDownload>? DownloadsYaml { get; set; }
 
         [YamlMember(Alias = "arguments")]
-        public string? _Arguments { get; set; }
+        public string? ArgumentsYaml { get; set; }
 
         [YamlMember(Alias = "startArguments")]
-        public string? _StartArguments { get; set; }
+        public string? StartArgumentsYaml { get; set; }
 
         [YamlMember(Alias = "stopArguments")]
-        public string? _StopArguments { get; set; }
+        public string? StopArgumentsYaml { get; set; }
 
         [YamlMember(Alias = "stopExecutable")]
-        public string? _StopExecutable { get; set; }
+        public string? StopExecutableYaml { get; set; }
 
         [YamlMember(Alias = "stopParentProcessFirst")]
-        public bool? _StopParentProcessFirst { get; set; }
+        public bool? StopParentProcessFirstYaml { get; set; }
 
         [YamlMember(Alias = "resetFailureAfter")]
-        public TimeSpan? _ResetFailureAfter { get; set; }
+        public TimeSpan? ResetFailureAfterYaml { get; set; }
 
         [YamlMember(Alias = "stopTimeout")]
-        public TimeSpan? _StopTimeout { get; set; }
+        public TimeSpan? StopTimeoutYaml { get; set; }
 
         [YamlMember(Alias = "startMode")]
-        public StartMode? _StartMode { get; set; }
+        public StartMode? StartModeYaml { get; set; }
 
         [YamlMember(Alias = "serviceDependencies")]
-        public string[]? _ServiceDependencies { get; set; }
+        public string[]? ServiceDependenciesYaml { get; set; }
 
         [YamlMember(Alias = "waitHint")]
-        public TimeSpan? _WaitHint { get; set; }
+        public TimeSpan? WaitHintYaml { get; set; }
 
         [YamlMember(Alias = "sleepTime")]
-        public TimeSpan? _SleepTime { get; set; }
+        public TimeSpan? SleepTimeYaml { get; set; }
 
         [YamlMember(Alias = "interactive")]
-        public bool? _Interactive { get; set; }
+        public bool? InteractiveYaml { get; set; }
 
         [YamlMember(Alias = "priority")]
-        public ProcessPriorityClass? _Priority { get; set; }
+        public ProcessPriorityClass? PriorityYaml { get; set; }
 
         [YamlMember(Alias = "beepOnShutdown")]
         public bool BeepOnShutdown { get; set; }
 
         [YamlMember(Alias = "env")]
-        public Dictionary<string, string>? _EnvironmentVariables { get; set; }
+        public Dictionary<string, string>? EnvironmentVariablesYaml { get; set; }
 
         [YamlMember(Alias = "failureActions")]
         public List<YamlFailureAction>? YamlFailureActions { get; set; }
@@ -99,166 +97,220 @@ namespace winsw.Configuration
         public bool DelayedAutoStart { get; set; }
 
         [YamlMember(Alias = "securityDescriptor")]
-        public string? _SecurityDescriptor { get; set; }
+        public string? SecurityDescriptorYaml { get; set; }
 
         public class YamlLog : Log
         {
-
             private readonly YamlConfiguration configs;
 
             public YamlLog()
             {
-                configs = new YamlConfiguration();
+                this.configs = new YamlConfiguration();
             }
 
             [YamlMember(Alias = "mode")]
-            public string? _Mode { get; set; }
+            public string? ModeYamlLog { get; set; }
 
             [YamlMember(Alias = "name")]
-            public string? _Name { get; set; }
+            public string? NameYamlLog { get; set; }
 
             [YamlMember(Alias = "sizeThreshold")]
-            public int? _SizeThreshold { get; set; }
+            public int? SizeThresholdYamlLog { get; set; }
 
             [YamlMember(Alias = "keepFiles")]
-            public int? _KeepFiles { get; set; }
+            public int? KeepFilesYamlLog { get; set; }
 
             [YamlMember(Alias = "pattern")]
-            public string? _Pattern { get; set; }
+            public string? PatternYamlLog { get; set; }
 
             [YamlMember(Alias = "period")]
-            public int? _Period { get; set; }
+            public int? PeriodYamlLog { get; set; }
 
             [YamlMember(Alias = "logpath")]
-            public string? _LogPath { get; set; }
-
+            public string? LogPathYamlLog { get; set; }
 
             // Filters
             [YamlMember(Alias = "outFileDisabled")]
-            public bool? _OutFileDisabled { get; set; }
+            public bool? OutFileDisabledYamlLog { get; set; }
 
             [YamlMember(Alias = "errFileDisabled")]
-            public bool? _ErrFileDisabled { get; set; }
+            public bool? ErrFileDisabledYamlLog { get; set; }
 
             [YamlMember(Alias = "outFilePattern")]
-            public string? _OutFilePattern;
+            public string? OutFilePatternYamlLog { get; set; }
 
             [YamlMember(Alias = "errFilePattern")]
-            public string? _ErrFilePattern;
-
+            public string? ErrFilePatternYamlLog { get; set; }
 
             // Zip options
             [YamlMember(Alias = "autoRollAtTime")]
-            public string? _AutoRollAtTime { get; set; }
+            public string? AutoRollAtTimeYamlLog { get; set; }
 
             [YamlMember(Alias = "zipOlderThanNumDays")]
-            public int? _ZipOlderThanNumDays { get; set; }
+            public int? ZipOlderThanNumDaysYamlLog { get; set; }
 
             [YamlMember(Alias = "zipDateFormat")]
-            public string? _ZipDateFormat { get; set; }
+            public string? ZipDateFormatYamlLog { get; set; }
 
-            public override string Mode => _Mode is null ?
+            public override string Mode => this.ModeYamlLog is null ?
                 DefaultWinSWSettings.DefaultLogSettings.Mode :
-                _Mode;
+                this.ModeYamlLog;
 
-            public override string? Name => _Name is null ?
-                DefaultWinSWSettings.DefaultLogSettings.Name :
-                Environment.ExpandEnvironmentVariables(_Name);
-
-            public override string Directory => _LogPath is null ?
-                DefaultWinSWSettings.DefaultLogSettings.Directory :
-                Environment.ExpandEnvironmentVariables(_LogPath);
-
-            public override int? SizeThreshold => _SizeThreshold is null ?
-                DefaultWinSWSettings.DefaultLogSettings.SizeThreshold :
-                _SizeThreshold * RollingSizeTimeLogAppender.BYTES_PER_KB;
-
-            public override int? KeepFiles => _KeepFiles is null ?
-                DefaultWinSWSettings.DefaultLogSettings.KeepFiles :
-                _KeepFiles;
-
-
-            public override string? Pattern
+            public override string Name
             {
                 get
                 {
-                    if (_Pattern != null)
+                    return this.NameYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.Name :
+                        Environment.ExpandEnvironmentVariables(this.NameYamlLog);
+                }
+            }
+
+            public override string Directory
+            {
+                get
+                {
+                    return this.LogPathYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.Directory :
+                        Environment.ExpandEnvironmentVariables(this.LogPathYamlLog);
+                }
+            }
+
+            public override int? SizeThreshold
+            {
+                get
+                {
+                    return this.SizeThresholdYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.SizeThreshold :
+                        this.SizeThresholdYamlLog * RollingSizeTimeLogAppender.BytesPerKB;
+                }
+            }
+
+            public override int? KeepFiles
+            {
+                get
+                {
+                    return this.KeepFilesYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.KeepFiles :
+                        this.KeepFilesYamlLog;
+                }
+            }
+
+            public override string Pattern
+            {
+                get
+                {
+                    if (this.PatternYamlLog != null)
                     {
-                        return _Pattern;
+                        return this.PatternYamlLog;
                     }
 
                     return DefaultWinSWSettings.DefaultLogSettings.Pattern;
                 }
             }
 
-            public override int? Period => _Period is null ? 1 : _Period;
+            public override int? Period => this.PeriodYamlLog is null ? 1 : this.PeriodYamlLog;
 
-            public override bool OutFileDisabled => _OutFileDisabled is null ?
-                DefaultWinSWSettings.DefaultLogSettings.OutFileDisabled :
-                (bool)_OutFileDisabled;
+            public override bool OutFileDisabled
+            {
+                get
+                {
+                    return this.OutFileDisabledYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.OutFileDisabled :
+                        (bool)this.OutFileDisabledYamlLog;
+                }
+            }
 
-            public override bool ErrFileDisabled => _ErrFileDisabled is null ?
-                configs.Defaults.ErrFileDisabled :
-                (bool)_ErrFileDisabled;
+            public override bool ErrFileDisabled
+            {
+                get
+                {
+                    return this.ErrFileDisabledYamlLog is null ?
+                        this.configs.Defaults.ErrFileDisabled :
+                        (bool)this.ErrFileDisabledYamlLog;
+                }
+            }
 
-            public override string OutFilePattern => _OutFilePattern is null ?
-                DefaultWinSWSettings.DefaultLogSettings.OutFilePattern :
-                Environment.ExpandEnvironmentVariables(_OutFilePattern);
+            public override string OutFilePattern
+            {
+                get
+                {
+                    return this.OutFilePatternYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.OutFilePattern :
+                        Environment.ExpandEnvironmentVariables(this.OutFilePatternYamlLog);
+                }
+            }
 
-            public override string ErrFilePattern => _ErrFilePattern is null ?
-                DefaultWinSWSettings.DefaultLogSettings.ErrFilePattern :
-                Environment.ExpandEnvironmentVariables(_ErrFilePattern);
+            public override string ErrFilePattern
+            {
+                get
+                {
+                    return this.ErrFilePatternYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.ErrFilePattern :
+                        Environment.ExpandEnvironmentVariables(this.ErrFilePatternYamlLog);
+                }
+            }
 
-            public override string? AutoRollAtTime => _AutoRollAtTime is null ?
-                DefaultWinSWSettings.DefaultLogSettings.AutoRollAtTime :
-                _AutoRollAtTime;
+            public override string? AutoRollAtTime
+            {
+                get
+                {
+                    return this.AutoRollAtTimeYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.AutoRollAtTime :
+                        this.AutoRollAtTimeYamlLog;
+                }
+            }
 
             public override int? ZipOlderThanNumDays
             {
                 get
                 {
-                    if (_ZipOlderThanNumDays != null)
+                    if (this.ZipOlderThanNumDaysYamlLog != null)
                     {
-                        return _ZipOlderThanNumDays;
+                        return this.ZipOlderThanNumDaysYamlLog;
                     }
 
                     return DefaultWinSWSettings.DefaultLogSettings.ZipOlderThanNumDays;
                 }
             }
 
-            public override string? ZipDateFormat => _ZipDateFormat is null ?
-                DefaultWinSWSettings.DefaultLogSettings.ZipDateFormat :
-                _ZipDateFormat;
+            public override string? ZipDateFormat
+            {
+                get
+                {
+                    return this.ZipDateFormatYamlLog is null ?
+                        DefaultWinSWSettings.DefaultLogSettings.ZipDateFormat :
+                        this.ZipDateFormatYamlLog;
+                }
+            }
         }
 
         public class YamlDownload : Download
         {
             [YamlMember(Alias = "from")]
-            public string _From;
+            public string FromYamlDownload { get; set; } = string.Empty;
 
             [YamlMember(Alias = "to")]
-            public string _To;
+            public string ToYamlDownload { get; set; } = string.Empty;
 
             [YamlMember(Alias = "auth")]
-            public AuthType _Auth;
+            public AuthType AuthYamlDownload { get; set; }
 
             [YamlMember(Alias = "username")]
-            public string? _Username;
+            public string? UsernameYamlDownload { get; set; }
 
             [YamlMember(Alias = "password")]
-            public string? _Password;
+            public string? PasswordYamlDownload { get; set; }
 
             [YamlMember(Alias = "unsecureAuth")]
-            public bool _UnsecureAuth;
+            public bool UnsecureAuthYamlDownload { get; set; }
 
             [YamlMember(Alias = "failOnError")]
-            public bool _FailOnError;
+            public bool FailOnErrorYamlDownload { get; set; }
 
             [YamlMember(Alias = "proxy")]
-            public string? _Proxy;
-
+            public string? ProxyYamlDownload { get; set; }
         }
-
 
         public class YamlFailureAction
         {
@@ -268,24 +320,23 @@ namespace winsw.Configuration
             [YamlMember(Alias = "delay")]
             private TimeSpan delay;
 
-            public SC_ACTION_TYPE Type { get => type; set => type = value; }
-            public TimeSpan Delay { get => delay; set => delay = value; }
-        }
+            public SC_ACTION_TYPE Type { get => this.type; set => this.type = value; }
 
+            public TimeSpan Delay { get => this.delay; set => this.delay = value; }
+        }
 
         private string? GetArguments(string? args, ArgType type)
         {
-
             if (args is null)
             {
                 switch (type)
                 {
-                    case ArgType.arg:
-                        return Defaults.Arguments;
-                    case ArgType.startarg:
-                        return Defaults.StartArguments;
-                    case ArgType.stoparg:
-                        return Defaults.StopArguments;
+                    case ArgType.Arg:
+                        return this.Defaults.Arguments;
+                    case ArgType.Startarg:
+                        return this.Defaults.StartArguments;
+                    case ArgType.Stoparg:
+                        return this.Defaults.StopArguments;
                 }
             }
 
@@ -294,16 +345,16 @@ namespace winsw.Configuration
 
         private enum ArgType
         {
-            arg = 0,
-            startarg = 1,
-            stoparg = 2
+            Arg = 0,
+            Startarg = 1,
+            Stoparg = 2
         }
 
         private List<Download> GetDownloads(List<YamlDownload>? downloads)
         {
             if (downloads is null)
             {
-                return Defaults.Downloads;
+                return this.Defaults.Downloads;
             }
 
             var result = new List<Download>(downloads.Count);
@@ -311,60 +362,78 @@ namespace winsw.Configuration
             foreach (var item in downloads)
             {
                 result.Add(new Download(
-                    item._From,
-                    item._To,
-                    item._FailOnError,
-                    item._Auth,
-                    item._Username,
-                    item._Password,
-                    item._UnsecureAuth,
-                    item._Proxy));
+                    item.FromYamlDownload,
+                    item.ToYamlDownload,
+                    item.FailOnErrorYamlDownload,
+                    item.AuthYamlDownload,
+                    item.UsernameYamlDownload,
+                    item.PasswordYamlDownload,
+                    item.UnsecureAuthYamlDownload,
+                    item.ProxyYamlDownload));
             }
 
             return result;
         }
 
+        public string Id => this.IdYaml is null ? this.Defaults.Id : this.IdYaml;
 
-        public string Id => _Id is null ? Defaults.Id : _Id;
+        public string Description => this.DescriptionYaml is null ? this.Defaults.Description : this.DescriptionYaml;
 
-        public string Description => _Description is null ? Defaults.Description : _Description;
+        public string Executable => this.ExecutableYaml is null ? this.Defaults.Executable : this.ExecutableYaml;
 
-        public string Executable => _Executable is null ? Defaults.Executable : _Executable;
+        public string ExecutablePath => this.ExecutablePathYaml is null ? this.Defaults.ExecutablePath : this.ExecutablePathYaml;
 
-        public string ExecutablePath => _ExecutablePath is null ? Defaults.ExecutablePath : _ExecutablePath;
+        public string Caption => this.CaptionYaml is null ? this.Defaults.Caption : this.CaptionYaml;
 
-        public string Caption => _Caption is null ? Defaults.Caption : _Caption;
+        public bool HideWindow => this.HideWindowYaml is null ? this.Defaults.HideWindow : (bool)this.HideWindowYaml;
 
-        public bool HideWindow => _HideWindow is null ? Defaults.HideWindow : (bool)_HideWindow;
+        public bool StopParentProcessFirst
+        {
+            get
+            {
+                return this.StopParentProcessFirstYaml is null ?
+                    this.Defaults.StopParentProcessFirst :
+                    (bool)this.StopParentProcessFirstYaml;
+            }
+        }
 
-        public bool StopParentProcessFirst => _StopParentProcessFirst is null ?
-            Defaults.StopParentProcessFirst :
-            (bool)_StopParentProcessFirst;
+        public StartMode StartMode => this.StartModeYaml is null ? this.Defaults.StartMode : (StartMode)this.StartModeYaml;
 
-        public StartMode StartMode => _StartMode is null ? Defaults.StartMode : (StartMode)_StartMode;
+        public string Arguments
+        {
+            get
+            {
+                var args = this.GetArguments(this.ArgumentsYaml, ArgType.Arg);
+                return args is null ? this.Defaults.Arguments : args;
+            }
+        }
 
-        public string Arguments => GetArguments(_Arguments, ArgType.arg);
+        public string? StartArguments => this.GetArguments(this.StartArgumentsYaml, ArgType.Startarg);
 
-        public string? StartArguments => GetArguments(_StartArguments, ArgType.startarg);
+        public string? StopArguments => this.GetArguments(this.StopArgumentsYaml, ArgType.Stoparg);
 
-        public string? StopArguments => GetArguments(_StopArguments, ArgType.stoparg);
-
-        public string? StopExecutable => _StopExecutable is null ?
-            Defaults.StopExecutable :
-            null;
+        public string? StopExecutable
+        {
+            get
+            {
+                return this.StopExecutableYaml is null ?
+                    this.Defaults.StopExecutable :
+                    null;
+            }
+        }
 
         public SC_ACTION[] FailureActions
         {
             get
             {
-                if (YamlFailureActions is null)
+                if (this.YamlFailureActions is null)
                 {
                     return new SC_ACTION[0];
                 }
 
                 var arr = new List<SC_ACTION>();
 
-                foreach (var item in YamlFailureActions)
+                foreach (var item in this.YamlFailureActions)
                 {
                     arr.Add(new SC_ACTION(item.Type, item.Delay));
                 }
@@ -373,41 +442,41 @@ namespace winsw.Configuration
             }
         }
 
-        public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ?
-            Defaults.ResetFailureAfter :
-            (TimeSpan)_ResetFailureAfter;
+        public TimeSpan ResetFailureAfter => this.ResetFailureAfterYaml is null ?
+            this.Defaults.ResetFailureAfter :
+            (TimeSpan)this.ResetFailureAfterYaml;
 
-        public string WorkingDirectory => _WorkingDirectory is null ?
-            Defaults.WorkingDirectory :
-            _WorkingDirectory;
+        public string WorkingDirectory => this.WorkingDirectoryYaml is null ?
+            this.Defaults.WorkingDirectory :
+            this.WorkingDirectoryYaml;
 
-        public ProcessPriorityClass Priority => _Priority is null ? Defaults.Priority : (ProcessPriorityClass)_Priority;
+        public ProcessPriorityClass Priority => this.PriorityYaml is null ? this.Defaults.Priority : (ProcessPriorityClass)this.PriorityYaml;
 
-        public TimeSpan StopTimeout => _StopTimeout is null ? Defaults.StopTimeout : (TimeSpan)_StopTimeout;
+        public TimeSpan StopTimeout => this.StopTimeoutYaml is null ? this.Defaults.StopTimeout : (TimeSpan)this.StopTimeoutYaml;
 
-        public string[] ServiceDependencies => _ServiceDependencies is null ?
-            Defaults.ServiceDependencies :
-            _ServiceDependencies;
+        public string[] ServiceDependencies => this.ServiceDependenciesYaml is null ?
+            this.Defaults.ServiceDependencies :
+            this.ServiceDependenciesYaml;
 
-        public TimeSpan WaitHint => _WaitHint is null ? Defaults.WaitHint : (TimeSpan)_WaitHint;
+        public TimeSpan WaitHint => this.WaitHintYaml is null ? this.Defaults.WaitHint : (TimeSpan)this.WaitHintYaml;
 
-        public TimeSpan SleepTime => _SleepTime is null ? Defaults.SleepTime : (TimeSpan)_SleepTime;
+        public TimeSpan SleepTime => this.SleepTimeYaml is null ? this.Defaults.SleepTime : (TimeSpan)this.SleepTimeYaml;
 
-        public bool Interactive => _Interactive is null ? Defaults.Interactive : (bool)_Interactive;
+        public bool Interactive => this.InteractiveYaml is null ? this.Defaults.Interactive : (bool)this.InteractiveYaml;
 
-        public List<Download> Downloads => GetDownloads(_Downloads);
+        public List<Download> Downloads => this.GetDownloads(this.DownloadsYaml);
 
         public Dictionary<string, string> EnvironmentVariables
         {
             get
             {
-                if (_EnvironmentVariables is null)
+                if (this.EnvironmentVariablesYaml is null)
                 {
-                    return Defaults.EnvironmentVariables;
+                    return this.Defaults.EnvironmentVariables;
                 }
 
                 var dictionary = new Dictionary<string, string>();
-                foreach (var item in _EnvironmentVariables)
+                foreach (var item in this.EnvironmentVariablesYaml)
                 {
                     dictionary[item.Key] = Environment.ExpandEnvironmentVariables(item.Value);
                 }
@@ -416,21 +485,17 @@ namespace winsw.Configuration
             }
         }
 
+        public ServiceAccount ServiceAccount => this.ServiceAccountYaml is null ? this.Defaults.ServiceAccount : this.ServiceAccountYaml;
 
-        //Service Account
-        public ServiceAccount ServiceAccount => _ServiceAccount is null ? Defaults.ServiceAccount : _ServiceAccount;
+        public Log Log => this.YAMLLog is null ? this.Defaults.Log : this.YAMLLog;
 
-        //Log
-        public Log Log => _YAMLLog is null ? Defaults.Log : _YAMLLog;
+        public string LogDirectory => this.Log.Directory;
 
-        public string LogDirectory => Log.Directory;
-
-        public string LogMode => Log.Mode;
+        public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode;
 
         // TODO
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
 
-        //IWinSWConfiguration Support
         public List<string> ExtensionIds => throw new NotImplementedException();
 
         public string BaseName => throw new NotImplementedException();

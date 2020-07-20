@@ -53,7 +53,7 @@ namespace WinSW.Configuration
         TimeSpan SleepTime { get; }
 
         bool Interactive { get; }
-      
+
         /// <summary>
         /// Destination for logging.
         /// If undefined, a default one should be used.
@@ -62,7 +62,8 @@ namespace WinSW.Configuration
 
         // TODO: replace by enum
         string LogMode { get; }
-        Log? Log { get; }
+
+        Log Log { get; }
 
         // Environment
         List<Download> Downloads { get; }
@@ -75,10 +76,10 @@ namespace WinSW.Configuration
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
 
-        //IWinSWConfiguration Support
+        // IWinSWConfiguration Support
         List<string> ExtensionIds { get; }
 
-        //Service Account
+        // Service Account
         ServiceAccount ServiceAccount { get; }
 
         string BaseName { get; }

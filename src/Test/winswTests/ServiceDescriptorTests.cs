@@ -247,7 +247,7 @@ $@"<service>
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             serviceDescriptor.BaseName = "service";
 
-            var logHandler = serviceDescriptor.Log.createLogHandler() as SizeBasedRollingLogAppender;
+            var logHandler = serviceDescriptor.Log.CreateLogHandler() as SizeBasedRollingLogAppender;
             Assert.That(logHandler, Is.Not.Null);
             Assert.That(logHandler.SizeTheshold, Is.EqualTo(112 * 1024));
             Assert.That(logHandler.FilesToKeep, Is.EqualTo(113));
@@ -267,7 +267,7 @@ $@"<service>
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             serviceDescriptor.BaseName = "service";
 
-            var logHandler = serviceDescriptor.Log.createLogHandler() as TimeBasedRollingLogAppender;
+            var logHandler = serviceDescriptor.Log.CreateLogHandler() as TimeBasedRollingLogAppender;
             Assert.That(logHandler, Is.Not.Null);
             Assert.That(logHandler.Period, Is.EqualTo(7));
             Assert.That(logHandler.Pattern, Is.EqualTo("log pattern"));
@@ -288,7 +288,7 @@ $@"<service>
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
             serviceDescriptor.BaseName = "service";
 
-            var logHandler = serviceDescriptor.Log.createLogHandler() as RollingSizeTimeLogAppender;
+            var logHandler = serviceDescriptor.Log.CreateLogHandler() as RollingSizeTimeLogAppender;
             Assert.That(logHandler, Is.Not.Null);
             Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
             Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));

@@ -16,7 +16,9 @@ namespace WinSW
     /// </summary>
     public class ServiceDescriptor : IWinSWConfiguration
     {
+#pragma warning disable S2755 // XML parsers should not be vulnerable to XXE attacks
         protected readonly XmlDocument dom = new XmlDocument();
+#pragma warning restore S2755 // XML parsers should not be vulnerable to XXE attacks
 
         private readonly Dictionary<string, string> environmentVariables;
 
@@ -108,9 +110,11 @@ namespace WinSW
 
         public static ServiceDescriptor FromXML(string xml)
         {
-            var dom = new XmlDocument();
-            dom.LoadXml(xml);
-            return new ServiceDescriptor(dom);
+#pragma warning disable S2755 // XML parsers should not be vulnerable to XXE attacks
+            var xmlDom = new XmlDocument();
+#pragma warning restore S2755 // XML parsers should not be vulnerable to XXE attacks
+            xmlDom.LoadXml(xml);
+            return new ServiceDescriptor(xmlDom);
         }
 
         private string SingleElement(string tagName)
@@ -143,7 +147,7 @@ namespace WinSW
             return e is null ? defaultValue : int.Parse(e.InnerText);
         }
 
-        private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
+        private TimeSpan SingleTimeSpanElement(string tagName, TimeSpan defaultValue)
         {
             string? value = this.SingleElement(tagName, true);
             return value is null ? defaultValue : this.ParseTimeSpan(value);
@@ -327,8 +331,7 @@ namespace WinSW
         /// <summary>
         /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
         /// </summary>
-        public string LogDirectory { get => Log.Directory; }
-
+        public string? LogDirectory { get => this.Log.Directory; }
 
         public string LogMode
         {
@@ -366,76 +369,82 @@ namespace WinSW
             }
         }
 
-        public Log Log {
-            get {
+        public Log Log
+        {
+            get
+            {
                 return new XmlLogSettings(this);
-            } 
+            }
         }
 
         private class XmlLogSettings : Log
         {
-            private ServiceDescriptor d;
+            private readonly ServiceDescriptor d;
 
             public XmlLogSettings(ServiceDescriptor d)
             {
                 this.d = d;
             }
 
-            private XmlElement e {
+            private XmlElement E
+            {
                 get
                 {
-                    XmlElement? e = (XmlElement?)d.dom.SelectSingleNode("//logmode");
+                    XmlElement? e = (XmlElement?)this.d.dom.SelectSingleNode("//logmode");
 
                     // this is more modern way, to support nested elements as configuration
-                    e ??= (XmlElement?)d.dom.SelectSingleNode("//log")!; // WARNING: NRE
+                    e ??= (XmlElement?)this.d.dom.SelectSingleNode("//log")!; // WARNING: NRE
                     return e;
                 }
             }
 
-            public override string? Mode { get => d.LogMode; }
+            public override string? Mode { get => this.d.LogMode; }
 
-            public override string? Name { get => d.LogName; }
+            public override string Name { get => this.d.LogName; }
 
-            public override string? Directory
+            public override string Directory
             {
                 get
                 {
-                    XmlNode? loggingNode = d.dom.SelectSingleNode("//logpath");
-                    
+                    XmlNode? loggingNode = this.d.dom.SelectSingleNode("//logpath");
+
                     return loggingNode is null
                         ? Defaults.LogDirectory
                         : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
                 }
             }
 
-            public override int? SizeThreshold { get => d.SingleIntElement(e, "sizeThreshold", 10 * 1024); }
+            public override int? SizeThreshold { get => this.d.SingleIntElement(this.E, "sizeThreshold", 10 * 1024); }
 
-            public override int? KeepFiles { get => d.SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP); }
+            public override int? KeepFiles { get => this.d.SingleIntElement(this.E, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep); }
 
-            public override int? Period { get => d.SingleIntElement(e, "period", 1); }
+            public override int? Period { get => this.d.SingleIntElement(this.E, "period", 1); }
 
-            public override string? Pattern { 
+            public override string Pattern
+            {
                 get
                 {
-                    XmlNode? patternNode = e.SelectSingleNode("pattern");
+                    XmlNode? patternNode = this.E.SelectSingleNode("pattern");
                     if (patternNode is null)
                     {
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
                         throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
                     }
 
                     return patternNode.InnerText;
                 }
             }
 
-            public override bool OutFileDisabled => d.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+            public override bool OutFileDisabled => this.d.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
 
-            public override bool ErrFileDisabled => d.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+            public override bool ErrFileDisabled => this.d.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
 
             public override string OutFilePattern
             {
                 get
                 {
-                    XmlNode? loggingName = d.dom.SelectSingleNode("//outfilepattern");
+                    XmlNode? loggingName = this.d.dom.SelectSingleNode("//outfilepattern");
 
                     return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
                 }
@@ -445,47 +454,52 @@ namespace WinSW
             {
                 get
                 {
-                    XmlNode? loggingName = d.dom.SelectSingleNode("//errfilepattern");
+                    XmlNode? loggingName = this.d.dom.SelectSingleNode("//errfilepattern");
 
                     return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
                 }
             }
 
-            public override string AutoRollAtTime
+            public override string? AutoRollAtTime
             {
                 get
                 {
-                    XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
-                    return autoRollAtTimeNode != null ? autoRollAtTimeNode.InnerText : null;
-
+                    XmlNode? autoRollAtTimeNode = this.E.SelectSingleNode("autoRollAtTime");
+                    return autoRollAtTimeNode?.InnerText;
                 }
             }
 
-            public override int? ZipOlderThanNumDays { 
+            public override int? ZipOlderThanNumDays
+            {
                 get
                 {
-                    XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
+                    XmlNode? zipolderthannumdaysNode = this.E.SelectSingleNode("zipOlderThanNumDays");
                     int? zipolderthannumdays = null;
                     if (zipolderthannumdaysNode != null)
                     {
                         // validate it
                         if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
+                        {
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
+                        }
 
                         zipolderthannumdays = zipolderthannumdaysValue;
                     }
+
                     return zipolderthannumdays;
                 }
             }
+
             public override string? ZipDateFormat
             {
                 get
                 {
-                    XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
+                    XmlNode? zipdateformatNode = this.E.SelectSingleNode("zipDateFormat");
                     return zipdateformatNode is null ? null : zipdateformatNode.InnerText;
                 }
             }
-
         }
 
         /// <summary>
@@ -564,14 +578,14 @@ namespace WinSW
         /// Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function
         /// with either an incremented checkPoint value or a change in currentState. (see http://msdn.microsoft.com/en-us/library/ms685996.aspx)
         /// </summary>
-        public TimeSpan WaitHint => this.SingleTimeSpanElement(this.dom, "waithint", Defaults.WaitHint);
+        public TimeSpan WaitHint => this.SingleTimeSpanElement("waithint", Defaults.WaitHint);
 
         /// <summary>
         /// The time before the service should make its next call to the SetServiceStatus function
         /// with an incremented checkPoint value (default 1 sec).
         /// Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
         /// </summary>
-        public TimeSpan SleepTime => this.SingleTimeSpanElement(this.dom, "sleeptime", Defaults.SleepTime);
+        public TimeSpan SleepTime => this.SingleTimeSpanElement("sleeptime", Defaults.SleepTime);
 
         /// <summary>
         /// True if the service can interact with the desktop.
@@ -640,7 +654,7 @@ namespace WinSW
             }
         }
 
-        public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement(this.dom, "resetfailure", Defaults.ResetFailureAfter);
+        public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement("resetfailure", Defaults.ResetFailureAfter);
 
         protected string? GetServiceAccountPart(string subNodeName)
         {
@@ -664,30 +678,27 @@ namespace WinSW
             {
                 var serviceAccount = Defaults.ServiceAccount;
 
-                serviceAccount.ServiceAccountDomain = GetServiceAccountPart("domain");
+                serviceAccount.ServiceAccountDomain = this.GetServiceAccountPart("domain");
 
-                serviceAccount.ServiceAccountName = GetServiceAccountPart("user");
+                serviceAccount.ServiceAccountName = this.GetServiceAccountPart("user");
 
-                serviceAccount.ServiceAccountPassword = GetServiceAccountPart("password");
+                serviceAccount.ServiceAccountPassword = this.GetServiceAccountPart("password");
 
-                serviceAccount.AllowServiceAcountLogonRight = AllowServiceAcountLogonRight;
+                serviceAccount.AllowServiceAcountLogonRight = this.AllowServiceAcountLogonRight;
 
                 return serviceAccount;
             }
         }
 
-        protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
+        protected string? AllowServiceLogon => this.GetServiceAccountPart("allowservicelogon");
 
         private bool AllowServiceAcountLogonRight
         {
             get
             {
-                if (this.AllowServiceLogon != null)
+                if (this.AllowServiceLogon != null && bool.TryParse(this.AllowServiceLogon, out bool parsedvalue))
                 {
-                    if (bool.TryParse(this.AllowServiceLogon, out bool parsedvalue))
-                    {
-                        return parsedvalue;
-                    }
+                    return parsedvalue;
                 }
 
                 return false;
@@ -697,7 +708,7 @@ namespace WinSW
         /// <summary>
         /// Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
         /// </summary>
-        public TimeSpan StopTimeout => this.SingleTimeSpanElement(this.dom, "stoptimeout", Defaults.StopTimeout);
+        public TimeSpan StopTimeout => this.SingleTimeSpanElement("stoptimeout", Defaults.StopTimeout);
 
         public bool StopParentProcessFirst
         {

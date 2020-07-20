@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using log4net;
-using winsw.Configuration;
+using WinSW.Configuration;
 
 namespace WinSW.Extensions
 {

@@ -10,11 +10,11 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 #endif
 using log4net;
-using winsw.Configuration;
-using winsw.Extensions;
-using winsw.Logging;
-using winsw.Native;
-using winsw.Util;
+using WinSW.Configuration;
+using WinSW.Extensions;
+using WinSW.Logging;
+using WinSW.Native;
+using WinSW.Util;
 
 namespace WinSW
 {
@@ -22,11 +22,11 @@ namespace WinSW
     {
         private ServiceApis.SERVICE_STATUS wrapperServiceStatus;
         
-        private readonly Process _process = new Process();
+        private readonly Process process = new Process();
         
-        private readonly IWinSWConfiguration _descriptor;
+        private readonly IWinSWConfiguration descriptor;
         
-        private Dictionary<string, string>? _envs;
+        private Dictionary<string, string>? envs;
 
         internal WinSWExtensionManager ExtensionManager { get; private set; }
 
@@ -134,14 +134,14 @@ namespace WinSW
         /// <returns>Log Handler, which should be used for the spawned process</returns>
         private LogHandler CreateExecutableLogHandler()
         {
-            string logDirectory = this.descriptor.LogDirectory;
+            string? logDirectory = this.descriptor.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = _descriptor.Log.createLogHandler();
+            LogHandler logAppender = this.descriptor.Log.CreateLogHandler();
 
             logAppender.EventLogger = this;
             return logAppender;

@@ -12,16 +12,15 @@ namespace WinSW.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
-
         public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
 
-        public string Id => throw new InvalidOperationException(nameof(Id) + " must be specified.");
-        
-        public string Caption => throw new InvalidOperationException(nameof(Caption) + " must be specified.");
-        
-        public string Description => throw new InvalidOperationException(nameof(Description) + " must be specified.");
-        
-        public string Executable => throw new InvalidOperationException(nameof(Executable) + " must be specified.");
+        public string Id => throw new InvalidOperationException(nameof(this.Id) + " must be specified.");
+
+        public string Caption => throw new InvalidOperationException(nameof(this.Caption) + " must be specified.");
+
+        public string Description => throw new InvalidOperationException(nameof(this.Description) + " must be specified.");
+
+        public string Executable => throw new InvalidOperationException(nameof(this.Executable) + " must be specified.");
 
         public bool HideWindow => false;
 
@@ -64,58 +63,57 @@ namespace WinSW.Configuration
 
         // Logging
         public Log Log { get => new LogDefaults(); }
-        
+
         public string LogDirectory => DefaultLogSettings.Directory;
-        
+
         public string LogMode => DefaultLogSettings.Mode;
 
-        public bool OutFileDisabled => Log.OutFileDisabled;
-        
-        public bool ErrFileDisabled => Log.ErrFileDisabled;
-        
-        public string OutFilePattern => Log.OutFilePattern;
-        
-        public string ErrFilePattern => Log.ErrFilePattern;
+        public bool OutFileDisabled => this.Log.OutFileDisabled;
+
+        public bool ErrFileDisabled => this.Log.ErrFileDisabled;
+
+        public string OutFilePattern => this.Log.OutFilePattern;
+
+        public string ErrFilePattern => this.Log.ErrFilePattern;
 
         public ServiceAccount ServiceAccount => new ServiceAccount()
         {
             ServiceAccountName = null,
             ServiceAccountDomain = null,
-            ServiceAccountUser = null,
             ServiceAccountPassword = null,
             AllowServiceAcountLogonRight = false
         };
 
         public class LogDefaults : Log
         {
-            readonly DefaultWinSWSettings defaults;
+            private readonly DefaultWinSWSettings defaults;
 
             public LogDefaults()
             {
-                defaults = new DefaultWinSWSettings();
+                this.defaults = new DefaultWinSWSettings();
             }
 
             public override string Mode => "append";
 
-            public override string? Name => defaults.BaseName;
+            public override string Name => this.defaults.BaseName;
 
-            public override string Directory => Path.GetDirectoryName(defaults.ExecutablePath)!;
+            public override string Directory => Path.GetDirectoryName(this.defaults.ExecutablePath)!;
 
-            public override int? SizeThreshold => 1024 * 10 * RollingSizeTimeLogAppender.BYTES_PER_KB;
+            public override int? SizeThreshold => 1024 * 10 * RollingSizeTimeLogAppender.BytesPerKB;
 
-            public override int? KeepFiles => SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP;
+            public override int? KeepFiles => SizeBasedRollingLogAppender.DefaultFilesToKeep;
 
-            public override string? Pattern =>
+            public override string Pattern =>
                 throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
 
             public override int? Period => 1;
 
             public override bool OutFileDisabled { get => false; }
-            
+
             public override bool ErrFileDisabled { get => false; }
-            
+
             public override string OutFilePattern { get => ".out.log"; }
-            
+
             public override string ErrFilePattern { get => ".err.log"; }
 
             public override string? AutoRollAtTime => null;
@@ -125,7 +123,6 @@ namespace WinSW.Configuration
 
             public override string? ZipDateFormat => null;
         }
-
 
         // Environment
         public List<Download> Downloads => new List<Download>(0);
@@ -142,9 +139,11 @@ namespace WinSW.Configuration
         {
             get
             {
-                string baseName = Path.GetFileNameWithoutExtension(ExecutablePath);
+                string baseName = Path.GetFileNameWithoutExtension(this.ExecutablePath);
                 if (baseName.EndsWith(".vshost"))
+                {
                     baseName = baseName.Substring(0, baseName.Length - 7);
+                }
 
                 return baseName;
             }
@@ -154,8 +153,8 @@ namespace WinSW.Configuration
         {
             get
             {
-                var d = new DirectoryInfo(Path.GetDirectoryName(ExecutablePath));
-                return Path.Combine(d.FullName, BaseName);
+                var d = new DirectoryInfo(Path.GetDirectoryName(this.ExecutablePath));
+                return Path.Combine(d.FullName, this.BaseName);
             }
         }
 

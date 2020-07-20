@@ -5,10 +5,10 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using log4net;
-using winsw.Configuration;
-using winsw.Extensions;
-using winsw.Util;
-using static winsw.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
+using WinSW.Configuration;
+using WinSW.Extensions;
+using WinSW.Util;
+using static WinSW.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
 
 namespace WinSW.Plugins.RunawayProcessKiller
 {

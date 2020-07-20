@@ -1,95 +1,106 @@
 ﻿using System;
 using System.IO;
 
-namespace winsw.Configuration
+namespace WinSW.Configuration
 {
     public abstract class Log
     {
         public abstract string? Mode { get; }
 
-        public abstract string? Name { get; }
+        public abstract string Name { get; }
 
-        public abstract string? Directory { get; }
+        public abstract string Directory { get; }
 
         public abstract int? SizeThreshold { get; }
 
         public abstract int? KeepFiles { get; }
 
-        public abstract string? Pattern { get; }
-
+        public abstract string Pattern { get; }
 
         public abstract int? Period { get; }
 
-
         // Filters
-        public abstract bool OutFileDisabled { get;}
+        public abstract bool OutFileDisabled { get; }
 
-        public abstract bool ErrFileDisabled { get;}
+        public abstract bool ErrFileDisabled { get; }
 
         public abstract string OutFilePattern { get; }
 
         public abstract string ErrFilePattern { get; }
-
 
         // Zip options
         public abstract string? AutoRollAtTime { get; }
 
         public abstract int? ZipOlderThanNumDays { get; }
 
-        public abstract string? ZipDateFormat { get;}
+        public abstract string? ZipDateFormat { get; }
 
-        public LogHandler createLogHandler()
+        public LogHandler CreateLogHandler()
         {
- 
-            switch (Mode)
+            switch (this.Mode)
             {
                 case "rotate":
-                    return new SizeBasedRollingLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+                    return new SizeBasedRollingLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                 case "none":
                     return new IgnoreLogAppender();
 
                 case "reset":
-                    return new ResetLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+                    return new ResetLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                 case "roll":
-                    return new RollingLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+                    return new RollingLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                 case "roll-by-time":
-                    return new TimeBasedRollingLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, Pattern, Period.GetValueOrDefault(1));
+                    return new TimeBasedRollingLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, this.Pattern, this.Period.GetValueOrDefault(1));
 
                 case "roll-by-size":
-                    return new SizeBasedRollingLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern,
-                        SizeThreshold.GetValueOrDefault(10 * 1024) * SizeBasedRollingLogAppender.BYTES_PER_KB,
-                        KeepFiles.GetValueOrDefault(SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP));
+                    return new SizeBasedRollingLogAppender(
+                        this.Directory,
+                        this.Name,
+                        this.OutFileDisabled,
+                        this.ErrFileDisabled,
+                        this.OutFilePattern,
+                        this.ErrFilePattern,
+                        this.SizeThreshold.GetValueOrDefault(10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB,
+                        this.KeepFiles.GetValueOrDefault(SizeBasedRollingLogAppender.DefaultFilesToKeep));
 
                 case "append":
-                    return new DefaultLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+                    return new DefaultLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                 case "roll-by-size-time":
-                    if (Pattern is null)
+                    if (this.Pattern is null)
                     {
                         throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration");
                     }
 
                     TimeSpan? autoRollAtTime = null;
-                    if (AutoRollAtTime != null)
+                    if (this.AutoRollAtTime != null)
                     {
                         // validate it
-                        if (!TimeSpan.TryParse(AutoRollAtTime, out TimeSpan autoRollAtTimeValue))
+                        if (!TimeSpan.TryParse(this.AutoRollAtTime, out TimeSpan autoRollAtTimeValue))
+                        {
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
+                        }
 
                         autoRollAtTime = autoRollAtTimeValue;
                     }
 
-                    return new RollingSizeTimeLogAppender(Directory, Name, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern,
-                        SizeThreshold.GetValueOrDefault(10 * 1024) * SizeBasedRollingLogAppender.BYTES_PER_KB,
-                        Pattern, autoRollAtTime,
-                        ZipOlderThanNumDays,
-                        ZipDateFormat != null ? ZipDateFormat : "yyyyMM");
+                    return new RollingSizeTimeLogAppender(
+                        this.Directory,
+                        this.Name,
+                        this.OutFileDisabled,
+                        this.ErrFileDisabled,
+                        this.OutFilePattern,
+                        this.ErrFilePattern,
+                        this.SizeThreshold.GetValueOrDefault(10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB,
+                        this.Pattern,
+                        autoRollAtTime,
+                        this.ZipOlderThanNumDays,
+                        this.ZipDateFormat != null ? this.ZipDateFormat : "yyyyMM");
 
                 default:
-                    throw new InvalidDataException("Undefined logging mode: " + Mode);
+                    throw new InvalidDataException("Undefined logging mode: " + this.Mode);
             }
         }
     }

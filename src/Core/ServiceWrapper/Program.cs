@@ -18,10 +18,9 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using winsw.Configuration;
-using winsw.Logging;
-using winsw.Native;
-using winsw.Util;
+using WinSW.Configuration;
+using WinSW.Logging;
+using WinSW.Native;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
@@ -182,7 +181,9 @@ namespace WinSW
                 default:
                     Console.WriteLine("Unknown command: " + args[0]);
                     PrintAvailableCommands();
+#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Unknown command: " + args[0]);
+#pragma warning restore S112 // General exceptions should never be thrown
             }
 
             void Install()
@@ -200,7 +201,9 @@ namespace WinSW
                 {
                     Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
                     Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
+#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+#pragma warning restore S112 // General exceptions should never be thrown
                 }
 
                 string? username = null;
@@ -320,7 +323,7 @@ namespace WinSW
                         Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
                     }
 
-                    throw e;
+                    throw;
                 }
             }
 
@@ -456,14 +459,18 @@ namespace WinSW
                 bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
+#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
+#pragma warning restore S112 // General exceptions should never be thrown
                 }
             }
 
             void Status()
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
+#pragma warning disable S3358 // Ternary operators should not be nested
                 Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
+#pragma warning restore S3358 // Ternary operators should not be nested
             }
 
             void Test()

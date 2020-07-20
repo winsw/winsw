@@ -1,6 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
-using winsw;
+using WinSW;
 
 namespace winswTests
 {
@@ -16,7 +16,7 @@ description: This is test winsw";
         [Test]
         public void Simple_yaml_parsing_test()
         {
-            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).configurations;
+            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).Configurations;
 
             Assert.AreEqual("myapp", configs.Id);
             Assert.AreEqual("This is a test", configs.Caption);
@@ -33,7 +33,7 @@ description: This is test winsw";
 
             void getId()
             {
-                var id = ServiceDescriptorYaml.FromYaml(yml).configurations.Id;
+                var id = ServiceDescriptorYaml.FromYaml(yml).Configurations.Id;
             }
             
             Assert.That(() => getId(), Throws.TypeOf<InvalidOperationException>());
@@ -42,7 +42,7 @@ description: This is test winsw";
         [Test]
         public void Default_value_map_test()
         {
-            var executablePath = ServiceDescriptorYaml.FromYaml(MinimalYaml).configurations.ExecutablePath;
+            var executablePath = ServiceDescriptorYaml.FromYaml(MinimalYaml).Configurations.ExecutablePath;
 
             Assert.IsNotNull(executablePath);
         }
@@ -61,7 +61,7 @@ description: This is test winsw";
         from: www.sample3.com
         to: d://temp";
 
-            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
 
             Assert.AreEqual(3, configs.Downloads.Count);
         }
@@ -73,7 +73,7 @@ description: This is test winsw";
 name: No Service Account
 ";
 
-            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
 
             Assert.DoesNotThrow(() =>
             {
@@ -88,7 +88,7 @@ name: No Service Account
 name: No Service Account
 ";
 
-            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
 
             Assert.DoesNotThrow(() =>
             {
@@ -105,7 +105,7 @@ serviceaccount:
   user: testuser
 ";
 
-            var configs = ServiceDescriptorYaml.FromYaml(yml).configurations;
+            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
 
             Assert.DoesNotThrow(() =>
             {

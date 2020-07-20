@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using winsw.Configuration;
+using WinSW.Configuration;
 using YamlDotNet.Serialization;
 
-namespace winsw
+namespace WinSW
 {
     public class ServiceDescriptorYaml
     {
-        public readonly YamlConfiguration configurations = new YamlConfiguration();
+        public readonly YamlConfiguration Configurations = new YamlConfiguration();
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
@@ -20,53 +20,61 @@ namespace winsw
 
         public ServiceDescriptorYaml()
         {
-            string p = ExecutablePath;
+            string p = this.ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(p);
             if (baseName.EndsWith(".vshost"))
+            {
                 baseName = baseName.Substring(0, baseName.Length - 7);
+            }
 
             DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
             {
                 if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
+                {
                     break;
+                }
 
                 if (d.Parent is null)
+                {
                     throw new FileNotFoundException("Unable to locate " + baseName + ".yml file within executable directory or any parents");
+                }
 
                 d = d.Parent;
             }
 
-            BasePath = Path.Combine(d.FullName, baseName);
+            this.BasePath = Path.Combine(d.FullName, baseName);
 
-            using(var reader = new StreamReader(BasePath + ".yml"))
+            using (var reader = new StreamReader(this.BasePath + ".yml"))
             {
                 var file = reader.ReadToEnd();
                 var deserializer = new DeserializerBuilder().Build();
 
-                configurations = deserializer.Deserialize<YamlConfiguration>(file);
+                this.Configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
 
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", configurations.Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Configurations.Id);
 
             // New name
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, this.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, this.Configurations.Id);
 
-            this.environmentVariables = configurations.EnvironmentVariables;
+            this.environmentVariables = this.Configurations.EnvironmentVariables;
         }
 
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ServiceDescriptorYaml(YamlConfiguration configs)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
-            configurations = configs;
+            this.Configurations = configs;
 
-            this.environmentVariables = configurations.EnvironmentVariables;
+            this.environmentVariables = this.Configurations.EnvironmentVariables;
         }
 
         public static ServiceDescriptorYaml FromYaml(string yaml)

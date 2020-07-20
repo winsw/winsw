@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using winsw.Configuration;
+using WinSW.Configuration;
 
 namespace WinSW.Extensions
 {

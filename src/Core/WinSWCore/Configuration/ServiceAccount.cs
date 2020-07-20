@@ -1,6 +1,6 @@
 ﻿using YamlDotNet.Serialization;
 
-namespace winsw.Configuration
+namespace WinSW.Configuration
 {
     public class ServiceAccount
     {
@@ -18,8 +18,7 @@ namespace winsw.Configuration
 
         public string? ServiceAccountUser
         {
-            get => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
-            set { }
+            get => this.ServiceAccountName is null ? null : (this.ServiceAccountDomain ?? ".") + "\\" + this.ServiceAccountName;
         }
 
         public bool HasServiceAccount()
