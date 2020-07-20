@@ -209,7 +209,7 @@ Examples:
 
 This is another useful building block for developing a self-updating service.
 
-Since v2.7, if the destination file exists, WinSW will send its last write time in the `If-Modified-Since` header and skip downloading if `304 Not Modified` is received.
+Since 2.7, if the destination file exists, WinSW will send its last write time in the `If-Modified-Since` header and skip downloading if `304 Not Modified` is received.
 
 ### log
 
@@ -271,14 +271,13 @@ To use a user account, specify a `<serviceaccount>` element like this:
 
 ```xml
 <serviceaccount>
-  <domain>YOURDOMAIN</domain>
-  <user>useraccount</user>
+  <username>DomainName\UserName</username>
   <password>Pa55w0rd</password>
   <allowservicelogon>true</allowservicelogon>
 </serviceaccount>
 ```
 
-The `<domain>` is optional and defaults to the local computer.
+The `<username>` is in the form `DomainName\UserName` or `UserName@DomainName`. If the account belongs to the built-in domain, you can specify `.\UserName`.
 
 The `<allowservicelogon>` is optional. 
 If set to `true`, will automatically set the "Allow Log On As A Service" right to the listed account.
@@ -287,8 +286,7 @@ To use [Group Managed Service Accounts](https://docs.microsoft.com/windows-serve
 
 ```xml
 <serviceaccount>
-  <domain>YOURDOMAIN</domain>
-  <user>gmsa_account$</user>
+  <username>DomainName\GmsaUserName$</username>
   <allowservicelogon>true</allowservicelogon>
 </serviceaccount>
 ```
@@ -299,7 +297,7 @@ To explicitly use the [LocalSystem account](https://docs.microsoft.com/windows/w
 
 ```xml
 <serviceaccount>
-  <user>LocalSystem</user>
+  <username>LocalSystem</username>
 </serviceaccount>
 ```
 
@@ -311,8 +309,7 @@ To use the [LocalService account](https://docs.microsoft.com/windows/win32/servi
 
 ```xml
 <serviceaccount>
-  <domain>NT AUTHORITY</domain>
-  <user>LocalService</user>
+  <username>NT AUTHORITY\LocalService</username>
 </serviceaccount>
 ```
 
@@ -324,12 +321,29 @@ To use the [NetworkService account](https://docs.microsoft.com/windows/win32/ser
 
 ```xml
 <serviceaccount>
-  <domain>NT AUTHORITY</domain>
-  <user>NetworkService</user>
+  <username>NT AUTHORITY\NetworkService</username>
 </serviceaccount>
 ```
 
 Note that this account does not have a password, so any password provided is ignored.
+
+#### `prompt`
+
+Optional. Prompts for a user name and a password.
+
+```xml
+<serviceaccount>
+  <prompt>dialog|console</prompt>
+<serviceaccount>
+```
+
+- `dialog`
+
+  Prompts using a dialog box.
+
+- `console`
+
+  Prompts at the console.
 
 ### Working directory
 
