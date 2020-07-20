@@ -469,22 +469,22 @@ namespace WinSW.Configuration
 
         public List<Download> Downloads => this.GetDownloads(this.DownloadsYaml);
 
-        public Dictionary<string, string> EnvironmentVariables
-        {
-            get
-            {
-                if (this.EnvironmentVariablesYaml is null)
-                {
-                    return this.Defaults.EnvironmentVariables;
-                }
+        public Dictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
 
-                var dictionary = new Dictionary<string, string>();
+        public void LoadEnvironmentVariables()
+        {
+            if (this.EnvironmentVariablesYaml is null)
+            {
+                this.EnvironmentVariables = this.Defaults.EnvironmentVariables;
+            }
+            else
+            {
                 foreach (var item in this.EnvironmentVariablesYaml)
                 {
-                    dictionary[item.Key] = Environment.ExpandEnvironmentVariables(item.Value);
+                    var value = Environment.ExpandEnvironmentVariables(item.Value);
+                    this.EnvironmentVariables[item.Key] = value;
+                    Environment.SetEnvironmentVariable(item.Key, value);
                 }
-
-                return dictionary;
             }
         }
 

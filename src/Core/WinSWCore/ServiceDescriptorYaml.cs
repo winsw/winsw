@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using WinSW.Configuration;
 using YamlDotNet.Serialization;
@@ -11,8 +10,6 @@ namespace WinSW
         public readonly YamlConfiguration Configurations = new YamlConfiguration();
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
-
-        private readonly Dictionary<string, string> environmentVariables;
 
         public string BasePath { get; set; }
 
@@ -64,7 +61,7 @@ namespace WinSW
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Configurations.Id);
 
-            this.environmentVariables = this.Configurations.EnvironmentVariables;
+            this.Configurations.LoadEnvironmentVariables();
         }
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
@@ -72,8 +69,7 @@ namespace WinSW
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.Configurations = configs;
-
-            this.environmentVariables = this.Configurations.EnvironmentVariables;
+            this.Configurations.LoadEnvironmentVariables();
         }
 
         public static ServiceDescriptorYaml FromYaml(string yaml)
