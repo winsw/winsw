@@ -491,7 +491,7 @@ namespace WinSW.Configuration
 
         public string LogDirectory => this.Log.Directory;
 
-        public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode;
+        public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
         // TODO
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();

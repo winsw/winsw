@@ -59,14 +59,13 @@ namespace WinSW
             Environment.SetEnvironmentVariable("SERVICE_ID", this.Configurations.Id);
 
             // New name
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, this.ExecutablePath);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, this.Configurations.Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Configurations.Id);
 
             this.environmentVariables = this.Configurations.EnvironmentVariables;
         }
-
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ServiceDescriptorYaml(YamlConfiguration configs)
@@ -83,6 +82,5 @@ namespace WinSW
             var configs = deserializer.Deserialize<YamlConfiguration>(yaml);
             return new ServiceDescriptorYaml(configs);
         }
-
     }
 }

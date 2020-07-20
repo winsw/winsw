@@ -58,7 +58,7 @@ namespace WinSW.Configuration
         /// Destination for logging.
         /// If undefined, a default one should be used.
         /// </summary>
-        string? LogDirectory { get; }
+        string LogDirectory { get; }
 
         // TODO: replace by enum
         string LogMode { get; }

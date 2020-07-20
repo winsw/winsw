@@ -331,7 +331,7 @@ namespace WinSW
         /// <summary>
         /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
         /// </summary>
-        public string? LogDirectory { get => this.Log.Directory; }
+        public string LogDirectory { get => this.Log.Directory; }
 
         public string LogMode
         {
