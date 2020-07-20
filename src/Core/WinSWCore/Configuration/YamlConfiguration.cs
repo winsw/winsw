@@ -338,6 +338,8 @@ namespace WinSW.Configuration
                         return this.Defaults.StartArguments;
                     case ArgType.Stoparg:
                         return this.Defaults.StopArguments;
+                    default:
+                        return string.Empty;
                 }
             }
 
