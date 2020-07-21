@@ -38,7 +38,7 @@ namespace WinSW
         /// so don't try to kill us when the child exits.
         /// </summary>
         private bool orderlyShutdown;
-        private bool systemShuttingdown;
+        private bool shuttingdown;
 
         /// <summary>
         /// Version of Windows service wrapper
@@ -47,11 +47,6 @@ namespace WinSW
         /// The version will be taken from <see cref="AssemblyInfo"/>
         /// </remarks>
         public static Version Version => Assembly.GetExecutingAssembly().GetName().Version!;
-
-        /// <summary>
-        /// Indicates that the system is shutting down.
-        /// </summary>
-        public bool IsShuttingDown => this.systemShuttingdown;
 
         public WrapperService(ServiceDescriptor descriptor)
         {
@@ -62,7 +57,7 @@ namespace WinSW
             this.CanStop = true;
             this.CanPauseAndContinue = false;
             this.AutoLog = true;
-            this.systemShuttingdown = false;
+            this.shuttingdown = false;
 
             // Register the event log provider
             eventLogProvider.Service = this;
@@ -143,17 +138,13 @@ namespace WinSW
 
         public void LogEvent(string message)
         {
-            if (this.systemShuttingdown)
+            try
             {
-                /* NOP - cannot call EventLog because of shutdown. */
+                this.EventLog.WriteEntry(message);
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    this.EventLog.WriteEntry(message);
-                }
-                catch (Exception e)
+                if (!this.shuttingdown)
                 {
                     Log.Error("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
                 }
@@ -162,17 +153,13 @@ namespace WinSW
 
         public void LogEvent(string message, EventLogEntryType type)
         {
-            if (this.systemShuttingdown)
+            try
             {
-                /* NOP - cannot call EventLog because of shutdown. */
+                this.EventLog.WriteEntry(message, type);
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    this.EventLog.WriteEntry(message, type);
-                }
-                catch (Exception e)
+                if (!this.shuttingdown)
                 {
                     Log.Error("Failed to log event in Windows Event Log. Reason: ", e);
                 }
@@ -185,7 +172,51 @@ namespace WinSW
             Log.Info(message);
         }
 
+        internal void RaiseOnStart(string[] args) => this.OnStart(args);
+
+        internal void RaiseOnStop() => this.OnStop();
+
         protected override void OnStart(string[] args)
+        {
+            try
+            {
+                this.DoStart();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to start service.", e);
+                throw;
+            }
+        }
+
+        protected override void OnStop()
+        {
+            try
+            {
+                this.DoStop();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to stop service.", e);
+                throw;
+            }
+        }
+
+        protected override void OnShutdown()
+        {
+            try
+            {
+                this.shuttingdown = true;
+                this.DoStop();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to shut down service.", e);
+                throw;
+            }
+        }
+
+        private void DoStart()
         {
             this.envs = this.descriptor.EnvironmentVariables;
 
@@ -236,7 +267,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(prestartExecutable, this.descriptor.PrestartArguments);
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Pre-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    this.LogInfo($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.");
                 }
             }
             catch (Exception e)
@@ -260,7 +291,7 @@ namespace WinSW
             // in the xml for readability.
             startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
 
-            this.LogInfo("Starting " + this.descriptor.Executable + ' ' + startArguments);
+            this.LogInfo("Starting " + this.descriptor.Executable);
 
             // Load and start extensions
             this.ExtensionManager.LoadExtensions();
@@ -277,14 +308,10 @@ namespace WinSW
                 string? poststartExecutable = this.descriptor.PoststartExecutable;
                 if (poststartExecutable != null)
                 {
-                    using Process process = this.StartProcess(poststartExecutable, this.descriptor.PoststartArguments);
-                    process.Exited += (sender, _) =>
+                    using Process process = this.StartProcess(poststartExecutable, this.descriptor.PoststartArguments, process =>
                     {
-                        Process process = (Process)sender!;
-                        this.LogInfo($"Post-start process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
-                    };
-
-                    process.EnableRaisingEvents = true;
+                        this.LogInfo($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.");
+                    });
                 }
             }
             catch (Exception e)
@@ -293,43 +320,10 @@ namespace WinSW
             }
         }
 
-        protected override void OnShutdown()
-        {
-            // WriteEvent("OnShutdown");
-
-            try
-            {
-                this.systemShuttingdown = true;
-                this.StopIt();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Shutdown exception", ex);
-            }
-        }
-
-        protected override void OnStop()
-        {
-            // WriteEvent("OnStop");
-
-            try
-            {
-                this.StopIt();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Cannot stop exception", ex);
-            }
-        }
-
-        internal void RaiseOnStart(string[] args) => this.OnStart(args);
-
-        internal void RaiseOnStop() => this.OnStop();
-
         /// <summary>
         /// Called when we are told by Windows SCM to exit.
         /// </summary>
-        private void StopIt()
+        private void DoStop()
         {
             try
             {
@@ -338,7 +332,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(prestopExecutable, this.descriptor.PrestopArguments);
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Pre-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    this.LogInfo($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.");
                 }
             }
             catch (Exception e)
@@ -383,7 +377,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(poststopExecutable, this.descriptor.PoststopArguments);
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Post-stop process '{GetDisplayName(process)}' exited with code {process.ExitCode}.");
+                    this.LogInfo($"Post-stop process '{process.Format()}' exited with code {process.ExitCode}.");
                 }
             }
             catch (Exception e)
@@ -394,7 +388,7 @@ namespace WinSW
             // Stop extensions
             this.ExtensionManager.FireBeforeWrapperStopped();
 
-            if (this.systemShuttingdown && this.descriptor.BeepOnShutdown)
+            if (this.shuttingdown && this.descriptor.BeepOnShutdown)
             {
                 Console.Beep();
             }
@@ -435,15 +429,15 @@ namespace WinSW
             // Define handler of the completed process
             void OnProcessCompleted(Process process)
             {
-                string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
+                string display = process.Format();
 
                 if (this.orderlyShutdown)
                 {
-                    this.LogInfo("Child process [" + msg + "] terminated with " + process.ExitCode);
+                    this.LogInfo($"Child process '{display}' terminated with code {process.ExitCode}.");
                 }
                 else
                 {
-                    Log.Warn("Child process [" + msg + "] finished with " + process.ExitCode);
+                    Log.Warn($"Child process '{display}' finished with code {process.ExitCode}.");
 
                     // if we finished orderly, report that to SCM.
                     // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
@@ -465,13 +459,13 @@ namespace WinSW
                 envVars: this.envs,
                 workingDirectory: this.descriptor.WorkingDirectory,
                 priority: this.descriptor.Priority,
-                callback: OnProcessCompleted,
+                onExited: OnProcessCompleted,
                 logHandler: logHandler,
                 redirectStdin: redirectStdin,
                 hideWindow: this.descriptor.HideWindow);
         }
 
-        private Process StartProcess(string executable, string? arguments)
+        private Process StartProcess(string executable, string? arguments, Action<Process>? onExited = null)
         {
             var info = new ProcessStartInfo(executable, arguments)
             {
@@ -481,13 +475,26 @@ namespace WinSW
             };
 
             Process process = Process.Start(info);
+
+            if (onExited != null)
+            {
+                process.Exited += (sender, _) =>
+                {
+                    try
+                    {
+                        onExited((Process)sender!);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("Unhandled exception in event handler.", e);
+                    }
+                };
+
+                process.EnableRaisingEvents = true;
+            }
+
             process.StandardInput.Close();
             return process;
-        }
-
-        private static string GetDisplayName(Process process)
-        {
-            return $"{process.ProcessName} ({process.Id})";
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using WinSW.Util;
 
 namespace WinSW
@@ -30,7 +31,7 @@ namespace WinSW
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
         /// </summary>
-        protected async void CopyStreamAsync(StreamReader reader, StreamWriter writer)
+        protected async Task CopyStreamAsync(StreamReader reader, StreamWriter writer)
         {
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
@@ -90,7 +91,7 @@ namespace WinSW
             }
             else
             {
-                this.LogOutput(outputReader);
+                this.SafeLogOutput(outputReader);
             }
 
             if (this.ErrFileDisabled)
@@ -99,15 +100,39 @@ namespace WinSW
             }
             else
             {
-                this.LogError(errorReader);
+                this.SafeLogError(errorReader);
             }
         }
 
         protected StreamWriter CreateWriter(FileStream stream) => new StreamWriter(stream) { AutoFlush = true };
 
-        protected abstract void LogOutput(StreamReader outputReader);
+        protected abstract Task LogOutput(StreamReader outputReader);
 
-        protected abstract void LogError(StreamReader errorReader);
+        protected abstract Task LogError(StreamReader errorReader);
+
+        private async void SafeLogOutput(StreamReader outputReader)
+        {
+            try
+            {
+                await this.LogOutput(outputReader);
+            }
+            catch (Exception e)
+            {
+                this.EventLogger.LogEvent("Unhandled exception in task. " + e, EventLogEntryType.Error);
+            }
+        }
+
+        private async void SafeLogError(StreamReader errorReader)
+        {
+            try
+            {
+                await this.LogError(errorReader);
+            }
+            catch (Exception e)
+            {
+                this.EventLogger.LogEvent("Unhandled exception in task. " + e, EventLogEntryType.Error);
+            }
+        }
     }
 
     public abstract class SimpleLogAppender : AbstractFileLogAppender
@@ -126,14 +151,14 @@ namespace WinSW
             this.ErrorLogFileName = this.BaseLogFileName + ".err.log";
         }
 
-        protected override void LogOutput(StreamReader outputReader)
+        protected override Task LogOutput(StreamReader outputReader)
         {
-            this.CopyStreamAsync(outputReader, this.CreateWriter(new FileStream(this.OutputLogFileName, this.FileMode)));
+            return this.CopyStreamAsync(outputReader, this.CreateWriter(new FileStream(this.OutputLogFileName, this.FileMode)));
         }
 
-        protected override void LogError(StreamReader errorReader)
+        protected override Task LogError(StreamReader errorReader)
         {
-            this.CopyStreamAsync(errorReader, this.CreateWriter(new FileStream(this.ErrorLogFileName, this.FileMode)));
+            return this.CopyStreamAsync(errorReader, this.CreateWriter(new FileStream(this.ErrorLogFileName, this.FileMode)));
         }
     }
 
@@ -178,20 +203,20 @@ namespace WinSW
             this.Period = period;
         }
 
-        protected override void LogOutput(StreamReader outputReader)
+        protected override Task LogOutput(StreamReader outputReader)
         {
-            this.CopyStreamWithDateRotationAsync(outputReader, this.OutFilePattern);
+            return this.CopyStreamWithDateRotationAsync(outputReader, this.OutFilePattern);
         }
 
-        protected override void LogError(StreamReader errorReader)
+        protected override Task LogError(StreamReader errorReader)
         {
-            this.CopyStreamWithDateRotationAsync(errorReader, this.ErrFilePattern);
+            return this.CopyStreamWithDateRotationAsync(errorReader, this.ErrFilePattern);
         }
 
         /// <summary>
         /// Works like the CopyStream method but does a log rotation based on time.
         /// </summary>
-        private async void CopyStreamWithDateRotationAsync(StreamReader reader, string ext)
+        private async Task CopyStreamWithDateRotationAsync(StreamReader reader, string ext)
         {
             PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(this.Pattern, this.Period);
             periodicRollingCalendar.Init();
@@ -237,20 +262,20 @@ namespace WinSW
         {
         }
 
-        protected override void LogOutput(StreamReader outputReader)
+        protected override Task LogOutput(StreamReader outputReader)
         {
-            this.CopyStreamWithRotationAsync(outputReader, this.OutFilePattern);
+            return this.CopyStreamWithRotationAsync(outputReader, this.OutFilePattern);
         }
 
-        protected override void LogError(StreamReader errorReader)
+        protected override Task LogError(StreamReader errorReader)
         {
-            this.CopyStreamWithRotationAsync(errorReader, this.ErrFilePattern);
+            return this.CopyStreamWithRotationAsync(errorReader, this.ErrFilePattern);
         }
 
         /// <summary>
         /// Works like the CopyStream method but does a log rotation.
         /// </summary>
-        private async void CopyStreamWithRotationAsync(StreamReader reader, string ext)
+        private async Task CopyStreamWithRotationAsync(StreamReader reader, string ext)
         {
             StreamWriter writer = this.CreateWriter(new FileStream(this.BaseLogFileName + ext, FileMode.Append));
             long fileLength = new FileInfo(this.BaseLogFileName + ext).Length;
@@ -363,17 +388,17 @@ namespace WinSW
             this.ZipDateFormat = zipdateformat;
         }
 
-        protected override void LogOutput(StreamReader outputReader)
+        protected override Task LogOutput(StreamReader outputReader)
         {
-            this.CopyStreamWithRotationAsync(outputReader, this.OutFilePattern);
+            return this.CopyStreamWithRotationAsync(outputReader, this.OutFilePattern);
         }
 
-        protected override void LogError(StreamReader errorReader)
+        protected override Task LogError(StreamReader errorReader)
         {
-            this.CopyStreamWithRotationAsync(errorReader, this.ErrFilePattern);
+            return this.CopyStreamWithRotationAsync(errorReader, this.ErrFilePattern);
         }
 
-        private async void CopyStreamWithRotationAsync(StreamReader reader, string extension)
+        private async Task CopyStreamWithRotationAsync(StreamReader reader, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
             var fileLock = new object();
