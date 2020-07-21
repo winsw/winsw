@@ -1,8 +1,13 @@
 ﻿<Project>
 
   <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
     <ArtifactsDir>$(MSBuildThisFileDirectory)artifacts\</ArtifactsDir>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)src\stylecop.json" />
+  </ItemGroup>
 
 </Project>
