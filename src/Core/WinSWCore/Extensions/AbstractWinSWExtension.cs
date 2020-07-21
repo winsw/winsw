@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using WinSW.Configuration;
 
 namespace WinSW.Extensions
 {
@@ -10,7 +11,7 @@ namespace WinSW.Extensions
         public WinSWExtensionDescriptor Descriptor { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-        public virtual void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public virtual void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
             // Do nothing
         }
