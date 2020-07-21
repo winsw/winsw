@@ -1,78 +1,94 @@
 ﻿using CommandLine;
-using log4net;
-using System.Threading;
-using WMI;
+using System;
+using System.ComponentModel;
+using System.ServiceProcess;
+using WinSW.Native;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
     [Verb("stop", HelpText = "stop the service")]
-    public class StopCommand : CLICommand
+    public class StopCommand : CliCommand
     {
-        [Option("wait", HelpText = "Stop Wait")]
+        [Option("wait", HelpText = "Stop Wait", Default = false)]
         public bool Wait { get; set; }
 
-        private ILog Log;
-
-        public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        public override void Run(ServiceDescriptor descriptor)
         {
-            Log = Program.Log;
-
             if (!Program.elevated)
             {
                 Elevate();
                 return;
             }
 
-            Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-            if (svc is null)
-            {
-                Program.ThrowNoSuchService();
-            }
+            Program.Log.Info("Stopping the service with id '" + descriptor.Id + "'");
 
             if (this.Wait)
             {
-                this.StopWait(descriptor, svcs, svc);
+                this.StopWait(descriptor);
             }
             else
             {
-                this.Stop(descriptor, svc);
+                this.Stop(descriptor);
             }
         }
 
-        private void Stop(ServiceDescriptor descriptor, Win32Service? svc)
+        private void Stop(ServiceDescriptor descriptor)
         {
+            using var svc = new ServiceController(descriptor.Id);
+
             try
             {
-                svc.StopService();
+                svc.Stop();
             }
-            catch (WmiException e)
+            catch (InvalidOperationException e) when (e.InnerException is Win32Exception inner)
             {
-                if (e.ErrorCode == ReturnValue.ServiceCannotAcceptControl)
+                switch (inner.NativeErrorCode)
                 {
-                    Log.Info($"The service with ID '{descriptor.Id}' is not running");
-                }
-                else
-                {
-                    throw;
+                    case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
+                        Program.ThrowNoSuchService(inner);
+                        break;
+
+                    case Errors.ERROR_SERVICE_NOT_ACTIVE:
+                        Program.Log.Info($"The service with ID '{descriptor.Id}' is not running");
+                        break;
+
+                    default:
+                        throw;
+
                 }
             }
         }
 
-        private void StopWait(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        private void StopWait(ServiceDescriptor descriptor)
         {
-            if (svc.Started)
+            using var svc = new ServiceController(descriptor.Id);
+
+            try
             {
-                svc.StopService();
+                svc.Stop();
+
+                while (!ServiceControllerExtension.TryWaitForStatus(svc, ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(1)))
+                {
+                    Program.Log.Info("Waiting the service to stop...");
+                }
+            }
+            catch (InvalidOperationException e) when (e.InnerException is Win32Exception inner)
+            {
+                switch (inner.NativeErrorCode)
+                {
+                    case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
+                        Program.ThrowNoSuchService(inner);
+                        break;
+
+                    case Errors.ERROR_SERVICE_NOT_ACTIVE:
+                        break;
+
+                    default:
+                        throw;
+                }
             }
 
-            while (svc != null && svc.Started)
-            {
-                Log.Info("Waiting the service to stop...");
-                Thread.Sleep(1000);
-                svc = svcs.Select(descriptor.Id);
-            }
-
-            Log.Info("The service stopped.");
+            Program.Log.Info("The service stopped.");
         }
     }
 }

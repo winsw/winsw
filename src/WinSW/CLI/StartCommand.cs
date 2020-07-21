@@ -1,40 +1,44 @@
 ﻿using CommandLine;
-using WMI;
+using System;
+using System.ComponentModel;
+using System.ServiceProcess;
+using WinSW.Native;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
     [Verb("start", HelpText = "start the service (must be installed before)")]
-    public class StartCommand : CLICommand
+    public class StartCommand : CliCommand
     {
-        public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        public override void Run(ServiceDescriptor descriptor)
         {
-            var Log = Program.Log;
-
             if (!Program.elevated)
             {
                 Elevate();
                 return;
             }
 
-            Log.Info("Starting the service with id '" + descriptor.Id + "'");
-            if (svc is null)
-            {
-                Program.ThrowNoSuchService();
-            }
+            Program.Log.Info("Starting the service with id '" + descriptor.Id + "'");
+
+            using var svc = new ServiceController(descriptor.Id);
 
             try
             {
-                svc.StartService();
+                svc.Start();
             }
-            catch (WmiException e)
+            catch (InvalidOperationException e) when (e.InnerException is Win32Exception inner)
             {
-                if (e.ErrorCode == ReturnValue.ServiceAlreadyRunning)
+                switch (inner.NativeErrorCode)
                 {
-                    Log.Info($"The service with ID '{descriptor.Id}' has already been started");
-                }
-                else
-                {
-                    throw;
+                    case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
+                        Program.ThrowNoSuchService(inner);
+                        break;
+
+                    case Errors.ERROR_SERVICE_ALREADY_RUNNING:
+                        Program.Log.Info($"The service with ID '{descriptor.Id}' has already been started");
+                        break;
+
+                    default:
+                        throw;
                 }
             }
         }

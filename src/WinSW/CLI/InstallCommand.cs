@@ -1,21 +1,23 @@
 ﻿using CommandLine;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.ServiceProcess;
 using System.Text;
-using winsw.Native;
-using WMI;
+using WinSW.Native;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
     [Verb("install", HelpText = "install the service to Windows Service Controller")]
-    public class InstallCommand : CLICommand
+    public class InstallCommand : CliCommand
     {
         [Option('p', "profile", Required = false, HelpText = "Service Account Profile")]
         public bool profile { get; set; }
 
 
-        public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        public override void Run(ServiceDescriptor descriptor)
         {
             if (!Program.elevated)
             {
@@ -25,12 +27,13 @@ namespace winsw.CLI
 
             Program.Log.Info("Installing the service with id '" + descriptor.Id + "'");
 
-            // Check if the service exists
-            if (svc != null)
+            using ServiceManager scm = ServiceManager.Open();
+
+            if (scm.ServiceExists(descriptor.Id))
             {
                 Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
                 Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+                throw new CommandException("Installation failure: Service with id '" + descriptor.Id + "' already exists");
             }
 
             string? username = null;
@@ -51,35 +54,40 @@ namespace winsw.CLI
                     allowServiceLogonRight = true;
                 }
             }
-            else
+            else if (descriptor.HasServiceAccount())
             {
-                if (descriptor.HasServiceAccount())
+                username = descriptor.ServiceAccountUserName;
+                password = descriptor.ServiceAccountPassword;
+                allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
+
+                if (username is null || password is null)
                 {
-                    username = descriptor.ServiceAccountUser;
-                    password = descriptor.ServiceAccountPassword;
-                    allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
+                    switch (descriptor.ServiceAccountPrompt)
+                    {
+                        case "dialog":
+                            PropmtForCredentialsDialog();
+                            break;
+
+                        case "console":
+                            PromptForCredentialsConsole();
+                            break;
+                    }
                 }
             }
 
             if (allowServiceLogonRight)
             {
-                Security.AddServiceLogonRight(descriptor.ServiceAccountDomain!, descriptor.ServiceAccountName!);
+                Security.AddServiceLogonRight(descriptor.ServiceAccountUserName!);
             }
 
-            svcs.Create(
+            using Service sc = scm.CreateService(
                 descriptor.Id,
                 descriptor.Caption,
+                descriptor.StartMode,
                 "\"" + descriptor.ExecutablePath + "\"",
-                ServiceType.OwnProcess,
-                ErrorControl.UserNotified,
-                descriptor.StartMode.ToString(),
-                descriptor.Interactive,
+                descriptor.ServiceDependencies,
                 username,
-                password,
-                descriptor.ServiceDependencies);
-
-            using ServiceManager scm = ServiceManager.Open();
-            using Service sc = scm.OpenService(descriptor.Id);
+                password);
 
             sc.SetDescription(descriptor.Description);
 
@@ -89,7 +97,7 @@ namespace winsw.CLI
                 sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
             }
 
-            bool isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
+            bool isDelayedAutoStart = descriptor.StartMode == ServiceStartMode.Automatic && descriptor.DelayedAutoStart;
             if (isDelayedAutoStart)
             {
                 sc.SetDelayedAutoStart(true);
@@ -106,6 +114,116 @@ namespace winsw.CLI
             if (!EventLog.SourceExists(eventLogSource))
             {
                 EventLog.CreateEventSource(eventLogSource, "Application");
+            }
+
+            void PropmtForCredentialsDialog()
+            {
+                username ??= string.Empty;
+                password ??= string.Empty;
+
+                int inBufferSize = 0;
+                _ = CredentialApis.CredPackAuthenticationBuffer(
+                    0,
+                    username,
+                    password,
+                    IntPtr.Zero,
+                    ref inBufferSize);
+
+                IntPtr inBuffer = Marshal.AllocCoTaskMem(inBufferSize);
+                try
+                {
+                    if (!CredentialApis.CredPackAuthenticationBuffer(
+                        0,
+                        username,
+                        password,
+                        inBuffer,
+                        ref inBufferSize))
+                    {
+                        Throw.Command.Win32Exception("Failed to pack auth buffer.");
+                    }
+
+                    CredentialApis.CREDUI_INFO info = new CredentialApis.CREDUI_INFO
+                    {
+                        Size = Marshal.SizeOf(typeof(CredentialApis.CREDUI_INFO)),
+                        CaptionText = "Windows Service Wrapper", // TODO
+                        MessageText = "service account credentials", // TODO
+                    };
+                    uint authPackage = 0;
+                    bool save = false;
+                    int error = CredentialApis.CredUIPromptForWindowsCredentials(
+                        info,
+                        0,
+                        ref authPackage,
+                        inBuffer,
+                        inBufferSize,
+                        out IntPtr outBuffer,
+                        out uint outBufferSize,
+                        ref save,
+                        CredentialApis.CREDUIWIN_GENERIC);
+
+                    if (error != Errors.ERROR_SUCCESS)
+                    {
+                        throw new Win32Exception(error);
+                    }
+
+                    try
+                    {
+                        int userNameLength = 0;
+                        int passwordLength = 0;
+                        _ = CredentialApis.CredUnPackAuthenticationBuffer(
+                            0,
+                            outBuffer,
+                            outBufferSize,
+                            null,
+                            ref userNameLength,
+                            default,
+                            default,
+                            null,
+                            ref passwordLength);
+
+                        username = userNameLength == 0 ? null : new string('\0', userNameLength - 1);
+                        password = passwordLength == 0 ? null : new string('\0', passwordLength - 1);
+
+                        if (!CredentialApis.CredUnPackAuthenticationBuffer(
+                            0,
+                            outBuffer,
+                            outBufferSize,
+                            username,
+                            ref userNameLength,
+                            default,
+                            default,
+                            password,
+                            ref passwordLength))
+                        {
+                            Throw.Command.Win32Exception("Failed to unpack auth buffer.");
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.FreeCoTaskMem(outBuffer);
+                    }
+                }
+                finally
+                {
+                    Marshal.FreeCoTaskMem(inBuffer);
+                }
+            }
+
+            void PromptForCredentialsConsole()
+            {
+                if (username is null)
+                {
+                    Console.Write("Username: ");
+                    username = Console.ReadLine();
+                }
+
+                if (password is null)
+                {
+                    Console.Write("Password: ");
+                    password = ReadPassword();
+                }
+
+                Console.WriteLine();
             }
         }
 

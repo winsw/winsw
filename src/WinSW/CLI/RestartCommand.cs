@@ -1,40 +1,52 @@
 ﻿using CommandLine;
-using System.Threading;
-using WMI;
+using System;
+using System.ComponentModel;
+using System.ServiceProcess;
+using WinSW.Native;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
     [Verb("restart", HelpText = "restart the service")]
-    public class RestartCommand : CLICommand
+    public class RestartCommand : CliCommand
     {
-        public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        public override void Run(ServiceDescriptor descriptor)
         {
-            var Log = Program.Log;
-
             if (!Program.elevated)
             {
                 Elevate();
                 return;
             }
 
-            Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-            if (svc is null)
+            Program.Log.Info("Restarting the service with id '" + descriptor.Id + "'");
+
+            using var svc = new ServiceController(descriptor.Id);
+
+            try
             {
-                Program.ThrowNoSuchService();
+                svc.Stop();
+
+                while (!ServiceControllerExtension.TryWaitForStatus(svc, ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(1)))
+                {
+                }
+            }
+            catch (InvalidOperationException e) when (e.InnerException is Win32Exception inner)
+            {
+                switch (inner.NativeErrorCode)
+                {
+                    case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
+                        Program.ThrowNoSuchService(inner);
+                        break;
+
+                    case Errors.ERROR_SERVICE_NOT_ACTIVE:
+                        break;
+
+                    default:
+                        throw;
+
+                }
             }
 
-            if (svc.Started)
-            {
-                svc.StopService();
-            }
-
-            while (svc.Started)
-            {
-                Thread.Sleep(1000);
-                svc = svcs.Select(descriptor.Id)!;
-            }
-
-            svc.StartService();
+            svc.Start();
         }
     }
 }

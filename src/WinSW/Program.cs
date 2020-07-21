@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading;
 using log4net;
 using log4net.Appender;
 using log4net.Config;
@@ -19,6 +14,9 @@ using log4net.Layout;
 using WinSW.Logging;
 using WinSW.Native;
 using CommandLine;
+using WinSW.CLI;
+using System.Reflection;
+using System.Linq;
 
 namespace WinSW
 {
@@ -26,9 +24,9 @@ namespace WinSW
     {
         public static readonly ILog Log = LogManager.GetLogger(typeof(Program));
 
-        public static bool elevated;
+        public static bool elevated { get; set; }
 
-        public static CLICommand cliOption;
+        public static CliCommand cliOption { get; set; } = new DefaultCommand();
 
         public static int Main(string[] args)
         {
@@ -84,8 +82,6 @@ namespace WinSW
                 Console.Error.WriteLine(e);
                 return -1;
             }
-
-            
         }
 
         static bool handleIncorrectArgument(string[] args)
@@ -105,19 +101,13 @@ namespace WinSW
 
         private static Type[] LoadVerbs()
         {
-#if NET40
-            return Assembly.GetExecutingAssembly().GetTypes().
-                Where(type => Attribute.IsDefined(type, typeof(VerbAttribute))).ToArray();
-#else
-
             return Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
-#endif
         }
 
         private static void HandleErrors(IEnumerable<Error> errors)
         {
-
+            // Method intentionally left empty.
         }
 
         public static void RunParsed(object obj)
@@ -129,7 +119,7 @@ namespace WinSW
         {
             bool inConsoleMode = obj.GetType() != typeof(DefaultCommand);
 
-            cliOption = (CLICommand)obj;
+            cliOption = (CliCommand)obj;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptor();
@@ -146,11 +136,6 @@ namespace WinSW
             }
 
             Log.Debug("Starting WinSW in console mode");
-
-
-            // Get service info for the future use
-            Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
-            Win32Service? svc = svcs.Select(descriptor.Id);
 
             if (cliOption.Elevated)
             {
@@ -171,14 +156,14 @@ namespace WinSW
             }
 
             // Run the Command
-            cliOption.Run(descriptor, svcs, svc);
+            cliOption.Run(descriptor);
 
         }
 
         /// <exception cref="CommandException" />
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowNoSuchService(Win32Exception inner) => throw new CommandException(inner);
+        public static void ThrowNoSuchService(Win32Exception inner) => throw new CommandException(inner);
 
         private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
         {

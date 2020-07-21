@@ -2,15 +2,14 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using winsw.Native;
-using WMI;
+using WinSW.Native;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
-    public abstract class CLICommand
+    public abstract class CliCommand
     {
         [Option("configFile", HelpText = "Configurations File")]
-        public string ConfigFile { get; set; }
+        public string? ConfigFile { get; set; }
 
         [Option("elevated", HelpText = "Elevated Command Prompt", Default = false)]
         public bool Elevated { get; set; }
@@ -18,7 +17,7 @@ namespace winsw.CLI
         [Option("skipConfigValidation", HelpText = "Enable configurations schema validation", Default = false)]
         public bool validation { get; set; }
 
-        public abstract void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc);
+        public abstract void Run(ServiceDescriptor descriptor);
 
         public void Elevate()
         {
@@ -29,6 +28,11 @@ namespace winsw.CLI
                 UseShellExecute = true,
                 Verb = "runas",
                 FileName = current.MainModule.FileName,
+/*#if NETCOREAPP
+                    Arguments = "/elevated " + string.Join(' ', args),
+#else
+                Arguments = "/elevated " + string.Join(" ", args),
+#endif*/
                 WindowStyle = ProcessWindowStyle.Hidden,
             };
 

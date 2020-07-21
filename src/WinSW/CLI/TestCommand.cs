@@ -1,17 +1,16 @@
 ﻿using CommandLine;
 using System;
 using System.Threading;
-using WMI;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
     [Verb("test", HelpText = "check if the service can be started and then stopped")]
-    public class TestCommand : CLICommand
+    public class TestCommand : CliCommand
     {
-        [Option("wait", HelpText = "Test Wait")]
+        [Option("wait", HelpText = "Test Wait", Default = false)]
         public bool Wait { get; set; }
 
-        public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        public override void Run(ServiceDescriptor descriptor)
         {
             if (!Program.elevated)
             {

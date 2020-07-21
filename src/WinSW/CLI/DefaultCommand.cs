@@ -1,12 +1,11 @@
 ﻿using CommandLine;
-using WMI;
 
-namespace winsw.CLI
+namespace WinSW.CLI
 {
     [Verb("default", isDefault: true)]
-    public class DefaultCommand : CLICommand
+    public class DefaultCommand : CliCommand
     {
-        public override void Run(ServiceDescriptor descriptor, Win32Services svcs, Win32Service? svc)
+        public override void Run(ServiceDescriptor descriptor)
         {
             throw new System.NotImplementedException();
         }
