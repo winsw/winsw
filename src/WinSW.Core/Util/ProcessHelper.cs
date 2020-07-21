@@ -87,25 +87,18 @@ namespace WinSW.Util
             bool exited = result.Value;
             if (!exited)
             {
+                bool sent = result.Key;
+                if (sent)
+                {
+                    Logger.Warn("Process " + process.Id + " did not respond to Ctrl+C signal - Killing as fallback");
+                }
+
                 try
                 {
-                    bool sent = result.Key;
-                    if (sent)
-                    {
-                        Logger.Warn("Process " + process.Id + " did not respond to Ctrl+C signal - Killing as fallback");
-                    }
-
                     process.Kill();
                 }
-                catch (Exception ex)
+                catch when (process.HasExited)
                 {
-                    if (!process.HasExited)
-                    {
-                        throw;
-                    }
-
-                    // Process already exited.
-                    Logger.Warn("Ignoring exception from killing process because it has exited", ex);
                 }
             }
 
@@ -146,7 +139,7 @@ namespace WinSW.Util
             Dictionary<string, string>? envVars = null,
             string? workingDirectory = null,
             ProcessPriorityClass? priority = null,
-            ProcessCompletionCallback? callback = null,
+            Action<Process>? callback = null,
             bool redirectStdin = true,
             LogHandler? logHandler = null,
             bool hideWindow = false)
@@ -193,11 +186,11 @@ namespace WinSW.Util
             // monitor the completion of the process
             if (callback != null)
             {
-                processToStart.Exited += (_, _) =>
+                processToStart.Exited += (sender, _) =>
                 {
                     try
                     {
-                        callback(processToStart);
+                        callback((Process)sender!);
                     }
                     catch (Exception e)
                     {
@@ -209,6 +202,4 @@ namespace WinSW.Util
             }
         }
     }
-
-    public delegate void ProcessCompletionCallback(Process process);
 }
