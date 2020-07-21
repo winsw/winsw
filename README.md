@@ -84,8 +84,7 @@ User documentation:
 * [Installation guide](docs/installation.md) - Describes the installation process for different systems and .NET versions
 * [Migration guide](docs/migrate-to-3-x) - Migrate to WinSW 3.x.
 * Configuration:
-  * [Main XML configuration file](docs/xml-config-file.md)
-  * [EXE configuration file](docs/exe-config-file.md)
+  * [XML configuration file](docs/xml-config-file.md)
   * [Logging and error reporting](docs/logging-and-error-reporting.md)
   * [Extensions](docs/extensions/extensions.md)
 * Use-cases:
