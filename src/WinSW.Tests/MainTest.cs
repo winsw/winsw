@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.ServiceProcess;
 using WinSW.Tests.Util;
 using Xunit;
@@ -73,3 +73,4 @@ namespace WinSW.Tests
         }
     }
 }
+*/

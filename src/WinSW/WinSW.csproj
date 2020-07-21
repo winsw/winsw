@@ -14,6 +14,10 @@
     <Copyright>Copyright 2008-2016 Oleg Nenashev, CloudBees, Inc. and other contributors</Copyright>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
     <ILMergeVersion>3.0.40</ILMergeVersion>
   </PropertyGroup>
@@ -31,6 +35,7 @@
     <ProjectReference Include="..\WinSW.Core\WinSW.Core.csproj" />
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
+
 
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(RuntimeIdentifier)' == ''">
 
@@ -66,6 +71,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Core.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Plugins.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)CommandLine.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 
