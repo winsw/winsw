@@ -301,16 +301,9 @@ namespace WinSW
 
             if (stopArguments is null)
             {
-                try
-                {
-                    Log.Debug("ProcessKill " + this.process.Id);
-                    ProcessHelper.StopProcessTree(this.process, this.descriptor.StopTimeout);
-                    this.ExtensionManager.FireOnProcessTerminated(this.process);
-                }
-                catch (InvalidOperationException)
-                {
-                    // already terminated
-                }
+                Log.Debug("ProcessKill " + this.process.Id);
+                ProcessHelper.StopProcessTree(this.process, this.descriptor.StopTimeout);
+                this.ExtensionManager.FireOnProcessTerminated(this.process);
             }
             else
             {
@@ -358,19 +351,12 @@ namespace WinSW
                 effectiveProcessWaitSleepTime = (int)this.descriptor.SleepTime.TotalMilliseconds;
             }
 
-            try
-            {
-                // WriteEvent("WaitForProcessToExit [start]");
+            // WriteEvent("WaitForProcessToExit [start]");
 
-                while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
-                {
-                    this.SignalShutdownPending();
-                    // WriteEvent("WaitForProcessToExit [repeat]");
-                }
-            }
-            catch (InvalidOperationException)
+            while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
             {
-                // already terminated
+                this.SignalShutdownPending();
+                // WriteEvent("WaitForProcessToExit [repeat]");
             }
 
             // WriteEvent("WaitForProcessToExit [finished]");
@@ -405,37 +391,27 @@ namespace WinSW
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
         {
             // Define handler of the completed process
-            void OnProcessCompleted(Process proc)
+            void OnProcessCompleted(Process process)
             {
-                string msg = processToStart.Id + " - " + processToStart.StartInfo.FileName + " " + processToStart.StartInfo.Arguments;
-                try
-                {
-                    if (this.orderlyShutdown)
-                    {
-                        this.LogEvent("Child process [" + msg + "] terminated with " + proc.ExitCode, EventLogEntryType.Information);
-                    }
-                    else
-                    {
-                        this.LogEvent("Child process [" + msg + "] finished with " + proc.ExitCode, EventLogEntryType.Warning);
+                string msg = process.Id + " - " + process.StartInfo.FileName + " " + process.StartInfo.Arguments;
 
-                        // if we finished orderly, report that to SCM.
-                        // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
-                        // restart the service automatically
-                        if (proc.ExitCode == 0)
-                        {
-                            this.SignalShutdownComplete();
-                        }
+                if (this.orderlyShutdown)
+                {
+                    this.LogEvent("Child process [" + msg + "] terminated with " + process.ExitCode, EventLogEntryType.Information);
+                }
+                else
+                {
+                    this.LogEvent("Child process [" + msg + "] finished with " + process.ExitCode, EventLogEntryType.Warning);
 
-                        Environment.Exit(proc.ExitCode);
+                    // if we finished orderly, report that to SCM.
+                    // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
+                    // restart the service automatically
+                    if (process.ExitCode == 0)
+                    {
+                        this.SignalShutdownComplete();
                     }
-                }
-                catch (InvalidOperationException ioe)
-                {
-                    this.LogEvent("WaitForExit " + ioe.Message);
-                }
-                finally
-                {
-                    proc.Dispose();
+
+                    Environment.Exit(process.ExitCode);
                 }
             }
 
