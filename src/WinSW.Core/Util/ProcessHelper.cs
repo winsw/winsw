@@ -56,7 +56,7 @@ namespace WinSW.Util
 
                 if ((int)information.InheritedFromUniqueProcessId == processId)
                 {
-                    Logger.Info("Found child process: " + process.Id + " Name: " + process.ProcessName);
+                    Logger.Info($"Found child process '{process.Format()}'.");
                     children.Add(process);
                 }
                 else
@@ -129,7 +129,7 @@ namespace WinSW.Util
         /// <param name="envVars">Additional environment variables</param>
         /// <param name="workingDirectory">Working directory</param>
         /// <param name="priority">Priority</param>
-        /// <param name="callback">Completion callback. If null, the completion won't be monitored</param>
+        /// <param name="onExited">Completion callback. If null, the completion won't be monitored</param>
         /// <param name="redirectStdin">Redirect standard input</param>
         /// <param name="logHandler">Log handler. If enabled, logs will be redirected to the process and then reported</param>
         public static void StartProcessAndCallbackForExit(
@@ -139,7 +139,7 @@ namespace WinSW.Util
             Dictionary<string, string>? envVars = null,
             string? workingDirectory = null,
             ProcessPriorityClass? priority = null,
-            Action<Process>? callback = null,
+            Action<Process>? onExited = null,
             bool redirectStdin = true,
             LogHandler? logHandler = null,
             bool hideWindow = false)
@@ -184,17 +184,17 @@ namespace WinSW.Util
             }
 
             // monitor the completion of the process
-            if (callback != null)
+            if (onExited != null)
             {
                 processToStart.Exited += (sender, _) =>
                 {
                     try
                     {
-                        callback((Process)sender!);
+                        onExited((Process)sender!);
                     }
                     catch (Exception e)
                     {
-                        Logger.Error("Thread failed unexpectedly", e);
+                        Logger.Error("Unhandled exception in event handler.", e);
                     }
                 };
 
