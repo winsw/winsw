@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class Throw
     {

@@ -4,20 +4,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml;
-using winsw.Configuration;
-using winsw.Native;
-using winsw.Util;
+using WinSW.Configuration;
+using WinSW.Native;
+using WinSW.Util;
 using WMI;
 
-namespace winsw
+namespace WinSW
 {
     /// <summary>
     /// In-memory representation of the configuration file.
     /// </summary>
     public class ServiceDescriptor : IWinSWConfiguration
     {
-        // ReSharper disable once InconsistentNaming
+#pragma warning disable S2755 // XML parsers should not be vulnerable to XXE attacks
         protected readonly XmlDocument dom = new XmlDocument();
+#pragma warning restore S2755 // XML parsers should not be vulnerable to XXE attacks
 
         private readonly Dictionary<string, string> environmentVariables;
 
@@ -45,29 +46,35 @@ namespace winsw
             // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
             // as well as trimming off ".vshost" suffix (which is used during debugging)
             // Get the first parent to go into the recursive loop
-            string p = ExecutablePath;
+            string p = this.ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(p);
             if (baseName.EndsWith(".vshost"))
+            {
                 baseName = baseName.Substring(0, baseName.Length - 7);
+            }
 
             DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
             {
                 if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
+                {
                     break;
+                }
 
                 if (d.Parent is null)
+                {
                     throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory or any parents");
+                }
 
                 d = d.Parent;
             }
 
-            BaseName = baseName;
-            BasePath = Path.Combine(d.FullName, BaseName);
+            this.BaseName = baseName;
+            this.BasePath = Path.Combine(d.FullName, this.BaseName);
 
             try
             {
-                dom.Load(BasePath + ".xml");
+                this.dom.Load(this.BasePath + ".xml");
             }
             catch (XmlException e)
             {
@@ -78,13 +85,13 @@ namespace winsw
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Id);
 
             // New name
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Id);
 
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
@@ -101,31 +108,34 @@ namespace winsw
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
-        // ReSharper disable once InconsistentNaming
         public static ServiceDescriptor FromXML(string xml)
         {
-            var dom = new XmlDocument();
-            dom.LoadXml(xml);
-            return new ServiceDescriptor(dom);
+#pragma warning disable S2755 // XML parsers should not be vulnerable to XXE attacks
+            var xmlDom = new XmlDocument();
+#pragma warning restore S2755 // XML parsers should not be vulnerable to XXE attacks
+            xmlDom.LoadXml(xml);
+            return new ServiceDescriptor(xmlDom);
         }
 
         private string SingleElement(string tagName)
         {
-            return SingleElement(tagName, false)!;
+            return this.SingleElement(tagName, false)!;
         }
 
         private string? SingleElement(string tagName, bool optional)
         {
-            XmlNode? n = dom.SelectSingleNode("//" + tagName);
+            XmlNode? n = this.dom.SelectSingleNode("//" + tagName);
             if (n is null && !optional)
+            {
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+            }
 
             return n is null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
         private bool SingleBoolElement(string tagName, bool defaultValue)
         {
-            XmlNode? e = dom.SelectSingleNode("//" + tagName);
+            XmlNode? e = this.dom.SelectSingleNode("//" + tagName);
 
             return e is null ? defaultValue : bool.Parse(e.InnerText);
         }
@@ -137,10 +147,10 @@ namespace winsw
             return e is null ? defaultValue : int.Parse(e.InnerText);
         }
 
-        private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
+        private TimeSpan SingleTimeSpanElement(string tagName, TimeSpan defaultValue)
         {
-            string? value = SingleElement(tagName, true);
-            return value is null ? defaultValue : ParseTimeSpan(value);
+            string? value = this.SingleElement(tagName, true);
+            return value is null ? defaultValue : this.ParseTimeSpan(value);
         }
 
         private TimeSpan ParseTimeSpan(string v)
@@ -175,14 +185,14 @@ namespace winsw
         /// <summary>
         /// Path to the executable.
         /// </summary>
-        public string Executable => SingleElement("executable");
+        public string Executable => this.SingleElement("executable");
 
-        public bool HideWindow => SingleBoolElement("hidewindow", Defaults.HideWindow);
+        public bool HideWindow => this.SingleBoolElement("hidewindow", Defaults.HideWindow);
 
         /// <summary>
         /// Optionally specify a different Path to an executable to shutdown the service.
         /// </summary>
-        public string? StopExecutable => SingleElement("stopexecutable", true);
+        public string? StopExecutable => this.SingleElement("stopexecutable", true);
 
         /// <summary>
         /// <c>arguments</c> or multiple optional <c>argument</c> elements which overrule the arguments element.
@@ -191,14 +201,14 @@ namespace winsw
         {
             get
             {
-                string? arguments = AppendTags("argument", null);
+                string? arguments = this.AppendTags("argument", null);
 
                 if (!(arguments is null))
                 {
                     return arguments;
                 }
 
-                XmlNode? argumentsNode = dom.SelectSingleNode("//arguments");
+                XmlNode? argumentsNode = this.dom.SelectSingleNode("//arguments");
 
                 return argumentsNode is null ? Defaults.Arguments : Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
@@ -211,14 +221,14 @@ namespace winsw
         {
             get
             {
-                string? startArguments = AppendTags("startargument", null);
+                string? startArguments = this.AppendTags("startargument", null);
 
                 if (!(startArguments is null))
                 {
                     return startArguments;
                 }
 
-                XmlNode? startArgumentsNode = dom.SelectSingleNode("//startarguments");
+                XmlNode? startArgumentsNode = this.dom.SelectSingleNode("//startarguments");
 
                 return startArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(startArgumentsNode.InnerText);
             }
@@ -231,14 +241,14 @@ namespace winsw
         {
             get
             {
-                string? stopArguments = AppendTags("stopargument", null);
+                string? stopArguments = this.AppendTags("stopargument", null);
 
                 if (!(stopArguments is null))
                 {
                     return stopArguments;
                 }
 
-                XmlNode? stopArgumentsNode = dom.SelectSingleNode("//stoparguments");
+                XmlNode? stopArgumentsNode = this.dom.SelectSingleNode("//stoparguments");
 
                 return stopArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(stopArgumentsNode.InnerText);
             }
@@ -248,7 +258,7 @@ namespace winsw
         {
             get
             {
-                var wd = SingleElement("workingdirectory", true);
+                var wd = this.SingleElement("workingdirectory", true);
                 return string.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd!;
             }
         }
@@ -257,7 +267,7 @@ namespace winsw
         {
             get
             {
-                XmlNode? argumentNode = ExtensionsConfiguration;
+                XmlNode? argumentNode = this.ExtensionsConfiguration;
                 XmlNodeList? extensions = argumentNode?.SelectNodes("extension");
                 if (extensions is null)
                 {
@@ -274,7 +284,7 @@ namespace winsw
             }
         }
 
-        public XmlNode? ExtensionsConfiguration => dom.SelectSingleNode("//extensions");
+        public XmlNode? ExtensionsConfiguration => this.dom.SelectSingleNode("//extensions");
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
@@ -282,7 +292,7 @@ namespace winsw
         /// </summary>
         private string? AppendTags(string tagName, string? defaultValue = null)
         {
-            XmlNode? argumentNode = dom.SelectSingleNode("//" + tagName);
+            XmlNode? argumentNode = this.dom.SelectSingleNode("//" + tagName);
             if (argumentNode is null)
             {
                 return defaultValue;
@@ -290,7 +300,7 @@ namespace winsw
 
             StringBuilder arguments = new StringBuilder();
 
-            XmlNodeList argumentNodeList = dom.SelectNodes("//" + tagName);
+            XmlNodeList argumentNodeList = this.dom.SelectNodes("//" + tagName);
             for (int i = 0; i < argumentNodeList.Count; i++)
             {
                 arguments.Append(' ');
@@ -321,17 +331,7 @@ namespace winsw
         /// <summary>
         /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
         /// </summary>
-        public string LogDirectory
-        {
-            get
-            {
-                XmlNode? loggingNode = dom.SelectSingleNode("//logpath");
-
-                return loggingNode is null
-                    ? Defaults.LogDirectory
-                    : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
-            }
-        }
+        public string LogDirectory { get => this.Log.Directory; }
 
         public string LogMode
         {
@@ -340,7 +340,7 @@ namespace winsw
                 string? mode = null;
 
                 // first, backward compatibility with older configuration
-                XmlElement? e = (XmlElement?)dom.SelectSingleNode("//logmode");
+                XmlElement? e = (XmlElement?)this.dom.SelectSingleNode("//logmode");
                 if (e != null)
                 {
                     mode = e.InnerText;
@@ -348,9 +348,11 @@ namespace winsw
                 else
                 {
                     // this is more modern way, to support nested elements as configuration
-                    e = (XmlElement?)dom.SelectSingleNode("//log");
+                    e = (XmlElement?)this.dom.SelectSingleNode("//log");
                     if (e != null)
+                    {
                         mode = e.GetAttribute("mode");
+                    }
                 }
 
                 return mode ?? Defaults.LogMode;
@@ -361,116 +363,141 @@ namespace winsw
         {
             get
             {
-                XmlNode? loggingName = dom.SelectSingleNode("//logname");
+                XmlNode? loggingName = this.dom.SelectSingleNode("//logname");
 
-                return loggingName is null ? BaseName : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                return loggingName is null ? this.BaseName : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
             }
         }
 
-        public bool OutFileDisabled => SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
-
-        public bool ErrFileDisabled => SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
-
-        public string OutFilePattern
+        public Log Log
         {
             get
             {
-                XmlNode? loggingName = dom.SelectSingleNode("//outfilepattern");
-
-                return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                return new XmlLogSettings(this);
             }
         }
 
-        public string ErrFilePattern
+        private class XmlLogSettings : Log
         {
-            get
-            {
-                XmlNode? loggingName = dom.SelectSingleNode("//errfilepattern");
+            private readonly ServiceDescriptor d;
 
-                return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+            public XmlLogSettings(ServiceDescriptor d)
+            {
+                this.d = d;
             }
-        }
 
-        public LogHandler LogHandler
-        {
-            get
+            private XmlElement E
             {
-                XmlElement? e = (XmlElement?)dom.SelectSingleNode("//logmode");
-
-                // this is more modern way, to support nested elements as configuration
-                e ??= (XmlElement?)dom.SelectSingleNode("//log")!; // WARNING: NRE
-
-                int sizeThreshold;
-                switch (LogMode)
+                get
                 {
-                    case "rotate":
-                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+                    XmlElement? e = (XmlElement?)this.d.dom.SelectSingleNode("//logmode");
 
-                    case "none":
-                        return new IgnoreLogAppender();
+                    // this is more modern way, to support nested elements as configuration
+                    e ??= (XmlElement?)this.d.dom.SelectSingleNode("//log")!; // WARNING: NRE
+                    return e;
+                }
+            }
 
-                    case "reset":
-                        return new ResetLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+            public override string? Mode { get => this.d.LogMode; }
 
-                    case "roll":
-                        return new RollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
+            public override string Name { get => this.d.LogName; }
 
-                    case "roll-by-time":
-                        XmlNode? patternNode = e.SelectSingleNode("pattern");
-                        if (patternNode is null)
+            public override string Directory
+            {
+                get
+                {
+                    XmlNode? loggingNode = this.d.dom.SelectSingleNode("//logpath");
+
+                    return loggingNode is null
+                        ? Defaults.LogDirectory
+                        : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
+                }
+            }
+
+            public override int? SizeThreshold { get => this.d.SingleIntElement(this.E, "sizeThreshold", 10 * 1024); }
+
+            public override int? KeepFiles { get => this.d.SingleIntElement(this.E, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep); }
+
+            public override int? Period { get => this.d.SingleIntElement(this.E, "period", 1); }
+
+            public override string Pattern
+            {
+                get
+                {
+                    XmlNode? patternNode = this.E.SelectSingleNode("pattern");
+                    if (patternNode is null)
+                    {
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
+                        throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
+                    }
+
+                    return patternNode.InnerText;
+                }
+            }
+
+            public override bool OutFileDisabled => this.d.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+
+            public override bool ErrFileDisabled => this.d.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+
+            public override string OutFilePattern
+            {
+                get
+                {
+                    XmlNode? loggingName = this.d.dom.SelectSingleNode("//outfilepattern");
+
+                    return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                }
+            }
+
+            public override string ErrFilePattern
+            {
+                get
+                {
+                    XmlNode? loggingName = this.d.dom.SelectSingleNode("//errfilepattern");
+
+                    return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                }
+            }
+
+            public override string? AutoRollAtTime
+            {
+                get
+                {
+                    XmlNode? autoRollAtTimeNode = this.E.SelectSingleNode("autoRollAtTime");
+                    return autoRollAtTimeNode?.InnerText;
+                }
+            }
+
+            public override int? ZipOlderThanNumDays
+            {
+                get
+                {
+                    XmlNode? zipolderthannumdaysNode = this.E.SelectSingleNode("zipOlderThanNumDays");
+                    int? zipolderthannumdays = null;
+                    if (zipolderthannumdaysNode != null)
+                    {
+                        // validate it
+                        if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
                         {
-                            throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
+                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
                         }
 
-                        var pattern = patternNode.InnerText;
-                        int period = SingleIntElement(e, "period", 1);
-                        return new TimeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, pattern, period);
+                        zipolderthannumdays = zipolderthannumdaysValue;
+                    }
 
-                    case "roll-by-size":
-                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BYTES_PER_KB;
-                        int keepFiles = SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DEFAULT_FILES_TO_KEEP);
-                        return new SizeBasedRollingLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, keepFiles);
+                    return zipolderthannumdays;
+                }
+            }
 
-                    case "append":
-                        return new DefaultLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern);
-
-                    case "roll-by-size-time":
-                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BYTES_PER_KB;
-                        XmlNode? filePatternNode = e.SelectSingleNode("pattern");
-                        if (filePatternNode is null)
-                        {
-                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration XML.");
-                        }
-
-                        XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
-                        TimeSpan? autoRollAtTime = null;
-                        if (autoRollAtTimeNode != null)
-                        {
-                            // validate it
-                            if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out TimeSpan autoRollAtTimeValue))
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
-
-                            autoRollAtTime = autoRollAtTimeValue;
-                        }
-
-                        XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
-                        int? zipolderthannumdays = null;
-                        if (zipolderthannumdaysNode != null)
-                        {
-                            // validate it
-                            if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
-
-                            zipolderthannumdays = zipolderthannumdaysValue;
-                        }
-
-                        XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
-                        string zipdateformat = zipdateformatNode is null ? "yyyyMM" : zipdateformatNode.InnerText;
-
-                        return new RollingSizeTimeLogAppender(LogDirectory, LogName, OutFileDisabled, ErrFileDisabled, OutFilePattern, ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
-
-                    default:
-                        throw new InvalidDataException("Undefined logging mode: " + LogMode);
+            public override string? ZipDateFormat
+            {
+                get
+                {
+                    XmlNode? zipdateformatNode = this.E.SelectSingleNode("zipDateFormat");
+                    return zipdateformatNode is null ? null : zipdateformatNode.InnerText;
                 }
             }
         }
@@ -482,7 +509,7 @@ namespace winsw
         {
             get
             {
-                XmlNodeList? nodeList = dom.SelectNodes("//depend");
+                XmlNodeList? nodeList = this.dom.SelectNodes("//depend");
                 if (nodeList is null)
                 {
                     return Defaults.ServiceDependencies;
@@ -498,11 +525,11 @@ namespace winsw
             }
         }
 
-        public string Id => SingleElement("id");
+        public string Id => this.SingleElement("id");
 
-        public string Caption => SingleElement("name");
+        public string Caption => this.SingleElement("name");
 
-        public string Description => SingleElement("description");
+        public string Description => this.SingleElement("description");
 
         /// <summary>
         /// Start mode of the Service
@@ -511,9 +538,11 @@ namespace winsw
         {
             get
             {
-                string? p = SingleElement("startmode", true);
+                string? p = this.SingleElement("startmode", true);
                 if (p is null)
+                {
                     return Defaults.StartMode;
+                }
 
                 try
                 {
@@ -536,32 +565,32 @@ namespace winsw
         /// True if the service should be installed with the DelayedAutoStart flag.
         /// This setting will be applyed only during the install command and only when the Automatic start mode is configured.
         /// </summary>
-        public bool DelayedAutoStart => dom.SelectSingleNode("//delayedAutoStart") != null;
+        public bool DelayedAutoStart => this.dom.SelectSingleNode("//delayedAutoStart") != null;
 
         /// <summary>
         /// True if the service should beep when finished on shutdown.
         /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx
         /// </summary>
-        public bool BeepOnShutdown => dom.SelectSingleNode("//beeponshutdown") != null;
+        public bool BeepOnShutdown => this.dom.SelectSingleNode("//beeponshutdown") != null;
 
         /// <summary>
         /// The estimated time required for a pending stop operation (default 15 secs).
         /// Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function
         /// with either an incremented checkPoint value or a change in currentState. (see http://msdn.microsoft.com/en-us/library/ms685996.aspx)
         /// </summary>
-        public TimeSpan WaitHint => SingleTimeSpanElement(dom, "waithint", Defaults.WaitHint);
+        public TimeSpan WaitHint => this.SingleTimeSpanElement("waithint", Defaults.WaitHint);
 
         /// <summary>
         /// The time before the service should make its next call to the SetServiceStatus function
         /// with an incremented checkPoint value (default 1 sec).
         /// Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
         /// </summary>
-        public TimeSpan SleepTime => SingleTimeSpanElement(dom, "sleeptime", Defaults.SleepTime);
+        public TimeSpan SleepTime => this.SingleTimeSpanElement("sleeptime", Defaults.SleepTime);
 
         /// <summary>
         /// True if the service can interact with the desktop.
         /// </summary>
-        public bool Interactive => dom.SelectSingleNode("//interactive") != null;
+        public bool Interactive => this.dom.SelectSingleNode("//interactive") != null;
 
         /// <summary>
         /// Environment variable overrides
@@ -576,7 +605,7 @@ namespace winsw
         {
             get
             {
-                XmlNodeList? nodeList = dom.SelectNodes("//download");
+                XmlNodeList? nodeList = this.dom.SelectNodes("//download");
                 if (nodeList is null)
                 {
                     return Defaults.Downloads;
@@ -599,7 +628,7 @@ namespace winsw
         {
             get
             {
-                XmlNodeList? childNodes = dom.SelectNodes("//onfailure");
+                XmlNodeList? childNodes = this.dom.SelectNodes("//onfailure");
                 if (childNodes is null)
                 {
                     return new SC_ACTION[0];
@@ -618,72 +647,73 @@ namespace winsw
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
                     XmlAttribute? delay = node.Attributes["delay"];
-                    result[i] = new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero);
+                    result[i] = new SC_ACTION(type, delay != null ? this.ParseTimeSpan(delay.Value) : TimeSpan.Zero);
                 }
 
                 return result;
             }
         }
 
-        public TimeSpan ResetFailureAfter => SingleTimeSpanElement(dom, "resetfailure", Defaults.ResetFailureAfter);
+        public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement("resetfailure", Defaults.ResetFailureAfter);
 
-        protected string? GetServiceAccountPart(string subNodeName)
+        protected string? GetServiceAccountPart(XmlNode node, string subNodeName)
         {
-            XmlNode? node = dom.SelectSingleNode("//serviceaccount");
-
-            if (node != null)
+            XmlNode? subNode = node.SelectSingleNode(subNodeName);
+            if (subNode != null)
             {
-                XmlNode? subNode = node.SelectSingleNode(subNodeName);
-                if (subNode != null)
-                {
-                    return subNode.InnerText;
-                }
+                return subNode.InnerText;
             }
 
             return null;
         }
 
-        protected string? AllowServiceLogon => GetServiceAccountPart("allowservicelogon");
-
-        protected internal string? ServiceAccountDomain => GetServiceAccountPart("domain");
-
-        protected internal string? ServiceAccountName => GetServiceAccountPart("user");
-
-        public string? ServiceAccountPassword => GetServiceAccountPart("password");
-
-        public string? ServiceAccountUser => ServiceAccountName is null ? null : (ServiceAccountDomain ?? ".") + "\\" + ServiceAccountName;
-
-        public bool HasServiceAccount()
+        private bool ParseAllowServiceAcountLogonRight(string? logonRight)
         {
-            return !string.IsNullOrEmpty(ServiceAccountName);
+            if (logonRight != null && bool.TryParse(logonRight, out bool parsedvalue))
+            {
+                return parsedvalue;
+            }
+
+            return false;
         }
 
-        public bool AllowServiceAcountLogonRight
+        public ServiceAccount ServiceAccount
         {
             get
             {
-                if (AllowServiceLogon != null)
+                XmlNode? node = this.dom.SelectSingleNode("//serviceaccount");
+
+                if (node is null)
                 {
-                    if (bool.TryParse(AllowServiceLogon, out bool parsedvalue))
-                    {
-                        return parsedvalue;
-                    }
+                    return Defaults.ServiceAccount;
                 }
 
-                return false;
+                var serviceAccount = Defaults.ServiceAccount;
+
+                serviceAccount.ServiceAccountDomain = this.GetServiceAccountPart(node, "domain");
+
+                serviceAccount.ServiceAccountName = this.GetServiceAccountPart(node, "user");
+
+                serviceAccount.ServiceAccountPassword = this.GetServiceAccountPart(node, "password");
+
+                var loginRight = this.GetServiceAccountPart(node, "allowservicelogon");
+
+                serviceAccount.AllowServiceAcountLogonRight = this.ParseAllowServiceAcountLogonRight(loginRight);
+
+                return serviceAccount;
             }
         }
 
         /// <summary>
         /// Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
         /// </summary>
-        public TimeSpan StopTimeout => SingleTimeSpanElement(dom, "stoptimeout", Defaults.StopTimeout);
+        public TimeSpan StopTimeout => this.SingleTimeSpanElement("stoptimeout", Defaults.StopTimeout);
 
         public bool StopParentProcessFirst
         {
             get
             {
-                var value = SingleElement("stopparentprocessfirst", true);
+                var value = this.SingleElement("stopparentprocessfirst", true);
                 if (bool.TryParse(value, out bool result))
                 {
                     return result;
@@ -700,19 +730,21 @@ namespace winsw
         {
             get
             {
-                string? p = SingleElement("priority", true);
+                string? p = this.SingleElement("priority", true);
                 if (p is null)
+                {
                     return Defaults.Priority;
+                }
 
                 return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);
             }
         }
 
-        public string? SecurityDescriptor => SingleElement("securityDescriptor", true);
+        public string? SecurityDescriptor => this.SingleElement("securityDescriptor", true);
 
         private Dictionary<string, string> LoadEnvironmentVariables()
         {
-            XmlNodeList nodeList = dom.SelectNodes("//env");
+            XmlNodeList nodeList = this.dom.SelectNodes("//env");
             Dictionary<string, string> environment = new Dictionary<string, string>(nodeList.Count);
             for (int i = 0; i < nodeList.Count; i++)
             {

@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class ServiceApis
     {

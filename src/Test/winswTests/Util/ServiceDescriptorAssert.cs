@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
-using winsw;
-using winsw.Configuration;
+using WinSW;
+using WinSW.Configuration;
 
 namespace winswTests.Util
 {
@@ -59,6 +59,10 @@ namespace winswTests.Util
                 properties.Remove("Caption");
                 properties.Remove("Description");
                 properties.Remove("Executable");
+                properties.Remove("BaseName");
+                properties.Remove("BasePath");
+                properties.Remove("Log");
+                properties.Remove("ServiceAccount");
                 return properties;
             }
         }

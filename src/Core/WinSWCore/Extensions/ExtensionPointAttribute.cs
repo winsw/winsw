@@ -1,4 +1,4 @@
-﻿namespace winsw.Extensions
+﻿namespace WinSW.Extensions
 {
     /// <summary>
     /// This attribute is used to identify extension points within the code
@@ -6,7 +6,7 @@
     /// <remarks>
     /// Each extension point implements its own entry type.
     /// </remarks>
-    class ExtensionPointAttribute
+    internal class ExtensionPointAttribute
     {
     }
 }

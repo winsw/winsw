@@ -48,7 +48,7 @@ namespace WMI
         public WmiException(string message, ReturnValue code)
             : base(message)
         {
-            ErrorCode = code;
+            this.ErrorCode = code;
         }
 
         public WmiException(ReturnValue code)
@@ -64,13 +64,15 @@ namespace WMI
     {
         public readonly string Name;
 
-        public WmiClassName(string name) => Name = name;
+        public WmiClassName(string name) => this.Name = name;
     }
 
     /// <summary>
     /// Marker interface to denote a collection in WMI.
     /// </summary>
-    public interface IWmiCollection { }
+    public interface IWmiCollection
+    {
+    }
 
     /// <summary>
     /// Marker interface to denote an individual managed object
@@ -109,7 +111,9 @@ namespace WMI
             {
                 uint code = (uint)result["returnValue"];
                 if (code != 0)
+                {
                     throw new WmiException((ReturnValue)code);
+                }
             }
 
             protected ManagementBaseObject GetMethodParameters(ManagementObject wmiObject, string methodName, ParameterInfo[] methodParameters, object[] arguments)
@@ -174,20 +178,23 @@ namespace WMI
             {
                 ParameterInfo[] methodParameters = method.GetParameters();
 
-                if (method.Name == nameof(Win32Services.Select))
+                if (method.Name == nameof(IWin32Services.Select))
                 {
                     // select method to find instances
                     StringBuilder query = new StringBuilder("SELECT * FROM ").Append(this.className).Append(" WHERE ");
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         if (i != 0)
+                        {
                             query.Append(" AND ");
+                        }
 
                         query.Append(' ').Append(Capitalize(methodParameters[i].Name!)).Append(" = '").Append(arguments[i]).Append('\'');
                     }
 
                     using ManagementObjectSearcher searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query.ToString()));
                     using ManagementObjectCollection results = searcher.Get();
+
                     // TODO: support collections
                     foreach (ManagementObject wmiObject in results)
                     {
@@ -209,7 +216,8 @@ namespace WMI
         /// <summary>
         /// Obtains an object that corresponds to a table in WMI, which is a collection of a managed object.
         /// </summary>
-        public T GetCollection<T>() where T : IWmiCollection
+        public T GetCollection<T>()
+            where T : IWmiCollection
         {
             WmiClassName className = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
 

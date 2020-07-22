@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml;
 
-namespace winsw.Util
+namespace WinSW.Util
 {
     public class XmlHelper
     {
@@ -19,7 +19,9 @@ namespace winsw.Util
         {
             XmlNode? n = node.SelectSingleNode(tagName);
             if (n is null && !optional)
+            {
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+            }
 
             return n is null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
@@ -36,7 +38,9 @@ namespace winsw.Util
         {
             XmlNode? n = node.SelectSingleNode(tagName);
             if (n is null && !optional)
+            {
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
+            }
 
             return n;
         }
@@ -69,7 +73,9 @@ namespace winsw.Util
         public static TAttributeType SingleAttribute<TAttributeType>(XmlElement node, string attributeName, [AllowNull] TAttributeType defaultValue)
         {
             if (!node.HasAttribute(attributeName))
+            {
                 return defaultValue;
+            }
 
             string rawValue = node.GetAttribute(attributeName);
             string substitutedValue = Environment.ExpandEnvironmentVariables(rawValue);
@@ -90,7 +96,9 @@ namespace winsw.Util
             where TAttributeType : struct
         {
             if (!node.HasAttribute(attributeName))
+            {
                 return defaultValue;
+            }
 
             string rawValue = node.GetAttribute(attributeName);
             string substitutedValue = Environment.ExpandEnvironmentVariables(rawValue);
@@ -102,7 +110,8 @@ namespace winsw.Util
             }
             catch (ArgumentException ex)
             {
-                throw new InvalidDataException("Cannot parse <" + attributeName + "> Enum value from string '" + substitutedValue +
+                throw new InvalidDataException(
+                    "Cannot parse <" + attributeName + "> Enum value from string '" + substitutedValue +
                     "'. Enum type: " + typeof(TAttributeType), ex);
             }
 #else

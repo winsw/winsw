@@ -1,7 +1,9 @@
-﻿using System;
+﻿#pragma warning disable SA1310 // Field names should not contain underscore
+
+using System;
 using System.Runtime.InteropServices;
 
-namespace winsw.Native
+namespace WinSW.Native
 {
     internal static class SecurityApis
     {

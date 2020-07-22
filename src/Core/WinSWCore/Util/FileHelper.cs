@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 #endif
 
-namespace winsw.Util
+namespace WinSW.Util
 {
     public static class FileHelper
     {

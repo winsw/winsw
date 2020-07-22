@@ -18,13 +18,13 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
-using winsw.Logging;
-using winsw.Native;
-using winsw.Util;
+using WinSW.Configuration;
+using WinSW.Logging;
+using WinSW.Native;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
-namespace winsw
+namespace WinSW
 {
     public static class Program
     {
@@ -59,7 +59,7 @@ namespace winsw
             }
         }
 
-        public static void Run(string[] argsArray, ServiceDescriptor? descriptor = null)
+        public static void Run(string[] argsArray, IWinSWConfiguration? descriptor = null)
         {
             bool inConsoleMode = argsArray.Length > 0;
 
@@ -86,8 +86,8 @@ namespace winsw
             }
 
             // Get service info for the future use
-            Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
-            Win32Service? svc = svcs.Select(descriptor.Id);
+            IWin32Services svcs = new WmiRoot().GetCollection<IWin32Services>();
+            IWin32Service? svc = svcs.Select(descriptor.Id);
 
             var args = new List<string>(Array.AsReadOnly(argsArray));
             if (args[0] == "/redirect")
@@ -181,7 +181,9 @@ namespace winsw
                 default:
                     Console.WriteLine("Unknown command: " + args[0]);
                     PrintAvailableCommands();
+#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Unknown command: " + args[0]);
+#pragma warning restore S112 // General exceptions should never be thrown
             }
 
             void Install()
@@ -199,7 +201,9 @@ namespace winsw
                 {
                     Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
                     Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
+#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+#pragma warning restore S112 // General exceptions should never be thrown
                 }
 
                 string? username = null;
@@ -222,17 +226,17 @@ namespace winsw
                 }
                 else
                 {
-                    if (descriptor.HasServiceAccount())
+                    if (descriptor.ServiceAccount.HasServiceAccount())
                     {
-                        username = descriptor.ServiceAccountUser;
-                        password = descriptor.ServiceAccountPassword;
-                        allowServiceLogonRight = descriptor.AllowServiceAcountLogonRight;
+                        username = descriptor.ServiceAccount.ServiceAccountUser;
+                        password = descriptor.ServiceAccount.ServiceAccountPassword;
+                        allowServiceLogonRight = descriptor.ServiceAccount.AllowServiceAcountLogonRight;
                     }
                 }
 
                 if (allowServiceLogonRight)
                 {
-                    Security.AddServiceLogonRight(descriptor.ServiceAccountDomain!, descriptor.ServiceAccountName!);
+                    Security.AddServiceLogonRight(descriptor.ServiceAccount.ServiceAccountDomain!, descriptor.ServiceAccount.ServiceAccountName!);
                 }
 
                 svcs.Create(
@@ -319,7 +323,7 @@ namespace winsw
                         Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
                     }
 
-                    throw e;
+                    throw;
                 }
             }
 
@@ -452,18 +456,21 @@ namespace winsw
                 Log.Info("Restarting the service with id '" + descriptor.Id + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
-
                 bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
+#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
+#pragma warning restore S112 // General exceptions should never be thrown
                 }
             }
 
             void Status()
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
+#pragma warning disable S3358 // Ternary operators should not be nested
                 Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
+#pragma warning restore S3358 // Ternary operators should not be nested
             }
 
             void Test()
@@ -533,10 +540,11 @@ namespace winsw
         [DoesNotReturn]
         private static void ThrowNoSuchService() => throw new WmiException(ReturnValue.NoSuchService);
 
-        private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
+        private static void InitLoggers(IWinSWConfiguration descriptor, bool enableConsoleLogging)
         {
             // TODO: Make logging levels configurable
             Level fileLogLevel = Level.Debug;
+
             // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted
             // This is a workaround till there is a better command line parsing, which will allow determining
             Level consoleLogLevel = Level.Info;
@@ -581,7 +589,7 @@ namespace winsw
             {
                 Name = "Wrapper event log",
                 Threshold = eventLogLevel,
-                provider = WrapperService.eventLogProvider,
+                Provider = WrapperService.eventLogProvider,
             };
             systemEventLogger.ActivateOptions();
             appenders.Add(systemEventLogger);

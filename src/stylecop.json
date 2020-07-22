@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace"
+    }
+  }
+}
