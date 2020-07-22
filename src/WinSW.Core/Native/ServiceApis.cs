@@ -8,6 +8,20 @@ namespace WinSW.Native
 {
     internal static class ServiceApis
     {
+        [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfigW")]
+        internal static extern bool ChangeServiceConfig(
+            IntPtr serviceHandle,
+            ServiceType serviceType,
+            ServiceStartMode startType,
+            ServiceErrorControl errorControl,
+            string? binaryPath,
+            string? loadOrderGroup,
+            IntPtr tagId,
+            StringBuilder? dependencies, // TODO
+            string? serviceStartName,
+            string? password,
+            string displayName);
+
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
         internal static extern bool ChangeServiceConfig2(IntPtr serviceHandle, ServiceConfigInfoLevels infoLevel, in SERVICE_DESCRIPTION info);
 
@@ -30,7 +44,7 @@ namespace WinSW.Native
             ServiceStartMode startType,
             ServiceErrorControl errorControl,
             string binaryPath,
-            string? loaderOrderGroup,
+            string? loadOrderGroup,
             IntPtr tagId,
             StringBuilder? dependencies, // TODO
             string? serviceStartName,

@@ -190,6 +190,28 @@ namespace WinSW.Native
         }
 
         /// <exception cref="CommandException" />
+        internal void ChangeConfig(
+            string displayName,
+            ServiceStartMode startMode)
+        {
+            if (!ChangeServiceConfig(
+                this.handle,
+                default,
+                startMode,
+                default,
+                null,
+                null,
+                IntPtr.Zero,
+                null,
+                null,
+                null,
+                displayName))
+            {
+                Throw.Command.Win32Exception("Failed to change service config.");
+            }
+        }
+
+        /// <exception cref="CommandException" />
         internal void Delete()
         {
             if (!DeleteService(this.handle))
