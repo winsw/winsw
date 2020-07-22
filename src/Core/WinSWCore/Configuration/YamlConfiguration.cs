@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml;
 using WinSW.Native;
+using WinSW.Util;
 using WMI;
 using YamlDotNet.Serialization;
 using static WinSW.Download;
@@ -337,7 +338,7 @@ namespace WinSW.Configuration
                 }
             }
 
-            public TimeSpan Delay => this.FailureActionDelay is null ? TimeSpan.Zero : ParseTimeSpan(this.FailureActionDelay);
+            public TimeSpan Delay => this.FailureActionDelay is null ? TimeSpan.Zero : ConfigHelper.ParseTimeSpan(this.FailureActionDelay);
         }
 
         private string? GetArguments(string? args, ArgType type)
@@ -461,7 +462,7 @@ namespace WinSW.Configuration
 
         public TimeSpan ResetFailureAfter => this.ResetFailureAfterYaml is null ?
             this.Defaults.ResetFailureAfter :
-            ParseTimeSpan(this.ResetFailureAfterYaml);
+            ConfigHelper.ParseTimeSpan(this.ResetFailureAfterYaml);
 
         public string WorkingDirectory => this.WorkingDirectoryYaml is null ?
             this.Defaults.WorkingDirectory :
@@ -469,15 +470,15 @@ namespace WinSW.Configuration
 
         public ProcessPriorityClass Priority => this.PriorityYaml is null ? this.Defaults.Priority : (ProcessPriorityClass)this.PriorityYaml;
 
-        public TimeSpan StopTimeout => this.StopTimeoutYaml is null ? this.Defaults.StopTimeout : ParseTimeSpan(this.StopTimeoutYaml);
+        public TimeSpan StopTimeout => this.StopTimeoutYaml is null ? this.Defaults.StopTimeout : ConfigHelper.ParseTimeSpan(this.StopTimeoutYaml);
 
         public string[] ServiceDependencies => this.ServiceDependenciesYaml is null ?
             this.Defaults.ServiceDependencies :
             this.ServiceDependenciesYaml;
 
-        public TimeSpan WaitHint => this.WaitHintYaml is null ? this.Defaults.WaitHint : ParseTimeSpan(this.WaitHintYaml);
+        public TimeSpan WaitHint => this.WaitHintYaml is null ? this.Defaults.WaitHint : ConfigHelper.ParseTimeSpan(this.WaitHintYaml);
 
-        public TimeSpan SleepTime => this.SleepTimeYaml is null ? this.Defaults.SleepTime : ParseTimeSpan(this.SleepTimeYaml);
+        public TimeSpan SleepTime => this.SleepTimeYaml is null ? this.Defaults.SleepTime : ConfigHelper.ParseTimeSpan(this.SleepTimeYaml);
 
         public bool Interactive => this.InteractiveYaml is null ? this.Defaults.Interactive : (bool)this.InteractiveYaml;
 
@@ -520,34 +521,5 @@ namespace WinSW.Configuration
         public string BasePath => this.Defaults.BasePath;
 
         public string? SecurityDescriptor => this.SecurityDescriptorYaml ?? this.Defaults.SecurityDescriptor;
-
-        public static TimeSpan ParseTimeSpan(string v)
-        {
-            v = v.Trim();
-            foreach (var s in Suffix)
-            {
-                if (v.EndsWith(s.Key))
-                {
-                    return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0, v.Length - s.Key.Length).Trim()) * s.Value);
-                }
-            }
-
-            return TimeSpan.FromMilliseconds(int.Parse(v));
-        }
-
-        private static readonly Dictionary<string, long> Suffix = new Dictionary<string, long>
-        {
-            { "ms",     1 },
-            { "sec",    1000L },
-            { "secs",   1000L },
-            { "min",    1000L * 60L },
-            { "mins",   1000L * 60L },
-            { "hr",     1000L * 60L * 60L },
-            { "hrs",    1000L * 60L * 60L },
-            { "hour",   1000L * 60L * 60L },
-            { "hours",  1000L * 60L * 60L },
-            { "day",    1000L * 60L * 60L * 24L },
-            { "days",   1000L * 60L * 60L * 24L }
-        };
     }
 }
