@@ -159,6 +159,10 @@ namespace WinSW
                     TestWait();
                     return;
 
+                case "refresh":
+                    Refresh();
+                    return;
+
                 case "help":
                 case "--help":
                 case "-h":
@@ -640,6 +644,48 @@ namespace WinSW
                 Console.WriteLine("Press any key to stop the service...");
                 _ = Console.Read();
                 wsvc.RaiseOnStop();
+            }
+
+            void Refresh()
+            {
+                if (!elevated)
+                {
+                    Elevate();
+                    return;
+                }
+
+                using ServiceManager scm = ServiceManager.Open();
+                try
+                {
+                    using Service sc = scm.OpenService(descriptor.Id);
+
+                    sc.ChangeConfig(descriptor.Caption, descriptor.StartMode);
+
+                    sc.SetDescription(descriptor.Description);
+
+                    SC_ACTION[] actions = descriptor.FailureActions;
+                    if (actions.Length > 0)
+                    {
+                        sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
+                    }
+
+                    bool isDelayedAutoStart = descriptor.StartMode == ServiceStartMode.Automatic && descriptor.DelayedAutoStart;
+                    if (isDelayedAutoStart)
+                    {
+                        sc.SetDelayedAutoStart(true);
+                    }
+
+                    string? securityDescriptor = descriptor.SecurityDescriptor;
+                    if (securityDescriptor != null)
+                    {
+                        // throws ArgumentException
+                        sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
+                    }
+                }
+                catch (CommandException e) when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
+                {
+                    ThrowNoSuchService(inner);
+                }
             }
 
             // [DoesNotReturn]
