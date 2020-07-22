@@ -76,7 +76,6 @@ namespace WinSW.Configuration
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
 
-        // IWinSWConfiguration Support
         List<string> ExtensionIds { get; }
 
         // Service Account
