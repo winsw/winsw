@@ -28,9 +28,6 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "executablePath")]
         public string? ExecutablePathYaml { get; set; }
 
-        [YamlMember(Alias = "caption")]
-        public string? CaptionYaml { get; set; }
-
         [YamlMember(Alias = "hideWindow")]
         public bool? HideWindowYaml { get; set; }
 
@@ -91,7 +88,7 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "env")]
         public Dictionary<string, string>? EnvironmentVariablesYaml { get; set; }
 
-        [YamlMember(Alias = "failureActions")]
+        [YamlMember(Alias = "onFailure")]
         public List<YamlFailureAction>? YamlFailureActions { get; set; }
 
         [YamlMember(Alias = "delayedAutoStart")]
@@ -403,7 +400,7 @@ namespace WinSW.Configuration
 
         public string ExecutablePath => this.ExecutablePathYaml is null ? this.Defaults.ExecutablePath : this.ExecutablePathYaml;
 
-        public string Caption => this.CaptionYaml is null ? this.Defaults.Caption : this.CaptionYaml;
+        public string Caption => this.NameYaml is null ? this.Defaults.Caption : this.NameYaml;
 
         public bool HideWindow => this.HideWindowYaml is null ? this.Defaults.HideWindow : (bool)this.HideWindowYaml;
 

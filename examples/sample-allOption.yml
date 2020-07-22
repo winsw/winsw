@@ -2,13 +2,12 @@ id: myapp
 name: MyApp Service (powered by WinSW)
 description: This service is a service created from a sample configuration
 executable: java
-caption: WinSW
 #serviceaccount:
 #    domain: YOURDOMAIN
 #    user: useraccount
 #    password: Pa55w0rd
 #    allowservicelogon: yes
-#failureActions:
+#onFailure:
 #    -
 #        action: restart
 #        delay: 10 sec
@@ -27,7 +26,7 @@ caption: WinSW
 #workingdirectory: C:\myApp\work
 priority: Normal
 stopTimeout: 15 sec
-stopParentProcessFirst: false 
+stopParentProcessFirst: true 
 #stopExecutable: '%BASE%\stop.exe'
 #stopArguments: -stop true
 startMode: Automatic
