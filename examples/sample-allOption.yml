@@ -41,8 +41,12 @@ log:
 #    logpath: '%BASE%\logs'
     mode: append
 #env:
-#    MY_TOOL_HOME: 'C:\etc\tools\myTool'
-#    LM_LICENSE_FILE: host1;host2
+#    -
+#        name: MY_TOOL_HOME
+#        value: 'C:\etc\tools\myTool'
+#    -
+#        name: LM_LICENSE_FILE
+#        value: host1;host2
 #download:
 #    -
 #        from: "http://www.google.com/"

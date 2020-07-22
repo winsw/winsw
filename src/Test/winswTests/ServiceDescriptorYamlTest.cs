@@ -8,7 +8,7 @@ namespace winswTests
     {
 
         private string MinimalYaml = @"id: myapp
-caption: This is a test
+name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";
 
@@ -27,7 +27,7 @@ description: This is test winsw";
         [Test]
         public void Must_implemented_value_test()
         {
-            string yml = @"caption: This is a test
+            string yml = @"name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";
 
@@ -114,6 +114,27 @@ serviceaccount:
                 var allowLogon = configs.ServiceAccount.AllowServiceAcountLogonRight;
                 var hasAccount = configs.ServiceAccount.HasServiceAccount();
             });
+        }
+
+        [Test]
+        public void Parsing_environment_variables()
+        {
+            var yml = @"id: myapp
+name: WinSW
+executable: java
+description: env test
+env:
+    -
+        name: MY_TOOL_HOME
+        value: 'C:\etc\tools\myTool'
+    -
+        name: LM_LICENSE_FILE
+        value: host1;host2";
+
+            var envs = ServiceDescriptorYaml.FromYaml(yml).Configurations.EnvironmentVariables;
+
+            Assert.That(@"C:\etc\tools\myTool", Is.EqualTo(envs["MY_TOOL_HOME"]));
+            Assert.That("host1;host2", Is.EqualTo(envs["LM_LICENSE_FILE"]));
         }
     }
 }

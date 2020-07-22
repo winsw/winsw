@@ -87,7 +87,7 @@ namespace WinSW.Configuration
         public bool BeepOnShutdown { get; set; }
 
         [YamlMember(Alias = "env")]
-        public Dictionary<string, string>? EnvironmentVariablesYaml { get; set; }
+        public List<YamlEnv>? EnvironmentVariablesYaml { get; set; }
 
         [YamlMember(Alias = "onFailure")]
         public List<YamlFailureAction>? YamlFailureActions { get; set; }
@@ -100,6 +100,15 @@ namespace WinSW.Configuration
 
         [YamlMember(Alias = "extensions")]
         public List<string>? YamlExtensionIds { get; set; }
+
+        public class YamlEnv
+        {
+            [YamlMember(Alias = "name")]
+            public string? Name { get; set; }
+
+            [YamlMember(Alias = "value")]
+            public string? Value { get; set; }
+        }
 
         public class YamlLog : Log
         {
@@ -496,9 +505,16 @@ namespace WinSW.Configuration
             {
                 foreach (var item in this.EnvironmentVariablesYaml)
                 {
+                    if (item.Name is null || item.Value is null)
+                    {
+                        continue;
+                    }
+
+                    var key = item.Name;
                     var value = Environment.ExpandEnvironmentVariables(item.Value);
-                    this.EnvironmentVariables[item.Key] = value;
-                    Environment.SetEnvironmentVariable(item.Key, value);
+
+                    this.EnvironmentVariables[key] = value;
+                    Environment.SetEnvironmentVariable(key, value);
                 }
             }
         }
