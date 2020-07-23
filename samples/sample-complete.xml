@@ -180,23 +180,6 @@ SECTION: Service management
     -->
     
     <!--
-      OPTION: waithint
-      The estimated time required for a pending stop operation.
-      Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function.
-      Otherwise the service will be marked as non-responding
-      Default value: 15 seconds
-    -->
-    <waithint>15 sec</waithint>
-    
-    <!--
-      OPTION: sleeptime
-      The time before the service should make its next call to the SetServiceStatus function.
-      Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
-      Default value: 1 second
-    -->
-    <sleeptime>1 sec</sleeptime>
-    
-    <!--
       OPTION: interactive
       Indicates the service can interactwith the desktop.
     -->
