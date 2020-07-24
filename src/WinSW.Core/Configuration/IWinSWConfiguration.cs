@@ -52,10 +52,6 @@ namespace WinSW.Configuration
 
         string[] ServiceDependencies { get; }
 
-        TimeSpan WaitHint { get; }
-
-        TimeSpan SleepTime { get; }
-
         bool Interactive { get; }
 
         // Logging

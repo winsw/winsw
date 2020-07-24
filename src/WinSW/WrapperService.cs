@@ -398,9 +398,8 @@ namespace WinSW
         {
             this.SignalPending();
 
-            int processWaitHint = (int)Math.Min(this.descriptor.SleepTime.TotalMilliseconds, int.MaxValue);
-
-            while (!process.WaitForExit(processWaitHint))
+            // A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
+            while (!process.WaitForExit(1_500))
             {
                 this.SignalPending();
             }
@@ -408,9 +407,7 @@ namespace WinSW
 
         private void SignalPending()
         {
-            int serviceWaitHint = (int)Math.Min(this.descriptor.WaitHint.TotalMilliseconds, int.MaxValue);
-
-            this.RequestAdditionalTime(serviceWaitHint);
+            this.RequestAdditionalTime(15_000);
         }
 
         private void SignalStopped()
