@@ -273,21 +273,7 @@ namespace WinSW
                 Log.Error(e);
             }
 
-            string? startArguments = this.descriptor.StartArguments;
-
-            if (startArguments is null)
-            {
-                startArguments = this.descriptor.Arguments;
-            }
-            else
-            {
-                startArguments += " " + this.descriptor.Arguments;
-            }
-
-            // Converting newlines, line returns, tabs into a single
-            // space. This allows users to provide multi-line arguments
-            // in the xml for readability.
-            startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
+            string startArguments = this.descriptor.StartArguments ?? this.descriptor.Arguments;
 
             this.LogInfo("Starting " + this.descriptor.Executable);
 
@@ -353,15 +339,12 @@ namespace WinSW
             {
                 this.SignalPending();
 
-                stopArguments += " " + this.descriptor.Arguments;
-
                 Process stopProcess = new Process();
-                string? executable = this.descriptor.StopExecutable;
 
-                executable ??= this.descriptor.Executable;
+                string stopExecutable = this.descriptor.StopExecutable ?? this.descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                this.StartProcess(stopProcess, stopArguments, executable, null, false);
+                this.StartProcess(stopProcess, stopArguments, stopExecutable, null, false);
 
                 Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
                 this.WaitForProcessToExit(this.process);
