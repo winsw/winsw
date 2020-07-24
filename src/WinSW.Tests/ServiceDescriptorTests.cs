@@ -308,52 +308,6 @@ $@"<service>
         }
 
         [Fact]
-        public void VerifyWaitHint_FullXML()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output)
-                .WithTag("waithint", "20 min")
-                .ToServiceDescriptor(true);
-            Assert.Equal(TimeSpan.FromMinutes(20), sd.WaitHint);
-        }
-
-        /// <summary>
-        /// Test for https://github.com/kohsuke/winsw/issues/159
-        /// </summary>
-        [Fact]
-        public void VerifyWaitHint_XMLWithoutVersion()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output, printXmlVersion: false)
-                .WithTag("waithint", "21 min")
-                .ToServiceDescriptor(true);
-            Assert.Equal(TimeSpan.FromMinutes(21), sd.WaitHint);
-        }
-
-        [Fact]
-        public void VerifyWaitHint_XMLWithoutComment()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output, xmlComment: null)
-                .WithTag("waithint", "22 min")
-                .ToServiceDescriptor(true);
-            Assert.Equal(TimeSpan.FromMinutes(22), sd.WaitHint);
-        }
-
-        [Fact]
-        public void VerifyWaitHint_XMLWithoutVersionAndComment()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output, xmlComment: null, printXmlVersion: false)
-                .WithTag("waithint", "23 min")
-                .ToServiceDescriptor(true);
-            Assert.Equal(TimeSpan.FromMinutes(23), sd.WaitHint);
-        }
-
-        [Fact]
-        public void VerifySleepTime()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output).WithTag("sleeptime", "3 hrs").ToServiceDescriptor(true);
-            Assert.Equal(TimeSpan.FromHours(3), sd.SleepTime);
-        }
-
-        [Fact]
         public void VerifyResetFailureAfter()
         {
             var sd = ConfigXmlBuilder.Create(this.output).WithTag("resetfailure", "75 sec").ToServiceDescriptor(true);

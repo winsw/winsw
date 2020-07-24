@@ -577,20 +577,6 @@ namespace WinSW
         public bool BeepOnShutdown => this.dom.SelectSingleNode("//beeponshutdown") != null;
 
         /// <summary>
-        /// The estimated time required for a pending stop operation (default 15 secs).
-        /// Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function
-        /// with either an incremented checkPoint value or a change in currentState. (see http://msdn.microsoft.com/en-us/library/ms685996.aspx)
-        /// </summary>
-        public TimeSpan WaitHint => this.SingleTimeSpanElement(this.dom, "waithint", Defaults.WaitHint);
-
-        /// <summary>
-        /// The time before the service should make its next call to the SetServiceStatus function
-        /// with an incremented checkPoint value (default 1 sec).
-        /// Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
-        /// </summary>
-        public TimeSpan SleepTime => this.SingleTimeSpanElement(this.dom, "sleeptime", Defaults.SleepTime);
-
-        /// <summary>
         /// True if the service can interact with the desktop.
         /// </summary>
         public bool Interactive => this.dom.SelectSingleNode("//interactive") != null;

@@ -57,10 +57,6 @@ namespace WinSW.Configuration
 
         public string[] ServiceDependencies => new string[0];
 
-        public TimeSpan WaitHint => TimeSpan.FromSeconds(15);
-
-        public TimeSpan SleepTime => TimeSpan.FromSeconds(1);
-
         public bool Interactive => false;
 
         // Logging
