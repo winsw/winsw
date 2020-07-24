@@ -1,54 +1,46 @@
 ﻿using System;
 using NUnit.Framework;
 using WinSW;
+using WinSW.Configuration;
+using WinSW.Native;
 
 namespace winswTests
 {
     class ServiceDescriptorYamlTest
     {
 
-        private string MinimalYaml = @"id: myapp
+        private readonly string MinimalYaml = @"id: myapp
 name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";
 
+        private readonly DefaultWinSWSettings Defaults = new DefaultWinSWSettings();
 
         [Test]
-        public void Simple_yaml_parsing_test()
+        public void Parse_must_implemented_value_test()
         {
-            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).Configurations;
-
-            Assert.AreEqual("myapp", configs.Id);
-            Assert.AreEqual("This is a test", configs.Caption);
-            Assert.AreEqual("C:\\Program Files\\Java\\jdk1.8.0_241\\bin\\java.exe", configs.Executable);
-            Assert.AreEqual("This is test winsw", configs.Description);
-        }
-
-        [Test]
-        public void Must_implemented_value_test()
-        {
-            string yml = @"name: This is a test
+            var yml = @"name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";
 
-            void getId()
+            Assert.That(() =>
             {
-                var id = ServiceDescriptorYaml.FromYaml(yml).Configurations.Id;
-            }
-            
-            Assert.That(() => getId(), Throws.TypeOf<InvalidOperationException>());
+                _ = ServiceDescriptorYaml.FromYaml(yml).Configurations.Id;
+            }, Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]
         public void Default_value_map_test()
         {
-            var executablePath = ServiceDescriptorYaml.FromYaml(MinimalYaml).Configurations.ExecutablePath;
+            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).Configurations;
 
-            Assert.IsNotNull(executablePath);
+            Assert.IsNotNull(configs.ExecutablePath);
+            Assert.IsNotNull(configs.BaseName);
+            Assert.IsNotNull(configs.BasePath);
         }
 
         [Test]
-        public void Simple_download_parsing_test()
+        public void Parse_downloads()
         {
             var yml = @"download:
     -
@@ -64,60 +56,33 @@ description: This is test winsw";
             var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
 
             Assert.AreEqual(3, configs.Downloads.Count);
+            Assert.AreEqual("www.sample.com", configs.Downloads[0].From);
+            Assert.AreEqual("c://tmp", configs.Downloads[0].To);
         }
 
         [Test]
-        public void Download_not_specified_test()
+        public void Parse_serviceaccount()
         {
-            var yml = @"id: jenkins
-name: No Service Account
-";
-
-            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
-
-            Assert.DoesNotThrow(() =>
-            {
-                var dowloads = configs.Downloads;
-            });
-        }
-
-        [Test]
-        public void Service_account_not_specified_test()
-        {
-            var yml = @"id: jenkins
-name: No Service Account
-";
-
-            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
-
-            Assert.DoesNotThrow(() =>
-            {
-                var serviceAccount = configs.ServiceAccount.AllowServiceAcountLogonRight;
-            });
-        }
-
-        [Test]
-        public void Service_account_specified_but_fields_not_specified()
-        {
-            var yml = @"id: jenkins
-name: No Service Account
+            var yml = @"id: myapp
+name: winsw
+description: yaml test
+executable: java
 serviceaccount:
-  user: testuser
-";
+    user: testuser
+    domain: mydomain
+    password: pa55w0rd
+    allowservicelogon: yes";
 
-            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
+            var serviceAccount = ServiceDescriptorYaml.FromYaml(yml).Configurations.ServiceAccount;
 
-            Assert.DoesNotThrow(() =>
-            {
-                var user = configs.ServiceAccount.ServiceAccountUser;
-                var password = configs.ServiceAccount.ServiceAccountPassword;
-                var allowLogon = configs.ServiceAccount.AllowServiceAcountLogonRight;
-                var hasAccount = configs.ServiceAccount.HasServiceAccount();
-            });
+            Assert.AreEqual("mydomain\\testuser", serviceAccount.ServiceAccountUser);
+            Assert.AreEqual(true, serviceAccount.AllowServiceAcountLogonRight);
+            Assert.AreEqual("pa55w0rd", serviceAccount.ServiceAccountPassword);
+            Assert.AreEqual(true, serviceAccount.HasServiceAccount());
         }
 
         [Test]
-        public void Parsing_environment_variables()
+        public void Parse_environment_variables()
         {
             var yml = @"id: myapp
 name: WinSW
@@ -135,6 +100,50 @@ env:
 
             Assert.That(@"C:\etc\tools\myTool", Is.EqualTo(envs["MY_TOOL_HOME"]));
             Assert.That("host1;host2", Is.EqualTo(envs["LM_LICENSE_FILE"]));
+        }
+
+        [Test]
+        public void Parse_log()
+        {
+            var yml = @"id: myapp
+name: winsw
+description: yaml test
+executable: java
+log:
+    mode: roll
+    logpath: 'D://winsw/logs'";
+
+            var config = ServiceDescriptorYaml.FromYaml(yml).Configurations;
+
+            Assert.AreEqual("roll", config.LogMode);
+            Assert.AreEqual("D://winsw/logs", config.LogDirectory);
+        }
+
+        [Test]
+        public void Parse_onfailure_actions()
+        {
+            var yml = @"id: myapp
+name: winsw
+description: yaml test
+executable: java
+onFailure:
+    -
+        action: restart
+        delay: 5 sec
+    - 
+        action: reboot
+        delay: 10 min";
+
+            var onFailure = ServiceDescriptorYaml.FromYaml(yml).Configurations.FailureActions;
+
+            Assert.That(onFailure[0].Type, Is.EqualTo(SC_ACTION_TYPE.SC_ACTION_RESTART));
+
+            Assert.That(onFailure[1].Type, Is.EqualTo(SC_ACTION_TYPE.SC_ACTION_REBOOT));
+
+            Assert.That(TimeSpan.FromMilliseconds(onFailure[0].Delay), Is.EqualTo(TimeSpan.FromSeconds(5)));
+
+            Assert.That(TimeSpan.FromMilliseconds(onFailure[1].Delay), Is.EqualTo(TimeSpan.FromMinutes(10)));
+
         }
     }
 }
