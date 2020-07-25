@@ -42,38 +42,15 @@ WinSW is being managed by the [XML configuration file](docs/xml-config-file.md).
 
 Your renamed *WinSW.exe* binary also accepts the following commands:
 
-* `install`
-
-  Install the service to Windows Service Controller.
-  This command requires some preliminary steps described in the [Installation guide](docs/installation.md).
-
-* `uninstall`
-
-  Uninstall the service. The opposite operation of above.
-
-* `start`
-
-  Start the service. The service must have already been installed.
-
-* `stop`
-
-  Stop the service.
-
-* `stopwait`
-
-  Stop the service and wait until it's actually stopped.
-
-* `restart`
-
-  Restart the service. If the service is not currently running, this command acts like `start`.
-
-* `status`
-
-  Check the current status of the service.
-  * This command prints one line to the console.
-    * `NonExistent` indicates the service is not currently installed
-    * `Started` to indicate the service is currently running
-    * `Stopped` to indicate that the service is installed but not currently running.
+| Command                                               | Description |
+| -----------                                           | ----------- |
+| [`install`](docs/cli-commands.md#install-command)     | Installs the service. This command requires some preliminary steps described in the [Installation guide](docs/installation.md). |
+| [`uninstall`](docs/cli-commands.md#uninstall-command) | Uninstalls the service. |
+| [`start`](docs/cli-commands.md#start-command)         | Starts the service. |
+| [`stop`](docs/cli-commands.md#stop-command)           | Stops the service. |
+| [`restart`](docs/cli-commands.md#restart-command)     | Stops and then starts the service. |
+| [`status`](docs/cli-commands.md#status-command)       | Checks the status of the service. |
+| [`test`](docs/cli-commands.md#test-command)           | Checks if the service can be started and then stopped without installation. |
 
 Most commands require Administrator privileges to execute. Since 2.8, WinSW will prompt for UAC in non-elevated sessions.
 
