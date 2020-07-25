@@ -104,6 +104,10 @@ If a file isn't specified, WinSW searches the executable directory for a *.xml* 
 
   Doesn't wait for the service to actually stop.
 
+- `--force`
+
+  Stops the service even if it has started dependent services.
+
 ## `restart` command
 
 Stops and then starts the service.
@@ -126,6 +130,10 @@ If a file isn't specified, WinSW searches the executable directory for a *.xml* 
 - `--no-elevate`
 
   Doesn't automatically trigger a UAC prompt.
+
+- `--force`
+
+  Restarts the service even if it has started dependent services.
 
 ## `status` command
 
