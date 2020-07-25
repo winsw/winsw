@@ -70,7 +70,7 @@ User documentation:
 
 Developer documentation:
 
-* [Developer guide](DEVELOPER.md)
+* [Developer guide](docs/developer)
 
 ## Contributing
 
