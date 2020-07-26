@@ -378,7 +378,11 @@ namespace WinSW
                     username,
                     password);
 
-                sc.SetDescription(descriptor.Description);
+                string description = descriptor.Description;
+                if (description.Length != 0)
+                {
+                    sc.SetDescription(description);
+                }
 
                 SC_ACTION[] actions = descriptor.FailureActions;
                 if (actions.Length > 0)

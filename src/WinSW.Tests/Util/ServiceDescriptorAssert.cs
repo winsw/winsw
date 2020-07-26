@@ -54,8 +54,6 @@ namespace WinSW.Tests.Util
             {
                 var properties = AllProperties;
                 properties.Remove("Id");
-                properties.Remove("Caption");
-                properties.Remove("Description");
                 properties.Remove("Executable");
                 return properties;
             }

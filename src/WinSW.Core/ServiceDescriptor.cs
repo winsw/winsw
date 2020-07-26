@@ -557,9 +557,9 @@ namespace WinSW
 
         public string Id => this.SingleElement("id");
 
-        public string Caption => this.SingleElement("name");
+        public string Caption => this.SingleElement("name", true) ?? Defaults.Caption;
 
-        public string Description => this.SingleElement("description");
+        public string Description => this.SingleElement("description", true) ?? Defaults.Description;
 
         /// <summary>
         /// Start mode of the Service

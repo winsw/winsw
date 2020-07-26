@@ -14,9 +14,9 @@ namespace WinSW.Configuration
     {
         public string Id => throw new InvalidOperationException(nameof(this.Id) + " must be specified.");
 
-        public string Caption => throw new InvalidOperationException(nameof(this.Caption) + " must be specified.");
+        public string Caption => string.Empty;
 
-        public string Description => throw new InvalidOperationException(nameof(this.Description) + " must be specified.");
+        public string Description => string.Empty;
 
         public string Executable => throw new InvalidOperationException(nameof(this.Executable) + " must be specified.");
 
