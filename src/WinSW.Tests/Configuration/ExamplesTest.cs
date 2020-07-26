@@ -18,8 +18,6 @@ namespace WinSW.Tests.Configuration
             ServiceDescriptor desc = Load("complete");
 
             Assert.Equal("myapp", desc.Id);
-            Assert.Equal("MyApp Service (powered by WinSW)", desc.Caption);
-            Assert.Equal("This service is a service created from a sample configuration", desc.Description);
             Assert.Equal("%BASE%\\myExecutable.exe", desc.Executable);
 
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
@@ -31,8 +29,6 @@ namespace WinSW.Tests.Configuration
             ServiceDescriptor desc = Load("minimal");
 
             Assert.Equal("myapp", desc.Id);
-            Assert.Equal("MyApp Service (powered by WinSW)", desc.Caption);
-            Assert.Equal("This service is a service created from a minimal configuration", desc.Description);
             Assert.Equal("%BASE%\\myExecutable.exe", desc.Executable);
 
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);

@@ -36,10 +36,6 @@
   
   <!-- ID of the service. It should be unique across the Windows system-->
   <id>myapp</id>
-  <!-- Display name of the service -->
-  <name>MyApp Service (powered by WinSW)</name>
-  <!-- Service description -->
-  <description>This service is a service created from a minimal configuration</description>
   
   <!-- Path to the executable, which should be started -->
   <!-- CAUTION: Don't put arguments here. Use <arguments> instead. -->
