@@ -36,6 +36,7 @@
   <description>This service is a service created from a minimal configuration</description>
   
   <!-- Path to the executable, which should be started -->
+  <!-- CAUTION: Don't put arguments here. Use <arguments> instead. -->
   <executable>%BASE%\myExecutable.exe</executable>
 
 </service>
