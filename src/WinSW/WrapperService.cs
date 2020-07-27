@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
 using WinSW.Extensions;
@@ -282,10 +281,8 @@ namespace WinSW
             this.ExtensionManager.FireOnWrapperStarted();
 
             LogHandler executableLogHandler = this.CreateExecutableLogHandler();
-            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler, true);
+            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler);
             this.ExtensionManager.FireOnProcessStarted(this.process);
-
-            this.process.StandardInput.Close(); // nothing for you to read!
 
             try
             {
@@ -344,7 +341,7 @@ namespace WinSW
                 string stopExecutable = this.descriptor.StopExecutable ?? this.descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                this.StartProcess(stopProcess, stopArguments, stopExecutable, null, false);
+                this.StartProcess(stopProcess, stopArguments, stopExecutable, null);
 
                 Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
                 this.WaitForProcessToExit(this.process);
@@ -401,7 +398,7 @@ namespace WinSW
             sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
         }
 
-        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
+        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler)
         {
             // Define handler of the completed process
             void OnProcessCompleted(Process process)
@@ -443,7 +440,6 @@ namespace WinSW
                 priority: this.descriptor.Priority,
                 onExited: OnProcessCompleted,
                 logHandler: logHandler,
-                redirectStdin: redirectStdin,
                 hideWindow: this.descriptor.HideWindow);
         }
 
@@ -452,7 +448,6 @@ namespace WinSW
             var info = new ProcessStartInfo(executable, arguments)
             {
                 UseShellExecute = false,
-                RedirectStandardInput = true,
                 WorkingDirectory = this.descriptor.WorkingDirectory,
             };
 
@@ -475,7 +470,6 @@ namespace WinSW
                 process.EnableRaisingEvents = true;
             }
 
-            process.StandardInput.Close();
             return process;
         }
     }
