@@ -220,61 +220,37 @@ namespace WinSW
         public string? StopExecutable => this.SingleElement("stopexecutable", true);
 
         /// <summary>
-        /// <c>arguments</c> or multiple optional <c>argument</c> elements which overrule the arguments element.
+        /// The <c>arguments</c> element.
         /// </summary>
         public string Arguments
         {
             get
             {
-                string? arguments = this.AppendTags("argument", null);
-
-                if (!(arguments is null))
-                {
-                    return arguments;
-                }
-
                 XmlNode? argumentsNode = this.dom.SelectSingleNode("//arguments");
-
                 return argumentsNode is null ? Defaults.Arguments : Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
         /// <summary>
-        /// <c>startarguments</c> or multiple optional <c>startargument</c> elements.
+        /// The <c>startarguments</c> element.
         /// </summary>
         public string? StartArguments
         {
             get
             {
-                string? startArguments = this.AppendTags("startargument", null);
-
-                if (!(startArguments is null))
-                {
-                    return startArguments;
-                }
-
                 XmlNode? startArgumentsNode = this.dom.SelectSingleNode("//startarguments");
-
                 return startArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(startArgumentsNode.InnerText);
             }
         }
 
         /// <summary>
-        /// <c>stoparguments</c> or multiple optional <c>stopargument</c> elements.
+        /// The <c>stoparguments</c> element.
         /// </summary>
         public string? StopArguments
         {
             get
             {
-                string? stopArguments = this.AppendTags("stopargument", null);
-
-                if (!(stopArguments is null))
-                {
-                    return stopArguments;
-                }
-
                 XmlNode? stopArgumentsNode = this.dom.SelectSingleNode("//stoparguments");
-
                 return stopArgumentsNode is null ? null : Environment.ExpandEnvironmentVariables(stopArgumentsNode.InnerText);
             }
         }

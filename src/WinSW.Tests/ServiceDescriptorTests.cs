@@ -331,40 +331,6 @@ $@"<service>
             Assert.Equal("arg", sd.Arguments);
         }
 
-        [Fact]
-        public void Arguments_NewParam_Single()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output)
-                .WithTag("argument", "--arg1=2")
-                .ToServiceDescriptor(true);
-            Assert.Equal(" --arg1=2", sd.Arguments);
-        }
-
-        [Fact]
-        public void Arguments_NewParam_MultipleArgs()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output)
-                .WithTag("argument", "--arg1=2")
-                .WithTag("argument", "--arg2=123")
-                .WithTag("argument", "--arg3=null")
-                .ToServiceDescriptor(true);
-            Assert.Equal(" --arg1=2 --arg2=123 --arg3=null", sd.Arguments);
-        }
-
-        /// <summary>
-        /// Ensures that the new single-argument field has a higher priority.
-        /// </summary>
-        [Fact]
-        public void Arguments_Bothparam_Priorities()
-        {
-            var sd = ConfigXmlBuilder.Create(this.output)
-                .WithTag("arguments", "--arg1=2 --arg2=3")
-                .WithTag("argument", "--arg2=123")
-                .WithTag("argument", "--arg3=null")
-                .ToServiceDescriptor(true);
-            Assert.Equal(" --arg2=123 --arg3=null", sd.Arguments);
-        }
-
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
