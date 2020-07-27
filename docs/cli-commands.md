@@ -1,3 +1,5 @@
+<!-- NOTE: Keep descriptions in sync with codes. -->
+
 # CLI commands
 
 - [install](#install-command)
