@@ -94,33 +94,36 @@ See the [Logging and error reporting](logging-and-error-reporting.md) page for m
 
 ### Arguments
 
-`<argument>` element specifies the arguments to be passed to the executable. 
-Winsw will quote each argument if necessary, so do not put quotes in `<argument>` to avoid double quotation.
+The `<arguments>` element specifies the arguments to be passed to the executable. 
 
 ```xml
-<argument>arg1</argument>
-<argument>arg2</argument>
-<argument>arg3</argument>
+<arguments>arg1 arg2 arg3</arguments>
 ```
 
-`<arguments>` element can be used instead to specify the whole command line in a single element.
+-or-
+
+```xml
+<arguments>
+  arg1
+  arg2
+  arg3
+</arguments>
 
 ### stopargument/stopexecutable
 
 ~~When the service is requested to stop, winsw simply calls [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.~~
-However, if `<stopargument>`/`<stoparguments>` elements are present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the specified arguments, and expects that to initiate the graceful shutdown of the service process.
+However, if the `<stoparguments>` element is present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the specified arguments, and expects that to initiate the graceful shutdown of the service process.
 
 Winsw will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
 
-When you use the `<stopargument>`/`<stoparguments>`, you must use `<startargument>`/`<startarguments>` instead of `<argument>`. See the complete example below:
+When you use the `<stoparguments>`, you must use `<startarguments>` instead of `<arguments>`. See the complete example below:
 
 ```xml
 <executable>catalina.sh</executable>
-<startargument>jpda</startargument>
-<startargument>run</startargument>
+<startarguments>jpda run</startarguments>
 
 <stopexecutable>catalina.sh</stopexecutable>
-<stopargument>stop</stopargument>
+<stoparguments>stop</stoparguments>
 ```
 
 ### Additional commands
