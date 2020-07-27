@@ -56,21 +56,16 @@ Most commands require Administrator privileges to execute. Since 2.8, WinSW will
 
 ## Documentation
 
-User documentation:
-
-* [Installation guide](docs/installation.md) - Describes the installation process.
-* [Migration guide](docs/migrate-to-3-x) - Migrate to WinSW 3.x.
+* [Get started](docs/installation.md)
+* [Migrate to WinSW 3.x](docs/migrate-to-3-x)
 * Configuration:
   * [XML configuration file](docs/xml-config-file.md)
   * [Logging and error reporting](docs/logging-and-error-reporting.md)
   * [Extensions](docs/extensions/extensions.md)
-* Use-cases:
+    * [Shared Directory Mapper](docs/extensions/shared-directory-mapper.md)
+* Use cases:
   * [Self-restarting services](docs/self-restarting-service.md)
   * [Deferred file operations](docs/deferred-file-operations.md)
-
-Developer documentation:
-
-* [Developer guide](docs/developer)
 
 ## Contributing
 
