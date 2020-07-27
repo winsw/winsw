@@ -16,14 +16,13 @@ id: jenkins
 name: Jenkins
 description: This service runs Jenkins continuous integration system.
 env:
-    -
-        name: JENKINS_HOME
-        value: '%BASE%'
+    - name: JENKINS_HOME
+      value: '%BASE%'
 executable: java
 arguments: >
-    -Xrs 
-    -Xmx256m 
-    -jar "%BASE%\jenkins.war" 
+    -Xrs
+    -Xmx256m
+    -jar "%BASE%\jenkins.war"
     --httpPort=8080
 log:
     mode: roll
@@ -104,7 +103,7 @@ See the [Logging and error reporting](loggingAndErrorReporting.md) page for more
 `arguments` element specifies the arguments to be passed to the executable. User can specify all the commands as a single line.
 
 ```yaml
-args: arg1 arg2 arg3
+arguments: arg1 arg2 arg3
 ```
 
 Also user can specify the arguemtns in more structured way with YAML multline strings.

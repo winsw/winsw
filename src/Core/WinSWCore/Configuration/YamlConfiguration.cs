@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Xml;
 using WinSW.Native;
 using WinSW.Util;
@@ -340,7 +342,7 @@ namespace WinSW.Configuration
                         "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
                         "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
                         "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
-                        _ => throw new Exception("Invalid failure action: " + this.FailureAction)
+                        _ => throw new InvalidDataException("Invalid failure action: " + this.FailureAction)
                     };
 
                     return actionType;
