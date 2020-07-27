@@ -21,8 +21,7 @@ See the [project manifest](MANIFEST.md).
 
 ## Supported platforms
 
-WinSW offers executables for .NET Framework 2.0, 4.0 and 4.6.1.
-It can run on Windows platforms which have these versions of .NET Framework installed.
+WinSW 3 can run on Windows platforms with .NET Framework 4.6.1 or later versions installed.
 For systems without .NET Framework, the project provides native 64-bit and 32-bit executables based on .NET Core.
 
 More executables can be added upon request.
@@ -44,13 +43,14 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 
 | Command                                               | Description |
 | -----------                                           | ----------- |
-| [`install`](docs/cli-commands.md#install-command)     | Installs the service. This command requires some preliminary steps described in the [Installation guide](docs/installation.md). |
-| [`uninstall`](docs/cli-commands.md#uninstall-command) | Uninstalls the service. |
-| [`start`](docs/cli-commands.md#start-command)         | Starts the service. |
-| [`stop`](docs/cli-commands.md#stop-command)           | Stops the service. |
-| [`restart`](docs/cli-commands.md#restart-command)     | Stops and then starts the service. |
-| [`status`](docs/cli-commands.md#status-command)       | Checks the status of the service. |
-| [`test`](docs/cli-commands.md#test-command)           | Checks if the service can be started and then stopped without installation. |
+| [install](docs/cli-commands.md#install-command)     | Installs the service. This command requires some preliminary steps described in the [installation guide](docs/installation.md). |
+| [uninstall](docs/cli-commands.md#uninstall-command) | Uninstalls the service. |
+| [start](docs/cli-commands.md#start-command)         | Starts the service. |
+| [stop](docs/cli-commands.md#stop-command)           | Stops the service. |
+| [restart](docs/cli-commands.md#restart-command)     | Stops and then starts the service. |
+| [status](docs/cli-commands.md#status-command)       | Checks the status of the service. |
+| [test](docs/cli-commands.md#test-command)           | Checks if the service can be started and then stopped without installation. |
+| [refresh](docs/cli-commands.md#refresh-command)     | Refreshes the service properties without reinstallation. |
 
 Most commands require Administrator privileges to execute. Since 2.8, WinSW will prompt for UAC in non-elevated sessions.
 
@@ -58,7 +58,7 @@ Most commands require Administrator privileges to execute. Since 2.8, WinSW will
 
 User documentation:
 
-* [Installation guide](docs/installation.md) - Describes the installation process for different systems and .NET versions
+* [Installation guide](docs/installation.md) - Describes the installation process.
 * [Migration guide](docs/migrate-to-3-x) - Migrate to WinSW 3.x.
 * Configuration:
   * [XML configuration file](docs/xml-config-file.md)
@@ -75,7 +75,6 @@ Developer documentation:
 ## Contributing
 
 Contributions are welcome!
-No Contributor License Agreement is needed, just submit your pull requests.
 See the [contributing guidelines](CONTRIBUTING.md) for more information.
 
 ## License
