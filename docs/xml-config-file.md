@@ -123,7 +123,7 @@ When you use the `<stopargument>`/`<stoparguments>`, you must use `<startargumen
 <stopargument>stop</stopargument>
 ```
 
-### Extra steps
+### Additional commands
 
 ```xml
 <prestart|poststart|prestop|poststop>
@@ -132,12 +132,13 @@ When you use the `<stopargument>`/`<stoparguments>`, you must use `<startargumen
 </prestart|poststart|prestop|poststop>
 ```
 
-| Untitled | Untitled |
-| -------- | -------- |
-| Pre-start | starting |
-| Post-start | running |
-| Pre-stop | stopping |
-| Post-stop | stopping |
+The pre-start command is executed when the service is starting and before the main process is started.
+
+The post-start command is executed when the service is running and after the main process is started.
+
+The pre-stop command is executed when the service is stopping and before the main process is stopped.
+
+The post-stop command is executed when the service is stopping and after the main process is stopped.
 
 ### stoptimeout
 
