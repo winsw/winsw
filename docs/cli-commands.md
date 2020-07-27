@@ -1,5 +1,14 @@
 # CLI commands
 
+- [install](#install-command)
+- [uninstall](#uninstall-command)
+- [start](#start-command)
+- [stop](#stop-command)
+- [restart](#restart-command)
+- [status](#status-command)
+- [test](#test-command)
+- [refresh](#refresh-command)
+
 ## `install` command
 
 Installs the service.
@@ -184,3 +193,26 @@ If a file isn't specified, WinSW searches the executable directory for a *.xml* 
 
   Ignores keystrokes.
   If specified, WinSW waits for Ctrl+C.
+
+## `refresh` command
+
+Refreshes the service properties without reinstallation.
+
+### Usage
+
+```
+winsw refresh [<path-to-config>] [--no-elevate]
+```
+
+### Arguments
+
+`path-to-config`
+
+The path to the configuration file.
+If a file isn't specified, WinSW searches the executable directory for a *.xml* file with the same file name without the extension.
+
+### Options
+
+- `--no-elevate`
+
+  Doesn't automatically trigger a UAC prompt.
