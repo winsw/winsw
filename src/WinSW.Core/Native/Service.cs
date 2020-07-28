@@ -273,6 +273,18 @@ namespace WinSW.Native
         }
 
         /// <exception cref="CommandException" />
+        internal void SetPreshutdownTimeout(TimeSpan timeout)
+        {
+            if (!ChangeServiceConfig2(
+                this.handle,
+                ServiceConfigInfoLevels.PRESHUTDOWN_INFO,
+                new SERVICE_PRESHUTDOWN_INFO { PreshutdownTimeout = (int)timeout.TotalMilliseconds }))
+            {
+                Throw.Command.Win32Exception("Failed to configure the preshutdown timeout.");
+            }
+        }
+
+        /// <exception cref="CommandException" />
         internal void SetSecurityDescriptor(RawSecurityDescriptor securityDescriptor)
         {
             byte[] securityDescriptorBytes = new byte[securityDescriptor.BinaryLength];

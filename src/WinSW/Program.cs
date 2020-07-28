@@ -396,6 +396,11 @@ namespace WinSW
                     sc.SetDelayedAutoStart(true);
                 }
 
+                if (descriptor.PreshutdownTimeout is TimeSpan preshutdownTimeout)
+                {
+                    sc.SetPreshutdownTimeout(preshutdownTimeout);
+                }
+
                 string? securityDescriptor = descriptor.SecurityDescriptor;
                 if (securityDescriptor != null)
                 {
@@ -740,6 +745,11 @@ namespace WinSW
                         sc.SetDelayedAutoStart(true);
                     }
 
+                    if (descriptor.PreshutdownTimeout is TimeSpan preshutdownTimeout)
+                    {
+                        sc.SetPreshutdownTimeout(preshutdownTimeout);
+                    }
+
                     string? securityDescriptor = descriptor.SecurityDescriptor;
                     if (securityDescriptor != null)
                     {
@@ -846,11 +856,10 @@ namespace WinSW
             }
 
             // event log
-            var systemEventLogger = new ServiceEventLogAppender
+            var systemEventLogger = new ServiceEventLogAppender(WrapperService.eventLogProvider)
             {
                 Name = "Wrapper event log",
                 Threshold = eventLogLevel,
-                Provider = WrapperService.eventLogProvider,
             };
             systemEventLogger.ActivateOptions();
             appenders.Add(systemEventLogger);
