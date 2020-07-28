@@ -171,7 +171,7 @@ namespace WinSW.Tests.Util
 
         public ConfigXmlBuilder WithDelayedAutoStart()
         {
-            return this.WithRawEntry("<delayedAutoStart/>");
+            return this.WithRawEntry("<delayedAutoStart>true</delayedAutoStart>");
         }
     }
 }

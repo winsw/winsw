@@ -180,7 +180,7 @@ SECTION: Service management
       Enables the Delayed Automatic Start if 'Automatic' is specified in the 'startmode' field.
       See the WinSW documentation to get info about supported platform versions and limitations.
     -->
-    <!--<delayedAutoStart/>-->
+    <!--<delayedAutoStart>true</delayedAutoStart>-->
     
     <!-- 
       OPTION: depend
@@ -196,7 +196,7 @@ SECTION: Service management
       Indicates the service can interactwith the desktop.
     -->
     <!--
-    <interactive/>
+    <interactive>true</interactive>
     -->
     
 <!-- 
@@ -281,7 +281,7 @@ SECTION: Other options
     Indicates the service should beep when finished on shutdown (if it's supported by OS).
   -->
   <!--
-  <beeponshutdown/> 
+  <beeponshutdown>true</beeponshutdown>
   -->
   
 <!--

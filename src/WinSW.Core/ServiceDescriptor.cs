@@ -572,18 +572,18 @@ namespace WinSW
         /// True if the service should be installed with the DelayedAutoStart flag.
         /// This setting will be applyed only during the install command and only when the Automatic start mode is configured.
         /// </summary>
-        public bool DelayedAutoStart => this.dom.SelectSingleNode("//delayedAutoStart") != null;
+        public bool DelayedAutoStart => this.SingleBoolElement("delayedAutoStart", Defaults.DelayedAutoStart);
 
         /// <summary>
         /// True if the service should beep when finished on shutdown.
         /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx
         /// </summary>
-        public bool BeepOnShutdown => this.dom.SelectSingleNode("//beeponshutdown") != null;
+        public bool BeepOnShutdown => this.SingleBoolElement("beeponshutdown", Defaults.DelayedAutoStart);
 
         /// <summary>
         /// True if the service can interact with the desktop.
         /// </summary>
-        public bool Interactive => this.dom.SelectSingleNode("//interactive") != null;
+        public bool Interactive => this.SingleBoolElement("interactive", Defaults.DelayedAutoStart);
 
         /// <summary>
         /// Environment variable overrides
