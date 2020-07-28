@@ -123,6 +123,23 @@ When you use the `<stopargument>`/`<stoparguments>`, you must use `<startargumen
 <stopargument>stop</stopargument>
 ```
 
+### Additional commands
+
+```xml
+<prestart|poststart|prestop|poststop>
+  <executable></executable>
+  <arguments></arguments>
+</prestart|poststart|prestop|poststop>
+```
+
+The pre-start command is executed when the service is starting and before the main process is started.
+
+The post-start command is executed when the service is running and after the main process is started.
+
+The pre-stop command is executed when the service is stopping and before the main process is stopped.
+
+The post-stop command is executed when the service is stopping and after the main process is stopped.
+
 ### stoptimeout
 
 When the service is requested to stop, winsw first attempts to send a Ctrl+C signal, 
