@@ -17,7 +17,7 @@ Installs the service.
 
 ### Usage
 
-```
+```console
 winsw install [<path-to-config>] [--no-elevate] [--user|--username <username>] [--pass|--password <password>]
 ```
 
@@ -48,7 +48,7 @@ Uninstalls the service.
 
 ### Usage
 
-```
+```console
 winsw uninstall [<path-to-config>] [--no-elevate]
 ```
 
@@ -71,7 +71,7 @@ Starts the service.
 
 ### Usage
 
-```
+```console
 winsw start [<path-to-config>] [--no-elevate]
 ```
 
@@ -94,7 +94,7 @@ Stops the service.
 
 ### Usage
 
-```
+```console
 winsw stop [<path-to-config>] [--no-elevate] [--no-wait]
 ```
 
@@ -125,7 +125,7 @@ Stops and then starts the service.
 
 ### Usage
 
-```
+```console
 winsw restart [<path-to-config>] [--no-elevate]
 ```
 
@@ -152,7 +152,7 @@ Checks the status of the service.
 
 ### Usage
 
-```
+```console
 winsw status [<path-to-config>]
 ```
 
@@ -169,7 +169,7 @@ Checks if the service can be started and then stopped without installation.
 
 ### Usage
 
-```
+```console
 winsw test [<path-to-config>] [--no-elevate] [--timeout <timeout>] [--no-break]
 ```
 
@@ -202,7 +202,7 @@ Refreshes the service properties without reinstallation.
 
 ### Usage
 
-```
+```console
 winsw refresh [<path-to-config>] [--no-elevate]
 ```
 

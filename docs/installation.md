@@ -18,7 +18,7 @@ There are some details for each step available below.
 
 ### Step 2. Configuration file
 
-You write the configuration file that defines your service. 
+You write the configuration file that defines your service.
 The example below is a primitive example being used in the Jenkins project:
 
 ```xml
@@ -36,15 +36,15 @@ The example below is a primitive example being used in the Jenkins project:
 The full specification of the configuration file is available [here](xml-config-file.md).
 
 ### Step 3. Service registration
- 
+
 You can then install the service like:
 
-```
+```console
 myapp.exe install <OPTIONS>
 ```
 
-... and you can use the exit code from these processes to determine whether the operation was successful. 
-Possible exit codes are described [here](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service#return-value). 
+... and you can use the exit code from these processes to determine whether the operation was successful.
+Possible exit codes are described [here](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service#return-value).
 Beyond these error codes, all the non-zero exit code should be assumed as a failure.
 
 The Installer can be also started with the `/p` option.

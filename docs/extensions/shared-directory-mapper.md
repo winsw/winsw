@@ -9,7 +9,7 @@ Since: WinSW 2.0.
 
 ## Usage
 
-The extension can be configured via the [XML configuration file](../xml-config-file.md). 
+The extension can be configured via the [XML configuration file](../xml-config-file.md).
 Configuration sample:
 
 ```xml

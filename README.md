@@ -36,7 +36,7 @@ WinSW binaries are available on [GitHub Releases](https://github.com/winsw/winsw
 
 Alternative sources:
 
-* [Maven packaging](https://github.com/jenkinsci/winsw-maven-packaging) for executables, hosted by the [Jenkins project](https://jenkins.io/). 
+* [Maven packaging](https://github.com/jenkinsci/winsw-maven-packaging) for executables, hosted by the [Jenkins project](https://jenkins.io/).
 Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/).
 
 ## Usage
