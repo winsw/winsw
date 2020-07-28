@@ -27,16 +27,16 @@
  This is a sample configuration of the Windows Service Wrapper.
  This configuration file should be placed near the WinSW executable, the name should be the same.
  E.g. for myapp.exe the configuration file name should be myapp.xml
- 
+
  You can find more information about configuration options here: https://github.com/winsw/winsw/blob/master/docs/xml-config-file.md
 -->
 <service>
-  
-<!-- 
+
+<!--
 SECTION: Mandatory options
-All options in other sections are optional 
+All options in other sections are optional
 -->
-  
+
   <!-- ID of the service. It should be unique accross the Windows system-->
   <id>myapp</id>
 
@@ -49,7 +49,7 @@ All options in other sections are optional
   <!--
   <description>This service is a service created from a sample configuration</description>
   -->
-  
+
   <!-- Path to the executable, which should be started -->
   <executable>%BASE%\myExecutable.exe</executable>
 
@@ -71,7 +71,7 @@ Their modification will not take affect without the service re-installation.
     <allowservicelogon>true</allowservicelogon>
   </serviceaccount>
   -->
-  
+
   <!--
     OPTION: onfailure
     Defines a sequence of actions, which should be performed if the managed executable fails.
@@ -82,7 +82,7 @@ Their modification will not take affect without the service re-installation.
   <onfailure action="restart" delay="20 sec"/>
   <onfailure action="reboot" />
   -->
-  
+
   <!--
     OPTION: resetfailure
     Time, after which the Windows service resets the failure status.
@@ -104,7 +104,7 @@ Their modification will not take affect without the service re-installation.
 SECTION: Executable management
 -->
 
-  <!-- 
+  <!--
     OPTION: arguments
     Arguments, which should be passed to the executable
   -->
@@ -112,7 +112,7 @@ SECTION: Executable management
   <arguments>-classpath c:\cygwin\home\kohsuke\ws\hello-world\out\production\hello-world test.Main</arguments>
   -->
 
-  <!-- 
+  <!--
     OPTION: startarguments
     Arguments, which should be passed to the executable when it starts
     If specified, overrides 'arguments'.
@@ -120,7 +120,7 @@ SECTION: Executable management
   <!--
   <startarguments></startarguments>
   -->
-  
+
   <!--
     OPTION: workingdirectory
     If specified, sets the default working directory of the executable
@@ -129,7 +129,7 @@ SECTION: Executable management
   <!--
   <workingdirectory>C:\myApp\work</workingdirectory>
 -->
-  
+
   <!--
     OPTION: priority
     Desired process priority.
@@ -137,16 +137,16 @@ SECTION: Executable management
     Default value: Normal
   -->
   <priority>Normal</priority>
-  
-  <!-- 
+
+  <!--
     OPTION: stoptimeout
     Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
     Default value: 15 seconds
   -->
   <stoptimeout>15 sec</stoptimeout>
-  
-  
-  <!-- 
+
+
+  <!--
     OPTION: stopexecutable
     Path to an optional executable, which performs shutdown of the service.
     This executable will be used if and only if 'stoparguments' are specified.
@@ -156,7 +156,7 @@ SECTION: Executable management
   <stopexecutable>%BASE%\stop.exe</stopexecutable>
   -->
 
-  <!-- 
+  <!--
     OPTION: stoparguments
     Additional arguments, which should be passed to the stop executable during termination.
     This OPTION also enables termination of the executable via stop executable
@@ -164,8 +164,8 @@ SECTION: Executable management
   <!--
   <stoparguments>-stop true</stoparguments>
   -->
-<!-- 
-SECTION: Service management 
+<!--
+SECTION: Service management
 -->
     <!--
       OPTION: startmode
@@ -174,15 +174,15 @@ SECTION: Service management
       Default mode: Automatic
     -->
     <startmode>Automatic</startmode>
-    
+
     <!--
       OPTION: delayedAutoStart
       Enables the Delayed Automatic Start if 'Automatic' is specified in the 'startmode' field.
       See the WinSW documentation to get info about supported platform versions and limitations.
     -->
     <!--<delayedAutoStart>true</delayedAutoStart>-->
-    
-    <!-- 
+
+    <!--
       OPTION: depend
       Optionally specifies services that must start before this service starts.
     -->
@@ -190,7 +190,7 @@ SECTION: Service management
     <depend>Eventlog</depend>
     <depend>W32Time</depend>
     -->
-    
+
     <!--
       OPTION: interactive
       Indicates the service can interactwith the desktop.
@@ -198,9 +198,9 @@ SECTION: Service management
     <!--
     <interactive>true</interactive>
     -->
-    
-<!-- 
-SECTION:Logging 
+
+<!--
+SECTION:Logging
 -->
 
   <!--
@@ -211,7 +211,7 @@ SECTION:Logging
   <!--
     <logpath>%BASE%\logs</logpath>
   -->
-  
+
   <!--
     OPTION: log
     Defines logging mode for logs produced by the executable.
@@ -223,8 +223,8 @@ SECTION:Logging
       * roll-by-time - Roll logs based on time
       * rotate - Rotate logs based on size, (8 logs, 10MB each). This mode is deprecated, use "roll"
     Default mode: append
-    
-    Each mode has different settings. 
+
+    Each mode has different settings.
     See https://github.com/winsw/winsw/blob/master/docs/logging-and-error-reporting.md for more details
   -->
   <log mode="append">
@@ -233,7 +233,7 @@ SECTION:Logging
     <setting2/>
   -->
   </log>
-  
+
 <!--
 SECTION: Environment setup
 -->
@@ -254,7 +254,7 @@ SECTION: Environment setup
   -->
   <!--
   <download from="http://www.google.com/" to="%BASE%\index.html" />
-  
+
   Download and fail the service startup on Error:
   <download from="http://www.nosuchhostexists.com/" to="%BASE%\dummy.html" failOnError="true"/>
 
@@ -267,15 +267,15 @@ SECTION: Environment setup
   <download from="https://example.com/some.dat" to="%BASE%\some.dat"
             auth="basic" username="aUser" password="aPassw0rd" />
 
-  Secure authentication when the target server and the client are members of the same domain or 
+  Secure authentication when the target server and the client are members of the same domain or
   the server domain and the client domain belong to the same forest with a trust:
   <download from="https://example.com/some.dat" to="%BASE%\some.dat" auth="sspi" />
   -->
 
-<!-- 
-SECTION: Other options 
+<!--
+SECTION: Other options
 -->
-  
+
   <!--
     OPTION: beeponshutdown
     Indicates the service should beep when finished on shutdown (if it's supported by OS).
@@ -283,7 +283,7 @@ SECTION: Other options
   <!--
   <beeponshutdown>true</beeponshutdown>
   -->
-  
+
 <!--
 SECTION: Extensions
 This configuration section allows specifying custom extensions.
