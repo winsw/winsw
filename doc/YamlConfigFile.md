@@ -3,7 +3,7 @@
 This page describes the configuration file, which controls the behavior of the Windows service.
 
 You can find configuration file samples in the [examples](../examples) directory of the source code repository.
-Actual samples are being also published as a part of releases on GitHub and NuGet.
+Actual samples are also being published as a part of releases on GitHub and NuGet.
 
 ## File structure
 
