@@ -16,3 +16,6 @@ TODO
    - Consider removing `<username>` and `<password>` from config file and using `<prompt>` in interactive context, or `--username` and `--password` command-line options in non-interactive context.
 1. Remove `<waithint>`.
 1. Remove `<sleeptime>`.
+1. Replace `<delayedAutoStart />` with `<delayedAutoStart>true</delayedAutoStart>`.
+1. Replace `<interactive />` with `<interactive>true</interactive>`.
+1. Replace `<beeponshutdown />` with `<beeponshutdown>true</beeponshutdown>`.

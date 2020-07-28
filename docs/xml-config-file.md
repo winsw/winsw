@@ -72,7 +72,7 @@ Please note that this startup mode will not take affect on old Windows versions 
 Windows service installation may fail in such case.
 
 ```xml
-<delayedAutoStart/>
+<delayedAutoStart>true</delayedAutoStart>
 ```
 
 ### depend
@@ -172,7 +172,7 @@ If this optional element is specified, the service will be allowed to interact w
 If your program requires GUI, set this like the following:
 
 ```xml
-<interactive />
+<interactive>true</interactive>
 ```
 
 Note that since the introduction UAC (Windows Vista and onward), services are no longer really allowed to interact with the desktop.
@@ -182,6 +182,10 @@ In those OSes, all that this does is to allow the user to switch to a separate w
 
 This optional element is to emit [simple tones](https://docs.microsoft.com/windows/win32/api/utilapiset/nf-utilapiset-beep) when the service shuts down.
 This feature should be used only for debugging, as some operating systems and hardware do not support this functionality.
+
+```xml
+<beeponshutdown>true</beeponshutdown>
+```
 
 ### download
 
