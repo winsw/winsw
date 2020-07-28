@@ -55,6 +55,8 @@ namespace WinSW.Configuration
 
         public bool DelayedAutoStart => false;
 
+        public bool Preshutdown => false;
+
         public string[] ServiceDependencies => new string[0];
 
         public bool Interactive => false;

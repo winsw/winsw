@@ -14,7 +14,7 @@ using WinSW.Util;
 
 namespace WinSW
 {
-    public class WrapperService : ServiceBase, IEventLogger
+    public sealed class WrapperService : ServiceBase, IEventLogger, IServiceEventLog
     {
         private readonly Process process = new Process();
         private readonly ServiceDescriptor descriptor;
@@ -58,11 +58,11 @@ namespace WinSW
 
             // Register the event log provider
             eventLogProvider.Service = this;
-        }
 
-        public WrapperService()
-            : this(new ServiceDescriptor())
-        {
+            if (descriptor.Preshutdown)
+            {
+                this.AcceptPreshutdown();
+            }
         }
 
         /// <summary>
@@ -135,32 +135,49 @@ namespace WinSW
 
         public void LogEvent(string message)
         {
+            if (this.shuttingdown)
+            {
+                // The Event Log service exits earlier.
+                return;
+            }
+
             try
             {
                 this.EventLog.WriteEntry(message);
             }
             catch (Exception e)
             {
-                if (!this.shuttingdown)
-                {
-                    Log.Error("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
-                }
+                Log.Error("Failed to log event in Windows Event Log: " + message + "; Reason: ", e);
             }
         }
 
         public void LogEvent(string message, EventLogEntryType type)
         {
+            if (this.shuttingdown)
+            {
+                // The Event Log service exits earlier.
+                return;
+            }
+
             try
             {
                 this.EventLog.WriteEntry(message, type);
             }
             catch (Exception e)
             {
-                if (!this.shuttingdown)
-                {
-                    Log.Error("Failed to log event in Windows Event Log. Reason: ", e);
-                }
+                Log.Error("Failed to log event in Windows Event Log. Reason: ", e);
             }
+        }
+
+        void IServiceEventLog.WriteEntry(string message, EventLogEntryType type)
+        {
+            if (this.shuttingdown)
+            {
+                // The Event Log service exits earlier.
+                return;
+            }
+
+            this.EventLog.WriteEntry(message, type);
         }
 
         private void LogInfo(string message)
@@ -210,6 +227,15 @@ namespace WinSW
             {
                 Log.Error("Failed to shut down service.", e);
                 throw;
+            }
+        }
+
+        protected override void OnCustomCommand(int command)
+        {
+            if (command == 0x0000000F)
+            {
+                // SERVICE_CONTROL_PRESHUTDOWN
+                this.Stop();
             }
         }
 
@@ -383,6 +409,27 @@ namespace WinSW
             {
                 this.SignalPending();
             }
+        }
+
+        /// <exception cref="MissingFieldException" />
+        private void AcceptPreshutdown()
+        {
+            const string acceptedCommandsFieldName =
+#if NETCOREAPP
+                "_acceptedCommands";
+#else
+                "acceptedCommands";
+#endif
+
+            FieldInfo? acceptedCommandsField = typeof(ServiceBase).GetField(acceptedCommandsFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            if (acceptedCommandsField is null)
+            {
+                throw new MissingFieldException(nameof(ServiceBase), acceptedCommandsFieldName);
+            }
+
+            int acceptedCommands = (int)acceptedCommandsField.GetValue(this)!;
+            acceptedCommands |= 0x00000100; // SERVICE_ACCEPT_PRESHUTDOWN
+            acceptedCommandsField.SetValue(this, acceptedCommands);
         }
 
         private void SignalPending()

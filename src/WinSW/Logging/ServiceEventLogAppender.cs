@@ -8,15 +8,18 @@ namespace WinSW.Logging
     /// Implementes service Event log appender for log4j.
     /// The implementation presumes that service gets initialized after the logging.
     /// </summary>
-    public class ServiceEventLogAppender : AppenderSkeleton
+    internal sealed class ServiceEventLogAppender : AppenderSkeleton
     {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public IServiceEventLogProvider Provider { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        private readonly IServiceEventLogProvider provider;
+
+        internal ServiceEventLogAppender(IServiceEventLogProvider provider)
+        {
+            this.provider = provider;
+        }
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-            EventLog? eventLog = this.Provider.Locate();
+            IServiceEventLog? eventLog = this.provider.Locate();
 
             // We write the event iff the provider is ready
             eventLog?.WriteEntry(loggingEvent.RenderedMessage, ToEventLogEntryType(loggingEvent.Level));

@@ -574,6 +574,17 @@ namespace WinSW
         /// </summary>
         public bool DelayedAutoStart => this.SingleBoolElement("delayedAutoStart", Defaults.DelayedAutoStart);
 
+        public bool Preshutdown => this.SingleBoolElement("preshutdown", Defaults.Preshutdown);
+
+        public TimeSpan? PreshutdownTimeout
+        {
+            get
+            {
+                string? value = this.SingleElement("preshutdownTimeout", true);
+                return value is null ? default : this.ParseTimeSpan(value);
+            }
+        }
+
         /// <summary>
         /// True if the service should beep when finished on shutdown.
         /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx

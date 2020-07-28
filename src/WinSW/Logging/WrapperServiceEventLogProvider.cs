@@ -1,14 +1,12 @@
-﻿using System.Diagnostics;
-
-namespace WinSW.Logging
+﻿namespace WinSW.Logging
 {
     /// <summary>
     /// Implements caching of the WindowsService reference in WinSW.
     /// </summary>
-    public class WrapperServiceEventLogProvider : IServiceEventLogProvider
+    internal sealed class WrapperServiceEventLogProvider : IServiceEventLogProvider
     {
         public WrapperService? Service { get; set; }
 
-        public EventLog? Locate() => this.Service?.EventLog;
+        public IServiceEventLog? Locate() => this.Service;
     }
 }

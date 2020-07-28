@@ -26,40 +26,35 @@ namespace WinSW.Util
 
             foreach (Process process in Process.GetProcesses())
             {
-                if (process.StartTime <= startTime)
-                {
-                    process.Dispose();
-                    continue;
-                }
-
-                IntPtr handle;
                 try
                 {
-                    handle = process.Handle;
-                }
-                catch (Win32Exception)
-                {
-                    process.Dispose();
-                    continue;
-                }
+                    if (process.StartTime <= startTime)
+                    {
+                        goto Next;
+                    }
 
-                if (NtQueryInformationProcess(
-                    handle,
-                    PROCESSINFOCLASS.ProcessBasicInformation,
-                    out PROCESS_BASIC_INFORMATION information,
-                    sizeof(PROCESS_BASIC_INFORMATION)) != 0)
-                {
-                    Logger.Warn("Failed to locate children of the process with PID=" + processId + ". Child processes won't be terminated");
-                    process.Dispose();
-                    continue;
-                }
+                    IntPtr handle = process.Handle;
 
-                if ((int)information.InheritedFromUniqueProcessId == processId)
-                {
-                    Logger.Info($"Found child process '{process.Format()}'.");
-                    children.Add(process);
+                    if (NtQueryInformationProcess(
+                        handle,
+                        PROCESSINFOCLASS.ProcessBasicInformation,
+                        out PROCESS_BASIC_INFORMATION information,
+                        sizeof(PROCESS_BASIC_INFORMATION)) != 0)
+                    {
+                        goto Next;
+                    }
+
+                    if ((int)information.InheritedFromUniqueProcessId == processId)
+                    {
+                        Logger.Info($"Found child process '{process.Format()}'.");
+                        children.Add(process);
+                        continue;
+                    }
+
+                Next:
+                    process.Dispose();
                 }
-                else
+                catch (Exception e) when (e is InvalidOperationException || e is Win32Exception)
                 {
                     process.Dispose();
                 }
