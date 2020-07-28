@@ -26,6 +26,10 @@ For systems without .NET Framework, the project provides native 64-bit and 32-bi
 
 More executables can be added upon request.
 
+[.NET Framework system requirements](https://docs.microsoft.com/dotnet/framework/get-started/system-requirements)
+
+[.NET 5 system requirements](https://github.com/dotnet/core/blob/master/release-notes/5.0/5.0-supported-os.md)
+
 ## Download
 
 WinSW binaries are available on [GitHub Releases](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
