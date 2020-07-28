@@ -31,6 +31,9 @@ namespace WinSW.Native
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
         internal static extern bool ChangeServiceConfig2(IntPtr serviceHandle, ServiceConfigInfoLevels infoLevel, in SERVICE_DELAYED_AUTO_START_INFO info);
 
+        [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfig2W")]
+        internal static extern bool ChangeServiceConfig2(IntPtr serviceHandle, ServiceConfigInfoLevels infoLevel, in SERVICE_PRESHUTDOWN_INFO info);
+
         [DllImport(Libraries.Advapi32)]
         internal static extern bool CloseServiceHandle(IntPtr objectHandle);
 
@@ -162,6 +165,11 @@ namespace WinSW.Native
             public string Command;
             public int ActionsCount;
             public unsafe SC_ACTION* Actions;
+        }
+
+        internal struct SERVICE_PRESHUTDOWN_INFO
+        {
+            public int PreshutdownTimeout;
         }
 
         internal struct SERVICE_STATUS
