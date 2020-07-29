@@ -63,6 +63,8 @@ namespace WinSW
             {
                 this.AcceptPreshutdown();
             }
+
+            Environment.CurrentDirectory = descriptor.WorkingDirectory;
         }
 
         /// <summary>

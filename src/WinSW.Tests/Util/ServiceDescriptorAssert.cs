@@ -53,8 +53,10 @@ namespace WinSW.Tests.Util
             get
             {
                 var properties = AllProperties;
+                properties.Remove("FullPath");
                 properties.Remove("Id");
                 properties.Remove("Executable");
+                properties.Remove("WorkingDirectory");
                 return properties;
             }
         }
