@@ -36,17 +36,7 @@ namespace WinSW.Tests.Configuration
 
         private static XmlServiceConfig Load(string exampleName)
         {
-            string directory = Environment.CurrentDirectory;
-            while (true)
-            {
-                if (File.Exists(Path.Combine(directory, ".gitignore")))
-                {
-                    break;
-                }
-
-                directory = Path.GetDirectoryName(directory);
-                Assert.NotNull(directory);
-            }
+            string directory = Layout.RepositoryRoot;
 
             string path = Path.Combine(directory, $@"samples\sample-{exampleName}.xml");
             Assert.True(File.Exists(path));

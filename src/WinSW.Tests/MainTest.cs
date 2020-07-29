@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.ServiceProcess;
 using WinSW.Tests.Util;
 using Xunit;
@@ -47,5 +49,35 @@ namespace WinSW.Tests
             string cliOut = CommandLineTestHelper.Test(new[] { "status" });
             Assert.Equal("NonExistent" + Environment.NewLine, cliOut);
         }
+
+#if NET461
+        [Fact]
+        public void Customize()
+        {
+            const string OldCompanyName = "CloudBees, Inc.";
+            const string NewCompanyName = "CLOUDBEES, INC.";
+
+            string inputPath = Path.Combine(Layout.ArtifactsDirectory, "WinSW.NET461.exe");
+
+            Assert.Equal(OldCompanyName, FileVersionInfo.GetVersionInfo(inputPath).CompanyName);
+
+            // deny write access
+            using FileStream file = File.OpenRead(inputPath);
+
+            string outputPath = Path.GetTempFileName();
+            Program.TestExecutablePath = inputPath;
+            try
+            {
+                _ = CommandLineTestHelper.Test(new[] { "customize", "-o", outputPath, "--manufacturer", NewCompanyName });
+
+                Assert.Equal(NewCompanyName, FileVersionInfo.GetVersionInfo(outputPath).CompanyName);
+            }
+            finally
+            {
+                Program.TestExecutablePath = null;
+                File.Delete(outputPath);
+            }
+        }
+#endif
     }
 }
