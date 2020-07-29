@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -68,7 +67,7 @@ namespace WinSW.Configuration
         public string? StopTimeoutYaml { get; set; }
 
         [YamlMember(Alias = "startMode")]
-        public StartMode? StartModeYaml { get; set; }
+        public string? StartModeYaml { get; set; }
 
         [YamlMember(Alias = "serviceDependencies")]
         public string[]? ServiceDependenciesYaml { get; set; }
@@ -83,7 +82,7 @@ namespace WinSW.Configuration
         public bool? InteractiveYaml { get; set; }
 
         [YamlMember(Alias = "priority")]
-        public ProcessPriorityClass? PriorityYaml { get; set; }
+        public string? PriorityYaml { get; set; }
 
         [YamlMember(Alias = "beepOnShutdown")]
         public bool BeepOnShutdown { get; set; }
@@ -175,7 +174,7 @@ namespace WinSW.Configuration
                 {
                     return this.NameYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.Name :
-                        Environment.ExpandEnvironmentVariables(this.NameYamlLog);
+                        ExpandEnv(this.NameYamlLog);
                 }
             }
 
@@ -185,7 +184,7 @@ namespace WinSW.Configuration
                 {
                     return this.LogPathYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.Directory :
-                        Environment.ExpandEnvironmentVariables(this.LogPathYamlLog);
+                        ExpandEnv(this.LogPathYamlLog);
                 }
             }
 
@@ -250,7 +249,7 @@ namespace WinSW.Configuration
                 {
                     return this.OutFilePatternYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.OutFilePattern :
-                        Environment.ExpandEnvironmentVariables(this.OutFilePatternYamlLog);
+                        ExpandEnv(this.OutFilePatternYamlLog);
                 }
             }
 
@@ -260,7 +259,7 @@ namespace WinSW.Configuration
                 {
                     return this.ErrFilePatternYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.ErrFilePattern :
-                        Environment.ExpandEnvironmentVariables(this.ErrFilePatternYamlLog);
+                        ExpandEnv(this.ErrFilePatternYamlLog);
                 }
             }
 
@@ -307,7 +306,7 @@ namespace WinSW.Configuration
             public string ToYamlDownload { get; set; } = string.Empty;
 
             [YamlMember(Alias = "auth")]
-            public AuthType AuthYamlDownload { get; set; }
+            public string? AuthYamlDownload { get; set; }
 
             [YamlMember(Alias = "username")]
             public string? UsernameYamlDownload { get; set; }
@@ -323,6 +322,44 @@ namespace WinSW.Configuration
 
             [YamlMember(Alias = "proxy")]
             public string? ProxyYamlDownload { get; set; }
+
+            public string FromDownload => ExpandEnv(this.FromYamlDownload);
+
+            public string ToDownload => ExpandEnv(this.ToYamlDownload);
+
+            public string? UsernameDownload => this.UsernameYamlDownload is null ? null : ExpandEnv(this.UsernameYamlDownload);
+
+            public string? PasswordDownload => this.PasswordYamlDownload is null ? null : ExpandEnv(this.PasswordYamlDownload);
+
+            public string? ProxyDownload => this.ProxyYamlDownload is null ? null : ExpandEnv(this.ProxyYamlDownload);
+
+            public AuthType AuthDownload
+            {
+                get
+                {
+                    if (this.AuthYamlDownload is null)
+                    {
+                        return AuthType.None;
+                    }
+
+                    var auth = ExpandEnv(this.AuthYamlDownload);
+
+                    try
+                    {
+                        return (AuthType)Enum.Parse(typeof(AuthType), auth, true);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Auth type in YAML must be one of the following:");
+                        foreach (string at in Enum.GetNames(typeof(AuthType)))
+                        {
+                            Console.WriteLine(at);
+                        }
+
+                        throw;
+                    }
+                }
+            }
         }
 
         public class YamlFailureAction
@@ -369,7 +406,7 @@ namespace WinSW.Configuration
                 }
             }
 
-            return Environment.ExpandEnvironmentVariables(args);
+            return ExpandEnv(args);
         }
 
         private enum ArgType
@@ -391,28 +428,35 @@ namespace WinSW.Configuration
             foreach (var item in downloads)
             {
                 result.Add(new Download(
-                    item.FromYamlDownload,
-                    item.ToYamlDownload,
+                    item.FromDownload,
+                    item.ToDownload,
                     item.FailOnErrorYamlDownload,
-                    item.AuthYamlDownload,
-                    item.UsernameYamlDownload,
-                    item.PasswordYamlDownload,
+                    item.AuthDownload,
+                    item.UsernameDownload,
+                    item.PasswordDownload,
                     item.UnsecureAuthYamlDownload,
-                    item.ProxyYamlDownload));
+                    item.ProxyDownload));
             }
 
             return result;
         }
 
-        public string Id => this.IdYaml is null ? this.Defaults.Id : this.IdYaml;
+        internal static string ExpandEnv(string str)
+        {
+            return Environment.ExpandEnvironmentVariables(str);
+        }
 
-        public string Description => this.DescriptionYaml is null ? this.Defaults.Description : this.DescriptionYaml;
+        public string Id => this.IdYaml is null ? this.Defaults.Id : ExpandEnv(this.IdYaml);
 
-        public string Executable => this.ExecutableYaml is null ? this.Defaults.Executable : this.ExecutableYaml;
+        public string Description => this.DescriptionYaml is null ? this.Defaults.Description : ExpandEnv(this.DescriptionYaml);
 
-        public string ExecutablePath => this.ExecutablePathYaml is null ? this.Defaults.ExecutablePath : this.ExecutablePathYaml;
+        public string Executable => this.ExecutableYaml is null ? this.Defaults.Executable : ExpandEnv(this.ExecutableYaml);
 
-        public string Caption => this.NameYaml is null ? this.Defaults.Caption : this.NameYaml;
+        public string ExecutablePath => this.ExecutablePathYaml is null ?
+            this.Defaults.ExecutablePath :
+            ExpandEnv(this.ExecutablePathYaml);
+
+        public string Caption => this.NameYaml is null ? this.Defaults.Caption : ExpandEnv(this.NameYaml);
 
         public bool HideWindow => this.HideWindowYaml is null ? this.Defaults.HideWindow : (bool)this.HideWindowYaml;
 
@@ -426,7 +470,33 @@ namespace WinSW.Configuration
             }
         }
 
-        public StartMode StartMode => this.StartModeYaml is null ? this.Defaults.StartMode : (StartMode)this.StartModeYaml;
+        public StartMode StartMode
+        {
+            get
+            {
+                if (this.StartModeYaml is null)
+                {
+                    return this.Defaults.StartMode;
+                }
+
+                var p = ExpandEnv(this.StartModeYaml);
+
+                try
+                {
+                    return (StartMode)Enum.Parse(typeof(StartMode), p, true);
+                }
+                catch
+                {
+                    Console.WriteLine("Start mode in YAML must be one of the following:");
+                    foreach (string sm in Enum.GetNames(typeof(StartMode)))
+                    {
+                        Console.WriteLine(sm);
+                    }
+
+                    throw;
+                }
+            }
+        }
 
         public string Arguments
         {
@@ -447,7 +517,7 @@ namespace WinSW.Configuration
             {
                 return this.StopExecutableYaml is null ?
                     this.Defaults.StopExecutable :
-                    null;
+                    ExpandEnv(this.StopExecutableYaml);
             }
         }
 
@@ -477,15 +547,57 @@ namespace WinSW.Configuration
 
         public string WorkingDirectory => this.WorkingDirectoryYaml is null ?
             this.Defaults.WorkingDirectory :
-            this.WorkingDirectoryYaml;
+            ExpandEnv(this.WorkingDirectoryYaml);
 
-        public ProcessPriorityClass Priority => this.PriorityYaml is null ? this.Defaults.Priority : (ProcessPriorityClass)this.PriorityYaml;
+        public ProcessPriorityClass Priority
+        {
+            get
+            {
+                if (this.PriorityYaml is null)
+                {
+                    return this.Defaults.Priority;
+                }
+
+                var p = ExpandEnv(this.PriorityYaml);
+
+                try
+                {
+                    return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);
+                }
+                catch
+                {
+                    Console.WriteLine("Priority in YAML must be one of the following:");
+                    foreach (string pr in Enum.GetNames(typeof(ProcessPriorityClass)))
+                    {
+                        Console.WriteLine(pr);
+                    }
+
+                    throw;
+                }
+            }
+        }
 
         public TimeSpan StopTimeout => this.StopTimeoutYaml is null ? this.Defaults.StopTimeout : ConfigHelper.ParseTimeSpan(this.StopTimeoutYaml);
 
-        public string[] ServiceDependencies => this.ServiceDependenciesYaml is null ?
-            this.Defaults.ServiceDependencies :
-            this.ServiceDependenciesYaml;
+        public string[] ServiceDependencies
+        {
+            get
+            {
+                if (this.ServiceDependenciesYaml is null)
+                {
+                    return this.Defaults.ServiceDependencies;
+                }
+
+                var result = new List<string>(0);
+
+                foreach (var item in this.ServiceDependenciesYaml)
+                {
+                    result.Add(ExpandEnv(item));
+                }
+
+                return result.ToArray();
+            }
+        }
 
         public TimeSpan WaitHint => this.WaitHintYaml is null ? this.Defaults.WaitHint : ConfigHelper.ParseTimeSpan(this.WaitHintYaml);
 
@@ -513,7 +625,7 @@ namespace WinSW.Configuration
                     }
 
                     var key = item.Name;
-                    var value = Environment.ExpandEnvironmentVariables(item.Value);
+                    var value = ExpandEnv(item.Value);
 
                     this.EnvironmentVariables[key] = value;
                     Environment.SetEnvironmentVariable(key, value);
@@ -538,6 +650,17 @@ namespace WinSW.Configuration
 
         public string BasePath => this.Defaults.BasePath;
 
-        public string? SecurityDescriptor => this.SecurityDescriptorYaml ?? this.Defaults.SecurityDescriptor;
+        public string? SecurityDescriptor
+        {
+            get
+            {
+                if (this.SecurityDescriptorYaml is null)
+                {
+                    return this.Defaults.SecurityDescriptor;
+                }
+
+                return ExpandEnv(this.SecurityDescriptorYaml);
+            }
+        }
     }
 }

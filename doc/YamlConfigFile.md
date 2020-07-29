@@ -31,7 +31,9 @@ log:
 ## Environment variable expansion
 
 Configuration YAML files can include environment variable expansions of the form `%Name%`. 
-Such occurrences, if found, will be automatically replaced by the actual values of the variables. [Read more. . . ](xmlConfigFile.md#environment-variable-expansion)
+Such occurrences, if found, will be automatically replaced by the actual values of the variables. 
+
+[Read more about Environment variable expansion](xmlConfigFile.md#environment-variable-expansion)
 
 ## Configuration entries
 
@@ -64,7 +66,9 @@ The default value is `Automatic`.
 
 ### delayedAutoStart
 
-This Boolean option enables the delayed start mode if the `Automatic` start mode is defined. [Read more. . .](xmlConfigFile.md#delayedautostart)
+This Boolean option enables the delayed start mode if the `Automatic` start mode is defined. 
+
+[Read more about delayedAutoStart](xmlConfigFile.md#delayedautostart)
 
 ```yaml
 delayedAutoStart: false
@@ -135,7 +139,9 @@ stoparguments: stop
 
 ### stoptimeout
 
-This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down. [Read more . . . ](xmlConfigFile.md#stoptimeout)
+This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down.
+
+[Read more about stoptimeout](xmlConfigFile.md#stoptimeout)
 
 See `onfailure` below for how to specify time duration:
 
@@ -179,7 +185,7 @@ This feature should be used only for debugging, as some operating systems and ha
 This optional element can be specified to have the service wrapper retrieve resources from URL and place it locally as a file.
 This operation runs when the service is started, before the application specified by `executable` is launched.
 
-[Read more . . .](xmlConfigFile.md#download)
+[Read more about download](xmlConfigFile.md#download)
 
 Examples:
 
@@ -263,7 +269,7 @@ serviceaccount:
   allowservicelogon: true
 ```
 
-[Read more about Service account . . .](xmlConfigFile.md#service-account)
+[Read more about Service account](xmlConfigFile.md#service-account)
 
 ### Working directory
 
