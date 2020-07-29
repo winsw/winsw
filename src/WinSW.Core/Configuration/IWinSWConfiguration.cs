@@ -9,6 +9,8 @@ namespace WinSW.Configuration
     // TODO: Document the parameters && refactor
     public interface IWinSWConfiguration
     {
+        string FullPath { get; }
+
         string Id { get; }
 
         string Caption { get; }

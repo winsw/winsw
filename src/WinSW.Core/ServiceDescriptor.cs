@@ -25,6 +25,8 @@ namespace WinSW
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
+        public string FullPath { get; }
+
         /// <summary>
         /// Where did we find the configuration file?
         ///
@@ -48,7 +50,8 @@ namespace WinSW
             string baseName = Path.GetFileNameWithoutExtension(path);
             string baseDir = Path.GetDirectoryName(path)!;
 
-            if (!File.Exists(Path.Combine(baseDir, baseName + ".xml")))
+            string fullPath = this.FullPath = Path.Combine(baseDir, baseName + ".xml");
+            if (!File.Exists(fullPath))
             {
                 throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory");
             }
@@ -58,7 +61,7 @@ namespace WinSW
 
             try
             {
-                this.dom.Load(this.BasePath + ".xml");
+                this.dom.Load(fullPath);
             }
             catch (XmlException e)
             {
@@ -88,10 +91,10 @@ namespace WinSW
                 throw new FileNotFoundException(null, path);
             }
 
-            string baseName = Path.GetFileNameWithoutExtension(path);
-            string baseDir = Path.GetDirectoryName(Path.GetFullPath(path))!;
+            string fullPath = this.FullPath = Path.GetFullPath(path);
+            string baseName = this.BaseName = Path.GetFileNameWithoutExtension(path);
+            string baseDir = Path.GetDirectoryName(fullPath)!;
 
-            this.BaseName = baseName;
             this.BasePath = Path.Combine(baseDir, baseName);
 
             try

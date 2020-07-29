@@ -12,6 +12,8 @@ namespace WinSW.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
+        public string FullPath => throw new InvalidOperationException(nameof(this.FullPath) + " must be specified.");
+
         public string Id => throw new InvalidOperationException(nameof(this.Id) + " must be specified.");
 
         public string Caption => string.Empty;
@@ -44,7 +46,7 @@ namespace WinSW.Configuration
 
         public string? StopArguments => null;
 
-        public string WorkingDirectory => Path.GetDirectoryName(this.ExecutablePath)!;
+        public string WorkingDirectory => Path.GetDirectoryName(this.FullPath)!;
 
         public ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
 
