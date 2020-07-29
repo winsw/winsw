@@ -59,6 +59,15 @@ namespace WinSW.Native
             /// <exception cref="CommandException" />
             [DoesNotReturn]
             [MethodImpl(MethodImplOptions.NoInlining)]
+            internal static void Win32Exception()
+            {
+                Win32Exception inner = new Win32Exception();
+                Debug.Assert(inner.NativeErrorCode != 0);
+                throw new CommandException(inner);
+            }
+
+            /// <exception cref="CommandException" />
+            [MethodImpl(MethodImplOptions.NoInlining)]
             internal static void Win32Exception(string message)
             {
                 Win32Exception inner = new Win32Exception();

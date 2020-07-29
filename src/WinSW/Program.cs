@@ -34,6 +34,21 @@ namespace WinSW
         private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
 
         internal static Action<Exception, InvocationContext>? TestExceptionHandler;
+        internal static string? TestExecutablePath;
+
+        private static string ExecutablePath
+        {
+            get
+            {
+                if (TestExecutablePath != null)
+                {
+                    return TestExecutablePath;
+                }
+
+                using Process current = Process.GetCurrentProcess();
+                return current.MainModule.FileName;
+            }
+        }
 
         internal static int Main(string[] args)
         {
@@ -205,12 +220,12 @@ namespace WinSW
                 test.Add(config);
                 test.Add(noElevate);
 
-                const int minTimeout = -1;
-                const int maxTimeout = int.MaxValue / 1000;
-
                 var timeout = new Option<int>("--timeout", "Specifies the number of seconds to wait before the service is stopped.");
                 timeout.Argument.AddValidator(argument =>
                 {
+                    const int minTimeout = -1;
+                    const int maxTimeout = int.MaxValue / 1000;
+
                     string token = argument.Tokens.Single().Value;
                     return !int.TryParse(token, out int value) ? null :
                         value < minTimeout ? $"Argument '{token}' must be greater than or equal to {minTimeout}." :
@@ -234,6 +249,39 @@ namespace WinSW
                 refresh.Add(noElevate);
 
                 root.Add(refresh);
+            }
+
+            {
+                var customize = new Command("customize")
+                {
+                    Handler = CommandHandler.Create<string, string>(Customize),
+                };
+
+                customize.Add(new Option<string>(new[] { "--output", "-o" })
+                {
+                    Required = true,
+                });
+
+                var manufacturer = new Option<string>("--manufacturer")
+                {
+                    Required = true,
+                };
+                manufacturer.Argument.AddValidator(argument =>
+                {
+                    const int minLength = 12;
+                    const int maxLength = 15;
+
+                    string token = argument.Tokens.Single().Value;
+                    int length = token.Length;
+                    return
+                        length < minLength ? $"The length of argument '{token}' must be greater than or equal to {minLength}." :
+                        length > maxLength ? $"The length of argument '{token}' must be less than or equal to {maxLength}." :
+                        null;
+                });
+
+                customize.Add(manufacturer);
+
+                root.Add(customize);
             }
 
             {
@@ -875,6 +923,18 @@ namespace WinSW
                             Draw(child, indentation, i == count - 1);
                         }
                     }
+                }
+            }
+
+            static void Customize(string output, string manufacturer)
+            {
+                if (Resources.UpdateCompanyName(ExecutablePath, output, manufacturer))
+                {
+                    Console.WriteLine("The operation succeeded.");
+                }
+                else
+                {
+                    Console.Error.WriteLine("The operation failed.");
                 }
             }
 
