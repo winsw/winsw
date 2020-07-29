@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using WinSW.Configuration;
 using YamlDotNet.Serialization;
@@ -11,13 +11,9 @@ namespace WinSW
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
-        public string BasePath { get; set; }
-
-        public virtual string ExecutablePath => Defaults.ExecutablePath;
-
         public ServiceDescriptorYaml()
         {
-            string p = this.ExecutablePath;
+            string p = Defaults.ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(p);
             if (baseName.EndsWith(".vshost"))
             {
@@ -40,9 +36,9 @@ namespace WinSW
                 d = d.Parent;
             }
 
-            this.BasePath = Path.Combine(d.FullName, baseName);
+            var basepath = Path.Combine(d.FullName, baseName);
 
-            using (var reader = new StreamReader(this.BasePath + ".yml"))
+            using (var reader = new StreamReader(basepath + ".yml"))
             {
                 var file = reader.ReadToEnd();
                 var deserializer = new DeserializerBuilder().Build();
@@ -56,7 +52,7 @@ namespace WinSW
             Environment.SetEnvironmentVariable("SERVICE_ID", this.Configurations.Id);
 
             // New name
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, Defaults.ExecutablePath);
 
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Configurations.Id);

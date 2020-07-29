@@ -1,4 +1,4 @@
-﻿using YamlDotNet.Serialization;
+using YamlDotNet.Serialization;
 
 namespace WinSW.Configuration
 {
@@ -10,7 +10,7 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "domain")]
         public string? ServiceAccountDomain { get; set; }
 
-        [YamlMember(Alias = "Password")]
+        [YamlMember(Alias = "password")]
         public string? ServiceAccountPassword { get; set; }
 
         [YamlMember(Alias = "allowservicelogon")]
