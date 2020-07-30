@@ -15,17 +15,15 @@ namespace WinSW
     /// <summary>
     /// In-memory representation of the configuration file.
     /// </summary>
-    public class ServiceDescriptor : IWinSWConfiguration
+    public class XmlServiceConfig : ServiceConfig
     {
         protected readonly XmlDocument dom = new XmlDocument();
 
         private readonly Dictionary<string, string> environmentVariables;
 
-        internal static ServiceDescriptor? TestDescriptor;
+        internal static XmlServiceConfig? TestConfig;
 
-        public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
-
-        public string FullPath { get; }
+        public override string FullPath { get; }
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -41,10 +39,7 @@ namespace WinSW
         /// </summary>
         public string BaseName { get; set; }
 
-        // Currently there is no opportunity to alter the executable path
-        public virtual string ExecutablePath => Defaults.ExecutablePath;
-
-        public ServiceDescriptor()
+        public XmlServiceConfig()
         {
             string path = this.ExecutablePath;
             string baseName = Path.GetFileNameWithoutExtension(path);
@@ -84,7 +79,7 @@ namespace WinSW
         }
 
         /// <exception cref="FileNotFoundException" />
-        public ServiceDescriptor(string path)
+        public XmlServiceConfig(string path)
         {
             if (!File.Exists(path))
             {
@@ -122,10 +117,10 @@ namespace WinSW
         }
 
         /// <summary>
-        /// Loads descriptor from existing DOM
+        /// Loads config from existing DOM
         /// </summary>
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public ServiceDescriptor(XmlDocument dom)
+        public XmlServiceConfig(XmlDocument dom)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
@@ -133,16 +128,16 @@ namespace WinSW
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
-        internal static ServiceDescriptor Create(string? path)
+        internal static XmlServiceConfig Create(string? path)
         {
-            return path != null ? new ServiceDescriptor(path) : TestDescriptor ?? new ServiceDescriptor();
+            return path != null ? new XmlServiceConfig(path) : TestConfig ?? new XmlServiceConfig();
         }
 
-        public static ServiceDescriptor FromXml(string xml)
+        public static XmlServiceConfig FromXml(string xml)
         {
             var dom = new XmlDocument();
             dom.LoadXml(xml);
-            return new ServiceDescriptor(dom);
+            return new XmlServiceConfig(dom);
         }
 
         private string SingleElement(string tagName)
@@ -213,31 +208,31 @@ namespace WinSW
         /// <summary>
         /// Path to the executable.
         /// </summary>
-        public string Executable => this.SingleElement("executable");
+        public override string Executable => this.SingleElement("executable");
 
-        public bool HideWindow => this.SingleBoolElement("hidewindow", Defaults.HideWindow);
+        public override bool HideWindow => this.SingleBoolElement("hidewindow", base.HideWindow);
 
         /// <summary>
         /// Optionally specify a different Path to an executable to shutdown the service.
         /// </summary>
-        public string? StopExecutable => this.SingleElement("stopexecutable", true);
+        public override string? StopExecutable => this.SingleElement("stopexecutable", true);
 
         /// <summary>
         /// The <c>arguments</c> element.
         /// </summary>
-        public string Arguments
+        public override string Arguments
         {
             get
             {
                 XmlNode? argumentsNode = this.dom.SelectSingleNode("//arguments");
-                return argumentsNode is null ? Defaults.Arguments : Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
+                return argumentsNode is null ? base.Arguments : Environment.ExpandEnvironmentVariables(argumentsNode.InnerText);
             }
         }
 
         /// <summary>
         /// The <c>startarguments</c> element.
         /// </summary>
-        public string? StartArguments
+        public override string? StartArguments
         {
             get
             {
@@ -249,7 +244,7 @@ namespace WinSW
         /// <summary>
         /// The <c>stoparguments</c> element.
         /// </summary>
-        public string? StopArguments
+        public override string? StopArguments
         {
             get
             {
@@ -274,12 +269,12 @@ namespace WinSW
 
         public string? PoststopArguments => this.GetArguments(Names.Poststop);
 
-        public string WorkingDirectory
+        public override string WorkingDirectory
         {
             get
             {
                 var wd = this.SingleElement("workingdirectory", true);
-                return string.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd!;
+                return string.IsNullOrEmpty(wd) ? base.WorkingDirectory : wd!;
             }
         }
 
@@ -304,7 +299,7 @@ namespace WinSW
             }
         }
 
-        public XmlNode? ExtensionsConfiguration => this.dom.SelectSingleNode("//extensions");
+        public override XmlNode? ExtensionsConfiguration => this.dom.SelectSingleNode("//extensions");
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
@@ -351,19 +346,19 @@ namespace WinSW
         /// <summary>
         /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
         /// </summary>
-        public string LogDirectory
+        public override string LogDirectory
         {
             get
             {
                 XmlNode? loggingNode = this.dom.SelectSingleNode("//logpath");
 
                 return loggingNode is null
-                    ? Defaults.LogDirectory
+                    ? base.LogDirectory
                     : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
             }
         }
 
-        public string LogMode
+        public override string LogMode
         {
             get
             {
@@ -385,7 +380,7 @@ namespace WinSW
                     }
                 }
 
-                return mode ?? Defaults.LogMode;
+                return mode ?? base.LogMode;
             }
         }
 
@@ -399,27 +394,27 @@ namespace WinSW
             }
         }
 
-        public bool OutFileDisabled => this.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+        public override bool OutFileDisabled => this.SingleBoolElement("outfiledisabled", base.OutFileDisabled);
 
-        public bool ErrFileDisabled => this.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+        public override bool ErrFileDisabled => this.SingleBoolElement("errfiledisabled", base.ErrFileDisabled);
 
-        public string OutFilePattern
+        public override string OutFilePattern
         {
             get
             {
                 XmlNode? loggingName = this.dom.SelectSingleNode("//outfilepattern");
 
-                return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                return loggingName is null ? base.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
             }
         }
 
-        public string ErrFilePattern
+        public override string ErrFilePattern
         {
             get
             {
                 XmlNode? loggingName = this.dom.SelectSingleNode("//errfilepattern");
 
-                return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                return loggingName is null ? base.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
             }
         }
 
@@ -514,14 +509,14 @@ namespace WinSW
         /// <summary>
         /// Optionally specified depend services that must start before this service starts.
         /// </summary>
-        public string[] ServiceDependencies
+        public override string[] ServiceDependencies
         {
             get
             {
                 XmlNodeList? nodeList = this.dom.SelectNodes("//depend");
                 if (nodeList is null)
                 {
-                    return Defaults.ServiceDependencies;
+                    return base.ServiceDependencies;
                 }
 
                 string[] serviceDependencies = new string[nodeList.Count];
@@ -534,23 +529,23 @@ namespace WinSW
             }
         }
 
-        public string Id => this.SingleElement("id");
+        public override string Id => this.SingleElement("id");
 
-        public string Caption => this.SingleElement("name", true) ?? Defaults.Caption;
+        public override string Caption => this.SingleElement("name", true) ?? base.Caption;
 
-        public string Description => this.SingleElement("description", true) ?? Defaults.Description;
+        public override string Description => this.SingleElement("description", true) ?? base.Description;
 
         /// <summary>
         /// Start mode of the Service
         /// </summary>
-        public ServiceStartMode StartMode
+        public override ServiceStartMode StartMode
         {
             get
             {
                 string? p = this.SingleElement("startmode", true);
                 if (p is null)
                 {
-                    return Defaults.StartMode;
+                    return base.StartMode;
                 }
 
                 try
@@ -575,9 +570,9 @@ namespace WinSW
         /// True if the service should be installed with the DelayedAutoStart flag.
         /// This setting will be applyed only during the install command and only when the Automatic start mode is configured.
         /// </summary>
-        public bool DelayedAutoStart => this.SingleBoolElement("delayedAutoStart", Defaults.DelayedAutoStart);
+        public override bool DelayedAutoStart => this.SingleBoolElement("delayedAutoStart", base.DelayedAutoStart);
 
-        public bool Preshutdown => this.SingleBoolElement("preshutdown", Defaults.Preshutdown);
+        public override bool Preshutdown => this.SingleBoolElement("preshutdown", base.Preshutdown);
 
         public TimeSpan? PreshutdownTimeout
         {
@@ -592,30 +587,30 @@ namespace WinSW
         /// True if the service should beep when finished on shutdown.
         /// This doesn't work on some OSes. See http://msdn.microsoft.com/en-us/library/ms679277%28VS.85%29.aspx
         /// </summary>
-        public bool BeepOnShutdown => this.SingleBoolElement("beeponshutdown", Defaults.DelayedAutoStart);
+        public override bool BeepOnShutdown => this.SingleBoolElement("beeponshutdown", base.DelayedAutoStart);
 
         /// <summary>
         /// True if the service can interact with the desktop.
         /// </summary>
-        public bool Interactive => this.SingleBoolElement("interactive", Defaults.DelayedAutoStart);
+        public override bool Interactive => this.SingleBoolElement("interactive", base.DelayedAutoStart);
 
         /// <summary>
         /// Environment variable overrides
         /// </summary>
-        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
+        public override Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
 
         /// <summary>
         /// List of downloads to be performed by the wrapper before starting
         /// a service.
         /// </summary>
-        public List<Download> Downloads
+        public override List<Download> Downloads
         {
             get
             {
                 XmlNodeList? nodeList = this.dom.SelectNodes("//download");
                 if (nodeList is null)
                 {
-                    return Defaults.Downloads;
+                    return base.Downloads;
                 }
 
                 List<Download> result = new List<Download>(nodeList.Count);
@@ -631,7 +626,7 @@ namespace WinSW
             }
         }
 
-        public SC_ACTION[] FailureActions
+        public override SC_ACTION[] FailureActions
         {
             get
             {
@@ -661,7 +656,7 @@ namespace WinSW
             }
         }
 
-        public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement(this.dom, "resetfailure", Defaults.ResetFailureAfter);
+        public override TimeSpan ResetFailureAfter => this.SingleTimeSpanElement(this.dom, "resetfailure", base.ResetFailureAfter);
 
         protected string? GetServiceAccountPart(string subNodeName)
         {
@@ -683,16 +678,16 @@ namespace WinSW
 
         protected string? AllowServiceLogon => this.GetServiceAccountPart("allowservicelogon");
 
-        public string? ServiceAccountPassword => this.GetServiceAccountPart("password");
+        public override string? ServiceAccountPassword => this.GetServiceAccountPart("password");
 
-        public string? ServiceAccountUserName => this.GetServiceAccountPart("username");
+        public override string? ServiceAccountUserName => this.GetServiceAccountPart("username");
 
         public bool HasServiceAccount()
         {
             return this.dom.SelectSingleNode("//serviceaccount") != null;
         }
 
-        public bool AllowServiceAcountLogonRight
+        public override bool AllowServiceAcountLogonRight
         {
             get
             {
@@ -711,19 +706,19 @@ namespace WinSW
         /// <summary>
         /// Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
         /// </summary>
-        public TimeSpan StopTimeout => this.SingleTimeSpanElement(this.dom, "stoptimeout", Defaults.StopTimeout);
+        public override TimeSpan StopTimeout => this.SingleTimeSpanElement(this.dom, "stoptimeout", base.StopTimeout);
 
         /// <summary>
         /// Desired process priority or null if not specified.
         /// </summary>
-        public ProcessPriorityClass Priority
+        public override ProcessPriorityClass Priority
         {
             get
             {
                 string? p = this.SingleElement("priority", true);
                 if (p is null)
                 {
-                    return Defaults.Priority;
+                    return base.Priority;
                 }
 
                 return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);

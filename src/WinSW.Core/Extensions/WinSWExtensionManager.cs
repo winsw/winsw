@@ -9,13 +9,13 @@ namespace WinSW.Extensions
     {
         public Dictionary<string, IWinSWExtension> Extensions { get; }
 
-        public ServiceDescriptor ServiceDescriptor { get; }
+        public XmlServiceConfig ServiceConfig { get; }
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
-        public WinSWExtensionManager(ServiceDescriptor serviceDescriptor)
+        public WinSWExtensionManager(XmlServiceConfig serviceConfig)
         {
-            this.ServiceDescriptor = serviceDescriptor;
+            this.ServiceConfig = serviceConfig;
             this.Extensions = new Dictionary<string, IWinSWExtension>();
         }
 
@@ -107,7 +107,7 @@ namespace WinSW.Extensions
         /// <exception cref="Exception">Loading failure</exception>
         public void LoadExtensions()
         {
-            var extensionIds = this.ServiceDescriptor.ExtensionIds;
+            var extensionIds = this.ServiceConfig.ExtensionIds;
             foreach (string extensionId in extensionIds)
             {
                 this.LoadExtension(extensionId);
@@ -127,7 +127,7 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            XmlNode? extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
+            XmlNode? extensionsConfig = this.ServiceConfig.ExtensionsConfiguration;
             XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
             {
@@ -141,7 +141,7 @@ namespace WinSW.Extensions
                 extension.Descriptor = descriptor;
                 try
                 {
-                    extension.Configure(this.ServiceDescriptor, configNode);
+                    extension.Configure(this.ServiceConfig, configNode);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal

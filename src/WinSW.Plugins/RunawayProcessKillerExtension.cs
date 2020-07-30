@@ -173,13 +173,13 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        public override void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public override void Configure(XmlServiceConfig config, XmlNode node)
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
             this.Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
             this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
-            this.ServiceId = descriptor.Id;
+            this.ServiceId = config.Id;
 
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);

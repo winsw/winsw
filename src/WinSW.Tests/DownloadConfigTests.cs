@@ -22,10 +22,10 @@ namespace WinSW.Tests
         {
             // Roundtrip data
             Download d = new Download(From, To);
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
-                .ToServiceDescriptor(true);
-            var loaded = this.GetSingleEntry(sd);
+                .ToServiceConfig(true);
+            var loaded = this.GetSingleEntry(config);
 
             // Check default values
             Assert.False(loaded.FailOnError);
@@ -40,10 +40,10 @@ namespace WinSW.Tests
         {
             // Roundtrip data
             Download d = new Download(From, To, true, Download.AuthType.Basic, "aUser", "aPassword", true);
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
-                .ToServiceDescriptor(true);
-            var loaded = this.GetSingleEntry(sd);
+                .ToServiceConfig(true);
+            var loaded = this.GetSingleEntry(config);
 
             // Check default values
             Assert.True(loaded.FailOnError);
@@ -58,10 +58,10 @@ namespace WinSW.Tests
         {
             // Roundtrip data
             Download d = new Download(From, To, false, Download.AuthType.Sspi);
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
-                .ToServiceDescriptor(true);
-            var loaded = this.GetSingleEntry(sd);
+                .ToServiceConfig(true);
+            var loaded = this.GetSingleEntry(config);
 
             // Check default values
             Assert.False(loaded.FailOnError);
@@ -107,11 +107,11 @@ namespace WinSW.Tests
         {
             Download d = new Download(From, To, failOnError);
 
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(d)
-                .ToServiceDescriptor(true);
+                .ToServiceConfig(true);
 
-            var loaded = this.GetSingleEntry(sd);
+            var loaded = this.GetSingleEntry(config);
             Assert.Equal(From, loaded.From);
             Assert.Equal(To, loaded.To);
             Assert.Equal(failOnError, loaded.FailOnError);
@@ -123,11 +123,11 @@ namespace WinSW.Tests
         [Fact]
         public void Download_FailOnError_Undefined()
         {
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                 .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\"/>")
-                .ToServiceDescriptor(true);
+                .ToServiceConfig(true);
 
-            var loaded = this.GetSingleEntry(sd);
+            var loaded = this.GetSingleEntry(config);
             Assert.False(loaded.FailOnError);
         }
 
@@ -138,10 +138,10 @@ namespace WinSW.Tests
         [InlineData("Sspi")]
         public void AuthType_Is_CaseInsensitive(string authType)
         {
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"" + authType + "\"/>")
-                    .ToServiceDescriptor(true);
-            var loaded = this.GetSingleEntry(sd);
+                    .ToServiceConfig(true);
+            var loaded = this.GetSingleEntry(config);
             Assert.Equal(Download.AuthType.Sspi, loaded.Auth);
         }
 
@@ -149,11 +149,11 @@ namespace WinSW.Tests
         public void Should_Fail_On_Unsupported_AuthType()
         {
             // TODO: will need refactoring once all fields are being parsed on startup
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                     .WithRawEntry("<download from=\"http://www.nosuchhostexists.foo.myorg/foo.xml\" to=\"%BASE%\\foo.xml\" auth=\"digest\"/>")
-                    .ToServiceDescriptor(true);
+                    .ToServiceConfig(true);
 
-            var e = Assert.Throws<InvalidDataException>(() => this.GetSingleEntry(sd));
+            var e = Assert.Throws<InvalidDataException>(() => this.GetSingleEntry(config));
             Assert.StartsWith("Cannot parse <auth> Enum value from string 'digest'", e.Message);
         }
 
@@ -187,19 +187,19 @@ namespace WinSW.Tests
             }
         }
 
-        private Download GetSingleEntry(ServiceDescriptor sd)
+        private Download GetSingleEntry(XmlServiceConfig config)
         {
-            var downloads = sd.Downloads.ToArray();
+            var downloads = config.Downloads.ToArray();
             return Assert.Single(downloads);
         }
 
         private void AssertInitializationFails(Download download, string expectedMessagePart = null)
         {
-            var sd = ConfigXmlBuilder.Create(this.output)
+            var config = ConfigXmlBuilder.Create(this.output)
                 .WithDownload(download)
-                .ToServiceDescriptor(true);
+                .ToServiceConfig(true);
 
-            var e = Assert.Throws<InvalidDataException>(() => this.GetSingleEntry(sd));
+            var e = Assert.Throws<InvalidDataException>(() => this.GetSingleEntry(config));
             Assert.StartsWith(expectedMessagePart, e.Message);
         }
     }

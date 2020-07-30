@@ -24,16 +24,16 @@ $@"<service>
   <logpath>C:\winsw\logs</logpath>
 </service>";
 
-        public static readonly ServiceDescriptor DefaultServiceDescriptor = ServiceDescriptor.FromXml(SeedXml);
+        public static readonly XmlServiceConfig DefaultServiceConfig = XmlServiceConfig.FromXml(SeedXml);
 
         /// <summary>
         /// Runs a simle test, which returns the output CLI
         /// </summary>
         /// <param name="arguments">CLI arguments to be passed</param>
-        /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
+        /// <param name="config">Optional Service config (will be used for initialization purposes)</param>
         /// <returns>STDOUT if there's no exceptions</returns>
         /// <exception cref="Exception">Command failure</exception>
-        public static string Test(string[] arguments, ServiceDescriptor descriptor = null)
+        public static string Test(string[] arguments, XmlServiceConfig config = null)
         {
             TextWriter tmpOut = Console.Out;
             TextWriter tmpError = Console.Error;
@@ -43,7 +43,7 @@ $@"<service>
 
             Console.SetOut(swOut);
             Console.SetError(swError);
-            ServiceDescriptor.TestDescriptor = descriptor ?? DefaultServiceDescriptor;
+            XmlServiceConfig.TestConfig = config ?? DefaultServiceConfig;
             try
             {
                 _ = Program.Run(arguments);
@@ -52,7 +52,7 @@ $@"<service>
             {
                 Console.SetOut(tmpOut);
                 Console.SetError(tmpError);
-                ServiceDescriptor.TestDescriptor = null;
+                XmlServiceConfig.TestConfig = null;
             }
 
             Assert.Equal(string.Empty, swError.ToString());
@@ -63,9 +63,9 @@ $@"<service>
         /// Runs a simle test, which returns the output CLI
         /// </summary>
         /// <param name="arguments">CLI arguments to be passed</param>
-        /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
+        /// <param name="config">Optional Service config (will be used for initialization purposes)</param>
         /// <returns>Test results</returns>
-        public static CommandLineTestResult ErrorTest(string[] arguments, ServiceDescriptor descriptor = null)
+        public static CommandLineTestResult ErrorTest(string[] arguments, XmlServiceConfig config = null)
         {
             Exception exception = null;
 
@@ -77,7 +77,7 @@ $@"<service>
 
             Console.SetOut(swOut);
             Console.SetError(swError);
-            ServiceDescriptor.TestDescriptor = descriptor ?? DefaultServiceDescriptor;
+            XmlServiceConfig.TestConfig = config ?? DefaultServiceConfig;
             Program.TestExceptionHandler = (e, _) => exception = e;
             try
             {
@@ -91,7 +91,7 @@ $@"<service>
             {
                 Console.SetOut(tmpOut);
                 Console.SetError(tmpError);
-                ServiceDescriptor.TestDescriptor = null;
+                XmlServiceConfig.TestConfig = null;
                 Program.TestExceptionHandler = null;
             }
 

@@ -17,7 +17,7 @@ namespace WinSW
     public sealed class WrapperService : ServiceBase, IEventLogger, IServiceEventLog
     {
         private readonly Process process = new Process();
-        private readonly ServiceDescriptor descriptor;
+        private readonly XmlServiceConfig config;
         private Dictionary<string, string>? envs;
 
         internal WinSWExtensionManager ExtensionManager { get; }
@@ -45,11 +45,11 @@ namespace WinSW
         /// </remarks>
         public static Version Version => Assembly.GetExecutingAssembly().GetName().Version!;
 
-        public WrapperService(ServiceDescriptor descriptor)
+        public WrapperService(XmlServiceConfig config)
         {
-            this.descriptor = descriptor;
-            this.ServiceName = this.descriptor.Id;
-            this.ExtensionManager = new WinSWExtensionManager(this.descriptor);
+            this.config = config;
+            this.ServiceName = config.Id;
+            this.ExtensionManager = new WinSWExtensionManager(config);
             this.CanShutdown = true;
             this.CanStop = true;
             this.CanPauseAndContinue = false;
@@ -59,12 +59,12 @@ namespace WinSW
             // Register the event log provider
             eventLogProvider.Service = this;
 
-            if (descriptor.Preshutdown)
+            if (config.Preshutdown)
             {
                 this.AcceptPreshutdown();
             }
 
-            Environment.CurrentDirectory = descriptor.WorkingDirectory;
+            Environment.CurrentDirectory = config.WorkingDirectory;
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace WinSW
         /// </summary>
         private void HandleFileCopies()
         {
-            var file = this.descriptor.BasePath + ".copies";
+            var file = this.config.BasePath + ".copies";
             if (!File.Exists(file))
             {
                 return; // nothing to handle
@@ -123,14 +123,14 @@ namespace WinSW
         /// <returns>Log Handler, which should be used for the spawned process</returns>
         private LogHandler CreateExecutableLogHandler()
         {
-            string logDirectory = this.descriptor.LogDirectory;
+            string logDirectory = this.config.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = this.descriptor.LogHandler;
+            LogHandler logAppender = this.config.LogHandler;
             logAppender.EventLogger = this;
             return logAppender;
         }
@@ -243,12 +243,12 @@ namespace WinSW
 
         private void DoStart()
         {
-            this.envs = this.descriptor.EnvironmentVariables;
+            this.envs = this.config.EnvironmentVariables;
 
             this.HandleFileCopies();
 
             // handle downloads
-            List<Download> downloads = this.descriptor.Downloads;
+            List<Download> downloads = this.config.Downloads;
             Task[] tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
             {
@@ -287,10 +287,10 @@ namespace WinSW
 
             try
             {
-                string? prestartExecutable = this.descriptor.PrestartExecutable;
+                string? prestartExecutable = this.config.PrestartExecutable;
                 if (prestartExecutable != null)
                 {
-                    using Process process = this.StartProcess(prestartExecutable, this.descriptor.PrestartArguments);
+                    using Process process = this.StartProcess(prestartExecutable, this.config.PrestartArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.");
                 }
@@ -300,24 +300,24 @@ namespace WinSW
                 Log.Error(e);
             }
 
-            string startArguments = this.descriptor.StartArguments ?? this.descriptor.Arguments;
+            string startArguments = this.config.StartArguments ?? this.config.Arguments;
 
-            this.LogInfo("Starting " + this.descriptor.Executable);
+            this.LogInfo("Starting " + this.config.Executable);
 
             // Load and start extensions
             this.ExtensionManager.LoadExtensions();
             this.ExtensionManager.FireOnWrapperStarted();
 
             LogHandler executableLogHandler = this.CreateExecutableLogHandler();
-            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler);
+            this.StartProcess(this.process, startArguments, this.config.Executable, executableLogHandler);
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
             try
             {
-                string? poststartExecutable = this.descriptor.PoststartExecutable;
+                string? poststartExecutable = this.config.PoststartExecutable;
                 if (poststartExecutable != null)
                 {
-                    using Process process = this.StartProcess(poststartExecutable, this.descriptor.PoststartArguments, process =>
+                    using Process process = this.StartProcess(poststartExecutable, this.config.PoststartArguments, process =>
                     {
                         this.LogInfo($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.");
                     });
@@ -336,10 +336,10 @@ namespace WinSW
         {
             try
             {
-                string? prestopExecutable = this.descriptor.PrestopExecutable;
+                string? prestopExecutable = this.config.PrestopExecutable;
                 if (prestopExecutable != null)
                 {
-                    using Process process = this.StartProcess(prestopExecutable, this.descriptor.PrestopArguments);
+                    using Process process = this.StartProcess(prestopExecutable, this.config.PrestopArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.");
                 }
@@ -349,15 +349,15 @@ namespace WinSW
                 Log.Error(e);
             }
 
-            string? stopArguments = this.descriptor.StopArguments;
-            this.LogInfo("Stopping " + this.descriptor.Id);
+            string? stopArguments = this.config.StopArguments;
+            this.LogInfo("Stopping " + this.config.Id);
             this.orderlyShutdown = true;
             this.process.EnableRaisingEvents = false;
 
             if (stopArguments is null)
             {
                 Log.Debug("ProcessKill " + this.process.Id);
-                ProcessHelper.StopProcessTree(this.process, this.descriptor.StopTimeout);
+                ProcessHelper.StopProcessTree(this.process, this.config.StopTimeout);
                 this.ExtensionManager.FireOnProcessTerminated(this.process);
             }
             else
@@ -366,7 +366,7 @@ namespace WinSW
 
                 Process stopProcess = new Process();
 
-                string stopExecutable = this.descriptor.StopExecutable ?? this.descriptor.Executable;
+                string stopExecutable = this.config.StopExecutable ?? this.config.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
                 this.StartProcess(stopProcess, stopArguments, stopExecutable, null);
@@ -378,10 +378,10 @@ namespace WinSW
 
             try
             {
-                string? poststopExecutable = this.descriptor.PoststopExecutable;
+                string? poststopExecutable = this.config.PoststopExecutable;
                 if (poststopExecutable != null)
                 {
-                    using Process process = this.StartProcess(poststopExecutable, this.descriptor.PoststopArguments);
+                    using Process process = this.StartProcess(poststopExecutable, this.config.PoststopArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Post-stop process '{process.Format()}' exited with code {process.ExitCode}.");
                 }
@@ -394,12 +394,12 @@ namespace WinSW
             // Stop extensions
             this.ExtensionManager.FireBeforeWrapperStopped();
 
-            if (this.shuttingdown && this.descriptor.BeepOnShutdown)
+            if (this.shuttingdown && this.config.BeepOnShutdown)
             {
                 Console.Beep();
             }
 
-            Log.Info("Finished " + this.descriptor.Id);
+            Log.Info("Finished " + this.config.Id);
         }
 
         private void WaitForProcessToExit(Process process)
@@ -485,11 +485,11 @@ namespace WinSW
                 executable: executable,
                 arguments: arguments,
                 envVars: this.envs,
-                workingDirectory: this.descriptor.WorkingDirectory,
-                priority: this.descriptor.Priority,
+                workingDirectory: this.config.WorkingDirectory,
+                priority: this.config.Priority,
                 onExited: OnProcessCompleted,
                 logHandler: logHandler,
-                hideWindow: this.descriptor.HideWindow);
+                hideWindow: this.config.HideWindow);
         }
 
         private Process StartProcess(string executable, string? arguments, Action<Process>? onExited = null)
@@ -497,7 +497,7 @@ namespace WinSW
             var info = new ProcessStartInfo(executable, arguments)
             {
                 UseShellExecute = false,
-                WorkingDirectory = this.descriptor.WorkingDirectory,
+                WorkingDirectory = this.config.WorkingDirectory,
             };
 
             Process process = Process.Start(info);

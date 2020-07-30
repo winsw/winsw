@@ -15,26 +15,26 @@ namespace WinSW.Tests.Configuration
         [Fact]
         public void AllOptionsConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor desc = Load("complete");
+            XmlServiceConfig config = Load("complete");
 
-            Assert.Equal("myapp", desc.Id);
-            Assert.Equal("%BASE%\\myExecutable.exe", desc.Executable);
+            Assert.Equal("myapp", config.Id);
+            Assert.Equal("%BASE%\\myExecutable.exe", config.Executable);
 
-            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
+            ServiceConfigAssert.AssertAllOptionalPropertiesAreDefault(config);
         }
 
         [Fact]
         public void MinimalConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor desc = Load("minimal");
+            XmlServiceConfig config = Load("minimal");
 
-            Assert.Equal("myapp", desc.Id);
-            Assert.Equal("%BASE%\\myExecutable.exe", desc.Executable);
+            Assert.Equal("myapp", config.Id);
+            Assert.Equal("%BASE%\\myExecutable.exe", config.Executable);
 
-            ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
+            ServiceConfigAssert.AssertAllOptionalPropertiesAreDefault(config);
         }
 
-        private static ServiceDescriptor Load(string exampleName)
+        private static XmlServiceConfig Load(string exampleName)
         {
             string directory = Environment.CurrentDirectory;
             while (true)
@@ -53,7 +53,7 @@ namespace WinSW.Tests.Configuration
 
             XmlDocument dom = new XmlDocument();
             dom.Load(path);
-            return new ServiceDescriptor(dom);
+            return new XmlServiceConfig(dom);
         }
     }
 }

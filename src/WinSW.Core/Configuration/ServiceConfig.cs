@@ -1,0 +1,90 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.ServiceProcess;
+using System.Xml;
+
+namespace WinSW.Configuration
+{
+    /// <summary>
+    /// Default WinSW settings
+    /// </summary>
+    public abstract class ServiceConfig
+    {
+        public abstract string FullPath { get; }
+
+        public abstract string Id { get; }
+
+        public virtual string Caption => string.Empty;
+
+        public virtual string Description => string.Empty;
+
+        public abstract string Executable { get; }
+
+        public string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
+
+        public virtual bool HideWindow => false;
+
+        // Installation
+        public virtual bool AllowServiceAcountLogonRight => false;
+
+        public virtual string? ServiceAccountPassword => null;
+
+        public virtual string? ServiceAccountUserName => null;
+
+        public virtual Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
+
+        public virtual TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
+
+        // Executable management
+        public virtual string Arguments => string.Empty;
+
+        public virtual string? StartArguments => null;
+
+        public virtual string? StopExecutable => null;
+
+        public virtual string? StopArguments => null;
+
+        public virtual string WorkingDirectory => Path.GetDirectoryName(this.FullPath)!;
+
+        public virtual ProcessPriorityClass Priority => ProcessPriorityClass.Normal;
+
+        public virtual TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
+
+        // Service management
+        public virtual ServiceStartMode StartMode => ServiceStartMode.Automatic;
+
+        public virtual string[] ServiceDependencies => new string[0];
+
+        public virtual bool Interactive => false;
+
+        public virtual bool DelayedAutoStart => false;
+
+        public virtual bool Preshutdown => false;
+
+        // Logging
+        public virtual string LogDirectory => Path.GetDirectoryName(this.ExecutablePath)!;
+
+        public virtual string LogMode => "append";
+
+        public virtual bool OutFileDisabled => false;
+
+        public virtual bool ErrFileDisabled => false;
+
+        public virtual string OutFilePattern => ".out.log";
+
+        public virtual string ErrFilePattern => ".err.log";
+
+        // Environment
+        public virtual List<Download> Downloads => new List<Download>(0);
+
+        public virtual Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(0);
+
+        // Misc
+        public virtual bool BeepOnShutdown => false;
+
+        // Extensions
+        public virtual XmlNode? ExtensionsConfiguration => null;
+    }
+}
