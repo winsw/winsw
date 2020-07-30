@@ -6,7 +6,7 @@ namespace WinSW.Tests.Extensions
 {
     public class SharedDirectoryMapperConfigTest : ExtensionTestBase
     {
-        private readonly ServiceDescriptor testServiceDescriptor;
+        private readonly XmlServiceConfig serviceConfig;
 
         private readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
@@ -35,13 +35,13 @@ $@"<service>
     </extension>
   </extensions>
 </service>";
-            this.testServiceDescriptor = ServiceDescriptor.FromXml(seedXml);
+            this.serviceConfig = XmlServiceConfig.FromXml(seedXml);
         }
 
         [Fact]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.serviceConfig);
             manager.LoadExtensions();
             Assert.Equal(2, manager.Extensions.Count);
         }
@@ -49,7 +49,7 @@ $@"<service>
         [Fact]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.serviceConfig);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();

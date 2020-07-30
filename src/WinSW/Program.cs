@@ -71,20 +71,20 @@ namespace WinSW
             {
                 Handler = CommandHandler.Create((string? pathToConfig) =>
                 {
-                    ServiceDescriptor descriptor;
+                    XmlServiceConfig config;
                     try
                     {
-                        descriptor = ServiceDescriptor.Create(pathToConfig);
+                        config = XmlServiceConfig.Create(pathToConfig);
                     }
                     catch (FileNotFoundException)
                     {
                         throw new CommandException("The specified command or file was not found.");
                     }
 
-                    InitLoggers(descriptor, enableConsoleLogging: false);
+                    InitLoggers(config, enableConsoleLogging: false);
 
                     Log.Debug("Starting WinSW in service mode");
-                    ServiceBase.Run(new WrapperService(descriptor));
+                    ServiceBase.Run(new WrapperService(config));
                 }),
             };
 
@@ -320,8 +320,8 @@ namespace WinSW
 
             void Install(string? pathToConfig, bool noElevate, string? username, string? password)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -329,25 +329,25 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Installing the service with id '" + descriptor.Id + "'");
+                Log.Info("Installing the service with id '" + config.Id + "'");
 
                 using ServiceManager scm = ServiceManager.Open();
 
-                if (scm.ServiceExists(descriptor.Id))
+                if (scm.ServiceExists(config.Id))
                 {
-                    Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
+                    Console.WriteLine("Service with id '" + config.Id + "' already exists");
                     Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                    throw new CommandException("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+                    throw new CommandException("Installation failure: Service with id '" + config.Id + "' already exists");
                 }
 
-                if (descriptor.HasServiceAccount())
+                if (config.HasServiceAccount())
                 {
-                    username = descriptor.ServiceAccountUserName ?? username;
-                    password = descriptor.ServiceAccountPassword ?? password;
+                    username = config.ServiceAccountUserName ?? username;
+                    password = config.ServiceAccountPassword ?? password;
 
                     if (username is null || password is null)
                     {
-                        switch (descriptor.ServiceAccountPrompt)
+                        switch (config.ServiceAccountPrompt)
                         {
                             case "dialog":
                                 Credentials.PropmtForCredentialsDialog(
@@ -370,45 +370,45 @@ namespace WinSW
                 }
 
                 using Service sc = scm.CreateService(
-                    descriptor.Id,
-                    descriptor.Caption,
-                    descriptor.StartMode,
-                    "\"" + descriptor.ExecutablePath + "\"" + (pathToConfig != null ? " \"" + Path.GetFullPath(pathToConfig) + "\"" : null),
-                    descriptor.ServiceDependencies,
+                    config.Id,
+                    config.Caption,
+                    config.StartMode,
+                    "\"" + config.ExecutablePath + "\"" + (pathToConfig != null ? " \"" + Path.GetFullPath(pathToConfig) + "\"" : null),
+                    config.ServiceDependencies,
                     username,
                     password);
 
-                string description = descriptor.Description;
+                string description = config.Description;
                 if (description.Length != 0)
                 {
                     sc.SetDescription(description);
                 }
 
-                SC_ACTION[] actions = descriptor.FailureActions;
+                SC_ACTION[] actions = config.FailureActions;
                 if (actions.Length > 0)
                 {
-                    sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
+                    sc.SetFailureActions(config.ResetFailureAfter, actions);
                 }
 
-                bool isDelayedAutoStart = descriptor.StartMode == ServiceStartMode.Automatic && descriptor.DelayedAutoStart;
+                bool isDelayedAutoStart = config.StartMode == ServiceStartMode.Automatic && config.DelayedAutoStart;
                 if (isDelayedAutoStart)
                 {
                     sc.SetDelayedAutoStart(true);
                 }
 
-                if (descriptor.PreshutdownTimeout is TimeSpan preshutdownTimeout)
+                if (config.PreshutdownTimeout is TimeSpan preshutdownTimeout)
                 {
                     sc.SetPreshutdownTimeout(preshutdownTimeout);
                 }
 
-                string? securityDescriptor = descriptor.SecurityDescriptor;
+                string? securityDescriptor = config.SecurityDescriptor;
                 if (securityDescriptor != null)
                 {
                     // throws ArgumentException
                     sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
                 }
 
-                string eventLogSource = descriptor.Id;
+                string eventLogSource = config.Id;
                 if (!EventLog.SourceExists(eventLogSource))
                 {
                     EventLog.CreateEventSource(eventLogSource, "Application");
@@ -434,8 +434,8 @@ namespace WinSW
 
             void Uninstall(string? pathToConfig, bool noElevate)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -443,18 +443,18 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
+                Log.Info("Uninstalling the service with id '" + config.Id + "'");
 
                 using ServiceManager scm = ServiceManager.Open();
                 try
                 {
-                    using Service sc = scm.OpenService(descriptor.Id);
+                    using Service sc = scm.OpenService(config.Id);
 
                     if (sc.Status == ServiceControllerStatus.Running)
                     {
                         // We could fail the opeartion here, but it would be an incompatible change.
                         // So it is just a warning
-                        Log.Warn("The service with id '" + descriptor.Id + "' is running. It may be impossible to uninstall it");
+                        Log.Warn("The service with id '" + config.Id + "' is running. It may be impossible to uninstall it");
                     }
 
                     sc.Delete();
@@ -464,18 +464,18 @@ namespace WinSW
                     switch (inner.NativeErrorCode)
                     {
                         case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
-                            Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
+                            Log.Warn("The service with id '" + config.Id + "' does not exist. Nothing to uninstall");
                             break; // there's no such service, so consider it already uninstalled
 
                         case Errors.ERROR_SERVICE_MARKED_FOR_DELETE:
-                            Log.Error("Failed to uninstall the service with id '" + descriptor.Id + "'"
+                            Log.Error("Failed to uninstall the service with id '" + config.Id + "'"
                                + ". It has been marked for deletion.");
 
                             // TODO: change the default behavior to Error?
                             break; // it's already uninstalled, so consider it a success
 
                         default:
-                            Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. Error code is '" + inner.NativeErrorCode + "'");
+                            Log.Fatal("Failed to uninstall the service with id '" + config.Id + "'. Error code is '" + inner.NativeErrorCode + "'");
                             throw;
                     }
                 }
@@ -483,8 +483,8 @@ namespace WinSW
 
             void Start(string? pathToConfig, bool noElevate)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -492,9 +492,9 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Starting the service with id '" + descriptor.Id + "'");
+                Log.Info("Starting the service with id '" + config.Id + "'");
 
-                using var svc = new ServiceController(descriptor.Id);
+                using var svc = new ServiceController(config.Id);
 
                 try
                 {
@@ -508,14 +508,14 @@ namespace WinSW
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_ALREADY_RUNNING)
                 {
-                    Log.Info($"The service with ID '{descriptor.Id}' has already been started");
+                    Log.Info($"The service with ID '{config.Id}' has already been started");
                 }
             }
 
             void Stop(string? pathToConfig, bool noElevate, bool noWait, bool force)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -523,9 +523,9 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
+                Log.Info("Stopping the service with id '" + config.Id + "'");
 
-                using var svc = new ServiceController(descriptor.Id);
+                using var svc = new ServiceController(config.Id);
 
                 try
                 {
@@ -567,8 +567,8 @@ namespace WinSW
 
             void Restart(string? pathToConfig, bool noElevate, bool force)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -576,9 +576,9 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
+                Log.Info("Restarting the service with id '" + config.Id + "'");
 
-                using var svc = new ServiceController(descriptor.Id);
+                using var svc = new ServiceController(config.Id);
 
                 List<ServiceController>? startedDependentServices = null;
 
@@ -632,19 +632,19 @@ namespace WinSW
 
             void RestartSelf(string? pathToConfig)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
                     throw new CommandException(new Win32Exception(Errors.ERROR_ACCESS_DENIED));
                 }
 
-                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
+                Log.Info("Restarting the service with id '" + config.Id + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
 
-                if (!ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _))
+                if (!ProcessApis.CreateProcess(null, config.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _))
                 {
                     throw new CommandException("Failed to invoke restart: " + Marshal.GetLastWin32Error());
                 }
@@ -652,11 +652,11 @@ namespace WinSW
 
             static void Status(string? pathToConfig)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
-                Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
-                using var svc = new ServiceController(descriptor.Id);
+                Log.Debug("User requested the status of the process with id '" + config.Id + "'");
+                using var svc = new ServiceController(config.Id);
                 try
                 {
                     Console.WriteLine(svc.Status == ServiceControllerStatus.Running ? "Started" : "Stopped");
@@ -670,8 +670,8 @@ namespace WinSW
 
             void Test(string? pathToConfig, bool noElevate, int? timeout, bool noBreak)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -679,7 +679,7 @@ namespace WinSW
                     return;
                 }
 
-                using WrapperService wsvc = new WrapperService(descriptor);
+                using WrapperService wsvc = new WrapperService(config);
                 wsvc.RaiseOnStart(args);
                 try
                 {
@@ -715,8 +715,8 @@ namespace WinSW
 
             void Refresh(string? pathToConfig, bool noElevate)
             {
-                ServiceDescriptor descriptor = ServiceDescriptor.Create(pathToConfig);
-                InitLoggers(descriptor, enableConsoleLogging: true);
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
@@ -727,30 +727,30 @@ namespace WinSW
                 using ServiceManager scm = ServiceManager.Open();
                 try
                 {
-                    using Service sc = scm.OpenService(descriptor.Id);
+                    using Service sc = scm.OpenService(config.Id);
 
-                    sc.ChangeConfig(descriptor.Caption, descriptor.StartMode, descriptor.ServiceDependencies);
+                    sc.ChangeConfig(config.Caption, config.StartMode, config.ServiceDependencies);
 
-                    sc.SetDescription(descriptor.Description);
+                    sc.SetDescription(config.Description);
 
-                    SC_ACTION[] actions = descriptor.FailureActions;
+                    SC_ACTION[] actions = config.FailureActions;
                     if (actions.Length > 0)
                     {
-                        sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
+                        sc.SetFailureActions(config.ResetFailureAfter, actions);
                     }
 
-                    bool isDelayedAutoStart = descriptor.StartMode == ServiceStartMode.Automatic && descriptor.DelayedAutoStart;
+                    bool isDelayedAutoStart = config.StartMode == ServiceStartMode.Automatic && config.DelayedAutoStart;
                     if (isDelayedAutoStart)
                     {
                         sc.SetDelayedAutoStart(true);
                     }
 
-                    if (descriptor.PreshutdownTimeout is TimeSpan preshutdownTimeout)
+                    if (config.PreshutdownTimeout is TimeSpan preshutdownTimeout)
                     {
                         sc.SetPreshutdownTimeout(preshutdownTimeout);
                     }
 
-                    string? securityDescriptor = descriptor.SecurityDescriptor;
+                    string? securityDescriptor = config.SecurityDescriptor;
                     if (securityDescriptor != null)
                     {
                         // throws ArgumentException
@@ -807,9 +807,9 @@ namespace WinSW
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowNoSuchService(Win32Exception inner) => throw new CommandException(inner);
 
-        private static void InitLoggers(ServiceDescriptor descriptor, bool enableConsoleLogging)
+        private static void InitLoggers(XmlServiceConfig config, bool enableConsoleLogging)
         {
-            if (ServiceDescriptor.TestDescriptor != null)
+            if (XmlServiceConfig.TestConfig != null)
             {
                 return;
             }
@@ -828,7 +828,7 @@ namespace WinSW
             List<IAppender> appenders = new List<IAppender>();
 
             // .wrapper.log
-            string wrapperLogPath = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
+            string wrapperLogPath = Path.Combine(config.LogDirectory, config.BaseName + ".wrapper.log");
             var wrapperLog = new FileAppender
             {
                 AppendToFile = true,

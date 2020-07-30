@@ -12,7 +12,7 @@ namespace WinSW.Tests.Extensions
 {
     public class RunawayProcessKillerExtensionTest : ExtensionTestBase
     {
-        private readonly ServiceDescriptor testServiceDescriptor;
+        private readonly XmlServiceConfig serviceConfig;
 
         private readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
 
@@ -37,13 +37,13 @@ $@"<service>
     </extension>
   </extensions>
 </service>";
-            this.testServiceDescriptor = ServiceDescriptor.FromXml(seedXml);
+            this.serviceConfig = XmlServiceConfig.FromXml(seedXml);
         }
 
         [Fact]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.serviceConfig);
             manager.LoadExtensions();
             _ = Assert.Single(manager.Extensions);
 
@@ -57,7 +57,7 @@ $@"<service>
         [Fact]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this.testServiceDescriptor);
+            WinSWExtensionManager manager = new WinSWExtensionManager(this.serviceConfig);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();
@@ -84,10 +84,10 @@ $@"<service>
                 {
                     // Generate extension and ensure that the roundtrip is correct
                     var pidfile = Path.Combine(tmpDir, "process.pid");
-                    var sd = ConfigXmlBuilder.Create(this.output, id: winswId)
+                    var config = ConfigXmlBuilder.Create(this.output, id: winswId)
                         .WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile), extensionId)
-                        .ToServiceDescriptor();
-                    WinSWExtensionManager manager = new WinSWExtensionManager(sd);
+                        .ToServiceConfig();
+                    WinSWExtensionManager manager = new WinSWExtensionManager(config);
                     manager.LoadExtensions();
                     var extension = manager.Extensions[extensionId] as RunawayProcessKillerExtension;
                     Assert.NotNull(extension);

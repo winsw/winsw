@@ -104,9 +104,9 @@ namespace WinSW.Tests.Util
             return res;
         }
 
-        public ServiceDescriptor ToServiceDescriptor(bool dumpConfig = false)
+        public XmlServiceConfig ToServiceConfig(bool dumpConfig = false)
         {
-            return ServiceDescriptor.FromXml(this.ToXmlString(dumpConfig));
+            return XmlServiceConfig.FromXml(this.ToXmlString(dumpConfig));
         }
 
         public ConfigXmlBuilder WithRawEntry(string entry)

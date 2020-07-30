@@ -27,7 +27,7 @@ namespace WinSW.Plugins.SharedDirectoryMapper
             this.entries.Add(config);
         }
 
-        public override void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public override void Configure(XmlServiceConfig config, XmlNode node)
         {
             XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
@@ -36,8 +36,7 @@ namespace WinSW.Plugins.SharedDirectoryMapper
                 {
                     if (mapNodes[i] is XmlElement mapElement)
                     {
-                        var config = SharedDirectoryMapperConfig.FromXml(mapElement);
-                        this.entries.Add(config);
+                        this.entries.Add(SharedDirectoryMapperConfig.FromXml(mapElement));
                     }
                 }
             }

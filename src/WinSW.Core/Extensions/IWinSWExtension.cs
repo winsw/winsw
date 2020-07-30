@@ -25,9 +25,9 @@ namespace WinSW.Extensions
         /// <summary>
         /// Init handler. Extension should load it's config during that step
         /// </summary>
-        /// <param name="descriptor">Service descriptor</param>
+        /// <param name="config">Service config</param>
         /// <param name="node">Configuration node</param>
-        void Configure(ServiceDescriptor descriptor, XmlNode node);
+        void Configure(XmlServiceConfig config, XmlNode node);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.
