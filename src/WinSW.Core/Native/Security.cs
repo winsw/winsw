@@ -9,9 +9,9 @@ namespace WinSW.Native
     {
         /// <exception cref="CommandException" />
         /// <exception cref="Win32Exception" />
-        internal static void AddServiceLogonRight(string userName)
+        internal static void AddServiceLogonRight(ref string userName)
         {
-            IntPtr sid = GetAccountSid(userName);
+            IntPtr sid = GetAccountSid(ref userName);
 
             try
             {
@@ -19,13 +19,12 @@ namespace WinSW.Native
             }
             finally
             {
-                _ = FreeSid(sid);
                 Marshal.FreeHGlobal(sid);
             }
         }
 
         /// <exception cref="CommandException" />
-        private static IntPtr GetAccountSid(string accountName)
+        private static IntPtr GetAccountSid(ref string accountName)
         {
             int sidSize = 0;
             int domainNameLength = 0;
@@ -35,24 +34,23 @@ namespace WinSW.Native
                 accountName = Environment.MachineName + accountName.Substring(1);
             }
 
-            _ = LookupAccountName(null, accountName, IntPtr.Zero, ref sidSize, IntPtr.Zero, ref domainNameLength, out _);
+            _ = LookupAccountName(null, accountName, IntPtr.Zero, ref sidSize, null, ref domainNameLength, out _);
 
             IntPtr sid = Marshal.AllocHGlobal(sidSize);
-            IntPtr domainName = Marshal.AllocHGlobal(domainNameLength * sizeof(char));
+            string? domainName = domainNameLength == 0 ? null : new string('\0', domainNameLength - 1);
 
-            try
+            if (!LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref domainNameLength, out _))
             {
-                if (!LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref domainNameLength, out _))
-                {
-                    Throw.Command.Win32Exception("Failed to find the account.");
-                }
+                Throw.Command.Win32Exception("Failed to find the account.");
+            }
 
-                return sid;
-            }
-            finally
+            // intentionally undocumented
+            if (!accountName.Contains("\\") && !accountName.Contains("@"))
             {
-                Marshal.FreeHGlobal(domainName);
+                accountName = domainName + '\\' + accountName;
             }
+
+            return sid;
         }
 
         /// <exception cref="Win32Exception" />

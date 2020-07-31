@@ -345,7 +345,7 @@ namespace WinSW
                     username = config.ServiceAccountUserName ?? username;
                     password = config.ServiceAccountPassword ?? password;
 
-                    if (username is null || password is null)
+                    if (username is null || password is null && !IsSpecialAccount(username))
                     {
                         switch (config.ServiceAccountPrompt)
                         {
@@ -364,9 +364,9 @@ namespace WinSW
                     }
                 }
 
-                if (username != null)
+                if (username != null && !IsSpecialAccount(username))
                 {
-                    Security.AddServiceLogonRight(username);
+                    Security.AddServiceLogonRight(ref username);
                 }
 
                 using Service sc = scm.CreateService(
@@ -422,7 +422,7 @@ namespace WinSW
                         username = Console.ReadLine();
                     }
 
-                    if (password is null)
+                    if (password is null && !IsSpecialAccount(username))
                     {
                         Console.Write("Password: ");
                         password = ReadPassword();
@@ -430,6 +430,16 @@ namespace WinSW
 
                     Console.WriteLine();
                 }
+
+                static bool IsSpecialAccount(string accountName) => accountName switch
+                {
+                    @"LocalSystem" => true,
+                    @".\LocalSystem" => true,
+                    @"NT AUTHORITY\LocalService" => true,
+                    @"NT AUTHORITY\NetworkService" => true,
+                    string name when name == $@"{Environment.MachineName}\LocalSystem" => true,
+                    _ => false
+                };
             }
 
             void Uninstall(string? pathToConfig, bool noElevate)
