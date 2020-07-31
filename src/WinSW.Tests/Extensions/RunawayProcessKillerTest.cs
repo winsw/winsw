@@ -107,7 +107,7 @@ $@"<service>
                     if (!proc.HasExited)
                     {
                         Console.Error.WriteLine("Test: Killing runaway process with ID=" + proc.Id);
-                        ProcessHelper.StopProcessTree(proc, TimeSpan.FromMilliseconds(100));
+                        proc.StopTree(TimeSpan.FromMilliseconds(100));
                         if (!proc.HasExited)
                         {
                             // The test is failed here anyway, but we add additional diagnostics info
