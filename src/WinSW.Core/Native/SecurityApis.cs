@@ -7,9 +7,6 @@ namespace WinSW.Native
 {
     internal static class SecurityApis
     {
-        [DllImport(Libraries.Advapi32, SetLastError = false)]
-        internal static extern IntPtr FreeSid(IntPtr sid);
-
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool GetTokenInformation(
             IntPtr tokenHandle,
@@ -24,7 +21,7 @@ namespace WinSW.Native
             string accountName,
             IntPtr sid,
             ref int sidSize,
-            IntPtr referencedDomainName,
+            string? referencedDomainName,
             ref int referencedDomainNameLength,
             out int use);
 
