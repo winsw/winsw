@@ -16,11 +16,9 @@ namespace WinSW
 {
     public sealed class WrapperService : ServiceBase, IEventLogger, IServiceEventLog
     {
-        private readonly Process process = new Process();
-        private readonly XmlServiceConfig config;
-        private Dictionary<string, string>? envs;
+        internal static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
 
-        internal WinSWExtensionManager ExtensionManager { get; }
+        private static readonly TimeSpan additionalStopTimeout = new TimeSpan(TimeSpan.TicksPerSecond);
 
         private static readonly ILog Log = LogManager.GetLogger(
 #if NETCOREAPP
@@ -28,13 +26,18 @@ namespace WinSW
 #endif
             "WinSW");
 
-        internal static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
+        private readonly XmlServiceConfig config;
+
+        private Process process = null!;
+        private volatile Process? poststartProcess;
+
+        internal WinSWExtensionManager ExtensionManager { get; }
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
         /// so don't try to kill us when the child exits.
         /// </summary>
-        private bool orderlyShutdown;
+        private volatile bool orderlyShutdown;
         private bool shuttingdown;
 
         /// <summary>
@@ -243,8 +246,6 @@ namespace WinSW
 
         private void DoStart()
         {
-            this.envs = this.config.EnvironmentVariables;
-
             this.HandleFileCopies();
 
             // handle downloads
@@ -285,19 +286,20 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 
-            try
+            string? prestartExecutable = this.config.PrestartExecutable;
+            if (prestartExecutable != null)
             {
-                string? prestartExecutable = this.config.PrestartExecutable;
-                if (prestartExecutable != null)
+                try
                 {
                     using Process process = this.StartProcess(prestartExecutable, this.config.PrestartArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.");
+                    process.StopDescendants(additionalStopTimeout);
                 }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                }
             }
 
             string startArguments = this.config.StartArguments ?? this.config.Arguments;
@@ -309,7 +311,7 @@ namespace WinSW
             this.ExtensionManager.FireOnWrapperStarted();
 
             LogHandler executableLogHandler = this.CreateExecutableLogHandler();
-            this.StartProcess(this.process, startArguments, this.config.Executable, executableLogHandler);
+            this.process = this.StartProcess(this.config.Executable, startArguments, this.OnMainProcessExited, executableLogHandler);
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
             try
@@ -317,10 +319,19 @@ namespace WinSW
                 string? poststartExecutable = this.config.PoststartExecutable;
                 if (poststartExecutable != null)
                 {
-                    using Process process = this.StartProcess(poststartExecutable, this.config.PoststartArguments, process =>
+                    using Process process = StartProcessLocked();
+                    this.WaitForProcessToExit(process);
+                    this.LogInfo($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.");
+                    process.StopDescendants(additionalStopTimeout);
+                    this.poststartProcess = null;
+
+                    Process StartProcessLocked()
                     {
-                        this.LogInfo($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.");
-                    });
+                        lock (this)
+                        {
+                            return this.poststartProcess = this.StartProcess(poststartExecutable, this.config.PoststartArguments);
+                        }
+                    }
                 }
             }
             catch (Exception e)
@@ -334,61 +345,73 @@ namespace WinSW
         /// </summary>
         private void DoStop()
         {
-            try
+            string? prestopExecutable = this.config.PrestopExecutable;
+            if (prestopExecutable != null)
             {
-                string? prestopExecutable = this.config.PrestopExecutable;
-                if (prestopExecutable != null)
+                try
                 {
                     using Process process = this.StartProcess(prestopExecutable, this.config.PrestopArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.");
+                    process.StopDescendants(additionalStopTimeout);
                 }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                }
             }
 
             string? stopArguments = this.config.StopArguments;
             this.LogInfo("Stopping " + this.config.Id);
             this.orderlyShutdown = true;
-            this.process.EnableRaisingEvents = false;
 
             if (stopArguments is null)
             {
                 Log.Debug("ProcessKill " + this.process.Id);
-                ProcessHelper.StopProcessTree(this.process, this.config.StopTimeout);
+                this.process.StopTree(this.config.StopTimeout);
                 this.ExtensionManager.FireOnProcessTerminated(this.process);
             }
             else
             {
                 this.SignalPending();
 
-                Process stopProcess = new Process();
-
                 string stopExecutable = this.config.StopExecutable ?? this.config.Executable;
 
-                // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                this.StartProcess(stopProcess, stopArguments, stopExecutable, null);
+                try
+                {
+                    // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
+                    Process stopProcess = this.StartProcess(stopExecutable, stopArguments);
 
-                Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
-                this.WaitForProcessToExit(this.process);
-                this.WaitForProcessToExit(stopProcess);
+                    Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
+                    this.WaitForProcessToExit(stopProcess);
+                    stopProcess.StopDescendants(additionalStopTimeout);
+
+                    this.WaitForProcessToExit(this.process);
+                    this.process.StopDescendants(this.config.StopTimeout);
+                }
+                catch
+                {
+                    this.process.StopTree(this.config.StopTimeout);
+                    throw;
+                }
             }
 
-            try
+            this.poststartProcess?.StopTree(additionalStopTimeout);
+
+            string? poststopExecutable = this.config.PoststopExecutable;
+            if (poststopExecutable != null)
             {
-                string? poststopExecutable = this.config.PoststopExecutable;
-                if (poststopExecutable != null)
+                try
                 {
                     using Process process = this.StartProcess(poststopExecutable, this.config.PoststopArguments);
                     this.WaitForProcessToExit(process);
                     this.LogInfo($"Post-stop process '{process.Format()}' exited with code {process.ExitCode}.");
+                    process.StopDescendants(additionalStopTimeout);
                 }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                }
             }
 
             // Stop extensions
@@ -447,60 +470,83 @@ namespace WinSW
             sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
         }
 
-        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler)
+        private void OnMainProcessExited(Process process)
         {
-            // Define handler of the completed process
-            void OnProcessCompleted(Process process)
+            string display = process.Format();
+
+            if (this.orderlyShutdown)
             {
-                string display = process.Format();
+                this.LogInfo($"Child process '{display}' terminated with code {process.ExitCode}.");
+            }
+            else
+            {
+                Log.Warn($"Child process '{display}' finished with code {process.ExitCode}.");
 
-                if (this.orderlyShutdown)
+                process.StopDescendants(this.config.StopTimeout);
+
+                lock (this)
                 {
-                    this.LogInfo($"Child process '{display}' terminated with code {process.ExitCode}.");
+                    this.poststartProcess?.StopTree(new TimeSpan(TimeSpan.TicksPerMillisecond));
                 }
-                else
-                {
-                    Log.Warn($"Child process '{display}' finished with code {process.ExitCode}.");
 
-                    // if we finished orderly, report that to SCM.
-                    // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
-                    // restart the service automatically
+                // if we finished orderly, report that to SCM.
+                // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
+                // restart the service automatically
+                if (process.ExitCode == 0)
+                {
                     try
                     {
-                        if (process.ExitCode == 0)
-                        {
-                            this.SignalStopped();
-                        }
+                        this.SignalStopped();
                     }
-                    finally
+                    catch (Exception e)
                     {
-                        Environment.Exit(process.ExitCode);
+                        Log.Error(e);
                     }
                 }
-            }
 
-            // Invoke process and exit
-            ProcessHelper.StartProcessAndCallbackForExit(
-                processToStart: processToStart,
-                executable: executable,
-                arguments: arguments,
-                envVars: this.envs,
-                workingDirectory: this.config.WorkingDirectory,
-                priority: this.config.Priority,
-                onExited: OnProcessCompleted,
-                logHandler: logHandler,
-                hideWindow: this.config.HideWindow);
+                Environment.Exit(process.ExitCode);
+            }
         }
 
-        private Process StartProcess(string executable, string? arguments, Action<Process>? onExited = null)
+        private Process StartProcess(string executable, string? arguments, Action<Process>? onExited = null, LogHandler? logHandler = null)
         {
-            var info = new ProcessStartInfo(executable, arguments)
+            var startInfo = new ProcessStartInfo(executable, arguments)
             {
                 UseShellExecute = false,
                 WorkingDirectory = this.config.WorkingDirectory,
+                CreateNoWindow = this.config.HideWindow,
+                RedirectStandardOutput = logHandler != null,
+                RedirectStandardError = logHandler != null,
             };
 
-            Process process = Process.Start(info);
+            Dictionary<string, string> environment = this.config.EnvironmentVariables;
+            if (environment.Count > 0)
+            {
+                var newEnvironment =
+#if NETCOREAPP
+                    startInfo.Environment;
+#else
+                    startInfo.EnvironmentVariables;
+#endif
+                foreach (KeyValuePair<string, string> pair in environment)
+                {
+                    newEnvironment[pair.Key] = pair.Value;
+                }
+            }
+
+            Process process = Process.Start(startInfo);
+
+            Log.Info($"Started process {process.Format()}.");
+
+            if (this.config.Priority is ProcessPriorityClass priority)
+            {
+                process.PriorityClass = priority;
+            }
+
+            if (logHandler != null)
+            {
+                logHandler.Log(process.StandardOutput, process.StandardError);
+            }
 
             if (onExited != null)
             {

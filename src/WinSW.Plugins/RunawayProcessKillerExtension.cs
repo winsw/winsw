@@ -270,7 +270,7 @@ namespace WinSW.Plugins.RunawayProcessKiller
             bldr.Append(proc);
 
             Logger.Warn(bldr.ToString());
-            ProcessHelper.StopProcessTree(proc, this.StopTimeout);
+            proc.StopTree(this.StopTimeout);
         }
 
         /// <summary>

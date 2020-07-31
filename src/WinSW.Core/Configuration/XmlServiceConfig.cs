@@ -597,7 +597,7 @@ namespace WinSW
         /// <summary>
         /// Environment variable overrides
         /// </summary>
-        public override Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(this.environmentVariables);
+        public override Dictionary<string, string> EnvironmentVariables => this.environmentVariables;
 
         /// <summary>
         /// List of downloads to be performed by the wrapper before starting
