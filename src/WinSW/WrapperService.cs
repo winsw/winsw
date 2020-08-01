@@ -361,11 +361,12 @@ namespace WinSW
                 }
             }
 
-            string? stopArguments = this.config.StopArguments;
             this.LogInfo("Stopping " + this.config.Id);
             this.orderlyShutdown = true;
 
-            if (stopArguments is null)
+            string? stopExecutable = this.config.StopExecutable;
+            string? stopArguments = this.config.StopArguments;
+            if (stopExecutable is null && stopArguments is null)
             {
                 Log.Debug("ProcessKill " + this.process.Id);
                 this.process.StopTree(this.config.StopTimeout);
@@ -375,7 +376,7 @@ namespace WinSW
             {
                 this.SignalPending();
 
-                string stopExecutable = this.config.StopExecutable ?? this.config.Executable;
+                stopExecutable ??= this.config.Executable;
 
                 try
                 {
