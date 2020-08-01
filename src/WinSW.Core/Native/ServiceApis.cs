@@ -66,6 +66,14 @@ namespace WinSW.Native
         internal static extern bool QueryServiceStatus(IntPtr serviceHandle, out SERVICE_STATUS serviceStatus);
 
         [DllImport(Libraries.Advapi32, SetLastError = true)]
+        internal static extern bool QueryServiceStatusEx(
+            IntPtr serviceHandle,
+            ServiceStatusType infoLevel,
+            out SERVICE_STATUS_PROCESS buffer,
+            int bufferSize,
+            out int bytesNeeded);
+
+        [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool SetServiceObjectSecurity(IntPtr serviceHandle, SecurityInfos securityInformation, byte[] securityDescriptor);
 
         [DllImport(Libraries.Advapi32, SetLastError = true)]
@@ -145,6 +153,12 @@ namespace WinSW.Native
                 MODIFY_BOOT_CONFIG,
         }
 
+        // SC_STATUS_
+        internal enum ServiceStatusType
+        {
+            ProcessInfo = 0,
+        }
+
         internal struct SERVICE_DELAYED_AUTO_START_INFO
         {
             public bool DelayedAutostart;
@@ -181,6 +195,19 @@ namespace WinSW.Native
             public int ServiceSpecificExitCode;
             public int CheckPoint;
             public int WaitHint;
+        }
+
+        internal struct SERVICE_STATUS_PROCESS
+        {
+            public ServiceType ServiceType;
+            public ServiceControllerStatus CurrentState;
+            public int ControlsAccepted;
+            public int Win32ExitCode;
+            public int ServiceSpecificExitCode;
+            public int CheckPoint;
+            public int WaitHint;
+            public int ProcessId;
+            public int ServiceFlags;
         }
     }
 }

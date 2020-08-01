@@ -26,6 +26,7 @@ using log4net.Core;
 using log4net.Layout;
 using WinSW.Logging;
 using WinSW.Native;
+using WinSW.Util;
 using Process = System.Diagnostics.Process;
 using TimeoutException = System.ServiceProcess.TimeoutException;
 
@@ -236,6 +237,22 @@ namespace WinSW
                 refresh.Add(noElevate);
 
                 root.Add(refresh);
+            }
+
+            {
+                var dev = new Command("dev");
+
+                dev.Add(config);
+                dev.Add(noElevate);
+
+                root.Add(dev);
+
+                var ps = new Command("ps")
+                {
+                    Handler = CommandHandler.Create<string?, bool>(DevPs),
+                };
+
+                dev.Add(ps);
             }
 
             return new CommandLineBuilder(root)
@@ -771,6 +788,58 @@ namespace WinSW
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
                     ThrowNoSuchService(inner);
+                }
+            }
+
+            void DevPs(string? pathToConfig, bool noElevate)
+            {
+                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+
+                if (!elevated)
+                {
+                    Elevate(noElevate);
+                    return;
+                }
+
+                using ServiceManager scm = ServiceManager.Open();
+                using Service sc = scm.OpenService(config.Id);
+
+                int processId = sc.ProcessId;
+                if (processId >= 0)
+                {
+                    const string Vertical = " \u2502 ";
+                    const string Corner = " \u2514\u2500";
+                    const string Cross = " \u251c\u2500";
+                    const string Space = "   ";
+
+                    using Process process = Process.GetProcessById(processId);
+                    Draw(process, string.Empty, true);
+
+                    static void Draw(Process process, string indentation, bool isLastChild)
+                    {
+                        Console.Write(indentation);
+
+                        if (isLastChild)
+                        {
+                            Console.Write(Corner);
+                            indentation += Space;
+                        }
+                        else
+                        {
+                            Console.Write(Cross);
+                            indentation += Vertical;
+                        }
+
+                        Console.WriteLine(process.Format());
+
+                        List<Process> children = process.GetChildren();
+                        int count = children.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            using Process child = children[i];
+                            Draw(child, indentation, i == count - 1);
+                        }
+                    }
                 }
             }
 

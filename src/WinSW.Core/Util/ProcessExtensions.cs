@@ -15,18 +15,70 @@ namespace WinSW.Util
         {
             Stop(process, stopTimeout);
 
-            foreach (Process child in GetDescendants(process))
+            foreach (Process child in GetChildren(process))
             {
-                StopTree(child, stopTimeout);
+                using (child)
+                {
+                    StopTree(child, stopTimeout);
+                }
             }
         }
 
         internal static void StopDescendants(this Process process, TimeSpan stopTimeout)
         {
-            foreach (Process child in GetDescendants(process))
+            foreach (Process child in GetChildren(process))
             {
-                StopTree(child, stopTimeout);
+                using (child)
+                {
+                    StopTree(child, stopTimeout);
+                }
             }
+        }
+
+        internal static unsafe List<Process> GetChildren(this Process process)
+        {
+            DateTime startTime = process.StartTime;
+            int processId = process.Id;
+
+            var children = new List<Process>();
+
+            foreach (Process other in Process.GetProcesses())
+            {
+                try
+                {
+                    if (other.StartTime <= startTime)
+                    {
+                        goto Next;
+                    }
+
+                    IntPtr handle = other.Handle;
+
+                    if (NtQueryInformationProcess(
+                        handle,
+                        PROCESSINFOCLASS.ProcessBasicInformation,
+                        out PROCESS_BASIC_INFORMATION information,
+                        sizeof(PROCESS_BASIC_INFORMATION)) != 0)
+                    {
+                        goto Next;
+                    }
+
+                    if ((int)information.InheritedFromUniqueProcessId == processId)
+                    {
+                        Logger.Info($"Found child process '{other.Format()}'.");
+                        children.Add(other);
+                        continue;
+                    }
+
+                Next:
+                    other.Dispose();
+                }
+                catch (Exception e) when (e is InvalidOperationException || e is Win32Exception)
+                {
+                    other.Dispose();
+                }
+            }
+
+            return children;
         }
 
         private static void Stop(Process process, TimeSpan stopTimeout)
@@ -60,52 +112,6 @@ namespace WinSW.Util
             }
 
             // TODO: Propagate error if process kill fails? Currently we use the legacy behavior
-        }
-
-        private static unsafe List<Process> GetDescendants(Process root)
-        {
-            DateTime startTime = root.StartTime;
-            int processId = root.Id;
-
-            var children = new List<Process>();
-
-            foreach (Process process in Process.GetProcesses())
-            {
-                try
-                {
-                    if (process.StartTime <= startTime)
-                    {
-                        goto Next;
-                    }
-
-                    IntPtr handle = process.Handle;
-
-                    if (NtQueryInformationProcess(
-                        handle,
-                        PROCESSINFOCLASS.ProcessBasicInformation,
-                        out PROCESS_BASIC_INFORMATION information,
-                        sizeof(PROCESS_BASIC_INFORMATION)) != 0)
-                    {
-                        goto Next;
-                    }
-
-                    if ((int)information.InheritedFromUniqueProcessId == processId)
-                    {
-                        Logger.Info($"Found child process '{process.Format()}'.");
-                        children.Add(process);
-                        continue;
-                    }
-
-                Next:
-                    process.Dispose();
-                }
-                catch (Exception e) when (e is InvalidOperationException || e is Win32Exception)
-                {
-                    process.Dispose();
-                }
-            }
-
-            return children;
         }
     }
 }
