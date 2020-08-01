@@ -139,6 +139,24 @@ namespace WinSW.Native
 
         internal Service(IntPtr handle) => this.handle = handle;
 
+        internal unsafe int ProcessId
+        {
+            get
+            {
+                if (!QueryServiceStatusEx(
+                    this.handle,
+                    ServiceStatusType.ProcessInfo,
+                    out SERVICE_STATUS_PROCESS status,
+                    sizeof(SERVICE_STATUS_PROCESS),
+                    out _))
+                {
+                    Throw.Command.Win32Exception("Failed to query service status.");
+                }
+
+                return status.CurrentState == ServiceControllerStatus.Running ? status.ProcessId : -1;
+            }
+        }
+
         /// <exception cref="CommandException" />
         internal ServiceControllerStatus Status
         {
