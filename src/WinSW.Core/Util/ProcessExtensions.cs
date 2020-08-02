@@ -13,7 +13,7 @@ namespace WinSW.Util
 
         public static void StopTree(this Process process, TimeSpan stopTimeout)
         {
-            Stop(process, stopTimeout);
+            StopPrivate(process, stopTimeout);
 
             foreach (Process child in GetChildren(process))
             {
@@ -81,7 +81,37 @@ namespace WinSW.Util
             return children;
         }
 
-        private static void Stop(Process process, TimeSpan stopTimeout)
+        // true  => canceled
+        // false => terminated
+        // null  => finished
+        internal static bool? Stop(this Process process, TimeSpan stopTimeout)
+        {
+            if (process.HasExited)
+            {
+                return null;
+            }
+
+            // (bool sent, bool exited)
+            KeyValuePair<bool, bool> result = SignalHelper.SendCtrlCToProcess(process, stopTimeout);
+            bool exited = result.Value;
+            if (exited)
+            {
+                bool sent = result.Key;
+                return sent ? true : (bool?)null;
+            }
+
+            try
+            {
+                process.Kill();
+            }
+            catch when (process.HasExited)
+            {
+            }
+
+            return false;
+        }
+
+        private static void StopPrivate(Process process, TimeSpan stopTimeout)
         {
             Logger.Info("Stopping process " + process.Id);
 

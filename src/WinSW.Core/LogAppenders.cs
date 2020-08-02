@@ -9,9 +9,9 @@ namespace WinSW
 {
     public interface IEventLogger
     {
-        void LogEvent(string message);
+        void WriteEntry(string message);
 
-        void LogEvent(string message, EventLogEntryType type);
+        void WriteEntry(string message, EventLogEntryType type);
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ namespace WinSW
             }
             catch (IOException e)
             {
-                this.EventLogger.LogEvent("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
+                this.EventLogger.WriteEntry("Failed to move :" + sourceFileName + " to " + destFileName + " because " + e.Message);
             }
         }
     }
@@ -118,7 +118,7 @@ namespace WinSW
             }
             catch (Exception e)
             {
-                this.EventLogger.LogEvent("Unhandled exception in task. " + e, EventLogEntryType.Error);
+                this.EventLogger.WriteEntry("Unhandled exception in task. " + e, EventLogEntryType.Error);
             }
         }
 
@@ -130,7 +130,7 @@ namespace WinSW
             }
             catch (Exception e)
             {
-                this.EventLogger.LogEvent("Unhandled exception in task. " + e, EventLogEntryType.Error);
+                this.EventLogger.WriteEntry("Unhandled exception in task. " + e, EventLogEntryType.Error);
             }
         }
     }
@@ -309,7 +309,7 @@ namespace WinSW
                     }
                     catch (IOException e)
                     {
-                        this.EventLogger.LogEvent("Failed to roll log: " + e.Message);
+                        this.EventLogger.WriteEntry("Failed to roll log: " + e.Message);
                     }
 
                     // even if the log rotation fails, create a new one, or else
@@ -439,7 +439,7 @@ namespace WinSW
                     }
                     catch (Exception ex)
                     {
-                        this.EventLogger.LogEvent($"Failed to to trigger auto roll at time event due to: {ex.Message}");
+                        this.EventLogger.WriteEntry($"Failed to to trigger auto roll at time event due to: {ex.Message}");
                     }
                     finally
                     {
@@ -476,7 +476,7 @@ namespace WinSW
                         }
                         catch (Exception e)
                         {
-                            this.EventLogger.LogEvent($"Failed to roll size time log: {e.Message}");
+                            this.EventLogger.WriteEntry($"Failed to roll size time log: {e.Message}");
                         }
                     }
 
@@ -516,7 +516,7 @@ namespace WinSW
             }
             catch (Exception e)
             {
-                this.EventLogger.LogEvent($"Failed to Zip files. Error {e.Message}");
+                this.EventLogger.WriteEntry($"Failed to Zip files. Error {e.Message}");
             }
         }
 
@@ -534,7 +534,7 @@ namespace WinSW
             }
             catch (Exception e)
             {
-                this.EventLogger.LogEvent($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
+                this.EventLogger.WriteEntry($"Failed to Zip the File {sourceFilePath}. Error {e.Message}");
             }
             finally
             {
