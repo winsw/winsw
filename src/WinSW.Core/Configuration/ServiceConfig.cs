@@ -14,9 +14,9 @@ namespace WinSW.Configuration
     {
         public abstract string FullPath { get; }
 
-        public abstract string Id { get; }
+        public abstract string Name { get; }
 
-        public virtual string Caption => string.Empty;
+        public virtual string DisplayName => string.Empty;
 
         public virtual string Description => string.Empty;
 

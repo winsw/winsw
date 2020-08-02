@@ -46,7 +46,7 @@ namespace WinSW
 
         public WrapperService(XmlServiceConfig config)
         {
-            this.ServiceName = config.Id;
+            this.ServiceName = config.Name;
             this.CanStop = true;
             this.AutoLog = false;
 
@@ -371,7 +371,7 @@ namespace WinSW
                 }
             }
 
-            Log.Info("Stopping " + this.config.Id);
+            Log.Info("Stopping " + this.config.Name);
             this.process.EnableRaisingEvents = false;
 
             string? stopExecutable = this.config.StopExecutable;
@@ -441,7 +441,7 @@ namespace WinSW
                 Console.Beep();
             }
 
-            Log.Info("Finished " + this.config.Id);
+            Log.Info("Finished " + this.config.Name);
 
             Process StartProcessLocked(string executable, string? arguments)
             {

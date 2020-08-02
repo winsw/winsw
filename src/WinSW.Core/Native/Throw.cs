@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace WinSW.Native
@@ -9,6 +11,53 @@ namespace WinSW.Native
         internal static class Command
         {
             /// <exception cref="CommandException" />
+            [DoesNotReturn]
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            internal static void Exception(Exception inner)
+            {
+                throw new CommandException(inner);
+            }
+
+            /// <exception cref="CommandException" />
+            [DoesNotReturn]
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            internal static void Exception(string message)
+            {
+                Debug.Assert(message.EndsWith("."));
+                throw new CommandException(message);
+            }
+
+            /// <exception cref="CommandException" />
+            [DoesNotReturn]
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            internal static void Exception(string message, Exception inner)
+            {
+                Debug.Assert(message.EndsWith("."));
+                throw new CommandException(message, inner);
+            }
+
+            /// <exception cref="CommandException" />
+            [DoesNotReturn]
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            internal static void Win32Exception(int error)
+            {
+                Debug.Assert(error != 0);
+                throw new CommandException(new Win32Exception(error));
+            }
+
+            /// <exception cref="CommandException" />
+            [DoesNotReturn]
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            internal static void Win32Exception(int error, string message)
+            {
+                Debug.Assert(error != 0);
+                Win32Exception inner = new Win32Exception(error);
+                Debug.Assert(message.EndsWith("."));
+                throw new CommandException(message + ' ' + inner.Message, inner);
+            }
+
+            /// <exception cref="CommandException" />
+            [DoesNotReturn]
             [MethodImpl(MethodImplOptions.NoInlining)]
             internal static void Win32Exception(string message)
             {

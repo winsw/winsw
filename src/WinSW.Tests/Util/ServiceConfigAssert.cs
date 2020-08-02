@@ -26,7 +26,7 @@ namespace WinSW.Tests.Util
 
             public override string FullPath => this.config.FullPath;
 
-            public override string Id => this.config.Id;
+            public override string Name => this.config.Name;
 
             public override string Executable => this.config.Executable;
         }

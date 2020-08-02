@@ -17,7 +17,7 @@ namespace WinSW.Tests.Configuration
         {
             XmlServiceConfig config = Load("complete");
 
-            Assert.Equal("myapp", config.Id);
+            Assert.Equal("myapp", config.Name);
             Assert.Equal("%BASE%\\myExecutable.exe", config.Executable);
 
             ServiceConfigAssert.AssertAllOptionalPropertiesAreDefault(config);
@@ -28,7 +28,7 @@ namespace WinSW.Tests.Configuration
         {
             XmlServiceConfig config = Load("minimal");
 
-            Assert.Equal("myapp", config.Id);
+            Assert.Equal("myapp", config.Name);
             Assert.Equal("%BASE%\\myExecutable.exe", config.Executable);
 
             ServiceConfigAssert.AssertAllOptionalPropertiesAreDefault(config);

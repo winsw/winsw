@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
@@ -218,20 +219,23 @@ namespace WinSW.Native
             ServiceStartMode startMode,
             string[] dependencies)
         {
-            if (!ChangeServiceConfig(
-                this.handle,
-                default,
-                startMode,
-                default,
-                null,
-                null,
-                IntPtr.Zero,
-                GetNativeDependencies(dependencies),
-                null,
-                null,
-                displayName))
+            unchecked
             {
-                Throw.Command.Win32Exception("Failed to change service config.");
+                if (!ChangeServiceConfig(
+                    this.handle,
+                    (ServiceType)SERVICE_NO_CHANGE,
+                    startMode,
+                    (ServiceErrorControl)SERVICE_NO_CHANGE,
+                    null,
+                    null,
+                    IntPtr.Zero,
+                    GetNativeDependencies(dependencies),
+                    null,
+                    null,
+                    displayName))
+                {
+                    Throw.Command.Win32Exception("Failed to change service config.");
+                }
             }
         }
 
