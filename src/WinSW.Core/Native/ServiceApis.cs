@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable SA1310 // Field names should not contain underscore
+
+using System;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.ServiceProcess;
@@ -8,6 +10,8 @@ namespace WinSW.Native
 {
     internal static class ServiceApis
     {
+        internal const uint SERVICE_NO_CHANGE = 0xffffffff;
+
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "ChangeServiceConfigW")]
         internal static extern bool ChangeServiceConfig(
             IntPtr serviceHandle,

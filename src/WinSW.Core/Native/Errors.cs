@@ -12,6 +12,7 @@ namespace WinSW.Native
         internal const int ERROR_SERVICE_DOES_NOT_EXIST = 1060;
         internal const int ERROR_SERVICE_NOT_ACTIVE = 1062;
         internal const int ERROR_SERVICE_MARKED_FOR_DELETE = 1072;
+        internal const int ERROR_SERVICE_EXISTS = 1073;
         internal const int ERROR_CANCELLED = 1223;
     }
 }

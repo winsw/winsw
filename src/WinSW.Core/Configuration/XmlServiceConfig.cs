@@ -67,13 +67,13 @@ namespace WinSW
             Environment.SetEnvironmentVariable("BASE", baseDir);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", this.Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Name);
 
             // New name
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
 
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
@@ -105,13 +105,13 @@ namespace WinSW
             Environment.SetEnvironmentVariable("BASE", baseDir);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", this.Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Name);
 
             // New name
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
 
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
@@ -529,9 +529,9 @@ namespace WinSW
             }
         }
 
-        public override string Id => this.SingleElement("id");
+        public override string Name => this.SingleElement("id");
 
-        public override string Caption => this.SingleElement("name", true) ?? base.Caption;
+        public override string DisplayName => this.SingleElement("name", true) ?? base.DisplayName;
 
         public override string Description => this.SingleElement("description", true) ?? base.Description;
 

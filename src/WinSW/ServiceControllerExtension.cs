@@ -1,15 +1,17 @@
 ﻿using System;
 using System.ServiceProcess;
+using System.Threading;
 using TimeoutException = System.ServiceProcess.TimeoutException;
 
 namespace WinSW
 {
     internal static class ServiceControllerExtension
     {
+        /// <exception cref="OperationCanceledException" />
         /// <exception cref="TimeoutException" />
-        internal static void WaitForStatus(this ServiceController serviceController, ServiceControllerStatus desiredStatus, ServiceControllerStatus pendingStatus)
+        internal static void WaitForStatus(this ServiceController serviceController, ServiceControllerStatus desiredStatus, ServiceControllerStatus pendingStatus, CancellationToken ct)
         {
-            TimeSpan timeout = TimeSpan.FromSeconds(1);
+            TimeSpan timeout = new TimeSpan(TimeSpan.TicksPerSecond);
             for (; ; )
             {
                 try
@@ -17,8 +19,10 @@ namespace WinSW
                     serviceController.WaitForStatus(desiredStatus, timeout);
                     break;
                 }
-                catch (TimeoutException) when (serviceController.Status == desiredStatus || serviceController.Status == pendingStatus)
+                catch (TimeoutException)
+                when (serviceController.Status == desiredStatus || serviceController.Status == pendingStatus)
                 {
+                    ct.ThrowIfCancellationRequested();
                 }
             }
         }

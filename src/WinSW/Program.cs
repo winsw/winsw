@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -39,24 +35,24 @@ namespace WinSW
 
         internal static Action<Exception, InvocationContext>? TestExceptionHandler;
 
-        private static int Main(string[] args)
-        {
-            int exitCode = Run(args);
-            Log.Debug("Completed. Exit code is " + exitCode);
-            return exitCode;
-        }
-
-        internal static int Run(string[] args)
+        internal static int Main(string[] args)
         {
             bool elevated;
-            if (args[0] == "--elevated")
+            if (args.Length > 0 && args[0] == "--elevated")
             {
                 elevated = true;
 
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
 
-                args = new List<string>(args).GetRange(1, args.Length - 1).ToArray();
+#if NETCOREAPP
+                args = args[1..];
+#else
+                string[] oldArgs = args;
+                int newLength = oldArgs.Length - 1;
+                args = new string[newLength];
+                Array.Copy(oldArgs, 1, args, 0, newLength);
+#endif
             }
             else if (Environment.OSVersion.Version.Major == 5)
             {
@@ -72,19 +68,19 @@ namespace WinSW
             {
                 Handler = CommandHandler.Create((string? pathToConfig) =>
                 {
-                    XmlServiceConfig config;
+                    XmlServiceConfig config = null!;
                     try
                     {
                         config = XmlServiceConfig.Create(pathToConfig);
                     }
                     catch (FileNotFoundException)
                     {
-                        throw new CommandException("The specified command or file was not found.");
+                        Throw.Command.Exception("The specified command or file was not found.");
                     }
 
                     InitLoggers(config, enableConsoleLogging: false);
 
-                    Log.Debug("Starting WinSW in service mode");
+                    Log.Debug("Starting WinSW in service mode.");
                     ServiceBase.Run(new WrapperService(config));
                 }),
             };
@@ -141,11 +137,12 @@ namespace WinSW
             {
                 var start = new Command("start", "Starts the service.")
                 {
-                    Handler = CommandHandler.Create<string?, bool>(Start),
+                    Handler = CommandHandler.Create<string?, bool, bool, CancellationToken>(Start),
                 };
 
                 start.Add(config);
                 start.Add(noElevate);
+                start.Add(new Option("--no-wait", "Doesn't wait for the service to actually start."));
 
                 root.Add(start);
             }
@@ -153,7 +150,7 @@ namespace WinSW
             {
                 var stop = new Command("stop", "Stops the service.")
                 {
-                    Handler = CommandHandler.Create<string?, bool, bool, bool>(Stop),
+                    Handler = CommandHandler.Create<string?, bool, bool, bool, CancellationToken>(Stop),
                 };
 
                 stop.Add(config);
@@ -167,7 +164,7 @@ namespace WinSW
             {
                 var restart = new Command("restart", "Stops and then starts the service.")
                 {
-                    Handler = CommandHandler.Create<string?, bool, bool>(Restart),
+                    Handler = CommandHandler.Create<string?, bool, bool, CancellationToken>(Restart),
                 };
 
                 restart.Add(config);
@@ -240,14 +237,15 @@ namespace WinSW
             }
 
             {
-                var dev = new Command("dev");
-
-                dev.Add(config);
-                dev.Add(noElevate);
+                var dev = new Command("dev", "Experimental commands.")
+                {
+                    config,
+                    noElevate,
+                };
 
                 root.Add(dev);
 
-                var ps = new Command("ps")
+                var ps = new Command("ps", "Draws the process tree associated with the service.")
                 {
                     Handler = CommandHandler.Create<string?, bool>(DevPs),
                 };
@@ -256,14 +254,8 @@ namespace WinSW
             }
 
             return new CommandLineBuilder(root)
-
-                // see UseDefaults
                 .UseVersionOption()
                 .UseHelp()
-                /* .UseEnvironmentVariableDirective() */
-                .UseParseDirective()
-                .UseDebugDirective()
-                .UseSuggestDirective()
                 .RegisterWithDotnetSuggest()
                 .UseTypoCorrections()
                 .UseParseErrorReporting()
@@ -274,64 +266,57 @@ namespace WinSW
 
             static void OnException(Exception exception, InvocationContext context)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                try
+                Debug.Assert(exception is TargetInvocationException);
+                Debug.Assert(exception.InnerException != null);
+                exception = exception.InnerException!;
+                switch (exception)
                 {
-                    IStandardStreamWriter error = context.Console.Error;
+                    case InvalidDataException e:
+                        {
+                            string message = "The configuration file could not be loaded. " + e.Message;
+                            Log.Fatal(message, e);
+                            context.ResultCode = -1;
+                            break;
+                        }
 
-                    Debug.Assert(exception is TargetInvocationException);
-                    Debug.Assert(exception.InnerException != null);
-                    exception = exception.InnerException!;
-                    switch (exception)
-                    {
-                        case InvalidDataException e:
-                            {
-                                string message = "The configuration file cound not be loaded. " + e.Message;
-                                Log.Fatal(message, e);
-                                error.WriteLine(message);
-                                context.ResultCode = -1;
-                                break;
-                            }
+                    case OperationCanceledException e:
+                        {
+                            Debug.Assert(e.CancellationToken == context.GetCancellationToken());
+                            Log.Fatal(e.Message);
+                            context.ResultCode = -1;
+                            break;
+                        }
 
-                        case CommandException e:
-                            {
-                                string message = e.Message;
-                                Log.Fatal(message);
-                                error.WriteLine(message);
-                                context.ResultCode = e.InnerException is Win32Exception inner ? inner.NativeErrorCode : -1;
-                                break;
-                            }
+                    case CommandException e:
+                        {
+                            string message = e.Message;
+                            Log.Fatal(message);
+                            context.ResultCode = e.InnerException is Win32Exception inner ? inner.NativeErrorCode : -1;
+                            break;
+                        }
 
-                        case InvalidOperationException e when e.InnerException is Win32Exception inner:
-                            {
-                                string message = e.Message;
-                                Log.Fatal(message, e);
-                                error.WriteLine(message);
-                                context.ResultCode = inner.NativeErrorCode;
-                                break;
-                            }
+                    case InvalidOperationException e when e.InnerException is Win32Exception inner:
+                        {
+                            string message = e.Message;
+                            Log.Fatal(message);
+                            context.ResultCode = inner.NativeErrorCode;
+                            break;
+                        }
 
-                        case Win32Exception e:
-                            {
-                                string message = e.Message;
-                                Log.Fatal(message, e);
-                                error.WriteLine(message);
-                                context.ResultCode = e.NativeErrorCode;
-                                break;
-                            }
+                    case Win32Exception e:
+                        {
+                            string message = e.Message;
+                            Log.Fatal(message, e);
+                            context.ResultCode = e.NativeErrorCode;
+                            break;
+                        }
 
-                        default:
-                            {
-                                Log.Fatal("Unhandled exception", exception);
-                                error.WriteLine(exception.ToString());
-                                context.ResultCode = -1;
-                                break;
-                            }
-                    }
-                }
-                finally
-                {
-                    Console.ResetColor();
+                    default:
+                        {
+                            Log.Fatal("Unhandled exception", exception);
+                            context.ResultCode = -1;
+                            break;
+                        }
                 }
             }
 
@@ -346,15 +331,14 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Installing the service with id '" + config.Id + "'");
+                Log.Info($"Installing service '{config.Format()}'...");
 
                 using ServiceManager scm = ServiceManager.Open();
 
-                if (scm.ServiceExists(config.Id))
+                if (scm.ServiceExists(config.Name))
                 {
-                    Console.WriteLine("Service with id '" + config.Id + "' already exists");
-                    Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                    throw new CommandException("Installation failure: Service with id '" + config.Id + "' already exists");
+                    Log.Error($"A service with ID '{config.Name}' already exists.");
+                    Throw.Command.Win32Exception(Errors.ERROR_SERVICE_EXISTS, "Failed to install the service.");
                 }
 
                 if (config.HasServiceAccount())
@@ -371,7 +355,7 @@ namespace WinSW
                                     ref username,
                                     ref password,
                                     "Windows Service Wrapper",
-                                    "service account credentials"); // TODO
+                                    "Enter the service account credentials");
                                 break;
 
                             case "console":
@@ -387,10 +371,10 @@ namespace WinSW
                 }
 
                 using Service sc = scm.CreateService(
-                    config.Id,
-                    config.Caption,
+                    config.Name,
+                    config.DisplayName,
                     config.StartMode,
-                    "\"" + config.ExecutablePath + "\"" + (pathToConfig != null ? " \"" + Path.GetFullPath(pathToConfig) + "\"" : null),
+                    $"\"{config.ExecutablePath}\"" + (pathToConfig is null ? null : $" \"{Path.GetFullPath(pathToConfig)}\""),
                     config.ServiceDependencies,
                     username,
                     password);
@@ -425,11 +409,13 @@ namespace WinSW
                     sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
                 }
 
-                string eventLogSource = config.Id;
+                string eventLogSource = config.Name;
                 if (!EventLog.SourceExists(eventLogSource))
                 {
                     EventLog.CreateEventSource(eventLogSource, "Application");
                 }
+
+                Log.Info($"Service '{config.Format()}' was installed successfully.");
 
                 void PromptForCredentialsConsole()
                 {
@@ -470,45 +456,46 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Uninstalling the service with id '" + config.Id + "'");
+                Log.Info($"Uninstalling service '{config.Format()}'...");
 
                 using ServiceManager scm = ServiceManager.Open();
                 try
                 {
-                    using Service sc = scm.OpenService(config.Id);
+                    using Service sc = scm.OpenService(config.Name);
 
-                    if (sc.Status == ServiceControllerStatus.Running)
+                    if (sc.Status != ServiceControllerStatus.Stopped)
                     {
                         // We could fail the opeartion here, but it would be an incompatible change.
                         // So it is just a warning
-                        Log.Warn("The service with id '" + config.Id + "' is running. It may be impossible to uninstall it");
+                        Log.Warn($"Service '{config.Format()}' is started. It may be impossible to uninstall it.");
                     }
 
                     sc.Delete();
+
+                    Log.Info($"Service '{config.Format()}' was uninstalled successfully.");
                 }
                 catch (CommandException e) when (e.InnerException is Win32Exception inner)
                 {
                     switch (inner.NativeErrorCode)
                     {
                         case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
-                            Log.Warn("The service with id '" + config.Id + "' does not exist. Nothing to uninstall");
+                            Log.Warn($"Service '{config.Format()}' does not exist.");
                             break; // there's no such service, so consider it already uninstalled
 
                         case Errors.ERROR_SERVICE_MARKED_FOR_DELETE:
-                            Log.Error("Failed to uninstall the service with id '" + config.Id + "'"
-                               + ". It has been marked for deletion.");
+                            Log.Error(e.Message);
 
                             // TODO: change the default behavior to Error?
                             break; // it's already uninstalled, so consider it a success
 
                         default:
-                            Log.Fatal("Failed to uninstall the service with id '" + config.Id + "'. Error code is '" + inner.NativeErrorCode + "'");
-                            throw;
+                            Throw.Command.Exception("Failed to uninstall the service.", inner);
+                            break;
                     }
                 }
             }
 
-            void Start(string? pathToConfig, bool noElevate)
+            void Start(string? pathToConfig, bool noElevate, bool noWait, CancellationToken ct)
             {
                 XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
@@ -519,27 +506,40 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Starting the service with id '" + config.Id + "'");
-
-                using var svc = new ServiceController(config.Id);
+                using var svc = new ServiceController(config.Name);
 
                 try
                 {
+                    Log.Info($"Starting service '{svc.Format()}'...");
                     svc.Start();
+
+                    if (!noWait)
+                    {
+                        try
+                        {
+                            svc.WaitForStatus(ServiceControllerStatus.Running, ServiceControllerStatus.StartPending, ct);
+                        }
+                        catch (TimeoutException)
+                        {
+                            Throw.Command.Exception("Failed to start the service.");
+                        }
+                    }
+
+                    Log.Info($"Service '{svc.Format()}' started successfully.");
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
-                    ThrowNoSuchService(inner);
+                    Throw.Command.Exception(inner);
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_ALREADY_RUNNING)
                 {
-                    Log.Info($"The service with ID '{config.Id}' has already been started");
+                    Log.Info($"Service '{svc.Format()}' has already started.");
                 }
             }
 
-            void Stop(string? pathToConfig, bool noElevate, bool noWait, bool force)
+            void Stop(string? pathToConfig, bool noElevate, bool noWait, bool force, CancellationToken ct)
             {
                 XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
@@ -550,9 +550,7 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Stopping the service with id '" + config.Id + "'");
-
-                using var svc = new ServiceController(config.Id);
+                using var svc = new ServiceController(config.Name);
 
                 try
                 {
@@ -560,39 +558,40 @@ namespace WinSW
                     {
                         if (svc.HasAnyStartedDependentService())
                         {
-                            throw new CommandException("Failed to stop the service because it has started dependent services. Specify '--force' to proceed.");
+                            Throw.Command.Exception("Failed to stop the service because it has started dependent services. Specify '--force' to proceed.");
                         }
                     }
 
+                    Log.Info($"Stopping service '{svc.Format()}'...");
                     svc.Stop();
 
                     if (!noWait)
                     {
-                        Log.Info("Waiting for the service to stop...");
                         try
                         {
-                            svc.WaitForStatus(ServiceControllerStatus.Stopped, ServiceControllerStatus.StopPending);
+                            svc.WaitForStatus(ServiceControllerStatus.Stopped, ServiceControllerStatus.StopPending, ct);
                         }
-                        catch (TimeoutException e)
+                        catch (TimeoutException)
                         {
-                            throw new CommandException("Failed to stop the service.", e);
+                            Throw.Command.Exception("Failed to stop the service.");
                         }
                     }
+
+                    Log.Info($"Service '{svc.Format()}' stopped successfully.");
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
-                    ThrowNoSuchService(inner);
+                    Throw.Command.Exception(inner);
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_NOT_ACTIVE)
                 {
+                    Log.Info($"Service '{svc.Format()}' has already stopped.");
                 }
-
-                Log.Info("The service stopped.");
             }
 
-            void Restart(string? pathToConfig, bool noElevate, bool force)
+            void Restart(string? pathToConfig, bool noElevate, bool force, CancellationToken ct)
             {
                 XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
@@ -603,9 +602,7 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Restarting the service with id '" + config.Id + "'");
-
-                using var svc = new ServiceController(config.Id);
+                using var svc = new ServiceController(config.Name);
 
                 List<ServiceController>? startedDependentServices = null;
 
@@ -615,35 +612,45 @@ namespace WinSW
                     {
                         if (!force)
                         {
-                            throw new CommandException("Failed to restart the service because it has started dependent services. Specify '--force' to proceed.");
+                            Throw.Command.Exception("Failed to restart the service because it has started dependent services. Specify '--force' to proceed.");
                         }
 
                         startedDependentServices = svc.DependentServices.Where(service => service.Status != ServiceControllerStatus.Stopped).ToList();
                     }
 
+                    Log.Info($"Stopping service '{svc.Format()}'...");
                     svc.Stop();
 
-                    Log.Info("Waiting for the service to stop...");
                     try
                     {
-                        svc.WaitForStatus(ServiceControllerStatus.Stopped, ServiceControllerStatus.StopPending);
+                        svc.WaitForStatus(ServiceControllerStatus.Stopped, ServiceControllerStatus.StopPending, ct);
                     }
-                    catch (TimeoutException e)
+                    catch (TimeoutException)
                     {
-                        throw new CommandException("Failed to stop the service.", e);
+                        Throw.Command.Exception("Failed to stop the service.");
                     }
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
-                    ThrowNoSuchService(inner);
+                    Throw.Command.Exception(inner);
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_NOT_ACTIVE)
                 {
                 }
 
+                Log.Info($"Starting service '{svc.Format()}'...");
                 svc.Start();
+
+                try
+                {
+                    svc.WaitForStatus(ServiceControllerStatus.Running, ServiceControllerStatus.StartPending, ct);
+                }
+                catch (TimeoutException)
+                {
+                    Throw.Command.Exception("Failed to start the service.");
+                }
 
                 if (startedDependentServices != null)
                 {
@@ -651,10 +658,13 @@ namespace WinSW
                     {
                         if (service.Status == ServiceControllerStatus.Stopped)
                         {
+                            Log.Info($"Starting service '{service.Format()}'...");
                             service.Start();
                         }
                     }
                 }
+
+                Log.Info($"Service '{svc.Format()}' restarted successfully.");
             }
 
             void RestartSelf(string? pathToConfig)
@@ -664,34 +674,56 @@ namespace WinSW
 
                 if (!elevated)
                 {
-                    throw new CommandException(new Win32Exception(Errors.ERROR_ACCESS_DENIED));
+                    Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
                 }
 
-                Log.Info("Restarting the service with id '" + config.Id + "'");
-
                 // run restart from another process group. see README.md for why this is useful.
-
-                if (!ProcessApis.CreateProcess(null, config.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _))
+                if (!ProcessApis.CreateProcess(
+                    null,
+                    $"\"{config.ExecutablePath}\" restart" + (pathToConfig is null ? null : $" \"{pathToConfig}\""),
+                    IntPtr.Zero,
+                    IntPtr.Zero,
+                    false,
+                    ProcessApis.CREATE_NEW_PROCESS_GROUP,
+                    IntPtr.Zero,
+                    null,
+                    default,
+                    out _))
                 {
-                    throw new CommandException("Failed to invoke restart: " + Marshal.GetLastWin32Error());
+                    Throw.Command.Win32Exception("Failed to invoke restart.");
                 }
             }
 
-            static void Status(string? pathToConfig)
+            static int Status(string? pathToConfig)
             {
                 XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
-                Log.Debug("User requested the status of the process with id '" + config.Id + "'");
-                using var svc = new ServiceController(config.Id);
+                using var svc = new ServiceController(config.Name);
                 try
                 {
-                    Console.WriteLine(svc.Status == ServiceControllerStatus.Running ? "Started" : "Stopped");
+                    Console.WriteLine(svc.Status switch
+                    {
+                        ServiceControllerStatus.StartPending => "Starting",
+                        ServiceControllerStatus.StopPending => "Stopping",
+                        ServiceControllerStatus.Running => "Running",
+                        ServiceControllerStatus.ContinuePending => "Continuing",
+                        ServiceControllerStatus.PausePending => "Pausing",
+                        ServiceControllerStatus.Paused => "Paused",
+                        _ => "Stopped"
+                    });
+
+                    return svc.Status switch
+                    {
+                        ServiceControllerStatus.Stopped => 0,
+                        _ => 1
+                    };
                 }
                 catch (InvalidOperationException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
                     Console.WriteLine("NonExistent");
+                    return Errors.ERROR_SERVICE_DOES_NOT_EXIST;
                 }
             }
 
@@ -730,6 +762,7 @@ namespace WinSW
 
                         void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
                         {
+                            e.Cancel = true;
                             evt.Set();
                         }
                     }
@@ -754,9 +787,9 @@ namespace WinSW
                 using ServiceManager scm = ServiceManager.Open();
                 try
                 {
-                    using Service sc = scm.OpenService(config.Id);
+                    using Service sc = scm.OpenService(config.Name);
 
-                    sc.ChangeConfig(config.Caption, config.StartMode, config.ServiceDependencies);
+                    sc.ChangeConfig(config.DisplayName, config.StartMode, config.ServiceDependencies);
 
                     sc.SetDescription(config.Description);
 
@@ -787,8 +820,10 @@ namespace WinSW
                 catch (CommandException e)
                 when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
-                    ThrowNoSuchService(inner);
+                    Throw.Command.Exception(inner);
                 }
+
+                Log.Info($"Service '{config.Format()}' was refreshed successfully.");
             }
 
             void DevPs(string? pathToConfig, bool noElevate)
@@ -802,7 +837,7 @@ namespace WinSW
                 }
 
                 using ServiceManager scm = ServiceManager.Open();
-                using Service sc = scm.OpenService(config.Id);
+                using Service sc = scm.OpenService(config.Name);
 
                 int processId = sc.ProcessId;
                 if (processId >= 0)
@@ -848,7 +883,7 @@ namespace WinSW
             {
                 if (noElevate)
                 {
-                    throw new CommandException(new Win32Exception(Errors.ERROR_ACCESS_DENIED));
+                    Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
                 }
 
                 using Process current = Process.GetCurrentProcess();
@@ -881,11 +916,6 @@ namespace WinSW
             }
         }
 
-        /// <exception cref="CommandException" />
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowNoSuchService(Win32Exception inner) => throw new CommandException(inner);
-
         private static void InitLoggers(XmlServiceConfig config, bool enableConsoleLogging)
         {
             if (XmlServiceConfig.TestConfig != null)
@@ -900,10 +930,6 @@ namespace WinSW
             Level consoleLogLevel = Level.Info;
             Level eventLogLevel = Level.Warn;
 
-            // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
-            PatternLayout layout = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
-            layout.ActivateOptions();
-
             List<IAppender> appenders = new List<IAppender>();
 
             // .wrapper.log
@@ -916,7 +942,7 @@ namespace WinSW
                 Name = "Wrapper file log",
                 Threshold = fileLogLevel,
                 LockingModel = new FileAppender.MinimalLock(),
-                Layout = layout,
+                Layout = new PatternLayout("%date %-5level - %message%newline"),
             };
             wrapperLog.ActivateOptions();
             appenders.Add(wrapperLog);
@@ -924,11 +950,11 @@ namespace WinSW
             // console log
             if (enableConsoleLogging)
             {
-                var consoleAppender = new ConsoleAppender
+                var consoleAppender = new WinSWConsoleAppender
                 {
                     Name = "Wrapper console log",
                     Threshold = consoleLogLevel,
-                    Layout = layout,
+                    Layout = new PatternLayout("%date{ABSOLUTE} - %message%newline"),
                 };
                 consoleAppender.ActivateOptions();
                 appenders.Add(consoleAppender);

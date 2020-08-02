@@ -46,7 +46,7 @@ $@"<service>
             XmlServiceConfig.TestConfig = config ?? DefaultServiceConfig;
             try
             {
-                _ = Program.Run(arguments);
+                _ = Program.Main(arguments);
             }
             finally
             {
@@ -81,7 +81,7 @@ $@"<service>
             Program.TestExceptionHandler = (e, _) => exception = e;
             try
             {
-                _ = Program.Run(arguments);
+                _ = Program.Main(arguments);
             }
             catch (Exception e)
             {
