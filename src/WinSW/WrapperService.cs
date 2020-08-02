@@ -34,11 +34,6 @@ namespace WinSW
 
         internal WinSWExtensionManager ExtensionManager { get; }
 
-        /// <summary>
-        /// Indicates to the watch dog thread that we are going to terminate the process,
-        /// so don't try to kill us when the child exits.
-        /// </summary>
-        private volatile bool orderlyShutdown;
         private bool shuttingdown;
 
         /// <summary>
@@ -51,14 +46,12 @@ namespace WinSW
 
         public WrapperService(XmlServiceConfig config)
         {
-            this.config = config;
             this.ServiceName = config.Id;
-            this.ExtensionManager = new WinSWExtensionManager(config);
-            this.CanShutdown = true;
             this.CanStop = true;
-            this.CanPauseAndContinue = false;
-            this.AutoLog = true;
-            this.shuttingdown = false;
+            this.AutoLog = false;
+
+            this.config = config;
+            this.ExtensionManager = new WinSWExtensionManager(config);
 
             // Register the event log provider
             eventLogProvider.Service = this;
@@ -89,7 +82,7 @@ namespace WinSW
                 string? line;
                 while ((line = tr.ReadLine()) != null)
                 {
-                    this.LogInfo("Handling copy: " + line);
+                    Log.Info("Handling copy: " + line);
                     string[] tokens = line.Split('>');
                     if (tokens.Length > 2)
                     {
@@ -139,7 +132,7 @@ namespace WinSW
             return logAppender;
         }
 
-        public void LogEvent(string message)
+        public void WriteEntry(string message)
         {
             if (this.shuttingdown)
             {
@@ -157,7 +150,7 @@ namespace WinSW
             }
         }
 
-        public void LogEvent(string message, EventLogEntryType type)
+        public void WriteEntry(string message, EventLogEntryType type)
         {
             if (this.shuttingdown)
             {
@@ -186,9 +179,21 @@ namespace WinSW
             this.EventLog.WriteEntry(message, type);
         }
 
-        private void LogInfo(string message)
+        private void LogExited(string message, int exitCode)
         {
-            this.LogEvent(message);
+            if (exitCode == 0)
+            {
+                Log.Info(message);
+            }
+            else
+            {
+                Log.Warn(message);
+            }
+        }
+
+        private void LogMinimal(string message)
+        {
+            this.WriteEntry(message);
             Log.Info(message);
         }
 
@@ -201,6 +206,7 @@ namespace WinSW
             try
             {
                 this.DoStart();
+                this.LogMinimal("Service started successfully.");
             }
             catch (Exception e)
             {
@@ -214,6 +220,7 @@ namespace WinSW
             try
             {
                 this.DoStop();
+                this.LogMinimal("Service stopped successfully.");
             }
             catch (Exception e)
             {
@@ -228,6 +235,7 @@ namespace WinSW
             {
                 this.shuttingdown = true;
                 this.DoStop();
+                this.LogMinimal("Service was shut down successfully.");
             }
             catch (Exception e)
             {
@@ -256,7 +264,7 @@ namespace WinSW
             {
                 Download download = downloads[i];
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
-                this.LogInfo(downloadMessage);
+                Log.Info(downloadMessage);
                 tasks[i] = download.PerformAsync();
             }
 
@@ -294,7 +302,7 @@ namespace WinSW
                 {
                     using Process process = this.StartProcess(prestartExecutable, this.config.PrestartArguments);
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.");
+                    this.LogExited($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
                 }
                 catch (Exception e)
@@ -305,7 +313,7 @@ namespace WinSW
 
             string startArguments = this.config.StartArguments ?? this.config.Arguments;
 
-            this.LogInfo("Starting " + this.config.Executable);
+            Log.Info("Starting " + this.config.Executable);
 
             // Load and start extensions
             this.ExtensionManager.LoadExtensions();
@@ -322,7 +330,7 @@ namespace WinSW
                 {
                     using Process process = StartProcessLocked();
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.");
+                    this.LogExited($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
                     this.startingProcess = null;
 
@@ -353,7 +361,7 @@ namespace WinSW
                 {
                     using Process process = StartProcessLocked(prestopExecutable, this.config.PrestopArguments);
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.");
+                    this.LogExited($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
                     this.stoppingProcess = null;
                 }
@@ -363,16 +371,24 @@ namespace WinSW
                 }
             }
 
-            this.LogInfo("Stopping " + this.config.Id);
-            this.orderlyShutdown = true;
+            Log.Info("Stopping " + this.config.Id);
+            this.process.EnableRaisingEvents = false;
 
             string? stopExecutable = this.config.StopExecutable;
             string? stopArguments = this.config.StopArguments;
             if (stopExecutable is null && stopArguments is null)
             {
-                Log.Debug("ProcessKill " + this.process.Id);
-                this.process.StopTree(this.config.StopTimeout);
-                this.ExtensionManager.FireOnProcessTerminated(this.process);
+                Process process = this.process;
+                Log.Debug("ProcessKill " + process.Id);
+                bool? result = process.Stop(this.config.StopTimeout);
+                this.LogMinimal($"Child process '{process.Format()}' " + result switch
+                {
+                    true => $"canceled with code {process.ExitCode}.",
+                    false => "terminated.",
+                    null => $"finished with code '{process.ExitCode}'."
+                });
+                this.process.StopDescendants(this.config.StopTimeout);
+                this.ExtensionManager.FireOnProcessTerminated(process);
             }
             else
             {
@@ -407,7 +423,7 @@ namespace WinSW
                 {
                     using Process process = StartProcessLocked(poststopExecutable, this.config.PoststopArguments);
                     this.WaitForProcessToExit(process);
-                    this.LogInfo($"Post-stop process '{process.Format()}' exited with code {process.ExitCode}.");
+                    this.LogExited($"Post-Stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
                     this.stoppingProcess = null;
                 }
@@ -483,40 +499,29 @@ namespace WinSW
 
         private void OnMainProcessExited(Process process)
         {
-            string display = process.Format();
-
-            if (this.orderlyShutdown)
+            lock (this)
             {
-                this.LogInfo($"Child process '{display}' terminated.");
-            }
-            else
-            {
-                Log.Warn($"Child process '{display}' finished with code {process.ExitCode}.");
-
-                process.StopDescendants(this.config.StopTimeout);
-
-                lock (this)
+                try
                 {
+                    Log.Warn($"Child process '{process.Format()}' finished with code {process.ExitCode}.");
+
+                    process.StopDescendants(this.config.StopTimeout);
+
                     this.startingProcess?.StopTree(additionalStopTimeout);
                     this.stoppingProcess?.StopTree(additionalStopTimeout);
-                }
 
-                // if we finished orderly, report that to SCM.
-                // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
-                // restart the service automatically
-                if (process.ExitCode == 0)
-                {
-                    try
+                    // if we finished orderly, report that to SCM.
+                    // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to
+                    // restart the service automatically
+                    if (process.ExitCode == 0)
                     {
                         this.SignalStopped();
                     }
-                    catch (Exception e)
-                    {
-                        Log.Error(e);
-                    }
                 }
-
-                Environment.Exit(process.ExitCode);
+                finally
+                {
+                    Environment.Exit(process.ExitCode);
+                }
             }
         }
 

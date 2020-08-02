@@ -18,7 +18,7 @@ namespace WinSW.Util
             if (!ConsoleApis.AttachConsole(process.Id))
             {
                 int error = Marshal.GetLastWin32Error();
-                Logger.Warn("Failed to attach to console. " + error switch
+                Logger.Info("Failed to attach to console. " + error switch
                 {
                     Errors.ERROR_ACCESS_DENIED => "WinSW is already attached to a console.", // TODO: test mode
                     Errors.ERROR_INVALID_HANDLE => "The process does not have a console.",
