@@ -708,6 +708,8 @@ namespace WinSW
         /// </summary>
         public override TimeSpan StopTimeout => this.SingleTimeSpanElement(this.dom, "stoptimeout", base.StopTimeout);
 
+        public int StopTimeoutInMs => (int)this.StopTimeout.TotalMilliseconds;
+
         /// <summary>
         /// Desired process priority or null if not specified.
         /// </summary>
