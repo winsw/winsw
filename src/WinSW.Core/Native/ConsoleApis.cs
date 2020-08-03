@@ -9,6 +9,9 @@ namespace WinSW.Native
         internal const int ATTACH_PARENT_PROCESS = -1;
 
         [DllImport(Libraries.Kernel32, SetLastError = true)]
+        internal static extern bool AllocConsole();
+
+        [DllImport(Libraries.Kernel32, SetLastError = true)]
         internal static extern bool AttachConsole(int processId);
 
         [DllImport(Libraries.Kernel32)]
