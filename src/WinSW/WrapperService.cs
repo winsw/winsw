@@ -18,7 +18,7 @@ namespace WinSW
     {
         internal static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
 
-        private static readonly TimeSpan additionalStopTimeout = new TimeSpan(TimeSpan.TicksPerSecond);
+        private static readonly int additionalStopTimeout = 1_000;
 
         private static readonly ILog Log = LogManager.GetLogger(
 #if NETCOREAPP
@@ -380,14 +380,14 @@ namespace WinSW
             {
                 Process process = this.process;
                 Log.Debug("ProcessKill " + process.Id);
-                bool? result = process.Stop(this.config.StopTimeout);
+                bool? result = process.Stop(this.config.StopTimeoutInMs);
                 this.LogMinimal($"Child process '{process.Format()}' " + result switch
                 {
                     true => $"canceled with code {process.ExitCode}.",
                     false => "terminated.",
                     null => $"finished with code '{process.ExitCode}'."
                 });
-                this.process.StopDescendants(this.config.StopTimeout);
+                this.process.StopDescendants(this.config.StopTimeoutInMs);
                 this.ExtensionManager.FireOnProcessTerminated(process);
             }
             else
@@ -407,11 +407,11 @@ namespace WinSW
                     this.stoppingProcess = null;
 
                     this.WaitForProcessToExit(this.process);
-                    this.process.StopDescendants(this.config.StopTimeout);
+                    this.process.StopDescendants(this.config.StopTimeoutInMs);
                 }
                 catch
                 {
-                    this.process.StopTree(this.config.StopTimeout);
+                    this.process.StopTree(this.config.StopTimeoutInMs);
                     throw;
                 }
             }
@@ -505,7 +505,7 @@ namespace WinSW
                 {
                     Log.Warn($"Child process '{process.Format()}' finished with code {process.ExitCode}.");
 
-                    process.StopDescendants(this.config.StopTimeout);
+                    process.StopDescendants(this.config.StopTimeoutInMs);
 
                     this.startingProcess?.StopTree(additionalStopTimeout);
                     this.stoppingProcess?.StopTree(additionalStopTimeout);
