@@ -255,6 +255,9 @@ namespace WinSW
 
         private void DoStart()
         {
+            bool succeeded = ConsoleApis.FreeConsole();
+            Debug.Assert(succeeded);
+
             this.HandleFileCopies();
 
             // handle downloads
@@ -551,7 +554,19 @@ namespace WinSW
                 }
             }
 
-            Process process = Process.Start(startInfo);
+            bool succeeded = ConsoleApis.AllocConsole();
+            Debug.Assert(succeeded);
+
+            Process process;
+            try
+            {
+                process = Process.Start(startInfo);
+            }
+            finally
+            {
+                succeeded = ConsoleApis.FreeConsole();
+                Debug.Assert(succeeded);
+            }
 
             Log.Info($"Started process {process.Format()}.");
 
