@@ -26,9 +26,12 @@ For systems without .NET Framework, the project provides native 64-bit and 32-bi
 
 More executables can be added upon request.
 
-[.NET Framework system requirements](https://docs.microsoft.com/dotnet/framework/get-started/system-requirements)
+[.NET Framework system requirements](https://docs.microsoft.com/dotnet/framework/get-started/system-requirements)\
+Preinstalled on Windows 10, version 1511 and Windows Server 2016.\
+Installable on Windows 7 SP1 and Windows Server 2008 R2 SP1.
 
-[.NET 5 system requirements](https://github.com/dotnet/core/blob/master/release-notes/5.0/5.0-supported-os.md)
+[.NET 5 system requirements](https://github.com/dotnet/core/blob/master/release-notes/5.0/5.0-supported-os.md)\
+Supported on Windows 7 SP1, Windows Server (Core) 2012 R2 and Nano Server, version 1809.
 
 ## Download
 
