@@ -138,11 +138,22 @@ When you use the `<stoparguments>`, you must use `<startarguments>` instead of `
 
 The pre-start command is executed when the service is starting and before the main process is started.
 
-The post-start command is executed when the service is running and after the main process is started.
+The post-start command is executed when the service is starting and after the main process is started.
 
 The pre-stop command is executed when the service is stopping and before the main process is stopped.
 
 The post-stop command is executed when the service is stopping and after the main process is stopped.
+
+### Preshutdown
+
+```xml
+<preshutdown>false</preshutdown>
+<preshutdownTimeout>3 min</preshutdown>
+```
+
+Gives the service more time to stop when the system is being shut down.
+
+The system default preshutdown timeout is there minutes.
 
 ### stoptimeout
 
