@@ -346,45 +346,77 @@ $@"<service>
         [Fact]
         public void Additional_Executable_And_Arguments()
         {
-            const string prestartExecutable = "1";
-            const string prestartArguments = "2";
-            const string poststartExecutable = "3";
-            const string poststartArguments = "4";
-            const string prestopExecutable = "5";
-            const string prestopArguments = "6";
-            const string poststopExecutable = "7";
-            const string poststopArguments = "8";
+            var prestart = new ProcessCommand
+            {
+                Executable = "a1",
+                Arguments = "a2",
+                StdoutPath = "a3",
+                StderrPath = "a4",
+            };
+            var poststart = new ProcessCommand
+            {
+                Executable = "a1",
+                Arguments = "a2",
+                StdoutPath = "a3",
+                StderrPath = "a4",
+            };
+            var prestop = new ProcessCommand
+            {
+                Executable = "a1",
+                Arguments = "a2",
+                StdoutPath = "a3",
+                StderrPath = "a4",
+            };
+            var poststop = new ProcessCommand
+            {
+                Executable = "a1",
+                Arguments = "a2",
+                StdoutPath = "a3",
+                StderrPath = "a4",
+            };
 
             string seedXml =
 $@"<service>
   <prestart>
-    <executable>{prestartExecutable}</executable>
-    <arguments>{prestartArguments}</arguments>
+    <executable>{prestart.Executable}</executable>
+    <arguments>{prestart.Arguments}</arguments>
+    <stdoutPath>{prestart.StdoutPath}</stdoutPath>
+    <stderrPath>{prestart.StderrPath}</stderrPath>
   </prestart>
   <poststart>
-    <executable>{poststartExecutable}</executable>
-    <arguments>{poststartArguments}</arguments>
+    <executable>{poststart.Executable}</executable>
+    <arguments>{poststart.Arguments}</arguments>
+    <stdoutPath>{poststart.StdoutPath}</stdoutPath>
+    <stderrPath>{poststart.StderrPath}</stderrPath>
   </poststart>
   <prestop>
-    <executable>{prestopExecutable}</executable>
-    <arguments>{prestopArguments}</arguments>
+    <executable>{prestop.Executable}</executable>
+    <arguments>{prestop.Arguments}</arguments>
+    <stdoutPath>{prestop.StdoutPath}</stdoutPath>
+    <stderrPath>{prestop.StderrPath}</stderrPath>
   </prestop>
   <poststop>
-    <executable>{poststopExecutable}</executable>
-    <arguments>{poststopArguments}</arguments>
+    <executable>{poststop.Executable}</executable>
+    <arguments>{poststop.Arguments}</arguments>
+    <stdoutPath>{poststop.StdoutPath}</stdoutPath>
+    <stderrPath>{poststop.StderrPath}</stderrPath>
   </poststop>
 </service>";
 
             XmlServiceConfig config = XmlServiceConfig.FromXml(seedXml);
 
-            Assert.Equal(prestartExecutable, config.PrestartExecutable);
-            Assert.Equal(prestartArguments, config.PrestartArguments);
-            Assert.Equal(poststartExecutable, config.PoststartExecutable);
-            Assert.Equal(poststartArguments, config.PoststartArguments);
-            Assert.Equal(prestopExecutable, config.PrestopExecutable);
-            Assert.Equal(prestopArguments, config.PrestopArguments);
-            Assert.Equal(poststopExecutable, config.PoststopExecutable);
-            Assert.Equal(poststopArguments, config.PoststopArguments);
+            VerifyEqual(prestart, config.Prestart);
+            VerifyEqual(poststart, config.Poststart);
+            VerifyEqual(prestop, config.Prestop);
+            VerifyEqual(poststop, config.Poststop);
+
+            static void VerifyEqual(ProcessCommand expected, ProcessCommand actual)
+            {
+                Assert.Equal(expected.Executable, actual.Executable);
+                Assert.Equal(expected.Arguments, actual.Arguments);
+                Assert.Equal(expected.StdoutPath, actual.StdoutPath);
+                Assert.Equal(expected.StderrPath, actual.StderrPath);
+            }
         }
     }
 }

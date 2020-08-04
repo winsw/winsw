@@ -253,21 +253,13 @@ namespace WinSW
             }
         }
 
-        public string? PrestartExecutable => this.GetExecutable(Names.Prestart);
+        public ProcessCommand Prestart => this.GetProcessCommand(Names.Prestart);
 
-        public string? PrestartArguments => this.GetArguments(Names.Prestart);
+        public ProcessCommand Poststart => this.GetProcessCommand(Names.Poststart);
 
-        public string? PoststartExecutable => this.GetExecutable(Names.Poststart);
+        public ProcessCommand Prestop => this.GetProcessCommand(Names.Prestop);
 
-        public string? PoststartArguments => this.GetArguments(Names.Poststart);
-
-        public string? PrestopExecutable => this.GetExecutable(Names.Prestop);
-
-        public string? PrestopArguments => this.GetArguments(Names.Prestop);
-
-        public string? PoststopExecutable => this.GetExecutable(Names.Poststop);
-
-        public string? PoststopArguments => this.GetArguments(Names.Poststop);
+        public ProcessCommand Poststop => this.GetProcessCommand(Names.Poststop);
 
         public override string WorkingDirectory
         {
@@ -746,16 +738,22 @@ namespace WinSW
             return environment;
         }
 
-        private string? GetExecutable(string name)
+        private ProcessCommand GetProcessCommand(string name)
         {
-            string? text = this.dom.SelectSingleNode(Names.Service)?.SelectSingleNode(name)?.SelectSingleNode(Names.Executable)?.InnerText;
-            return text is null ? null : Environment.ExpandEnvironmentVariables(text);
-        }
+            XmlNode? node = this.dom.SelectSingleNode(Names.Service)?.SelectSingleNode(name);
+            return node is null ? default : new ProcessCommand
+            {
+                Executable = GetInnerText(Names.Executable),
+                Arguments = GetInnerText(Names.Arguments),
+                StdoutPath = GetInnerText(Names.StdoutPath),
+                StderrPath = GetInnerText(Names.StderrPath),
+            };
 
-        private string? GetArguments(string name)
-        {
-            string? text = this.dom.SelectSingleNode(Names.Service)?.SelectSingleNode(name)?.SelectSingleNode(Names.Arguments)?.InnerText;
-            return text is null ? null : Environment.ExpandEnvironmentVariables(text);
+            string? GetInnerText(string name)
+            {
+                string? text = node.SelectSingleNode(name)?.InnerText;
+                return text is null ? null : Environment.ExpandEnvironmentVariables(text);
+            }
         }
     }
 }
