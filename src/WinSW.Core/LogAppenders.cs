@@ -14,6 +14,31 @@ namespace WinSW
         void WriteEntry(string message, EventLogEntryType type);
     }
 
+    internal sealed class TempLogHandler : AbstractFileLogAppender
+    {
+        private readonly string? outputPath;
+        private readonly string? errorPath;
+
+        public TempLogHandler(string? outputPath, string? errorPath)
+            : base(string.Empty, string.Empty, IsDisabled(outputPath), IsDisabled(errorPath), string.Empty, string.Empty)
+        {
+            this.outputPath = outputPath;
+            this.errorPath = errorPath;
+        }
+
+        private static bool IsDisabled(string? path) => string.IsNullOrEmpty(path) || path!.Equals("NUL", StringComparison.OrdinalIgnoreCase);
+
+        protected override Task LogOutput(StreamReader outputReader)
+        {
+            return this.CopyStreamAsync(outputReader, this.CreateWriter(new FileStream(this.outputPath!, FileMode.OpenOrCreate)));
+        }
+
+        protected override Task LogError(StreamReader errorReader)
+        {
+            return this.CopyStreamAsync(errorReader, this.CreateWriter(new FileStream(this.errorPath!, FileMode.OpenOrCreate)));
+        }
+    }
+
     /// <summary>
     /// Abstraction for handling log.
     /// </summary>

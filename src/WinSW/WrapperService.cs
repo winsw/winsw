@@ -298,12 +298,13 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 
-            string? prestartExecutable = this.config.PrestartExecutable;
+            ProcessCommand prestart = this.config.Prestart;
+            string? prestartExecutable = prestart.Executable;
             if (prestartExecutable != null)
             {
                 try
                 {
-                    using Process process = this.StartProcess(prestartExecutable, this.config.PrestartArguments);
+                    using Process process = this.StartProcess(prestartExecutable, prestart.Arguments, prestart.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -323,10 +324,11 @@ namespace WinSW
             this.ExtensionManager.FireOnWrapperStarted();
 
             LogHandler executableLogHandler = this.CreateExecutableLogHandler();
-            this.process = this.StartProcess(this.config.Executable, startArguments, this.OnMainProcessExited, executableLogHandler);
+            this.process = this.StartProcess(this.config.Executable, startArguments, executableLogHandler, this.OnMainProcessExited);
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
-            string? poststartExecutable = this.config.PoststartExecutable;
+            ProcessCommand poststart = this.config.Poststart;
+            string? poststartExecutable = poststart.Executable;
             if (poststartExecutable != null)
             {
                 try
@@ -341,7 +343,7 @@ namespace WinSW
                     {
                         lock (this)
                         {
-                            return this.startingProcess = this.StartProcess(poststartExecutable, this.config.PoststartArguments);
+                            return this.startingProcess = this.StartProcess(poststartExecutable, poststart.Arguments, poststart.CreateLogHandler());
                         }
                     }
                 }
@@ -357,12 +359,13 @@ namespace WinSW
         /// </summary>
         private void DoStop()
         {
-            string? prestopExecutable = this.config.PrestopExecutable;
+            ProcessCommand prestop = this.config.Prestop;
+            string? prestopExecutable = prestop.Executable;
             if (prestopExecutable != null)
             {
                 try
                 {
-                    using Process process = StartProcessLocked(prestopExecutable, this.config.PrestopArguments);
+                    using Process process = StartProcessLocked(prestopExecutable, prestop.Arguments, prestop.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -419,12 +422,13 @@ namespace WinSW
                 }
             }
 
-            string? poststopExecutable = this.config.PoststopExecutable;
+            ProcessCommand poststop = this.config.Poststop;
+            string? poststopExecutable = poststop.Executable;
             if (poststopExecutable != null)
             {
                 try
                 {
-                    using Process process = StartProcessLocked(poststopExecutable, this.config.PoststopArguments);
+                    using Process process = StartProcessLocked(poststopExecutable, poststop.Arguments, poststop.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Post-Stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -446,11 +450,11 @@ namespace WinSW
 
             Log.Info("Finished " + this.config.Name);
 
-            Process StartProcessLocked(string executable, string? arguments)
+            Process StartProcessLocked(string executable, string? arguments, LogHandler? logHandler = null)
             {
                 lock (this)
                 {
-                    return this.stoppingProcess = this.StartProcess(executable, arguments);
+                    return this.stoppingProcess = this.StartProcess(executable, arguments, logHandler);
                 }
             }
         }
@@ -528,7 +532,7 @@ namespace WinSW
             }
         }
 
-        private Process StartProcess(string executable, string? arguments, Action<Process>? onExited = null, LogHandler? logHandler = null)
+        private Process StartProcess(string executable, string? arguments, LogHandler? logHandler = null, Action<Process>? onExited = null)
         {
             var startInfo = new ProcessStartInfo(executable, arguments)
             {
