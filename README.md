@@ -45,8 +45,8 @@ WinSW is being managed by the [XML configuration file](docs/xml-config-file.md).
 
 Your renamed *WinSW.exe* binary also accepts the following commands:
 
-| Command                                               | Description |
-| -----------                                           | ----------- |
+| Command                                             | Description |
+| -------                                             | ----------- |
 | [install](docs/cli-commands.md#install-command)     | Installs the service. This command requires some preliminary steps described in the [installation guide](docs/installation.md). |
 | [uninstall](docs/cli-commands.md#uninstall-command) | Uninstalls the service. |
 | [start](docs/cli-commands.md#start-command)         | Starts the service. |
@@ -55,6 +55,13 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 | [status](docs/cli-commands.md#status-command)       | Checks the status of the service. |
 | [test](docs/cli-commands.md#test-command)           | Checks if the service can be started and then stopped without installation. |
 | [refresh](docs/cli-commands.md#refresh-command)     | Refreshes the service properties without reinstallation. |
+| dev                                                 | Experimental commands used by the developers. |
+
+Experimental commands:
+
+| Command | Description |
+| ------- | ----------- |
+| dev ps  | Draws the process tree associated with the service. |
 
 Most commands require Administrator privileges to execute. Since 2.8, WinSW will prompt for UAC in non-elevated sessions.
 
