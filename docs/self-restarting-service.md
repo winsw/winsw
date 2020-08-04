@@ -10,6 +10,6 @@ This hidden command is a flavor of the `restart` operation,
   where winsw creates another winsw process in a separate process group,
   and restarts the service from there.
 
-This additional indirection is necessary because Windows Service Control Manager (SCM) will kill child processes recursively when it stops a service.
-SCM doesn't provide the restart operation as an atomic operation either, so winsw implements restart by a sequence of stop and start.
+This additional indirection is necessary because WinSW will kill child processes recursively when it stops a service.
+Windows Service Control Manager (SCM) doesn't provide the restart operation as an atomic operation either, so winsw implements restart by a sequence of stop and start.
 The second winsw process in a separate process group ensures that winsw can survive this massacre to execute the start call.
