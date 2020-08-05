@@ -37,6 +37,10 @@
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <ProjectReference Include="..\WinSW.Tasks\WinSW.Tasks.csproj" />
+  </ItemGroup>
+
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(PublishSingleFile)' != 'true'">
 
     <MakeDir Directories="$(ArtifactsDir)" />
@@ -64,6 +68,11 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Plugins.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.CommandLine.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Buffers.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Memory.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Numerics.Vectors.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Runtime.CompilerServices.Unsafe.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)System.ValueTuple.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(TargetFrameworkSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 
@@ -74,9 +83,13 @@
     </PropertyGroup>
 
     <MakeDir Directories="$(ArtifactsDir)" />
-    <Message Text="$(ILMergeCommand)" Importance="high" />
     <Exec Command="$(ILMergeCommand)" />
 
+  </Target>
+
+  <UsingTask TaskName="WinSW.Tasks.Trim" AssemblyFile="..\WinSW.Tasks\bin\$(Configuration)\net461\WinSW.Tasks.dll" />
+  <Target Name="Trim" AfterTargets="Merge" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <Trim Path="$(ArtifactsDir)WinSW.$(TargetFrameworkSuffix).exe" />
   </Target>
 
 </Project>
