@@ -140,20 +140,20 @@ $@"<service>
         }
 
         [Test]
-        public void StopParentProcessFirstIsFalseByDefault()
+        public void StopParentProcessFirstIsTrueByDefault()
         {
-            Assert.That(this._extendedServiceDescriptor.StopParentProcessFirst, Is.False);
+            Assert.That(this._extendedServiceDescriptor.StopParentProcessFirst, Is.True);
         }
 
         [Test]
         public void CanParseStopParentProcessFirst()
         {
             const string seedXml = "<service>"
-                                   + "<stopparentprocessfirst>true</stopparentprocessfirst>"
+                                   + "<stopparentprocessfirst>false</stopparentprocessfirst>"
                                    + "</service>";
             var serviceDescriptor = ServiceDescriptor.FromXML(seedXml);
 
-            Assert.That(serviceDescriptor.StopParentProcessFirst, Is.True);
+            Assert.That(serviceDescriptor.StopParentProcessFirst, Is.False);
         }
 
         [Test]

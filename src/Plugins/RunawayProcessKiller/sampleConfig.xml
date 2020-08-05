@@ -15,7 +15,7 @@
       <!-- Defines the process termination timeout in milliseconds. This timeout will be applied multiple times for each child process. -->
       <stopTimeout>5000</stopTimeout>
       <!-- If true, the parent process will be terminated first if the runaway process gets terminated. -->
-      <stopParentFirst>false</stopParentFirst>
+      <stopParentFirst>true</stopParentFirst>
     </extension>
   </extensions>
 </service>

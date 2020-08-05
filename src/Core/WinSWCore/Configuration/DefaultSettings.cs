@@ -46,7 +46,7 @@ namespace WinSW.Configuration
 
         public TimeSpan StopTimeout => TimeSpan.FromSeconds(15);
 
-        public bool StopParentProcessFirst => false;
+        public bool StopParentProcessFirst => true;
 
         // Service management
         public StartMode StartMode => StartMode.Automatic;

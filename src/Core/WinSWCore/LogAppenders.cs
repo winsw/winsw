@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 #endif
 using System.IO;
+using System.Text;
 using System.Threading;
 #if !VNEXT
 using ICSharpCode.SharpZipLib.Zip;
@@ -264,7 +265,7 @@ namespace WinSW
             string? line;
             while ((line = reader.ReadLine()) != null)
             {
-                int lengthToWrite = (line.Length + Environment.NewLine.Length) * sizeof(char);
+                int lengthToWrite = Encoding.UTF8.GetByteCount(line) + 2; // CRLF
                 if (fileLength + lengthToWrite > this.SizeTheshold)
                 {
                     writer.Dispose();
@@ -437,7 +438,7 @@ namespace WinSW
             {
                 lock (fileLock)
                 {
-                    int lengthToWrite = (line.Length + Environment.NewLine.Length) * sizeof(char);
+                    int lengthToWrite = Encoding.UTF8.GetByteCount(line) + 2; // CRLF
                     if (fileLength + lengthToWrite > this.SizeTheshold)
                     {
                         try
