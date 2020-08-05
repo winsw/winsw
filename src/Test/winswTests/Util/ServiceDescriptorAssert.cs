@@ -59,6 +59,10 @@ namespace winswTests.Util
                 properties.Remove("Caption");
                 properties.Remove("Description");
                 properties.Remove("Executable");
+                properties.Remove("BaseName");
+                properties.Remove("BasePath");
+                properties.Remove("Log");
+                properties.Remove("ServiceAccount");
                 return properties;
             }
         }
