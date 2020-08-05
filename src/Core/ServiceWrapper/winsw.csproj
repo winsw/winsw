@@ -20,12 +20,7 @@
     <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.8" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
   </ItemGroup>
 
@@ -33,10 +28,6 @@
     <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(AssemblyOriginatorKeyFile)" />
   </ItemGroup>
 
   <ItemGroup>
