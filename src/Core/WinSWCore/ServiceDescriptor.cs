@@ -16,7 +16,9 @@ namespace WinSW
     /// </summary>
     public class ServiceDescriptor : IWinSWConfiguration
     {
+#pragma warning disable S2755 // XML parsers should not be vulnerable to XXE attacks
         protected readonly XmlDocument dom = new XmlDocument();
+#pragma warning restore S2755 // XML parsers should not be vulnerable to XXE attacks
 
         private readonly Dictionary<string, string> environmentVariables;
 
@@ -108,9 +110,11 @@ namespace WinSW
 
         public static ServiceDescriptor FromXML(string xml)
         {
-            var dom = new XmlDocument();
-            dom.LoadXml(xml);
-            return new ServiceDescriptor(dom);
+#pragma warning disable S2755 // XML parsers should not be vulnerable to XXE attacks
+            var xmlDom = new XmlDocument();
+#pragma warning restore S2755 // XML parsers should not be vulnerable to XXE attacks
+            xmlDom.LoadXml(xml);
+            return new ServiceDescriptor(xmlDom);
         }
 
         private string SingleElement(string tagName)
@@ -143,40 +147,11 @@ namespace WinSW
             return e is null ? defaultValue : int.Parse(e.InnerText);
         }
 
-        private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
+        private TimeSpan SingleTimeSpanElement(string tagName, TimeSpan defaultValue)
         {
             string? value = this.SingleElement(tagName, true);
-            return value is null ? defaultValue : this.ParseTimeSpan(value);
+            return value is null ? defaultValue : ConfigHelper.ParseTimeSpan(value);
         }
-
-        private TimeSpan ParseTimeSpan(string v)
-        {
-            v = v.Trim();
-            foreach (var s in Suffix)
-            {
-                if (v.EndsWith(s.Key))
-                {
-                    return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0, v.Length - s.Key.Length).Trim()) * s.Value);
-                }
-            }
-
-            return TimeSpan.FromMilliseconds(int.Parse(v));
-        }
-
-        private static readonly Dictionary<string, long> Suffix = new Dictionary<string, long>
-        {
-            { "ms",     1 },
-            { "sec",    1000L },
-            { "secs",   1000L },
-            { "min",    1000L * 60L },
-            { "mins",   1000L * 60L },
-            { "hr",     1000L * 60L * 60L },
-            { "hrs",    1000L * 60L * 60L },
-            { "hour",   1000L * 60L * 60L },
-            { "hours",  1000L * 60L * 60L },
-            { "day",    1000L * 60L * 60L * 24L },
-            { "days",   1000L * 60L * 60L * 24L }
-        };
 
         /// <summary>
         /// Path to the executable.
@@ -327,17 +302,7 @@ namespace WinSW
         /// <summary>
         /// LogDirectory is the service wrapper executable directory or the optionally specified logpath element.
         /// </summary>
-        public string LogDirectory
-        {
-            get
-            {
-                XmlNode? loggingNode = this.dom.SelectSingleNode("//logpath");
-
-                return loggingNode is null
-                    ? Defaults.LogDirectory
-                    : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
-            }
-        }
+        public string LogDirectory { get => this.Log.Directory; }
 
         public string LogMode
         {
@@ -375,114 +340,135 @@ namespace WinSW
             }
         }
 
-        public bool OutFileDisabled => this.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
-
-        public bool ErrFileDisabled => this.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
-
-        public string OutFilePattern
+        public Log Log
         {
             get
             {
-                XmlNode? loggingName = this.dom.SelectSingleNode("//outfilepattern");
-
-                return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                return new XmlLogSettings(this);
             }
         }
 
-        public string ErrFilePattern
+        private class XmlLogSettings : Log
         {
-            get
-            {
-                XmlNode? loggingName = this.dom.SelectSingleNode("//errfilepattern");
+            private readonly ServiceDescriptor d;
 
-                return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+            public XmlLogSettings(ServiceDescriptor d)
+            {
+                this.d = d;
             }
-        }
 
-        public LogHandler LogHandler
-        {
-            get
+            private XmlElement E
             {
-                XmlElement? e = (XmlElement?)this.dom.SelectSingleNode("//logmode");
-
-                // this is more modern way, to support nested elements as configuration
-                e ??= (XmlElement?)this.dom.SelectSingleNode("//log")!; // WARNING: NRE
-
-                int sizeThreshold;
-                switch (this.LogMode)
+                get
                 {
-                    case "rotate":
-                        return new SizeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
+                    XmlElement? e = (XmlElement?)this.d.dom.SelectSingleNode("//logmode");
 
-                    case "none":
-                        return new IgnoreLogAppender();
+                    // this is more modern way, to support nested elements as configuration
+                    e ??= (XmlElement?)this.d.dom.SelectSingleNode("//log")!; // WARNING: NRE
+                    return e;
+                }
+            }
 
-                    case "reset":
-                        return new ResetLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
+            public override string? Mode { get => this.d.LogMode; }
 
-                    case "roll":
-                        return new RollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
+            public override string Name { get => this.d.LogName; }
 
-                    case "roll-by-time":
-                        XmlNode? patternNode = e.SelectSingleNode("pattern");
-                        if (patternNode is null)
+            public override string Directory
+            {
+                get
+                {
+                    XmlNode? loggingNode = this.d.dom.SelectSingleNode("//logpath");
+
+                    return loggingNode is null
+                        ? Defaults.LogDirectory
+                        : Environment.ExpandEnvironmentVariables(loggingNode.InnerText);
+                }
+            }
+
+            public override int? SizeThreshold { get => this.d.SingleIntElement(this.E, "sizeThreshold", 10 * 1024); }
+
+            public override int? KeepFiles { get => this.d.SingleIntElement(this.E, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep); }
+
+            public override int? Period { get => this.d.SingleIntElement(this.E, "period", 1); }
+
+            public override string Pattern
+            {
+                get
+                {
+                    XmlNode? patternNode = this.E.SelectSingleNode("pattern");
+                    if (patternNode is null)
+                    {
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
+                        throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
+                    }
+
+                    return patternNode.InnerText;
+                }
+            }
+
+            public override bool OutFileDisabled => this.d.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+
+            public override bool ErrFileDisabled => this.d.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+
+            public override string OutFilePattern
+            {
+                get
+                {
+                    XmlNode? loggingName = this.d.dom.SelectSingleNode("//outfilepattern");
+
+                    return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                }
+            }
+
+            public override string ErrFilePattern
+            {
+                get
+                {
+                    XmlNode? loggingName = this.d.dom.SelectSingleNode("//errfilepattern");
+
+                    return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
+                }
+            }
+
+            public override string? AutoRollAtTime
+            {
+                get
+                {
+                    XmlNode? autoRollAtTimeNode = this.E.SelectSingleNode("autoRollAtTime");
+                    return autoRollAtTimeNode?.InnerText;
+                }
+            }
+
+            public override int? ZipOlderThanNumDays
+            {
+                get
+                {
+                    XmlNode? zipolderthannumdaysNode = this.E.SelectSingleNode("zipOlderThanNumDays");
+                    int? zipolderthannumdays = null;
+                    if (zipolderthannumdaysNode != null)
+                    {
+                        // validate it
+                        if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
                         {
-                            throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
+                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
                         }
 
-                        var pattern = patternNode.InnerText;
-                        int period = this.SingleIntElement(e, "period", 1);
-                        return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period);
+                        zipolderthannumdays = zipolderthannumdaysValue;
+                    }
 
-                    case "roll-by-size":
-                        sizeThreshold = this.SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB;
-                        int keepFiles = this.SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
-                        return new SizeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, sizeThreshold, keepFiles);
+                    return zipolderthannumdays;
+                }
+            }
 
-                    case "append":
-                        return new DefaultLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
-
-                    case "roll-by-size-time":
-                        sizeThreshold = this.SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BytesPerKB;
-                        XmlNode? filePatternNode = e.SelectSingleNode("pattern");
-                        if (filePatternNode is null)
-                        {
-                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration XML.");
-                        }
-
-                        XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
-                        TimeSpan? autoRollAtTime = null;
-                        if (autoRollAtTimeNode != null)
-                        {
-                            // validate it
-                            if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out TimeSpan autoRollAtTimeValue))
-                            {
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
-                            }
-
-                            autoRollAtTime = autoRollAtTimeValue;
-                        }
-
-                        XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
-                        int? zipolderthannumdays = null;
-                        if (zipolderthannumdaysNode != null)
-                        {
-                            // validate it
-                            if (!int.TryParse(zipolderthannumdaysNode.InnerText, out int zipolderthannumdaysValue))
-                            {
-                                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
-                            }
-
-                            zipolderthannumdays = zipolderthannumdaysValue;
-                        }
-
-                        XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
-                        string zipdateformat = zipdateformatNode is null ? "yyyyMM" : zipdateformatNode.InnerText;
-
-                        return new RollingSizeTimeLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
-
-                    default:
-                        throw new InvalidDataException("Undefined logging mode: " + this.LogMode);
+            public override string? ZipDateFormat
+            {
+                get
+                {
+                    XmlNode? zipdateformatNode = this.E.SelectSingleNode("zipDateFormat");
+                    return zipdateformatNode is null ? null : zipdateformatNode.InnerText;
                 }
             }
         }
@@ -563,14 +549,14 @@ namespace WinSW
         /// Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function
         /// with either an incremented checkPoint value or a change in currentState. (see http://msdn.microsoft.com/en-us/library/ms685996.aspx)
         /// </summary>
-        public TimeSpan WaitHint => this.SingleTimeSpanElement(this.dom, "waithint", Defaults.WaitHint);
+        public TimeSpan WaitHint => this.SingleTimeSpanElement("waithint", Defaults.WaitHint);
 
         /// <summary>
         /// The time before the service should make its next call to the SetServiceStatus function
         /// with an incremented checkPoint value (default 1 sec).
         /// Do not wait longer than the wait hint. A good interval is one-tenth of the wait hint but not less than 1 second and not more than 10 seconds.
         /// </summary>
-        public TimeSpan SleepTime => this.SingleTimeSpanElement(this.dom, "sleeptime", Defaults.SleepTime);
+        public TimeSpan SleepTime => this.SingleTimeSpanElement("sleeptime", Defaults.SleepTime);
 
         /// <summary>
         /// True if the service can interact with the desktop.
@@ -632,66 +618,67 @@ namespace WinSW
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
                     XmlAttribute? delay = node.Attributes["delay"];
-                    result[i] = new SC_ACTION(type, delay != null ? this.ParseTimeSpan(delay.Value) : TimeSpan.Zero);
+                    result[i] = new SC_ACTION(type, delay != null ? ConfigHelper.ParseTimeSpan(delay.Value) : TimeSpan.Zero);
                 }
 
                 return result;
             }
         }
 
-        public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement(this.dom, "resetfailure", Defaults.ResetFailureAfter);
+        public TimeSpan ResetFailureAfter => this.SingleTimeSpanElement("resetfailure", Defaults.ResetFailureAfter);
 
-        protected string? GetServiceAccountPart(string subNodeName)
+        protected string? GetServiceAccountPart(XmlNode node, string subNodeName)
         {
-            XmlNode? node = this.dom.SelectSingleNode("//serviceaccount");
-
-            if (node != null)
+            XmlNode? subNode = node.SelectSingleNode(subNodeName);
+            if (subNode != null)
             {
-                XmlNode? subNode = node.SelectSingleNode(subNodeName);
-                if (subNode != null)
-                {
-                    return subNode.InnerText;
-                }
+                return subNode.InnerText;
             }
 
             return null;
         }
 
-        protected string? AllowServiceLogon => this.GetServiceAccountPart("allowservicelogon");
-
-        protected internal string? ServiceAccountDomain => this.GetServiceAccountPart("domain");
-
-        protected internal string? ServiceAccountName => this.GetServiceAccountPart("user");
-
-        public string? ServiceAccountPassword => this.GetServiceAccountPart("password");
-
-        public string? ServiceAccountUser => this.ServiceAccountName is null ? null : (this.ServiceAccountDomain ?? ".") + "\\" + this.ServiceAccountName;
-
-        public bool HasServiceAccount()
+        private bool ParseAllowServiceAcountLogonRight(string? logonRight)
         {
-            return !string.IsNullOrEmpty(this.ServiceAccountName);
+            if (logonRight != null && bool.TryParse(logonRight, out bool parsedvalue))
+            {
+                return parsedvalue;
+            }
+
+            return false;
         }
 
-        public bool AllowServiceAcountLogonRight
+        public ServiceAccount ServiceAccount
         {
             get
             {
-                if (this.AllowServiceLogon != null)
+                XmlNode? node = this.dom.SelectSingleNode("//serviceaccount");
+
+                if (node is null)
                 {
-                    if (bool.TryParse(this.AllowServiceLogon, out bool parsedvalue))
-                    {
-                        return parsedvalue;
-                    }
+                    return Defaults.ServiceAccount;
                 }
 
-                return false;
+                var serviceAccount = Defaults.ServiceAccount;
+
+                serviceAccount.ServiceAccountDomain = this.GetServiceAccountPart(node, "domain");
+
+                serviceAccount.ServiceAccountName = this.GetServiceAccountPart(node, "user");
+
+                serviceAccount.ServiceAccountPassword = this.GetServiceAccountPart(node, "password");
+
+                var loginRight = this.GetServiceAccountPart(node, "allowservicelogon");
+
+                serviceAccount.AllowServiceAcountLogonRight = this.ParseAllowServiceAcountLogonRight(loginRight);
+
+                return serviceAccount;
             }
         }
 
         /// <summary>
         /// Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
         /// </summary>
-        public TimeSpan StopTimeout => this.SingleTimeSpanElement(this.dom, "stoptimeout", Defaults.StopTimeout);
+        public TimeSpan StopTimeout => this.SingleTimeSpanElement("stoptimeout", Defaults.StopTimeout);
 
         public bool StopParentProcessFirst
         {

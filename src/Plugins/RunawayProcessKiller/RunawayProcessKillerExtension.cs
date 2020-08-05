@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using log4net;
+using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
 using static WinSW.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
@@ -179,7 +180,7 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        public override void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful

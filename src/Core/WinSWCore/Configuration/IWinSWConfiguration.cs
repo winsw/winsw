@@ -22,12 +22,6 @@ namespace WinSW.Configuration
         bool HideWindow { get; }
 
         // Installation
-        bool AllowServiceAcountLogonRight { get; }
-
-        string? ServiceAccountPassword { get; }
-
-        string? ServiceAccountUser { get; }
-
         Native.SC_ACTION[] FailureActions { get; }
 
         TimeSpan ResetFailureAfter { get; }
@@ -60,11 +54,16 @@ namespace WinSW.Configuration
 
         bool Interactive { get; }
 
-        // Logging
+        /// <summary>
+        /// Destination for logging.
+        /// If undefined, a default one should be used.
+        /// </summary>
         string LogDirectory { get; }
 
         // TODO: replace by enum
         string LogMode { get; }
+
+        Log Log { get; }
 
         // Environment
         List<Download> Downloads { get; }
@@ -76,5 +75,18 @@ namespace WinSW.Configuration
 
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
+
+        List<string> ExtensionIds { get; }
+
+        // Service Account
+        ServiceAccount ServiceAccount { get; }
+
+        string BaseName { get; }
+
+        string BasePath { get; }
+
+        bool DelayedAutoStart { get; }
+
+        string? SecurityDescriptor { get; }
     }
 }

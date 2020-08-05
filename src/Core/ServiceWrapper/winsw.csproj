@@ -92,6 +92,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)SharedDirectoryMapper.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)RunawayProcessKiller.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
+      <InputAssemblies>$(InputAssemblies) "$(OutDir)YamlDotNet.dll"</InputAssemblies>
       <OutputAssembly>"$(ArtifactsDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 

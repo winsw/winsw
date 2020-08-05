@@ -12,6 +12,8 @@ namespace WinSW.Configuration
     /// </summary>
     public sealed class DefaultWinSWSettings : IWinSWConfiguration
     {
+        public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
+
         public string Id => throw new InvalidOperationException(nameof(this.Id) + " must be specified.");
 
         public string Caption => throw new InvalidOperationException(nameof(this.Caption) + " must be specified.");
@@ -25,12 +27,6 @@ namespace WinSW.Configuration
         public string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
 
         // Installation
-        public bool AllowServiceAcountLogonRight => false;
-
-        public string? ServiceAccountPassword => null;
-
-        public string? ServiceAccountUser => null;
-
         public Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
 
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
@@ -66,17 +62,67 @@ namespace WinSW.Configuration
         public bool Interactive => false;
 
         // Logging
-        public string LogDirectory => Path.GetDirectoryName(this.ExecutablePath)!;
+        public Log Log { get => new LogDefaults(); }
 
-        public string LogMode => "append";
+        public string LogDirectory => DefaultLogSettings.Directory;
 
-        public bool OutFileDisabled => false;
+        public string LogMode => DefaultLogSettings.Mode;
 
-        public bool ErrFileDisabled => false;
+        public bool OutFileDisabled => this.Log.OutFileDisabled;
 
-        public string OutFilePattern => ".out.log";
+        public bool ErrFileDisabled => this.Log.ErrFileDisabled;
 
-        public string ErrFilePattern => ".err.log";
+        public string OutFilePattern => this.Log.OutFilePattern;
+
+        public string ErrFilePattern => this.Log.ErrFilePattern;
+
+        public ServiceAccount ServiceAccount => new ServiceAccount()
+        {
+            ServiceAccountName = null,
+            ServiceAccountDomain = null,
+            ServiceAccountPassword = null,
+            AllowServiceAcountLogonRight = false
+        };
+
+        public class LogDefaults : Log
+        {
+            private readonly DefaultWinSWSettings defaults;
+
+            public LogDefaults()
+            {
+                this.defaults = new DefaultWinSWSettings();
+            }
+
+            public override string Mode => "append";
+
+            public override string Name => this.defaults.BaseName;
+
+            public override string Directory => Path.GetDirectoryName(this.defaults.ExecutablePath)!;
+
+            public override int? SizeThreshold => 1024 * 10 * RollingSizeTimeLogAppender.BytesPerKB;
+
+            public override int? KeepFiles => SizeBasedRollingLogAppender.DefaultFilesToKeep;
+
+            public override string Pattern =>
+                throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
+
+            public override int? Period => 1;
+
+            public override bool OutFileDisabled { get => false; }
+
+            public override bool ErrFileDisabled { get => false; }
+
+            public override string OutFilePattern { get => ".out.log"; }
+
+            public override string ErrFilePattern { get => ".err.log"; }
+
+            public override string? AutoRollAtTime => null;
+
+            public override int? ZipOlderThanNumDays =>
+                throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+
+            public override string? ZipDateFormat => null;
+        }
 
         // Environment
         public List<Download> Downloads => new List<Download>(0);
@@ -88,5 +134,32 @@ namespace WinSW.Configuration
 
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
+
+        public string BaseName
+        {
+            get
+            {
+                string baseName = Path.GetFileNameWithoutExtension(this.ExecutablePath);
+                if (baseName.EndsWith(".vshost"))
+                {
+                    baseName = baseName.Substring(0, baseName.Length - 7);
+                }
+
+                return baseName;
+            }
+        }
+
+        public string BasePath
+        {
+            get
+            {
+                var d = new DirectoryInfo(Path.GetDirectoryName(this.ExecutablePath));
+                return Path.Combine(d.FullName, this.BaseName);
+            }
+        }
+
+        public List<string> ExtensionIds => new List<string>(0);
+
+        public string? SecurityDescriptor => null;
     }
 }

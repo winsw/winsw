@@ -1,0 +1,75 @@
+id: myapp
+name: MyApp Service (powered by WinSW)
+description: This service is a service created from a sample configuration
+executable: java
+#serviceaccount:
+#    domain: YOURDOMAIN
+#    user: useraccount
+#    password: Pa55w0rd
+#    allowservicelogon: yes
+#onFailure:
+#    -
+#        action: restart
+#        delay: 10 sec
+#    -
+#        action: restart
+#        delay: 20 sec
+#    -
+#        action: reboot
+#resetFailureAfter: 01:00:00
+#securityDescriptor: security descriptor string
+#arguments: >
+#    -classpath 
+#    c:\cygwin\home\kohsuke\ws\hello-world\out\production\hello-world 
+#    test.Main
+#startArguments: start arguments
+#workingdirectory: C:\myApp\work
+priority: Normal
+stopTimeout: 15 sec
+stopParentProcessFirst: true 
+#stopExecutable: '%BASE%\stop.exe'
+#stopArguments: -stop true
+startMode: Automatic
+#delayedAutoStart: true
+#serviceDependencies:
+#    - Eventlog
+#    - W32Time
+waitHint: 15 sec
+sleepTime: 1 sec
+#interactive: true
+log:
+#    logpath: '%BASE%\logs'
+    mode: append
+#env:
+#    -
+#        name: MY_TOOL_HOME
+#        value: 'C:\etc\tools\myTool'
+#    -
+#        name: LM_LICENSE_FILE
+#        value: host1;host2
+#download:
+#    -
+#        from: "http://www.google.com/"
+#        to: '%BASE%\index.html'
+#    -
+#        from: "http://www.nosuchhostexists.com/"
+#        to: '%BASE%\dummy.html'
+#        failOnError: true
+#    -
+#        from: "http://example.com/some.dat"
+#        to: '%BASE%\some.dat'
+#        auth: basic
+#        unsecureAuth: true
+#        username: aUser
+#        password: aPa55w0rd
+#    -
+#        from: "https://example.com/some.dat"
+#        to: '%BASE%\some.dat'
+#        auth: basic
+#        username: aUser
+#        password: aPa55w0rd
+#    -
+#        from: "https://example.com/some.dat"
+#        to: '%BASE%\some.dat'
+#        auth: sspi
+#beepOnShutdown: true

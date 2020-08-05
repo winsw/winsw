@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 #endif
 using log4net;
+using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Logging;
 using WinSW.Native;
@@ -20,9 +21,11 @@ namespace WinSW
     public class WrapperService : ServiceBase, IEventLogger
     {
         private ServiceApis.SERVICE_STATUS wrapperServiceStatus;
-
+        
         private readonly Process process = new Process();
-        private readonly ServiceDescriptor descriptor;
+        
+        private readonly IWinSWConfiguration descriptor;
+        
         private Dictionary<string, string>? envs;
 
         internal WinSWExtensionManager ExtensionManager { get; private set; }
@@ -55,7 +58,7 @@ namespace WinSW
         /// </summary>
         public bool IsShuttingDown => this.systemShuttingdown;
 
-        public WrapperService(ServiceDescriptor descriptor)
+        public WrapperService(IWinSWConfiguration descriptor)
         {
             this.descriptor = descriptor;
             this.ServiceName = this.descriptor.Id;
@@ -131,14 +134,15 @@ namespace WinSW
         /// <returns>Log Handler, which should be used for the spawned process</returns>
         private LogHandler CreateExecutableLogHandler()
         {
-            string logDirectory = this.descriptor.LogDirectory;
+            string? logDirectory = this.descriptor.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = this.descriptor.LogHandler;
+            LogHandler logAppender = this.descriptor.Log.CreateLogHandler();
+
             logAppender.EventLogger = this;
             return logAppender;
         }

@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Xml;
 using log4net;
+using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
+
 
 namespace WinSW.Plugins.SharedDirectoryMapper
 {
@@ -25,7 +27,7 @@ namespace WinSW.Plugins.SharedDirectoryMapper
             this._entries.Add(config);
         }
 
-        public override void Configure(ServiceDescriptor descriptor, XmlNode node)
+        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
             XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
