@@ -36,7 +36,7 @@ The extension can be configured via the [XML configuration file](../xmlConfigFil
       -->
       <stopTimeout>5000</stopTimeout>
       <!-- If true, the parent process will be terminated first if the runaway process gets terminated. -->
-      <stopParentFirst>false</stopParentFirst>
+      <stopParentFirst>true</stopParentFirst>
     </extension>
   </extensions>
 </service>
