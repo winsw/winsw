@@ -39,45 +39,6 @@ namespace WinSW
         /// </summary>
         public string BaseName { get; set; }
 
-        public XmlServiceConfig()
-        {
-            string path = this.ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(path);
-            string baseDir = Path.GetDirectoryName(path)!;
-
-            string fullPath = this.FullPath = Path.Combine(baseDir, baseName + ".xml");
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException("Unable to locate " + baseName + ".xml file within executable directory");
-            }
-
-            this.BaseName = baseName;
-            this.BasePath = Path.Combine(baseDir, baseName);
-
-            try
-            {
-                this.dom.Load(fullPath);
-            }
-            catch (XmlException e)
-            {
-                throw new InvalidDataException(e.Message, e);
-            }
-
-            // register the base directory as environment variable so that future expansions can refer to this.
-            Environment.SetEnvironmentVariable("BASE", baseDir);
-
-            // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", this.Name);
-
-            // New name
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
-
-            // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
-
-            this.environmentVariables = this.LoadEnvironmentVariables();
-        }
-
         /// <exception cref="FileNotFoundException" />
         public XmlServiceConfig(string path)
         {
@@ -126,11 +87,6 @@ namespace WinSW
             this.dom = dom;
 
             this.environmentVariables = this.LoadEnvironmentVariables();
-        }
-
-        internal static XmlServiceConfig Create(string? path)
-        {
-            return path != null ? new XmlServiceConfig(path) : TestConfig ?? new XmlServiceConfig();
         }
 
         public static XmlServiceConfig FromXml(string xml)

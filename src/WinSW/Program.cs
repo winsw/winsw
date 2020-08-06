@@ -33,6 +33,7 @@ namespace WinSW
         private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
 
         internal static Action<Exception, InvocationContext>? TestExceptionHandler;
+        internal static XmlServiceConfig? TestConfig;
         internal static string? TestExecutablePath;
 
         private static string ExecutablePath
@@ -85,7 +86,7 @@ namespace WinSW
                     XmlServiceConfig config = null!;
                     try
                     {
-                        config = XmlServiceConfig.Create(pathToConfig);
+                        config = CreateConfig(pathToConfig);
                     }
                     catch (FileNotFoundException)
                     {
@@ -355,7 +356,7 @@ namespace WinSW
 
             void Install(string? pathToConfig, bool noElevate, string? username, string? password)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -480,7 +481,7 @@ namespace WinSW
 
             void Uninstall(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -530,7 +531,7 @@ namespace WinSW
 
             void Start(string? pathToConfig, bool noElevate, bool noWait, CancellationToken ct)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -574,7 +575,7 @@ namespace WinSW
 
             void Stop(string? pathToConfig, bool noElevate, bool noWait, bool force, CancellationToken ct)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -626,7 +627,7 @@ namespace WinSW
 
             void Restart(string? pathToConfig, bool noElevate, bool force, CancellationToken ct)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -702,7 +703,7 @@ namespace WinSW
 
             void RestartSelf(string? pathToConfig)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -729,7 +730,7 @@ namespace WinSW
 
             static int Status(string? pathToConfig)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 using var svc = new ServiceController(config.Name);
@@ -762,7 +763,7 @@ namespace WinSW
 
             void Test(string? pathToConfig, bool noElevate, bool noBreak)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -805,7 +806,7 @@ namespace WinSW
 
             void Refresh(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -858,7 +859,7 @@ namespace WinSW
 
             void DevPs(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
+                XmlServiceConfig config = CreateConfig(pathToConfig);
 
                 if (!elevated)
                 {
@@ -956,6 +957,28 @@ namespace WinSW
                     Environment.Exit(e.ErrorCode);
                 }
             }
+        }
+
+        /// <exception cref="FileNotFoundException" />
+        private static XmlServiceConfig CreateConfig(string? path)
+        {
+            if (path != null)
+            {
+                return new XmlServiceConfig(path);
+            }
+
+            if (TestConfig != null)
+            {
+                return TestConfig;
+            }
+
+            path = Path.ChangeExtension(ExecutablePath, ".xml");
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException("Unable to locate " + Path.GetFileNameWithoutExtension(path) + ".xml file within executable directory.");
+            }
+
+            return new XmlServiceConfig(path);
         }
 
         private static void InitLoggers(XmlServiceConfig config, bool enableConsoleLogging)
