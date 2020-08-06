@@ -33,6 +33,11 @@ Also, the service wrapper sets the environment variable `BASE` by itself, which 
 This is useful to refer to other files in the same directory.
 Since this is an environment variable by itself, this value can be also accessed from the child process launched from the service wrapper.
 
+## Relative paths and the default working directory
+
+Relative paths are resolved based on the [working directory](#working-directory).
+The default working directory of the wrapper and it's child processes is the directory where the configuration file is located.
+
 ## Configuration entries
 
 ### id
