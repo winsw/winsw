@@ -114,6 +114,7 @@ The `<arguments>` element specifies the arguments to be passed to the executable
   arg2
   arg3
 </arguments>
+```
 
 ### stopargument/stopexecutable
 
@@ -135,19 +136,37 @@ When you use the `<stoparguments>`, you must use `<startarguments>` instead of `
 ### Additional commands
 
 ```xml
-<prestart|poststart|prestop|poststop>
+<prestart>
   <executable></executable>
   <arguments></arguments>
   <stdoutPath></stdoutPath>
   <stderrPath></stderrPath>
-</prestart|poststart|prestop|poststop>
+</prestart>
 ```
 
 The pre-start command is executed when the service is starting and before the main process is started.
 
+```xml
+<poststart>
+  <!-- ... -->
+</poststart>
+```
+
 The post-start command is executed when the service is starting and after the main process is started.
 
+```xml
+<prestop>
+  <!-- ... -->
+</prestop>
+```
+
 The pre-stop command is executed when the service is stopping and before the main process is stopped.
+
+```xml
+<poststop>
+  <!-- ... -->
+</poststop>
+```
 
 The post-stop command is executed when the service is stopping and after the main process is stopped.
 
