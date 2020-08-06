@@ -64,7 +64,7 @@ namespace WinSW.Configuration
         public virtual bool Preshutdown => false;
 
         // Logging
-        public virtual string LogDirectory => Path.GetDirectoryName(this.ExecutablePath)!;
+        public virtual string LogDirectory => Path.GetDirectoryName(this.FullPath)!;
 
         public virtual string LogMode => "append";
 

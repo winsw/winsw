@@ -43,7 +43,7 @@ $@"<service>
 
             Console.SetOut(swOut);
             Console.SetError(swError);
-            XmlServiceConfig.TestConfig = config ?? DefaultServiceConfig;
+            Program.TestConfig = config ?? DefaultServiceConfig;
             try
             {
                 _ = Program.Main(arguments);
@@ -52,7 +52,7 @@ $@"<service>
             {
                 Console.SetOut(tmpOut);
                 Console.SetError(tmpError);
-                XmlServiceConfig.TestConfig = null;
+                Program.TestConfig = null;
             }
 
             Assert.Equal(string.Empty, swError.ToString());
@@ -77,7 +77,7 @@ $@"<service>
 
             Console.SetOut(swOut);
             Console.SetError(swError);
-            XmlServiceConfig.TestConfig = config ?? DefaultServiceConfig;
+            Program.TestConfig = config ?? DefaultServiceConfig;
             Program.TestExceptionHandler = (e, _) => exception = e;
             try
             {
@@ -91,7 +91,7 @@ $@"<service>
             {
                 Console.SetOut(tmpOut);
                 Console.SetError(tmpError);
-                XmlServiceConfig.TestConfig = null;
+                Program.TestConfig = null;
                 Program.TestExceptionHandler = null;
             }
 
