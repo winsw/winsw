@@ -170,10 +170,10 @@ The system default preshutdown timeout is there minutes.
 
 ### stoptimeout
 
-When the service is requested to stop, winsw first attempts to send a Ctrl+C signal,
+When the service is requested to stop, winsw first attempts to send a Ctrl+C signal to a console application, or post a close message to a Windows application,
   then wait for up to 15 seconds for the process to exit by itself gracefully.
-A process failing to do that (or if the process does not have a console),
-  then winsw resorts to calling [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.
+If the timeout expires or the signal or message can't be sent,
+  then winsw resorts to terminate the service instantly.
 
 This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down.
 See `<onfailure>` below for how to specify time duration:
