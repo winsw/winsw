@@ -14,7 +14,6 @@ using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using log4net;
 using log4net.Appender;
 using log4net.Config;
@@ -214,26 +213,12 @@ namespace WinSW
             {
                 var test = new Command("test", "Checks if the service can be started and then stopped without installation.")
                 {
-                    Handler = CommandHandler.Create<string?, bool, int?, bool>(Test),
+                    Handler = CommandHandler.Create<string?, bool, bool>(Test),
                 };
 
                 test.Add(config);
                 test.Add(noElevate);
 
-                var timeout = new Option<int>("--timeout", "Specifies the number of seconds to wait before the service is stopped.");
-                timeout.Argument.AddValidator(argument =>
-                {
-                    const int minTimeout = -1;
-                    const int maxTimeout = int.MaxValue / 1000;
-
-                    string token = argument.Tokens.Single().Value;
-                    return !int.TryParse(token, out int value) ? null :
-                        value < minTimeout ? $"Argument '{token}' must be greater than or equal to {minTimeout}." :
-                        value > maxTimeout ? $"Argument '{token}' must be less than or equal to {maxTimeout}." :
-                        null;
-                });
-
-                test.Add(timeout);
                 test.Add(new Option("--no-break", "Ignores keystrokes."));
 
                 root.Add(test);
@@ -775,7 +760,7 @@ namespace WinSW
                 }
             }
 
-            void Test(string? pathToConfig, bool noElevate, int? timeout, bool noBreak)
+            void Test(string? pathToConfig, bool noElevate, bool noBreak)
             {
                 XmlServiceConfig config = XmlServiceConfig.Create(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
@@ -790,22 +775,19 @@ namespace WinSW
                 wsvc.RaiseOnStart(args);
                 try
                 {
-                    // validated [-1, int.MaxValue / 1000]
-                    int millisecondsTimeout = timeout is int secondsTimeout && secondsTimeout >= 0 ? secondsTimeout * 1000 : -1;
-
                     if (!noBreak)
                     {
                         Console.WriteLine("Press any key to stop the service...");
-                        _ = Task.Run(() => _ = Console.ReadKey()).Wait(millisecondsTimeout);
+                        _ = Console.ReadKey();
                     }
                     else
                     {
-                        using ManualResetEventSlim evt = new ManualResetEventSlim();
+                        using ManualResetEvent evt = new ManualResetEvent(false);
 
                         Console.WriteLine("Press Ctrl+C to stop the service...");
                         Console.CancelKeyPress += CancelKeyPress;
 
-                        _ = evt.Wait(millisecondsTimeout);
+                        _ = evt.WaitOne();
                         Console.CancelKeyPress -= CancelKeyPress;
 
                         void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
