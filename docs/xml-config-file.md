@@ -133,6 +133,8 @@ When you use the `<stoparguments>`, you must use `<startarguments>` instead of `
 <prestart|poststart|prestop|poststop>
   <executable></executable>
   <arguments></arguments>
+  <stdoutPath></stdoutPath>
+  <stderrPath></stderrPath>
 </prestart|poststart|prestop|poststop>
 ```
 
@@ -143,6 +145,12 @@ The post-start command is executed when the service is starting and after the ma
 The pre-stop command is executed when the service is stopping and before the main process is stopped.
 
 The post-stop command is executed when the service is stopping and after the main process is stopped.
+
+`stdoutPath` specifies the path to redirect the standard output to.
+
+`stderrPath` specifies the path to redirect the standard error output to.
+
+Specify `NUL` in `stdoutPath` or `stderrPath` to dispose of the corresponding stream.
 
 ### Preshutdown
 
