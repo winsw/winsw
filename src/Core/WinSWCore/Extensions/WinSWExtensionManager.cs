@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml;
 using log4net;
 using WinSW.Configuration;
 
@@ -12,12 +11,15 @@ namespace WinSW.Extensions
 
         public IWinSWConfiguration ServiceDescriptor { get; private set; }
 
+        public ExtensionConfigurationProvider ConfigProvider { get; private set; }
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
         public WinSWExtensionManager(IWinSWConfiguration serviceDescriptor)
         {
             this.ServiceDescriptor = serviceDescriptor;
             this.Extensions = new Dictionary<string, IWinSWExtension>();
+            this.ConfigProvider = new ExtensionConfigurationProvider(this.ServiceDescriptor);
         }
 
         /// <summary>
@@ -127,21 +129,25 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            XmlNode? extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
-            XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
+            var configNode = this.ConfigProvider.GetExtenstionConfiguration(id);
+
             if (configNode is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
             }
 
-            var descriptor = WinSWExtensionDescriptor.FromXml(configNode);
+            Console.WriteLine(configNode.Id);
+            Console.WriteLine(configNode.ClassName);
+            Console.WriteLine(configNode.Enabled);
+
+            var descriptor = new WinSWExtensionDescriptor(configNode.Id, configNode.ClassName, configNode.Enabled);
             if (descriptor.Enabled)
             {
                 IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 try
                 {
-                    extension.Configure(this.ServiceDescriptor, configNode);
+                    extension.Configure(this.ServiceDescriptor, configNode.Settings);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal

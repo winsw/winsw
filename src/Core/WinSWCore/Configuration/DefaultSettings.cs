@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Xml;
 using WMI;
 
 namespace WinSW.Configuration
@@ -133,7 +132,7 @@ namespace WinSW.Configuration
         public bool BeepOnShutdown => false;
 
         // Extensions
-        public XmlNode? ExtensionsConfiguration => null;
+        public object? ExtensionsConfiguration => null;
 
         public string BaseName
         {

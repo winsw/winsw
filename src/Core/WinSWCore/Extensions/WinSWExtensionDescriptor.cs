@@ -26,7 +26,7 @@ namespace WinSW.Extensions
         /// </summary>
         public string ClassName { get; private set; }
 
-        private WinSWExtensionDescriptor(string id, string className, bool enabled)
+        public WinSWExtensionDescriptor(string id, string className, bool enabled)
         {
             this.Id = id;
             this.Enabled = enabled;

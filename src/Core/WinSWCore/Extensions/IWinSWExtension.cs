@@ -1,5 +1,4 @@
-﻿using System.Xml;
-using WinSW.Configuration;
+﻿using WinSW.Configuration;
 
 namespace WinSW.Extensions
 {
@@ -27,8 +26,7 @@ namespace WinSW.Extensions
         /// Init handler. Extension should load it's config during that step
         /// </summary>
         /// <param name="descriptor">Service descriptor</param>
-        /// <param name="node">Configuration node</param>
-        void Configure(IWinSWConfiguration descriptor, XmlNode node);
+        void Configure(IWinSWConfiguration descriptor, object settings);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.

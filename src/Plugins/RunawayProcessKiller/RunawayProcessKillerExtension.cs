@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Xml;
 using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
@@ -180,17 +179,15 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        public override void Configure(IWinSWConfiguration descriptor, object settings)
         {
-            // We expect the upper logic to process any errors
-            // TODO: a better parser API for types would be useful
-            this.Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
-            this.StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
+            var configQuery = new ObjectQuery(settings);
+
+            this.Pidfile = configQuery.On("pidfile").ToString();
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(configQuery.On("stopTimeOut").ToString()));
+            this.StopParentProcessFirst = configQuery.On("StopParentFirst").ToBoolean();
+            this.CheckWinSWEnvironmentVariable = configQuery.On("checkWinSWEnvironmentVariable").ToBoolean();
             this.ServiceId = descriptor.Id;
-            // TODO: Consider making it documented
-            var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
-            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }
 
         /// <summary>

@@ -208,7 +208,7 @@ namespace WinSW
             }
         }
 
-        public List<string> ExtensionIds
+        /*public List<string> ExtensionIds
         {
             get
             {
@@ -227,9 +227,18 @@ namespace WinSW
 
                 return result;
             }
+        }*/
+
+        public List<string> ExtensionIds
+        {
+            get
+            {
+                return new List<string>(0);
+            }
         }
 
-        public XmlNode? ExtensionsConfiguration => this.dom.SelectSingleNode("//extensions");
+        // public XmlNode? ExtensionsConfiguration => this.dom.SelectSingleNode("//extensions");
+        public object? ExtensionsConfiguration { get; set; }
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,

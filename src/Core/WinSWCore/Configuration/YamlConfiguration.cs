@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Xml;
 using WinSW.Native;
 using WinSW.Util;
 using WMI;
@@ -100,7 +99,7 @@ namespace WinSW.Configuration
         public string? SecurityDescriptorYaml { get; set; }
 
         [YamlMember(Alias = "extensions")]
-        public List<string>? YamlExtensionIds { get; set; }
+        public object? YamlExtensions { get; set; }
 
         public class YamlEnv
         {
@@ -641,10 +640,26 @@ namespace WinSW.Configuration
 
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
-        // TODO - Extensions
-        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+        public object? ExtensionsConfiguration => this.YamlExtensions;
 
-        public List<string> ExtensionIds => this.YamlExtensionIds ?? this.Defaults.ExtensionIds;
+        public List<string> ExtensionIds
+        {
+            get
+            {
+                var result = new List<string>(0);
+                var extensions = this.ExtensionsConfiguration;
+                var extensionConfigListObject = new ObjectQuery(extensions).ToList<object>();
+
+                foreach (var item in extensionConfigListObject)
+                {
+                    var configObject = new ObjectQuery(item);
+                    var id = configObject.On("id").ToString();
+                    result.Add(id);
+                }
+
+                return result;
+            }
+        }
 
         public string BaseName => this.Defaults.BaseName;
 
