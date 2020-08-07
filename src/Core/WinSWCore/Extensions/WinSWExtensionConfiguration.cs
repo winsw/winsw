@@ -1,3 +1,5 @@
+using WinSW.Util;
+
 namespace WinSW.Extensions
 {
     public class WinSWExtensionConfiguration
@@ -8,9 +10,9 @@ namespace WinSW.Extensions
 
         public string ClassName { get; set; }
 
-        public object Settings { get; set; }
+        public ObjectQuery Settings { get; set; }
 
-        public WinSWExtensionConfiguration(string id, bool enabled, string className, object settings)
+        public WinSWExtensionConfiguration(string id, bool enabled, string className, ObjectQuery settings)
         {
             this.Id = id;
             this.Enabled = enabled;

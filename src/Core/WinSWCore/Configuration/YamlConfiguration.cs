@@ -648,6 +648,12 @@ namespace WinSW.Configuration
             {
                 var result = new List<string>(0);
                 var extensions = this.ExtensionsConfiguration;
+
+                if (extensions is null)
+                {
+                    return result;
+                }
+
                 var extensionConfigListObject = new ObjectQuery(extensions).ToList<object>();
 
                 foreach (var item in extensionConfigListObject)

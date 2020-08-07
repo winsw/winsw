@@ -34,6 +34,12 @@ namespace WinSW.Extensions
             var result = new List<WinSWExtensionConfiguration>(0);
 
             var extensions = this.serviceDescriptor.ExtensionsConfiguration;
+
+            if (extensions is null)
+            {
+                return result;
+            }
+
             var extensionNodes = new ObjectQuery(extensions).ToList<object>();
 
             foreach (var extension in extensionNodes)

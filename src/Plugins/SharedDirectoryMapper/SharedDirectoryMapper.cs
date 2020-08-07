@@ -26,18 +26,16 @@ namespace WinSW.Plugins.SharedDirectoryMapper
             this._entries.Add(config);
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, object settings)
+        public override void Configure(IWinSWConfiguration descriptor, ObjectQuery settings)
         {
-            var configObject = new ObjectQuery(settings);
-
-            var maps = configObject.On("mapping").ToList<object>();
+            var maps = settings.Get("mapping").ToList<object>();
 
             foreach (var map in maps)
             {
                 var mapObject = new ObjectQuery(map);
-                var enable = mapObject.On("enabled").ToBoolean();
-                var label = mapObject.On("label").ToString();
-                var uncpath = mapObject.On("uncpath").ToString();
+                var enable = mapObject.Get("enabled").ToBoolean();
+                var label = mapObject.Get("label").ToString();
+                var uncpath = mapObject.Get("uncpath").ToString();
 
                 var config = new SharedDirectoryMapperConfig(enable, label, uncpath);
                 this._entries.Add(config);

@@ -179,14 +179,12 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, object settings)
+        public override void Configure(IWinSWConfiguration descriptor, ObjectQuery settings)
         {
-            var configQuery = new ObjectQuery(settings);
-
-            this.Pidfile = configQuery.On("pidfile").ToString();
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(configQuery.On("stopTimeOut").ToString()));
-            this.StopParentProcessFirst = configQuery.On("StopParentFirst").ToBoolean();
-            this.CheckWinSWEnvironmentVariable = configQuery.On("checkWinSWEnvironmentVariable").ToBoolean();
+            this.Pidfile = settings.Get("pidfile").ToString();
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(settings.Get("stopTimeOut").ToString()));
+            this.StopParentProcessFirst = settings.Get("StopParentFirst").ToBoolean();
+            this.CheckWinSWEnvironmentVariable = settings.Get("checkWinSWEnvironmentVariable").ToBoolean();
             this.ServiceId = descriptor.Id;
         }
 

@@ -136,10 +136,6 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Cannot get the configuration entry");
             }
 
-            Console.WriteLine(configNode.Id);
-            Console.WriteLine(configNode.ClassName);
-            Console.WriteLine(configNode.Enabled);
-
             var descriptor = new WinSWExtensionDescriptor(configNode.Id, configNode.ClassName, configNode.Enabled);
             if (descriptor.Enabled)
             {

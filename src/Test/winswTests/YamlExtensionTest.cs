@@ -3,6 +3,7 @@ using WinSW;
 using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Plugins.RunawayProcessKiller;
+using WinSW.Util;
 using winswTests.Extensions;
 
 namespace winswTests
@@ -27,7 +28,7 @@ extensions:
       enabled: yes
       classname: ""{this.testExtension}""
       settings:
-            pidfile: foo/bar/pid.txt
+            pidfile: pid.txt
             stopTimeOut: 5000
             StopParentFirst: true";
 
@@ -49,6 +50,20 @@ extensions:
             Assert.AreEqual("foo/bar/pid.txt", extension.Pidfile, "Loaded PID file path is not equal to the expected one");
             Assert.AreEqual(5000, extension.StopTimeout.TotalMilliseconds, "Loaded Stop Timeout is not equal to the expected one");
             Assert.AreEqual(true, extension.StopParentProcessFirst, "Loaded StopParentFirst is not equal to the expected one");
+        }
+
+        [Test]
+        public void Sample_test()
+        {
+            ExtensionConfigurationProvider provider = new ExtensionConfigurationProvider(this._testServiceDescriptor);
+            var config = provider.GetExtenstionConfiguration("killOnStartup");
+            var pid = config.Settings.On("pidfile").ToString();
+            var stopTimeOut = config.Settings.Get("stopTimeOut").ToString();
+            var StopParentFirst = config.Settings.Get("StopParentFirst").ToString();
+
+            System.Console.WriteLine(pid);
+            System.Console.WriteLine(stopTimeOut);
+            System.Console.WriteLine(StopParentFirst);
         }
     }
 }
