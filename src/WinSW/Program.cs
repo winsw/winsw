@@ -285,6 +285,13 @@ namespace WinSW
                 };
 
                 dev.Add(ps);
+
+                var kill = new Command("kill", "Terminates the service if it has stopped responding.")
+                {
+                    Handler = CommandHandler.Create<string?, bool>(DevKill),
+                };
+
+                dev.Add(kill);
             }
 
             return new CommandLineBuilder(root)
@@ -906,6 +913,28 @@ namespace WinSW
                             Draw(child, indentation, i == count - 1);
                         }
                     }
+                }
+            }
+
+            void DevKill(string? pathToConfig, bool noElevate)
+            {
+                XmlServiceConfig config = CreateConfig(pathToConfig);
+
+                if (!elevated)
+                {
+                    Elevate(noElevate);
+                    return;
+                }
+
+                using ServiceManager scm = ServiceManager.Open();
+                using Service sc = scm.OpenService(config.Name);
+
+                int processId = sc.ProcessId;
+                if (processId >= 0)
+                {
+                    using Process process = Process.GetProcessById(processId);
+
+                    process.StopDescendants(config.StopTimeoutInMs);
                 }
             }
 
