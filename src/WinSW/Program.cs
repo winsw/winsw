@@ -962,14 +962,14 @@ namespace WinSW
         /// <exception cref="FileNotFoundException" />
         private static XmlServiceConfig CreateConfig(string? path)
         {
-            if (path != null)
-            {
-                return new XmlServiceConfig(path);
-            }
-
             if (TestConfig != null)
             {
                 return TestConfig;
+            }
+
+            if (path != null)
+            {
+                return new XmlServiceConfig(path);
             }
 
             path = Path.ChangeExtension(ExecutablePath, ".xml");

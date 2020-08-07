@@ -38,20 +38,22 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <ProjectReference Include="..\WinSW.Tasks\WinSW.Tasks.csproj" />
+    <ProjectReference Include="..\WinSW.Tasks\WinSW.Tasks.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
 
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(PublishSingleFile)' != 'true'">
 
-    <MakeDir Directories="$(ArtifactsDir)" />
-    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsDir)WinSW.NETCore.$(PlatformTarget).zip" Overwrite="true" />
+    <MakeDir Directories="$(ArtifactsPublishDir)" />
+    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).zip" Overwrite="true" />
 
   </Target>
 
   <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'netcoreapp3.1' and '$(PublishSingleFile)' == 'true'">
 
-    <MakeDir Directories="$(ArtifactsDir)" />
-    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsDir)WinSW.NETCore.$(PlatformTarget).exe" />
+    <MakeDir Directories="$(ArtifactsPublishDir)" />
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).exe" />
 
   </Target>
 
@@ -73,7 +75,7 @@
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Numerics.Vectors.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.Runtime.CompilerServices.Unsafe.dll"</InputAssemblies>
       <InputAssemblies>$(InputAssemblies) "$(OutDir)System.ValueTuple.dll"</InputAssemblies>
-      <OutputAssembly>"$(ArtifactsDir)WinSW.$(TargetFrameworkSuffix).exe"</OutputAssembly>
+      <OutputAssembly>"$(ArtifactsPublishDir)WinSW.$(TargetFrameworkSuffix).exe"</OutputAssembly>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -82,14 +84,14 @@
       <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
     </PropertyGroup>
 
-    <MakeDir Directories="$(ArtifactsDir)" />
+    <MakeDir Directories="$(ArtifactsPublishDir)" />
     <Exec Command="$(ILMergeCommand)" />
 
   </Target>
 
-  <UsingTask TaskName="WinSW.Tasks.Trim" AssemblyFile="..\WinSW.Tasks\bin\$(Configuration)\net461\WinSW.Tasks.dll" />
+  <UsingTask TaskName="WinSW.Tasks.Trim" AssemblyFile="$(ArtifactsBinDir)WinSW.Tasks\$(Configuration)\net461\WinSW.Tasks.dll" />
   <Target Name="Trim" AfterTargets="Merge" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <Trim Path="$(ArtifactsDir)WinSW.$(TargetFrameworkSuffix).exe" />
+    <Trim Path="$(ArtifactsPublishDir)WinSW.$(TargetFrameworkSuffix).exe" />
   </Target>
 
 </Project>

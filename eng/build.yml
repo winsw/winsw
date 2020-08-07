@@ -50,7 +50,7 @@ jobs:
     inputs:
       command: test
       projects: src\WinSW.Tests\WinSW.Tests.csproj
-      arguments: -c $(BuildConfiguration) --no-build
+      arguments: -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build
   - task: NuGetToolInstaller@1
     displayName: Install Nuget
     inputs:
@@ -62,19 +62,19 @@ jobs:
       packagesToPack: WinSW.nuspec
       versioningScheme: byEnvVar
       versionEnvVar: BuildVersion
-  - publish: artifacts\WinSW.NET461.exe
+  - publish: artifacts\publish\WinSW.NET461.exe
     artifact: WinSW.NET461.exe_$(BuildConfiguration)
     displayName: Publish .NET 4.6.1
-  - publish: artifacts\WinSW.NETCore.x64.zip
+  - publish: artifacts\publish\WinSW.NETCore.x64.zip
     artifact: WinSW.NETCore.x64.zip_$(BuildConfiguration)
     displayName: Publish .NET Core x64 .zip
-  - publish: artifacts\WinSW.NETCore.x86.zip
+  - publish: artifacts\publish\WinSW.NETCore.x86.zip
     artifact: WinSW.NETCore.x86.zip_$(BuildConfiguration)
     displayName: Publish .NET Core x86 .zip
-  - publish: artifacts\WinSW.NETCore.x64.exe
+  - publish: artifacts\publish\WinSW.NETCore.x64.exe
     artifact: WinSW.NETCore.x64.exe_$(BuildConfiguration)
     displayName: Publish .NET Core x64 .exe
-  - publish: artifacts\WinSW.NETCore.x86.exe
+  - publish: artifacts\publish\WinSW.NETCore.x86.exe
     artifact: WinSW.NETCore.x86.exe_$(BuildConfiguration)
     displayName: Publish .NET Core x86 .exe
   - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg

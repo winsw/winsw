@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Xml;
 using Xunit;
 
 namespace WinSW.Tests.Util
@@ -9,22 +11,18 @@ namespace WinSW.Tests.Util
     /// </summary>
     public static class CommandLineTestHelper
     {
-        public const string Id = "WinSW.Tests";
-        public const string Name = "WinSW Test Service";
+        public const string Name = "WinSW.Tests";
+        public const string DisplayName = "WinSW Test Service";
 
-        private static readonly string SeedXml =
+        internal static readonly string SeedXml =
 $@"<service>
-  <id>{Id}</id>
-  <name>{Name}</name>
-  <description>The service.</description>
-  <executable>node.exe</executable>
-  <arguments>My Arguments</arguments>
-  <log mode=""roll""></log>
-  <workingdirectory>C:\winsw\workdir</workingdirectory>
-  <logpath>C:\winsw\logs</logpath>
+  <id>{Name}</id>
+  <name>{DisplayName}</name>
+  <executable>cmd.exe</executable>
+  <arguments>/c timeout /t -1 /nobreak</arguments>
 </service>";
 
-        public static readonly XmlServiceConfig DefaultServiceConfig = XmlServiceConfig.FromXml(SeedXml);
+        private static readonly XmlServiceConfig DefaultServiceConfig = XmlServiceConfig.FromXml(SeedXml);
 
         /// <summary>
         /// Runs a simle test, which returns the output CLI
@@ -96,6 +94,69 @@ $@"<service>
             }
 
             return new CommandLineTestResult(swOut.ToString(), swError.ToString(), exception);
+        }
+
+        internal sealed class TestXmlServiceConfig : XmlServiceConfig, IDisposable
+        {
+            private readonly string directory;
+
+            private bool disposed;
+
+            internal TestXmlServiceConfig(XmlDocument document, string name)
+                : base(document)
+            {
+                string directory = this.directory = Path.Combine(Path.GetTempPath(), name);
+                _ = Directory.CreateDirectory(directory);
+
+                try
+                {
+                    string path = this.FullPath = Path.Combine(directory, "config.xml");
+                    using (var file = File.CreateText(path))
+                    {
+                        file.Write(SeedXml);
+                    }
+
+                    this.BaseName = name;
+                    this.BasePath = Path.Combine(directory, name);
+                }
+                catch
+                {
+                    Directory.Delete(directory, true);
+                    throw;
+                }
+            }
+
+            ~TestXmlServiceConfig() => this.Dispose(false);
+
+            public override string FullPath { get; }
+
+            public override string BasePath { get; }
+
+            public override string BaseName { get; set; }
+
+            public override string ExecutablePath => Layout.WinSWExe;
+
+            internal static TestXmlServiceConfig FromXml(string xml, [CallerMemberName] string name = null)
+            {
+                var document = new XmlDocument();
+                document.LoadXml(xml);
+                return new TestXmlServiceConfig(document, name);
+            }
+
+            public void Dispose()
+            {
+                this.Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            private void Dispose(bool _)
+            {
+                if (!disposed)
+                {
+                    Directory.Delete(this.directory, true);
+                    disposed = true;
+                }
+            }
         }
     }
 
