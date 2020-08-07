@@ -58,15 +58,17 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 | [status](docs/cli-commands.md#status-command)       | Checks the status of the service. |
 | [test](docs/cli-commands.md#test-command)           | Checks if the service can be started and then stopped without installation. |
 | [refresh](docs/cli-commands.md#refresh-command)     | Refreshes the service properties without reinstallation. |
-| dev                                                 | Experimental commands used by the developers. |
+| customize                                           | Customizes the wrapper executable. |
+| dev                                                 | Experimental commands. |
 
 Experimental commands:
 
-| Command | Description |
-| ------- | ----------- |
-| dev ps  | Draws the process tree associated with the service. |
+| Command  | Description |
+| -------  | ----------- |
+| dev ps   | Draws the process tree associated with the service. |
+| dev kill | Terminates the service if it has stopped responding. |
 
-Most commands require Administrator privileges to execute. Since 2.8, WinSW will prompt for UAC in non-elevated sessions.
+Most commands require Administrator privileges to execute. WinSW will prompt for UAC in non-elevated sessions.
 
 ## Documentation
 
