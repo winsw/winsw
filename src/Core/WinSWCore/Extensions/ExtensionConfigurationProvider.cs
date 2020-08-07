@@ -40,16 +40,16 @@ namespace WinSW.Extensions
                 return result;
             }
 
-            var extensionNodes = new ObjectQuery(extensions).ToList<object>();
+            var extensionNodes = new ObjectQuery(extensions).AsList<object>();
 
             foreach (var extension in extensionNodes)
             {
                 var query = new ObjectQuery(extension);
 
-                var id = query.On("id").ToString();
-                var enabled = query.On("enabled").ToBoolean();
-                var className = query.On("classname").ToString();
-                var settings = query.On("settings");
+                var id = query.On("id").AsString();
+                var enabled = query.On("enabled").AsBool();
+                var className = query.On("classname").AsString();
+                var settings = query.On("settings").AsParent();
 
                 var extensionConfig = new WinSWExtensionConfiguration(id, enabled, className, settings);
                 result.Add(extensionConfig);

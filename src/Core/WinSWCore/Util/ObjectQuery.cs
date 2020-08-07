@@ -40,7 +40,7 @@ namespace WinSW.Util
             return this;
         }
 
-        public new string ToString()
+        public string AsString()
         {
             if (this.current == null)
             {
@@ -57,7 +57,7 @@ namespace WinSW.Util
             return result;
         }
 
-        public List<T> ToList<T>()
+        public List<T> AsList<T>()
         {
             if (this.current == null)
             {
@@ -80,7 +80,7 @@ namespace WinSW.Util
             return result;
         }
 
-        public bool ToBoolean()
+        public bool AsBool()
         {
             if (this.current == null)
             {
@@ -135,7 +135,7 @@ namespace WinSW.Util
             return this;
         }
 
-        private object? Query(object dic, string key)
+        private object? Query(object? dic, string key)
         {
             if (dic == null)
             {
@@ -155,6 +155,11 @@ namespace WinSW.Util
             }
 
             return null;
+        }
+
+        public ObjectQuery AsParent()
+        {
+            return new ObjectQuery(this.current);
         }
     }
 }

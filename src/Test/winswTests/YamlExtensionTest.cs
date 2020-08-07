@@ -57,9 +57,10 @@ extensions:
         {
             ExtensionConfigurationProvider provider = new ExtensionConfigurationProvider(this._testServiceDescriptor);
             var config = provider.GetExtenstionConfiguration("killOnStartup");
-            var pid = config.Settings.On("pidfile").ToString();
-            var stopTimeOut = config.Settings.Get("stopTimeOut").ToString();
-            var StopParentFirst = config.Settings.Get("StopParentFirst").ToString();
+
+            var pid = config.Settings.On("pidfile").AsString();
+            var stopTimeOut = config.Settings.On("stopTimeOut").AsString();
+            var StopParentFirst = config.Settings.On("StopParentFirst").AsString();
 
             System.Console.WriteLine(pid);
             System.Console.WriteLine(stopTimeOut);

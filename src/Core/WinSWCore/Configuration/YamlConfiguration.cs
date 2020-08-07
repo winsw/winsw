@@ -654,12 +654,12 @@ namespace WinSW.Configuration
                     return result;
                 }
 
-                var extensionConfigListObject = new ObjectQuery(extensions).ToList<object>();
+                var extensionConfigListObject = new ObjectQuery(extensions).AsList<object>();
 
                 foreach (var item in extensionConfigListObject)
                 {
                     var configObject = new ObjectQuery(item);
-                    var id = configObject.On("id").ToString();
+                    var id = configObject.On("id").AsString();
                     result.Add(id);
                 }
 

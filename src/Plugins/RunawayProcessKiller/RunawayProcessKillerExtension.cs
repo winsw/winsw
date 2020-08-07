@@ -181,10 +181,17 @@ namespace WinSW.Plugins.RunawayProcessKiller
 
         public override void Configure(IWinSWConfiguration descriptor, ObjectQuery settings)
         {
-            this.Pidfile = settings.Get("pidfile").ToString();
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(settings.Get("stopTimeOut").ToString()));
-            this.StopParentProcessFirst = settings.Get("StopParentFirst").ToBoolean();
-            this.CheckWinSWEnvironmentVariable = settings.Get("checkWinSWEnvironmentVariable").ToBoolean();
+            this.Pidfile = settings.On("pidfile").AsString();
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(settings.On("stopTimeOut").AsString()));
+            this.StopParentProcessFirst = settings.On("StopParentFirst").AsBool();
+            try
+            {
+                this.CheckWinSWEnvironmentVariable = settings.Get("checkWinSWEnvironmentVariable").AsBool();
+            }
+            catch
+            {
+                this.CheckWinSWEnvironmentVariable = true;
+            }
             this.ServiceId = descriptor.Id;
         }
 
