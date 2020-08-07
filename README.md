@@ -11,7 +11,7 @@
 WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
 Once you download the installation package, you can rename *WinSW.exe* to any name, e.g. *MyService.exe*.
 
-**We are actively developing WinSW v3. Please refer to the v2 branch for previous version documentation.**
+**We are actively developing WinSW 3. Please refer to the v2 branch for previous version documentation.**
 
 **Please help us prioritize items by voting or commenting on the issues!**
 
@@ -35,12 +35,14 @@ Supported on Windows 7 SP1, Windows Server (Core) 2012 R2 and Nano Server, versi
 
 ## Download
 
-WinSW binaries are available on [GitHub Releases](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
+Latest release and pre-release WinSW binaries are available on [GitHub Releases](https://github.com/winsw/winsw/releases).
 
 Alternative sources:
 
+* CI builds are available on [Azure Pipelines](https://dev.azure.com/winsw/winsw/_build?definitionId=1).
+* [NuGet](https://www.nuget.org/packages/WinSW/). (2.x)
 * [Maven packaging](https://github.com/jenkinsci/winsw-maven-packaging) for executables, hosted by the [Jenkins project](https://jenkins.io/).
-Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/).
+Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). (2.x)
 
 ## Usage
 
