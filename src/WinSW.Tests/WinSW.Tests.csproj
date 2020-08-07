@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp5.0</TargetFrameworks>
+    <TargetFrameworks>net471;netcoreapp5.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -10,6 +10,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.137201" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime.Utilities" Version="2.0.0-rc.20303.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
@@ -28,5 +30,25 @@
     <ProjectReference Include="..\WinSW.Core\WinSW.Core.csproj" />
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="Copy" BeforeTargets="AfterBuild">
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp5.0'">
+      <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\netcoreapp3.1\WinSW.runtimeconfig*.json" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp5.0'">
+      <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net461\System.ValueTuple.dll" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_FilesToCopy)" DestinationFolder="$(OutputPath)" />
+
+  </Target>
 
 </Project>

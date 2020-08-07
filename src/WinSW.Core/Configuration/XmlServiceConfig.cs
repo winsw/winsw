@@ -30,14 +30,14 @@ namespace WinSW
         ///
         /// This string is "c:\abc\def\ghi" when the configuration XML is "c:\abc\def\ghi.xml"
         /// </summary>
-        public string BasePath { get; set; }
+        public virtual string BasePath { get; }
 
         /// <summary>
         /// The file name portion of the configuration file.
         ///
         /// In the above example, this would be "ghi".
         /// </summary>
-        public string BaseName { get; set; }
+        public virtual string BaseName { get; set; }
 
         /// <exception cref="FileNotFoundException" />
         public XmlServiceConfig(string path)

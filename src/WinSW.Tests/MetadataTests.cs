@@ -1,4 +1,4 @@
-﻿#if NET461
+﻿#if NETFRAMEWORK
 using System;
 using System.IO;
 using System.Reflection.Metadata;
@@ -15,8 +15,7 @@ namespace WinSW.Tests
         {
             var version = new Version(4, 0, 0, 0);
 
-            using var file = File.OpenRead(Path.Combine(Layout.ArtifactsDirectory, "WinSW.NET461.exe"));
-            using var peReader = new PEReader(file);
+            using var peReader = new PEReader(File.OpenRead(Layout.NET461Exe));
             var metadataReader = peReader.GetMetadataReader();
             foreach (var handle in metadataReader.AssemblyReferences)
             {
