@@ -21,6 +21,7 @@ using log4net.Layout;
 using WinSW.Configuration;
 using WinSW.Logging;
 using WinSW.Native;
+using WinSW.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
@@ -63,8 +64,20 @@ namespace WinSW
         {
             bool inConsoleMode = argsArray.Length > 0;
 
+            string baseName;
+            DirectoryInfo d;
+
+            var configType = GetConfigType(out baseName, out d);
+
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= new ServiceDescriptor();
+            if (configType == ConfigType.XML)
+            {
+                descriptor ??= new ServiceDescriptor(baseName, d);
+            }
+            else
+            {
+                descriptor ??= new ServiceDescriptorYaml(baseName, d).Configurations;
+            }
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
@@ -655,6 +668,39 @@ namespace WinSW
                     Console.Write('*');
                     _ = buf.Append(key.KeyChar);
                 }
+            }
+        }
+
+        private static ConfigType GetConfigType(out string baseName, out DirectoryInfo d)
+        {
+            var executablePath = new DefaultWinSWSettings().ExecutablePath;
+            baseName = Path.GetFileNameWithoutExtension(executablePath);
+
+            if (baseName.EndsWith(".vshost"))
+            {
+                baseName = baseName.Substring(0, baseName.Length - 7);
+            }
+
+            d = new DirectoryInfo(Path.GetDirectoryName(executablePath));
+
+            while (true)
+            {
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
+                {
+                    return ConfigType.XML;
+                }
+
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
+                {
+                    return ConfigType.YAML;
+                }
+
+                if (d.Parent is null)
+                {
+                    throw new FileNotFoundException("Unable to locate " + baseName + ".xml " + "or " + baseName + ".yml " + "file within executable directory or any parents");
+                }
+
+                d = d.Parent;
             }
         }
 

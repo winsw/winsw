@@ -73,11 +73,6 @@ namespace WinSW
             eventLogProvider.Service = this;
         }
 
-        public WrapperService()
-            : this(new ServiceDescriptor())
-        {
-        }
-
         /// <summary>
         /// Process the file copy instructions, so that we can replace files that are always in use while
         /// the service runs.
