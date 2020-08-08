@@ -1,4 +1,4 @@
-﻿namespace WinSW.Util
+namespace WinSW.Util
 {
     public enum ConfigType
     {
