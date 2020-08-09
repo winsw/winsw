@@ -532,6 +532,9 @@ namespace WinSW
             }
         }
 
+        /// <summary>
+        /// <paramref name="onExited"/> will not be raised if <see cref="Process.EnableRaisingEvents"/> is <see langword="false"/>.
+        /// </summary>
         private Process StartProcess(string executable, string? arguments, LogHandler? logHandler = null, Action<Process>? onExited = null)
         {
             var startInfo = new ProcessStartInfo(executable, arguments)
@@ -588,9 +591,16 @@ namespace WinSW
             {
                 process.Exited += (sender, _) =>
                 {
+                    Process process = (Process)sender!;
+
+                    if (!process.EnableRaisingEvents)
+                    {
+                        return;
+                    }
+
                     try
                     {
-                        onExited((Process)sender!);
+                        onExited(process);
                     }
                     catch (Exception e)
                     {
