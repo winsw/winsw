@@ -11,6 +11,7 @@ using WinSW.Extensions;
 using WinSW.Logging;
 using WinSW.Native;
 using WinSW.Util;
+using Messages = WinSW.ServiceMessages;
 
 namespace WinSW
 {
@@ -206,7 +207,7 @@ namespace WinSW
             try
             {
                 this.DoStart();
-                this.LogMinimal("Service started successfully.");
+                this.LogMinimal(Messages.StartedSuccessfully);
             }
             catch (Exception e)
             {
@@ -220,7 +221,7 @@ namespace WinSW
             try
             {
                 this.DoStop();
-                this.LogMinimal("Service stopped successfully.");
+                this.LogMinimal(Messages.StoppedSuccessfully);
             }
             catch (Exception e)
             {
@@ -256,6 +257,8 @@ namespace WinSW
         private void DoStart()
         {
             bool succeeded = ConsoleApis.FreeConsole();
+            Debug.Assert(succeeded);
+            succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
             Debug.Assert(succeeded);
 
             this.HandleFileCopies();
@@ -561,7 +564,9 @@ namespace WinSW
                 }
             }
 
-            bool succeeded = ConsoleApis.AllocConsole();
+            bool succeeded = ConsoleApis.AllocConsole(); // inherited
+            Debug.Assert(succeeded);
+            succeeded = ConsoleApis.SetConsoleCtrlHandler(null, false); // inherited
             Debug.Assert(succeeded);
 
             Process process;
@@ -572,6 +577,8 @@ namespace WinSW
             finally
             {
                 succeeded = ConsoleApis.FreeConsole();
+                Debug.Assert(succeeded);
+                succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
                 Debug.Assert(succeeded);
             }
 
