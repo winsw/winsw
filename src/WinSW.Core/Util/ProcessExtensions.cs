@@ -193,20 +193,28 @@ namespace WinSW.Util
             if (!AttachConsole(process.Id))
             {
                 int error = Marshal.GetLastWin32Error();
-                Log.Debug("Failed to attach to console. " + error switch
+                switch (error)
                 {
-                    Errors.ERROR_ACCESS_DENIED => "WinSW is already attached to a console.", // TODO: test mode
-                    Errors.ERROR_INVALID_HANDLE => "The process does not have a console.",
-                    Errors.ERROR_INVALID_PARAMETER => "The process has exited.",
-                    _ => new Win32Exception(error).Message // unreachable
-                });
+                    // The process does not have a console.
+                    case Errors.ERROR_INVALID_HANDLE:
+                        return false;
 
-                return error == Errors.ERROR_INVALID_PARAMETER ? (bool?)null : false;
+                    // The process has exited.
+                    case Errors.ERROR_INVALID_PARAMETER:
+                        return null;
+
+                    // The calling process is already attached to a console.
+                    case Errors.ERROR_ACCESS_DENIED:
+                    default:
+                        Log.Warn("Failed to attach to console. " + new Win32Exception(error).Message);
+                        return false;
+                }
             }
 
-            _ = SetConsoleCtrlHandler(null, true);
+            // Don't call GenerateConsoleCtrlEvent immediately after SetConsoleCtrlHandler.
+            // A delay was observed as of Windows 10, version 2004 and Windows Server 2019.
             _ = GenerateConsoleCtrlEvent(CtrlEvents.CTRL_C_EVENT, 0);
-            _ = SetConsoleCtrlHandler(null, false);
+
             bool succeeded = FreeConsole();
             Debug.Assert(succeeded);
 

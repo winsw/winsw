@@ -38,6 +38,10 @@ namespace WinSW.Tests
                         Assert.Equal(ServiceControllerStatus.Running, controller.Status);
                         Assert.True(controller.CanStop);
 
+                        Assert.EndsWith(
+                            ServiceMessages.StartedSuccessfully + Environment.NewLine,
+                            File.ReadAllText(Path.ChangeExtension(config.FullPath, ".wrapper.log")));
+
                         if (Environment.GetEnvironmentVariable("System.DefinitionId") != null)
                         {
                             session = new InterProcessCodeCoverageSession(Helper.Name);
@@ -48,6 +52,10 @@ namespace WinSW.Tests
                         _ = Helper.Test(new[] { "stop", config.FullPath }, config);
                         controller.Refresh();
                         Assert.Equal(ServiceControllerStatus.Stopped, controller.Status);
+
+                        Assert.EndsWith(
+                            ServiceMessages.StoppedSuccessfully + Environment.NewLine,
+                            File.ReadAllText(Path.ChangeExtension(config.FullPath, ".wrapper.log")));
                     }
                 }
                 finally
