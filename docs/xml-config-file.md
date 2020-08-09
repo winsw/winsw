@@ -271,7 +271,7 @@ Examples:
           auth="basic" user="aUser" password="aPassw0rd" />
 
 <download from="http://example.com/some.dat" to="%BASE%\some.dat"
-    proxy="http://aUser:aPassw0rd@192.168.1.5:80/"
+          proxy="http://aUser:aPassw0rd@192.168.1.5:80/"
           auth="basic" unsecureAuth="true"
           user="aUser" password="aPassw0rd" />
 ```
