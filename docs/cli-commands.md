@@ -10,6 +10,7 @@
 - [status](#status-command)
 - [test](#test-command)
 - [refresh](#refresh-command)
+- [customize](#customize-command)
 
 ## `install` command
 
@@ -218,3 +219,33 @@ If a file isn't specified, WinSW searches the executable directory for a *.xml* 
 - `--no-elevate`
 
   Doesn't automatically trigger a UAC prompt.
+
+## `customize` command
+
+Customizes the wrapper executable.
+
+### Usage
+
+```console
+winsw customize -o|--output <output> --manufacturer <manufacturer>
+```
+
+### Options
+
+- `-o|--output <output>`
+
+  Required. Specifies the path to the output file.
+
+- `--manufacturer <manufacturer>`
+
+  Specifies the manufacturer name of the customized executable.
+
+## `dev ps` command
+
+Draws the process tree associated with the service.
+
+### Usage
+
+```console
+winsw dev [<path-to-config>] ps
+```

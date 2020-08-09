@@ -60,7 +60,7 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 | [status](docs/cli-commands.md#status-command)       | Checks the status of the service. |
 | [test](docs/cli-commands.md#test-command)           | Checks if the service can be started and then stopped without installation. |
 | [refresh](docs/cli-commands.md#refresh-command)     | Refreshes the service properties without reinstallation. |
-| customize                                           | Customizes the wrapper executable. |
+| [customize](docs/cli-commands.md#customize-command) | Customizes the wrapper executable. |
 | dev                                                 | Experimental commands. |
 
 Experimental commands:
