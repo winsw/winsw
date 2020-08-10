@@ -7,35 +7,12 @@ namespace WinSW
 {
     public class ServiceDescriptorYaml
     {
-        public readonly YamlConfiguration Configurations = new YamlConfiguration();
+        public readonly YamlConfiguration Configurations;
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
-        public ServiceDescriptorYaml()
+        public ServiceDescriptorYaml(string baseName, DirectoryInfo d)
         {
-            string p = Defaults.ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(p);
-            if (baseName.EndsWith(".vshost"))
-            {
-                baseName = baseName.Substring(0, baseName.Length - 7);
-            }
-
-            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
-            while (true)
-            {
-                if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
-                {
-                    break;
-                }
-
-                if (d.Parent is null)
-                {
-                    throw new FileNotFoundException("Unable to locate " + baseName + ".yml file within executable directory or any parents");
-                }
-
-                d = d.Parent;
-            }
-
             var basepath = Path.Combine(d.FullName, baseName);
 
             using (var reader = new StreamReader(basepath + ".yml"))

@@ -21,6 +21,7 @@ using log4net.Layout;
 using WinSW.Configuration;
 using WinSW.Logging;
 using WinSW.Native;
+using WinSW.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
@@ -64,7 +65,7 @@ namespace WinSW
             bool inConsoleMode = argsArray.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= new ServiceDescriptor();
+            descriptor ??= GetServiceDescriptor();
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
@@ -656,6 +657,26 @@ namespace WinSW
                     _ = buf.Append(key.KeyChar);
                 }
             }
+        }
+
+        private static IWinSWConfiguration GetServiceDescriptor()
+        {
+            var executablePath = new DefaultWinSWSettings().ExecutablePath;
+            var baseName = Path.GetFileNameWithoutExtension(executablePath);
+
+            var d = new DirectoryInfo(Path.GetDirectoryName(executablePath));
+
+            if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
+            {
+                return new ServiceDescriptor(baseName, d);
+            }
+
+            if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
+            {
+                return new ServiceDescriptorYaml(baseName, d).Configurations;
+            }
+
+            throw new FileNotFoundException($"Unable to locate { baseName }.[xml|yml] file within executable directory");
         }
 
         private static void PrintHelp()
