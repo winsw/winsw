@@ -676,7 +676,7 @@ namespace WinSW
                 return new ServiceDescriptorYaml(baseName, d).Configurations;
             }
 
-            throw new FileNotFoundException($"Unable to locate { baseName }.[xml|yml] file within executable directory or any parents");
+            throw new FileNotFoundException($"Unable to locate { baseName }.[xml|yml] file within executable directory");
         }
 
         private static void PrintHelp()
