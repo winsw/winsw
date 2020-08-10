@@ -65,7 +65,7 @@ namespace WinSW
             bool inConsoleMode = argsArray.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor = GetConfigType();
+            descriptor = GetServiceDescriptor();
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.
@@ -659,7 +659,7 @@ namespace WinSW
             }
         }
 
-        private static IWinSWConfiguration GetConfigType()
+        private static IWinSWConfiguration GetServiceDescriptor()
         {
             var executablePath = new DefaultWinSWSettings().ExecutablePath;
             var baseName = Path.GetFileNameWithoutExtension(executablePath);

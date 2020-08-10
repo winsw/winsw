@@ -33,7 +33,7 @@ Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw
 
 ## Usage
 
-WinSW is being managed by configuration files: [Main XML configuration file](doc/xmlConfigFile.md) and [Main YML configuration file](doc/yamlConfigFile.md).
+WinSW is being managed by configuration files: [Main XML configuration file](doc/xmlConfigFile.md) and [Main YAML configuration file](doc/yamlConfigFile.md).
 
 Your renamed *WinSW.exe* binary also accepts the following commands:
 
