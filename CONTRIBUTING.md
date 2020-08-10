@@ -17,13 +17,13 @@ You can open `src\winsw.sln` and then build and run tests from within Visual Stu
 
 ### Building
 
-```
+```console
 dotnet build src\winsw.sln
 ```
 
 ### Testing
 
-```
+```console
 dotnet test src\Test\winswTests\winswTests.csproj
 ```
 

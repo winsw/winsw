@@ -10,6 +10,7 @@
 - [status](#status-command)
 - [test](#test-command)
 - [refresh](#refresh-command)
+- [customize](#customize-command)
 
 ## `install` command
 
@@ -17,7 +18,7 @@ Installs the service.
 
 ### Usage
 
-```
+```console
 winsw install [<path-to-config>] [--no-elevate] [--user|--username <username>] [--pass|--password <password>]
 ```
 
@@ -48,7 +49,7 @@ Uninstalls the service.
 
 ### Usage
 
-```
+```console
 winsw uninstall [<path-to-config>] [--no-elevate]
 ```
 
@@ -71,7 +72,7 @@ Starts the service.
 
 ### Usage
 
-```
+```console
 winsw start [<path-to-config>] [--no-elevate]
 ```
 
@@ -94,7 +95,7 @@ Stops the service.
 
 ### Usage
 
-```
+```console
 winsw stop [<path-to-config>] [--no-elevate] [--no-wait]
 ```
 
@@ -125,7 +126,7 @@ Stops and then starts the service.
 
 ### Usage
 
-```
+```console
 winsw restart [<path-to-config>] [--no-elevate]
 ```
 
@@ -152,7 +153,7 @@ Checks the status of the service.
 
 ### Usage
 
-```
+```console
 winsw status [<path-to-config>]
 ```
 
@@ -169,7 +170,7 @@ Checks if the service can be started and then stopped without installation.
 
 ### Usage
 
-```
+```console
 winsw test [<path-to-config>] [--no-elevate] [--timeout <timeout>] [--no-break]
 ```
 
@@ -202,7 +203,7 @@ Refreshes the service properties without reinstallation.
 
 ### Usage
 
-```
+```console
 winsw refresh [<path-to-config>] [--no-elevate]
 ```
 
@@ -218,3 +219,33 @@ If a file isn't specified, WinSW searches the executable directory for a *.xml* 
 - `--no-elevate`
 
   Doesn't automatically trigger a UAC prompt.
+
+## `customize` command
+
+Customizes the wrapper executable.
+
+### Usage
+
+```console
+winsw customize -o|--output <output> --manufacturer <manufacturer>
+```
+
+### Options
+
+- `-o|--output <output>`
+
+  Required. Specifies the path to the output file.
+
+- `--manufacturer <manufacturer>`
+
+  Specifies the manufacturer name of the customized executable.
+
+## `dev ps` command
+
+Draws the process tree associated with the service.
+
+### Usage
+
+```console
+winsw dev [<path-to-config>] ps
+```

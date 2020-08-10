@@ -25,20 +25,25 @@ Example:
 
 ## Environment variable expansion
 
-Configuration XML files can include environment variable expansions of the form `%Name%`. 
-Such occurrences, if found, will be automatically replaced by the actual values of the variables. 
+Configuration XML files can include environment variable expansions of the form `%Name%`.
+Such occurrences, if found, will be automatically replaced by the actual values of the variables.
 If an undefined environment variable is referenced, no substitution occurs.
 
-Also, the service wrapper sets the environment variable `BASE` by itself, which points to a directory that contains the renamed *WinSW.exe*. 
-This is useful to refer to other files in the same directory. 
+Also, the service wrapper sets the environment variable `BASE` by itself, which points to a directory that contains the renamed *WinSW.exe*.
+This is useful to refer to other files in the same directory.
 Since this is an environment variable by itself, this value can be also accessed from the child process launched from the service wrapper.
+
+## Relative paths and the default working directory
+
+Relative paths are resolved based on the [working directory](#working-directory).
+The default working directory of the wrapper and it's child processes is the directory where the configuration file is located.
 
 ## Configuration entries
 
 ### id
 
-Specifies the ID that Windows uses internally to identify the service. 
-This has to be unique among all the services installed in a system, 
+Specifies the ID that Windows uses internally to identify the service.
+This has to be unique among all the services installed in a system,
   and it should consist entirely out of alpha-numeric characters.
 
 ### name
@@ -53,13 +58,13 @@ This gets displayed in Windows service manager when the service is selected.
 
 ### executable
 
-This element specifies the executable to be launched. 
+This element specifies the executable to be launched.
 It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
 
 ### startmode
 
-This element specifies the start mode of the Windows service. 
-It can be one of the following values: Boot, System, Automatic, or Manual. 
+This element specifies the start mode of the Windows service.
+It can be one of the following values: Boot, System, Automatic, or Manual.
 For more information, see the [ChangeStartMode method](https://docs.microsoft.com/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service).
 The default value is `Automatic`.
 
@@ -72,11 +77,12 @@ Please note that this startup mode will not take affect on old Windows versions 
 Windows service installation may fail in such case.
 
 ```xml
-<delayedAutoStart/>
+<delayedAutoStart>true</delayedAutoStart>
 ```
 
 ### depend
-Specify IDs of other services that this service depends on. 
+
+Specify IDs of other services that this service depends on.
 When service `X` depends on service `Y`, `X` can only run if `Y` is running.
 
 Multiple elements can be used to specify multiple dependencies.
@@ -94,7 +100,7 @@ See the [Logging and error reporting](logging-and-error-reporting.md) page for m
 
 ### Arguments
 
-The `<arguments>` element specifies the arguments to be passed to the executable. 
+The `<arguments>` element specifies the arguments to be passed to the executable.
 
 ```xml
 <arguments>arg1 arg2 arg3</arguments>
@@ -108,6 +114,7 @@ The `<arguments>` element specifies the arguments to be passed to the executable
   arg2
   arg3
 </arguments>
+```
 
 ### stopargument/stopexecutable
 
@@ -129,28 +136,65 @@ When you use the `<stoparguments>`, you must use `<startarguments>` instead of `
 ### Additional commands
 
 ```xml
-<prestart|poststart|prestop|poststop>
+<prestart>
   <executable></executable>
   <arguments></arguments>
-</prestart|poststart|prestop|poststop>
+  <stdoutPath></stdoutPath>
+  <stderrPath></stderrPath>
+</prestart>
 ```
 
 The pre-start command is executed when the service is starting and before the main process is started.
 
-The post-start command is executed when the service is running and after the main process is started.
+```xml
+<poststart>
+  <!-- ... -->
+</poststart>
+```
+
+The post-start command is executed when the service is starting and after the main process is started.
+
+```xml
+<prestop>
+  <!-- ... -->
+</prestop>
+```
 
 The pre-stop command is executed when the service is stopping and before the main process is stopped.
 
+```xml
+<poststop>
+  <!-- ... -->
+</poststop>
+```
+
 The post-stop command is executed when the service is stopping and after the main process is stopped.
+
+`stdoutPath` specifies the path to redirect the standard output to.
+
+`stderrPath` specifies the path to redirect the standard error output to.
+
+Specify `NUL` in `stdoutPath` or `stderrPath` to dispose of the corresponding stream.
+
+### Preshutdown
+
+```xml
+<preshutdown>false</preshutdown>
+<preshutdownTimeout>3 min</preshutdown>
+```
+
+Gives the service more time to stop when the system is being shut down.
+
+The system default preshutdown timeout is there minutes.
 
 ### stoptimeout
 
-When the service is requested to stop, winsw first attempts to send a Ctrl+C signal, 
-  then wait for up to 15 seconds for the process to exit by itself gracefully. 
-A process failing to do that (or if the process does not have a console), 
-  then winsw resorts to calling [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.
+When the service is requested to stop, winsw first attempts to send a Ctrl+C signal to a console application, or post a close message to a Windows application,
+  then wait for up to 15 seconds for the process to exit by itself gracefully.
+If the timeout expires or the signal or message can't be sent,
+  then winsw resorts to terminate the service instantly.
 
-This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down. 
+This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down.
 See `<onfailure>` below for how to specify time duration:
 
 ```xml
@@ -167,20 +211,24 @@ This optional element can be specified multiple times if necessary to specify en
 
 ### interactive
 
-If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes. 
+If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes.
 If your program requires GUI, set this like the following:
 
 ```xml
-<interactive />
+<interactive>true</interactive>
 ```
 
-Note that since the introduction UAC (Windows Vista and onward), services are no longer really allowed to interact with the desktop. 
+Note that since the introduction UAC (Windows Vista and onward), services are no longer really allowed to interact with the desktop.
 In those OSes, all that this does is to allow the user to switch to a separate window station to interact with the service.
 
 ### beeponshutdown
 
-This optional element is to emit [simple tones](https://docs.microsoft.com/windows/win32/api/utilapiset/nf-utilapiset-beep) when the service shuts down. 
+This optional element is to emit [simple tones](https://docs.microsoft.com/windows/win32/api/utilapiset/nf-utilapiset-beep) when the service shuts down.
 This feature should be used only for debugging, as some operating systems and hardware do not support this functionality.
+
+```xml
+<beeponshutdown>true</beeponshutdown>
+```
 
 ### download
 
@@ -190,11 +238,11 @@ This operation runs when the service is started, before the application specifie
 For servers requiring authentication some parameters must be specified depending on the type of authentication. Only the basic authentication requires additional sub-parameters. Supported authentication types are:
 
 * `none`:  default, must not be specified
-* `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/windows/win32/secauthn/sspi) including Kerberos, NTLM etc. 
+* `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/windows/win32/secauthn/sspi) including Kerberos, NTLM etc.
 * `basic`: Basic authentication, sub-parameters:
-	* `user="UserName"`
-	* `password="Passw0rd"`
-	* `unsecureAuth="true": default="false"`
+  * `user="UserName"`
+  * `password="Passw0rd"`
+  * `unsecureAuth="true": default="false"`
 
 The parameter `unsecureAuth` is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
 
@@ -204,6 +252,7 @@ By default, the `download` command does not fail the service startup if the oper
 In order to force the download failure in such case, it is possible to specify the `failOnError` boolean attribute.
 
 To specify a custom proxy use the parameter `proxy` with the following formats:
+
 - With credentials: `http://USERNAME:PASSWORD@HOST:PORT/`.
 - Without credentials: `http://HOST:PORT/`.
 
@@ -222,7 +271,7 @@ Examples:
           auth="basic" user="aUser" password="aPassw0rd" />
 
 <download from="http://example.com/some.dat" to="%BASE%\some.dat"
-	  proxy="http://aUser:aPassw0rd@192.168.1.5:80/"
+          proxy="http://aUser:aPassw0rd@192.168.1.5:80/"
           auth="basic" unsecureAuth="true"
           user="aUser" password="aPassw0rd" />
 ```
@@ -247,7 +296,7 @@ This optional repeatable element controls the behaviour when the process launche
 
 For example, the above configuration causes the service to restart in 10 seconds after the first failure, restart in 20 seconds after the second failure, then Windows will reboot if the service fails one more time.
 
-Each element contains a mandatory `action` attribute, which controls what Windows SCM will do, and optional `delay` attribute, which controls the delay until the action is taken. 
+Each element contains a mandatory `action` attribute, which controls what Windows SCM will do, and optional `delay` attribute, which controls the delay until the action is taken.
 The legal values for action are:
 
 * `restart`: restart the service
@@ -256,7 +305,7 @@ The legal values for action are:
 
 The possible suffix for the delay attribute is sec/secs/min/mins/hour/hours/day/days. If missing, the delay attribute defaults to 0.
 
-If the service keeps failing and it goes beyond the number of `<onfailure>` configured, the last action will be repeated. 
+If the service keeps failing and it goes beyond the number of `<onfailure>` configured, the last action will be repeated.
 Therefore, if you just want to always restart the service automatically, simply specify one `<onfailure>` element like this:
 
 ```xml
@@ -265,13 +314,12 @@ Therefore, if you just want to always restart the service automatically, simply 
 
 ### resetfailure
 
-This optional element controls the timing in which Windows SCM resets the failure count. 
-For example, if you specify `<resetfailure>1 hour</resetfailure>` and your service continues to run longer than one hour, then the failure count is reset to zero. 
+This optional element controls the timing in which Windows SCM resets the failure count.
+For example, if you specify `<resetfailure>1 hour</resetfailure>` and your service continues to run longer than one hour, then the failure count is reset to zero.
 This affects the behaviour of the failure actions (see `<onfailure>` above).
 
-In other words, this is the duration in which you consider the service has been running successfully. 
+In other words, this is the duration in which you consider the service has been running successfully.
 Defaults to 1 day.
-
 
 ### Security descriptor
 
@@ -299,7 +347,7 @@ To use a user account, specify a `<serviceaccount>` element like this:
 
 The `<username>` is in the form `DomainName\UserName` or `UserName@DomainName`. If the account belongs to the built-in domain, you can specify `.\UserName`.
 
-The `<allowservicelogon>` is optional. 
+The `<allowservicelogon>` is optional.
 If set to `true`, will automatically set the "Allow Log On As A Service" right to the listed account.
 
 To use [Group Managed Service Accounts](https://docs.microsoft.com/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview), append `$` to the account name and remove `<password>` element:
@@ -367,7 +415,7 @@ Optional. Prompts for a user name and a password.
 
 ### Working directory
 
-Some services need to run with a working directory specified. 
+Some services need to run with a working directory specified.
 To do this, specify a `<workingdirectory>` element like this:
 
 ```xml
