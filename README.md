@@ -8,8 +8,7 @@
 [![Gitter](https://img.shields.io/gitter/room/winsw/winsw?style=flat-square)](https://gitter.im/winsw/winsw?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![License](https://img.shields.io/github/license/winsw/winsw?style=flat-square)](LICENSE.txt)
 
-WinSW is an executable binary, which can be used to wrap and manage a custom process as a Windows service.
-Once you download the installation package, you can rename *WinSW.exe* to any name, e.g. *MyService.exe*.
+WinSW wraps and manages any application as a Windows service.
 
 **We are actively developing WinSW 3. Please refer to the v2 branch for previous version documentation.**
 
