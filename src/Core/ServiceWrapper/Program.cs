@@ -664,32 +664,19 @@ namespace WinSW
             var executablePath = new DefaultWinSWSettings().ExecutablePath;
             var baseName = Path.GetFileNameWithoutExtension(executablePath);
 
-            if (baseName.EndsWith(".vshost"))
-            {
-                baseName = baseName.Substring(0, baseName.Length - 7);
-            }
-
             var d = new DirectoryInfo(Path.GetDirectoryName(executablePath));
 
-            while (true)
+            if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
             {
-                if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
-                {
-                    return new ServiceDescriptor(baseName, d);
-                }
-
-                if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
-                {
-                    return new ServiceDescriptorYaml(baseName, d).Configurations;
-                }
-
-                if (d.Parent is null)
-                {
-                    throw new FileNotFoundException($"Unable to locate { baseName }.[xml|yml] file within executable directory or any parents");
-                }
-
-                d = d.Parent;
+                return new ServiceDescriptor(baseName, d);
             }
+
+            if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
+            {
+                return new ServiceDescriptorYaml(baseName, d).Configurations;
+            }
+
+            throw new FileNotFoundException($"Unable to locate { baseName }.[xml|yml] file within executable directory or any parents");
         }
 
         private static void PrintHelp()
