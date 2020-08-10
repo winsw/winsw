@@ -1,16 +1,24 @@
-# Installation guide
+# Get started
 
 This page provides WinSW installation guidelines for different cases.
 
-## Installation steps
+## Use WinSW as a global tool
+
+1. Take *WinSW.exe* or *WinSW.zip* from the distribution.
+1. Write *myapp.xml* (see the [XML config file specification](xml-config-file.md) for more details)
+1. Run [`winsw install myapp.xml [options]`](cli-commands.md#install-command) to install the service.
+1. Run [`winsw start myapp.xml`](cli-commands.md#start-command) to start the service.
+1. Run [`winsw status myapp.xml`](cli-commands.md#status-command) to see if your service is up and running.
+
+## Use WinSW as a bundled tool
 
 In order to setup WinSW, you commonly need to perform the following steps:
 
 1. Take *WinSW.exe* from the distribution, and rename it to your taste (such as *myapp.exe*)
 1. Write *myapp.xml* (see the [XML config file specification](xml-config-file.md) for more details)
 1. Place those two files side by side, because that's how WinSW discovers its configuration.
-1. Run `myapp.exe install <OPTIONS>` in order to install the service wrapper.
-1. Run `myapp.exe start` to start the service.
+1. Run [`myapp.exe install [options]`](cli-commands.md#install-command) to install the service.
+1. Run [`myapp.exe start`](cli-commands.md#start-command) to start the service.
 
 There are some details for each step available below.
 
@@ -36,16 +44,6 @@ The example below is a primitive example being used in the Jenkins project:
 The full specification of the configuration file is available [here](xml-config-file.md).
 
 ### Step 3. Service registration
-
-You can then install the service like:
-
-```console
-myapp.exe install <OPTIONS>
-```
-
-... and you can use the exit code from these processes to determine whether the operation was successful.
-Possible exit codes are described [here](https://docs.microsoft.com/windows/win32/cimwin32prov/create-method-in-class-win32-service#return-value).
-Beyond these error codes, all the non-zero exit code should be assumed as a failure.
 
 The Installer can be also started with the `/p` option.
 In such case it will prompt for an account name and password, which should be used as a service account.
