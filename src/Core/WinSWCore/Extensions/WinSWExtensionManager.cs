@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml;
 using log4net;
 using WinSW.Configuration;
 
@@ -11,15 +13,12 @@ namespace WinSW.Extensions
 
         public IWinSWConfiguration ServiceDescriptor { get; private set; }
 
-        public ExtensionConfigurationProvider ConfigProvider { get; private set; }
-
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
         public WinSWExtensionManager(IWinSWConfiguration serviceDescriptor)
         {
             this.ServiceDescriptor = serviceDescriptor;
             this.Extensions = new Dictionary<string, IWinSWExtension>();
-            this.ConfigProvider = new ExtensionConfigurationProvider(this.ServiceDescriptor);
         }
 
         /// <summary>
@@ -129,21 +128,34 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            var configNode = this.ConfigProvider.GetExtenstionConfiguration(id);
+            if (this.ServiceDescriptor.GetType() == typeof(ServiceDescriptor))
+            {
+                this.LoadExtensionFromXml(id);
+            }
+            else
+            {
+                this.LoadExtensionFromYaml(id);
+            }
+        }
 
+        private void LoadExtensionFromXml(string id)
+        {
+            XmlNode? extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
+            XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
             }
 
-            var descriptor = new WinSWExtensionDescriptor(configNode.Id, configNode.ClassName, configNode.Enabled);
+            var descriptor = WinSWExtensionDescriptor.FromXml(configNode);
+
             if (descriptor.Enabled)
             {
                 IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 try
                 {
-                    extension.Configure(this.ServiceDescriptor, configNode.Settings);
+                    extension.Configure(this.ServiceDescriptor, configNode);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
@@ -157,6 +169,67 @@ namespace WinSW.Extensions
             else
             {
                 Log.Warn("Extension is disabled: " + id);
+            }
+        }
+
+        private void LoadExtensionFromYaml(string id)
+        {
+            var extensionConfigList = this.ServiceDescriptor.YamlExtensionsConfiguration as List<object>;
+
+            if (extensionConfigList is null)
+            {
+                throw new ExtensionException(id, "Cannot get the configuration entry");
+            }
+
+            object? configNode = GetYamlonfigById(extensionConfigList, id);
+
+            if (configNode is null)
+            {
+                throw new ExtensionException(id, "Cannot get the configuration entry");
+            }
+
+            var descriptor = WinSWExtensionDescriptor.FromYaml(configNode);
+
+            if (descriptor.Enabled)
+            {
+                IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                extension.Descriptor = descriptor;
+
+                if (!(configNode is Dictionary<object, object> dict))
+                {
+                    // TODO : Replace with exntension exception
+                    throw new InvalidDataException("Error in config node");
+                }
+
+                try
+                {
+                    extension.Configure(this.ServiceDescriptor, dict["settings"]);
+                }
+                catch (Exception ex)
+                { // Consider any unexpected exception as fatal
+                    Log.Fatal("Failed to configure the extension " + id, ex);
+                    throw ex;
+                }
+
+                this.Extensions.Add(id, extension);
+                Log.Info("Extension loaded: " + id);
+            }
+            else
+            {
+                Log.Warn("Extension is disabled: " + id);
+            }
+
+            object? GetYamlonfigById(List<object> configs, string id)
+            {
+                foreach (var item in configs)
+                {
+                    if (item is Dictionary<object, object> config && config["id"].Equals(id))
+                    {
+                        return item;
+                    }
+                }
+
+                return null;
             }
         }
 

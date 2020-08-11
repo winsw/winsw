@@ -1,5 +1,5 @@
-﻿using WinSW.Configuration;
-using WinSW.Util;
+﻿using System.Xml;
+using WinSW.Configuration;
 
 namespace WinSW.Extensions
 {
@@ -27,7 +27,15 @@ namespace WinSW.Extensions
         /// Init handler. Extension should load it's config during that step
         /// </summary>
         /// <param name="descriptor">Service descriptor</param>
-        void Configure(IWinSWConfiguration descriptor, ObjectQuery settings);
+        /// <param name="node">Configuration node</param>
+        void Configure(IWinSWConfiguration descriptor, XmlNode node);
+
+        /// <summary>
+        /// Configure the extension from Yaml configuration
+        /// </summary>
+        /// <param name="descriptor">Yaml Service Descptor</param>
+        /// <param name="yamlObject">Configuration Node</param>
+        void Configure(IWinSWConfiguration descriptor, object yamlObject);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Xml;
 using WinSW.Native;
 using WinSW.Util;
 using WMI;
@@ -97,9 +98,6 @@ namespace WinSW.Configuration
 
         [YamlMember(Alias = "securityDescriptor")]
         public string? SecurityDescriptorYaml { get; set; }
-
-        [YamlMember(Alias = "extensions")]
-        public object? YamlExtensions { get; set; }
 
         public class YamlEnv
         {
@@ -640,26 +638,32 @@ namespace WinSW.Configuration
 
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
-        public object? ExtensionsConfiguration => this.YamlExtensions;
+        // TODO - Extensions
+        public XmlNode? ExtensionsConfiguration => null;
+
+        // YAML Extension
+        [YamlMember(Alias = "extensions")]
+        public object? YamlExtensionsConfiguration { get; set; }
 
         public List<string> ExtensionIds
         {
             get
             {
-                var result = new List<string>(0);
-                var extensions = this.ExtensionsConfiguration;
+                var result = new List<string>();
 
-                if (extensions is null)
+                if (!(this.YamlExtensionsConfiguration is List<object> extensions))
                 {
                     return result;
                 }
 
-                var extensionConfigListObject = new ObjectQuery(extensions).AsList<object>();
-
-                foreach (var item in extensionConfigListObject)
+                foreach (var item in extensions)
                 {
-                    var configObject = new ObjectQuery(item);
-                    var id = configObject.On("id").AsString();
+                    if (!(item is Dictionary<object, object> dict))
+                    {
+                        continue;
+                    }
+
+                    var id = (string)dict["id"];
                     result.Add(id);
                 }
 

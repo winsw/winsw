@@ -74,7 +74,9 @@ namespace WinSW.Configuration
         bool BeepOnShutdown { get; }
 
         // Extensions
-        object? ExtensionsConfiguration { get; }
+        XmlNode? ExtensionsConfiguration { get; }
+
+        object? YamlExtensionsConfiguration { get; }
 
         List<string> ExtensionIds { get; }
 

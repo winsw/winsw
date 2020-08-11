@@ -33,5 +33,17 @@ namespace WinSW.Util
             { "day",    1000L * 60L * 60L * 24L },
             { "days",   1000L * 60L * 60L * 24L }
         };
+
+        public static bool YamlBoolParse(string value)
+        {
+            value = value.ToLower();
+
+            if (value.Equals("true") || value.Equals("yes") || value.Equals("on"))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

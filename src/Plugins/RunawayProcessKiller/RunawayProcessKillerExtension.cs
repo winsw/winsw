@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Xml;
 using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
@@ -179,20 +181,39 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, ObjectQuery settings)
+        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
-            this.Pidfile = settings.On("pidfile").AsString();
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(settings.On("stopTimeOut").AsString()));
-            this.StopParentProcessFirst = settings.On("StopParentFirst").AsBool();
+            // We expect the upper logic to process any errors
+            // TODO: a better parser API for types would be useful
+            this.Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
+            this.StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
+            this.ServiceId = descriptor.Id;
+            // TODO: Consider making it documented
+            var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
+            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
+        }
+
+        public override void Configure(IWinSWConfiguration descriptor, object yamlObject)
+        {
+            if (!(yamlObject is Dictionary<object, object> dict))
+            {
+                // TODO : throw ExtensionException
+                throw new InvalidDataException("Cann't configure");
+            }
+
+            this.Pidfile = (string)dict["pidfile"];
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)dict["stopTimeOut"]));
+            this.StopParentProcessFirst = bool.Parse((string)dict["StopParentFirst"]);
+
             try
             {
-                this.CheckWinSWEnvironmentVariable = settings.Get("checkWinSWEnvironmentVariable").AsBool();
+                this.CheckWinSWEnvironmentVariable = bool.Parse((string)dict["checkWinSWEnvironmentVariable"]);
             }
             catch
             {
                 this.CheckWinSWEnvironmentVariable = true;
             }
-            this.ServiceId = descriptor.Id;
         }
 
         /// <summary>
