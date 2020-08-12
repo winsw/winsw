@@ -76,7 +76,7 @@ namespace WinSW.Configuration
         // Extensions
         XmlNode? ExtensionsConfiguration { get; }
 
-        object? YamlExtensionsConfiguration { get; }
+        List<YamlExtensionConfiguration>? YamlExtensionsConfiguration { get; }
 
         List<string> ExtensionIds { get; }
 

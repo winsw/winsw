@@ -194,13 +194,9 @@ namespace WinSW.Plugins.RunawayProcessKiller
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, object yamlObject)
+        public override void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
         {
-            if (!(yamlObject is Dictionary<object, object> dict))
-            {
-                // TODO : throw ExtensionException
-                throw new InvalidDataException("Cann't configure");
-            }
+            var dict = config.GetSettings();
 
             this.Pidfile = (string)dict["pidfile"];
             this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)dict["stopTimeOut"]));

@@ -16,7 +16,7 @@ namespace WinSW.Extensions
             // Do nothing
         }
 
-        public virtual void Configure(IWinSWConfiguration descriptor, object yamlObject)
+        public virtual void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
         {
             // Do nothing
         }

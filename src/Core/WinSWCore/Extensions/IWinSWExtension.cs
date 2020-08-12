@@ -34,8 +34,8 @@ namespace WinSW.Extensions
         /// Configure the extension from Yaml configuration
         /// </summary>
         /// <param name="descriptor">Yaml Service Descptor</param>
-        /// <param name="yamlObject">Configuration Node</param>
-        void Configure(IWinSWConfiguration descriptor, object yamlObject);
+        /// <param name="config">Configuration Node</param>
+        void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.

@@ -160,7 +160,7 @@ namespace WinSW.Extensions
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
                     Log.Fatal("Failed to configure the extension " + id, ex);
-                    throw ex;
+                    throw new ExtensionException(id, "Failed to configure the extension");
                 }
 
                 this.Extensions.Add(id, extension);
@@ -174,19 +174,14 @@ namespace WinSW.Extensions
 
         private void LoadExtensionFromYaml(string id)
         {
-            var extensionConfigList = this.ServiceDescriptor.YamlExtensionsConfiguration as List<object>;
+            var extensionConfigList = this.ServiceDescriptor.YamlExtensionsConfiguration;
 
             if (extensionConfigList is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
             }
 
-            object? configNode = GetYamlonfigById(extensionConfigList, id);
-
-            if (configNode is null)
-            {
-                throw new ExtensionException(id, "Cannot get the configuration entry");
-            }
+            var configNode = GetYamlonfigById(extensionConfigList, id);
 
             var descriptor = WinSWExtensionDescriptor.FromYaml(configNode);
 
@@ -195,20 +190,14 @@ namespace WinSW.Extensions
                 IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
 
-                if (!(configNode is Dictionary<object, object> dict))
-                {
-                    // TODO : Replace with exntension exception
-                    throw new InvalidDataException("Error in config node");
-                }
-
                 try
                 {
-                    extension.Configure(this.ServiceDescriptor, dict["settings"]);
+                    extension.Configure(this.ServiceDescriptor, configNode);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
                     Log.Fatal("Failed to configure the extension " + id, ex);
-                    throw ex;
+                    throw new ExtensionException(id, "Failed to configure the extension");
                 }
 
                 this.Extensions.Add(id, extension);
@@ -219,17 +208,17 @@ namespace WinSW.Extensions
                 Log.Warn("Extension is disabled: " + id);
             }
 
-            object? GetYamlonfigById(List<object> configs, string id)
+            YamlExtensionConfiguration GetYamlonfigById(List<YamlExtensionConfiguration> configs, string id)
             {
                 foreach (var item in configs)
                 {
-                    if (item is Dictionary<object, object> config && config["id"].Equals(id))
+                    if (item.GetId().Equals(id))
                     {
                         return item;
                     }
                 }
 
-                return null;
+                throw new ExtensionException(id, $@"Can't find extension with id: ""{id}"" ");
             }
         }
 

@@ -44,26 +44,21 @@ namespace WinSW.Plugins.SharedDirectoryMapper
             }
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, object yamlObject)
+        public override void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
         {
-            if (!(yamlObject is Dictionary<object, object> dict))
-            {
-                // TODO : throw ExtensionException
-                throw new InvalidDataException("Conn't configure");
-            }
+            var dict = config.GetSettings();
 
             var mappingNode = dict["mapping"];
 
             if (!(mappingNode is List<object> mappings))
             {
-                // TODO : throw ExtensionException
-                throw new InvalidDataException("Conn't configure");
+                throw new InvalidDataException("SharedDirectoryMapper mapping should be a list");
             }
 
             foreach (var map in mappings)
             {
-                var config = SharedDirectoryMapperConfig.FromYaml(map);
-                this._entries.Add(config);
+                var mapConfig = SharedDirectoryMapperConfig.FromYaml(map);
+                this._entries.Add(mapConfig);
             }
         }
 

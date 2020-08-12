@@ -638,33 +638,26 @@ namespace WinSW.Configuration
 
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
-        // TODO - Extensions
         public XmlNode? ExtensionsConfiguration => null;
 
         // YAML Extension
         [YamlMember(Alias = "extensions")]
-        public object? YamlExtensionsConfiguration { get; set; }
+        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration { get; set; }
 
         public List<string> ExtensionIds
         {
             get
             {
-                var result = new List<string>();
-
-                if (!(this.YamlExtensionsConfiguration is List<object> extensions))
+                if (this.YamlExtensionsConfiguration is null)
                 {
-                    return result;
+                    return new List<string>(0);
                 }
 
-                foreach (var item in extensions)
-                {
-                    if (!(item is Dictionary<object, object> dict))
-                    {
-                        continue;
-                    }
+                var result = new List<string>();
 
-                    var id = (string)dict["id"];
-                    result.Add(id);
+                foreach (var item in this.YamlExtensionsConfiguration)
+                {
+                    result.Add(item.GetId());
                 }
 
                 return result;

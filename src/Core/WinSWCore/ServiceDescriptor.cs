@@ -704,6 +704,6 @@ namespace WinSW
             return environment;
         }
 
-        public object? YamlExtensionsConfiguration => null;
+        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration => Defaults.YamlExtensionsConfiguration;
     }
 }

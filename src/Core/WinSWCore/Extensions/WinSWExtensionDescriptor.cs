@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Xml;
+﻿using System.Xml;
+using WinSW.Configuration;
 using WinSW.Util;
 
 namespace WinSW.Extensions
@@ -44,16 +42,11 @@ namespace WinSW.Extensions
             return new WinSWExtensionDescriptor(id, className, enabled);
         }
 
-        public static WinSWExtensionDescriptor FromYaml(object node)
+        public static WinSWExtensionDescriptor FromYaml(YamlExtensionConfiguration config)
         {
-            if (!(node is Dictionary<object, object> config))
-            {
-                throw new InvalidDataException("Cannot get the configuration entry");
-            }
-
-            bool enabled = ConfigHelper.YamlBoolParse((string)config["enabled"]);
-            string className = (string)config["classname"];
-            string id = (string)config["id"];
+            bool enabled = config.Enabled;
+            string className = config.GetClassName();
+            string id = config.GetId();
 
             return new WinSWExtensionDescriptor(id, className, enabled);
         }
