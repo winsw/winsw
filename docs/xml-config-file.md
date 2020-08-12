@@ -64,7 +64,7 @@ It can be either absolute path, or you can just specify the executable name and 
 ### startmode
 
 This element specifies the start mode of the Windows service.
-It can be one of the following values: Boot, System, Automatic, or Manual.
+It can be one of the following values: Automatic, or Manual.
 For more information, see the [ChangeStartMode method](https://docs.microsoft.com/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service).
 The default value is `Automatic`.
 
