@@ -56,7 +56,7 @@ arguments: >-
 extensions:
     - id: killRunawayProcess
       enabled: yes
-      classname: ""{this.testExtension}""
+      className: ""{this.testExtension}""
       settings:
             pidfile: 'foo/bar/pid.txt'
             stopTimeOut: 5000

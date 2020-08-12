@@ -9,7 +9,7 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "id")]
         public string? ExtensionId { get; set; }
 
-        [YamlMember(Alias = "classname")]
+        [YamlMember(Alias = "className")]
         public string? ExtensionClassName { get; set; }
 
         [YamlMember(Alias = "enabled")]
