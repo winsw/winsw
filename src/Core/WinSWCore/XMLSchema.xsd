@@ -1,48 +1,248 @@
-﻿<?xml version="1.0"?>
+<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:element name="service">
     <xs:complexType>
       <xs:choice maxOccurs="unbounded">
         
-        <xs:element name="id" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="executable" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="argument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="arguments" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="logmode" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="workingdirectory" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="logpath" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="delayedAutoStart" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="depend" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="startargument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="stopexecutable" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="stopargument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="stoptimeout" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="env" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="interactive" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="onfailure" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="securtityDescriptor" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="priority" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="stopparentprocessfirst" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="errfiledisabled" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="errfilepattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="logname" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="outfiledisabled" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="startmode" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="resetfailure" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="sleeptime" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="waithint" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="outfilepattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Specifies the ID that Windows uses internally to identify the service. 
+              This has to be unique among all the services installed in a system, 
+              and it should consist entirely out of alpha-numeric characters.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Short display name of the service, which can contain spaces and other characters. 
+              This shouldn't be too long, like &lt;id&gt;, and this also needs to be unique among all the services in a given system.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Long human-readable description of the service. 
+              This gets displayed in the Windows service manager when the service is selected.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="executable" type="xs:string" minOccurs="1" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              This element specifies the executable to be launched. 
+              It can be either an absolute path, or you can just specify the executable name 
+              and let it be searched from PATH (although note that the services often run in a 
+              different user account and therefore it might have different PATH than your shell does.)
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="argument" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              This element specifies the arguments to be passed to the executable. 
+              WinSW will quote each argument if necessary, 
+              so do not put quotes in &lt;argument&gt; to avoid the double quotation.
+              Can use multiple elements to specify multiple argument.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="arguments" type="xs:string" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              This element can be used instead of &lt;argument&gt; to specify the whole command line in a single element.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="workingdirectory" type="xs:string" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Some services need to run with a working directory specified.
+              This element could be used for that.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="delayedAutoStart" type="xs:string" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en" source="https://techcommunity.microsoft.com/t5/ask-the-performance-team/ws2008-startup-processes-and-delayed-automatic-start/ba-p/372692">
+              This Boolean option enables the delayed start mode if the Automatic start mode is defined. 
+              For more information, see the source link. 
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="depend" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+           <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Specify IDs of other services that this service depends on. 
+              When service X depends on service Y, X can only run if Y is running.
+              Multiple elements can be used to specify multiple dependencies.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="startargument" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              When you use the &lt;stopargument&gt;/&lt;stoparguments&gt;, you must use &lt;startargument&gt;/&lt;startarguments&gt; 
+              instead of &lt;argument&gt;
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="stopexecutable" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              When you use the &lt;stopargument&gt;/&lt;stoparguments&gt; , you must use &lt;startargument&gt;/&lt;startarguments&gt; 
+              instead of &lt;argument&gt;
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="stopargument" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              When the service is requested to stop, WinSW simply calls TerminateProcess function to kill the service instantly. 
+              However, if &lt;stopargument&gt;/&lt;stoparguments&gt; elements are present, WinSW will instead launch another process of 
+              &lt;executable&gt; (or &lt;stopexecutable&gt; if that's specified) with the specified arguments, 
+              and expects that to initiate the graceful shutdown of the service process. 
+              WinSW will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="stoptimeout" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              When the service is requested to stop, WinSW first attempts to send a Ctrl+C signal, 
+              then wait for up to 15 seconds for the process to exit by itself gracefully. 
+              A process failing to do that (or if the process does not have a console), 
+              then WinSW resorts to calling TerminateProcess function to kill the service instantly.
+              This optional element allows you to change this "15 seconds" value, so that you can control how long 
+              WinSW gives the service to shut itself down.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="env" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              This optional element can be specified multiple times if necessary to specify environment variables 
+              to be set for the child process.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="interactive" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              If this optional element is specified, the service will be allowed to interact with the desktop, 
+              such as by showing a new window and dialog boxes. If your program requires GUI, set this like &lt;interactive/&gt;
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="onfailure" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              This optional repeatable element controls the behavior when the process launched by WinSW fails 
+              (i.e., exits with non-zero exit code).
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="securtityDescriptor" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en" source="https://docs.microsoft.com/windows/win32/secauthz/security-descriptor-definition-language">
+              The security descriptor string for the service in SDDL form. See more details on SDDL on source link.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="priority" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Optionally specify the scheduling priority of the service process (equivalent of Unix nice) 
+              Possible values are idle, belownormal, normal, abovenormal, high, realtime (case insensitive.)
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="stopparentprocessfirst" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              Optionally specify the order of service shutdown. If true, the parent process is shutdown first. 
+              This is useful when the main process is a console, which can respond to Ctrl+C command and will 
+              gracefully shutdown child processes.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="startmode" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en" source="https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service">
+              This element specifies the start mode of the Windows service. 
+              It can be one of the following values: Boot, System, Automatic, or Manual.
+              The default value is Automatic.
+              For more information on start mode see the source link.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="resetfailure" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+             This optional element controls the timing in which Windows SCM resets the failure count. 
+             For example, if you specify &lt;resetfailure&gt;1 hour &lt;/resetfailure&gt; and your service continues 
+             to run longer than one hour, then the failure count is reset to zero. This affects the 
+             behavior of the failure actions (see &lt;onfailure&gt; above).
+             In other words, this is the duration in which you consider the service has been running successfully. Defaults to 1 day.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="sleeptime" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+             <!-- TODO : Add documentation -->
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="waithint" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+             <!-- TODO : Add documentation -->
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        
         
 
         <!-- serviceaccount -->
         <xs:element name="serviceaccount" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+            <xs:documentation xml:lang="en" source="https://github.com/winsw/winsw/blob/master/doc/xmlConfigFile.md#service-account">
+             The service is installed as the LocalSystem account by default. 
+             If your service does not need a high privilege level, consider using the LocalService account, 
+             the NetworkService account or a user account. For more information read the source link.
+            </xs:documentation>
+          </xs:annotation>
+
           <xs:complexType>
             <xs:all>
               <xs:element name="domain" type="xs:string" minOccurs="0" maxOccurs="1"/>
-              <xs:element name="user" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="user" type="xs:string" minOccurs="0" maxOccurs="1"/>              
               <xs:element name="password" type="xs:string" minOccurs="0" maxOccurs="1"/>
               <xs:element name="allowservicelogon" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:all>
@@ -53,6 +253,14 @@
         
         <!-- log -->
         <xs:element name="log" minOccurs="0" maxOccurs="unbounded">
+           
+           <xs:annotation>
+            <xs:documentation xml:lang="en" source="https://github.com/winsw/winsw/blob/master/doc/loggingAndErrorReporting.md">
+              Optionally set a different logging directory with &lt;logpath&gt; and startup mode: append (default), reset (clear log), ignore, roll (move to \*.old).
+              See the resource link for more info.
+            </xs:documentation>
+          </xs:annotation>
+
           <xs:complexType>
             <xs:choice maxOccurs="unbounded">
               <xs:element name="sizeThreshold" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -64,11 +272,40 @@
             <xs:attribute type="xs:string" name="mode"/>
           </xs:complexType>
         </xs:element>
+
+        <xs:element name="logmode" type="xs:string" minOccurs="0" maxOccurs="1">
+          <!-- TODO : Add documentation -->
+        </xs:element>
+
+        <xs:element name="logpath" type="xs:string" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              This element specifies the directory in which the log files are created. 
+              If this element is absent, it'll default to the same directory where the configuration file resides.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+
+        <xs:element name="errfiledisabled" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="errfilepattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="logname" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="outfiledisabled" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="outfilepattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
         <!-- log -->
         
 
         <!-- download -->
         <xs:element name="download" minOccurs="0" maxOccurs="unbounded">
+
+        <xs:annotation>
+          <xs:documentation xml:lang="en" source="https://github.com/winsw/winsw/blob/master/doc/xmlConfigFile.md#download">
+            This optional element can be specified multiple times to have the service wrapper 
+            retrieve resources from URL and place it locally as a file. This operation runs when 
+            the service is started, before the application specified by executable is launched.
+            Read the source link for more details.
+          </xs:documentation>
+        </xs:annotation>
+
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
@@ -88,6 +325,15 @@
         
         <!-- extensions -->
         <xs:element name="extensions" minOccurs="0" maxOccurs="unbounded">
+
+          <xs:annotation>
+            <xs:documentation xml:lang="en" source="https://github.com/winsw/winsw/blob/master/doc/extensions/extensions.md">
+              Starting from WinSW 2.0, the wrapper provides an internal extension engine and several extensions. 
+              These extensions allow to alter the behavior of the Windows service in order to 
+              setup the required service environment. Read the source link for more details.
+            </xs:documentation>
+          </xs:annotation>
+
           <xs:complexType>
             <xs:choice maxOccurs="unbounded">
               
