@@ -677,6 +677,8 @@ namespace WinSW
 
         public string? SecurityDescriptor => this.SingleElement("securityDescriptor", true);
 
+        public bool AutoRefresh => this.SingleBoolElement("autoRefresh", true);
+
         private Dictionary<string, string> LoadEnvironmentVariables()
         {
             XmlNodeList nodeList = this.dom.SelectNodes("//env");

@@ -20,6 +20,7 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
+using Microsoft.Win32;
 using WinSW.Logging;
 using WinSW.Native;
 using WinSW.Util;
@@ -88,7 +89,7 @@ namespace WinSW
                     XmlServiceConfig config = null!;
                     try
                     {
-                        config = CreateConfig(pathToConfig);
+                        config = LoadConfig(pathToConfig);
                     }
                     catch (FileNotFoundException)
                     {
@@ -98,6 +99,9 @@ namespace WinSW
                     InitLoggers(config, enableConsoleLogging: false);
 
                     Log.Debug("Starting WinSW in service mode.");
+
+                    AutoRefresh(config);
+
                     ServiceBase.Run(new WrapperService(config));
                 }),
             };
@@ -379,7 +383,7 @@ namespace WinSW
 
             void Install(string? pathToConfig, bool noElevate, string? username, string? password)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -504,7 +508,7 @@ namespace WinSW
 
             void Uninstall(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -554,7 +558,7 @@ namespace WinSW
 
             void Start(string? pathToConfig, bool noElevate, bool noWait, CancellationToken ct)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -562,6 +566,8 @@ namespace WinSW
                     Elevate(noElevate);
                     return;
                 }
+
+                AutoRefresh(config);
 
                 using var svc = new ServiceController(config.Name);
 
@@ -598,7 +604,7 @@ namespace WinSW
 
             void Stop(string? pathToConfig, bool noElevate, bool noWait, bool force, CancellationToken ct)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -606,6 +612,8 @@ namespace WinSW
                     Elevate(noElevate);
                     return;
                 }
+
+                AutoRefresh(config);
 
                 using var svc = new ServiceController(config.Name);
 
@@ -650,7 +658,7 @@ namespace WinSW
 
             void Restart(string? pathToConfig, bool noElevate, bool force, CancellationToken ct)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -658,6 +666,8 @@ namespace WinSW
                     Elevate(noElevate);
                     return;
                 }
+
+                AutoRefresh(config);
 
                 using var svc = new ServiceController(config.Name);
 
@@ -726,13 +736,15 @@ namespace WinSW
 
             void RestartSelf(string? pathToConfig)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
                 {
                     Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
                 }
+
+                AutoRefresh(config);
 
                 // run restart from another process group. see README.md for why this is useful.
                 if (!ProcessApis.CreateProcess(
@@ -753,7 +765,7 @@ namespace WinSW
 
             static int Status(string? pathToConfig)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 using var svc = new ServiceController(config.Name);
@@ -786,7 +798,7 @@ namespace WinSW
 
             void Test(string? pathToConfig, bool noElevate, bool noBreak)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -794,6 +806,8 @@ namespace WinSW
                     Elevate(noElevate);
                     return;
                 }
+
+                AutoRefresh(config);
 
                 using WrapperService wsvc = new WrapperService(config);
                 wsvc.RaiseOnStart(args);
@@ -829,7 +843,7 @@ namespace WinSW
 
             void Refresh(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
                 InitLoggers(config, enableConsoleLogging: true);
 
                 if (!elevated)
@@ -838,51 +852,12 @@ namespace WinSW
                     return;
                 }
 
-                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
-                try
-                {
-                    using Service sc = scm.OpenService(config.Name);
-
-                    sc.ChangeConfig(config.DisplayName, config.StartMode, config.ServiceDependencies);
-
-                    sc.SetDescription(config.Description);
-
-                    SC_ACTION[] actions = config.FailureActions;
-                    if (actions.Length > 0)
-                    {
-                        sc.SetFailureActions(config.ResetFailureAfter, actions);
-                    }
-
-                    bool isDelayedAutoStart = config.StartMode == ServiceStartMode.Automatic && config.DelayedAutoStart;
-                    if (isDelayedAutoStart)
-                    {
-                        sc.SetDelayedAutoStart(true);
-                    }
-
-                    if (config.PreshutdownTimeout is TimeSpan preshutdownTimeout)
-                    {
-                        sc.SetPreshutdownTimeout(preshutdownTimeout);
-                    }
-
-                    string? securityDescriptor = config.SecurityDescriptor;
-                    if (securityDescriptor != null)
-                    {
-                        // throws ArgumentException
-                        sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
-                    }
-                }
-                catch (CommandException e)
-                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
-                {
-                    Throw.Command.Exception(inner);
-                }
-
-                Log.Info($"Service '{config.Format()}' was refreshed successfully.");
+                DoRefresh(config);
             }
 
             static void DevPs(string? pathToConfig)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
 
                 using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
                 using Service sc = scm.OpenService(config.Name, ServiceAccess.QueryStatus);
@@ -928,7 +903,7 @@ namespace WinSW
 
             void DevKill(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = CreateConfig(pathToConfig);
+                XmlServiceConfig config = LoadConfig(pathToConfig);
 
                 if (!elevated)
                 {
@@ -1018,10 +993,82 @@ namespace WinSW
                     Environment.Exit(e.ErrorCode);
                 }
             }
+
+            static void AutoRefresh(XmlServiceConfig config)
+            {
+                if (!config.AutoRefresh)
+                {
+                    return;
+                }
+
+                DateTime fileLastWriteTime = File.GetLastWriteTime(config.FullPath);
+
+                using RegistryKey? registryKey = Registry.LocalMachine
+                    .OpenSubKey("SYSTEM")
+                    .OpenSubKey("CurrentControlSet")
+                    .OpenSubKey("Services")
+                    .OpenSubKey(config.Name);
+
+                if (registryKey is null)
+                {
+                    return;
+                }
+
+                DateTime registryLastWriteTime = registryKey.GetLastWriteTime();
+
+                if (fileLastWriteTime > registryLastWriteTime)
+                {
+                    DoRefresh(config);
+                }
+            }
+
+            static void DoRefresh(XmlServiceConfig config)
+            {
+                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
+                try
+                {
+                    using Service sc = scm.OpenService(config.Name);
+
+                    sc.ChangeConfig(config.DisplayName, config.StartMode, config.ServiceDependencies);
+
+                    sc.SetDescription(config.Description);
+
+                    SC_ACTION[] actions = config.FailureActions;
+                    if (actions.Length > 0)
+                    {
+                        sc.SetFailureActions(config.ResetFailureAfter, actions);
+                    }
+
+                    bool isDelayedAutoStart = config.StartMode == ServiceStartMode.Automatic && config.DelayedAutoStart;
+                    if (isDelayedAutoStart)
+                    {
+                        sc.SetDelayedAutoStart(true);
+                    }
+
+                    if (config.PreshutdownTimeout is TimeSpan preshutdownTimeout)
+                    {
+                        sc.SetPreshutdownTimeout(preshutdownTimeout);
+                    }
+
+                    string? securityDescriptor = config.SecurityDescriptor;
+                    if (securityDescriptor != null)
+                    {
+                        // throws ArgumentException
+                        sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
+                    }
+                }
+                catch (CommandException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
+                {
+                    Throw.Command.Exception(inner);
+                }
+
+                Log.Info($"Service '{config.Format()}' was refreshed successfully.");
+            }
         }
 
         /// <exception cref="FileNotFoundException" />
-        private static XmlServiceConfig CreateConfig(string? path)
+        private static XmlServiceConfig LoadConfig(string? path)
         {
             if (TestConfig != null)
             {
