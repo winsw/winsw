@@ -13,7 +13,14 @@ namespace WinSW.Configuration
 {
     public class YamlConfiguration : IWinSWConfiguration
     {
-        public DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+        public readonly DefaultWinSWSettings Defaults;
+
+        public YamlConfiguration()
+        {
+            this.Defaults = new DefaultWinSWSettings();
+            this.BaseName = this.Defaults.BaseName;
+            this.BasePath = this.Defaults.BasePath;
+        }
 
         [YamlMember(Alias = "id")]
         public string? IdYaml { get; set; }
@@ -159,7 +166,7 @@ namespace WinSW.Configuration
             public string? AutoRollAtTimeYamlLog { get; set; }
 
             [YamlMember(Alias = "zipOlderThanNumDays")]
-            public int? ZipOlderThanNumDaysYamlLog { get; set; }
+            public string? ZipOlderThanNumDaysYamlLog { get; set; }
 
             [YamlMember(Alias = "zipDateFormat")]
             public string? ZipDateFormatYamlLog { get; set; }
@@ -194,7 +201,7 @@ namespace WinSW.Configuration
                 {
                     return this.SizeThresholdYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.SizeThreshold :
-                        this.SizeThresholdYamlLog * RollingSizeTimeLogAppender.BytesPerKB;
+                        this.SizeThresholdYamlLog;
                 }
             }
 
@@ -277,12 +284,21 @@ namespace WinSW.Configuration
             {
                 get
                 {
-                    if (this.ZipOlderThanNumDaysYamlLog != null)
+                    int? zipolderthannumdays = null;
+
+                    if (!string.IsNullOrEmpty(this.ZipOlderThanNumDaysYamlLog))
                     {
-                        return this.ZipOlderThanNumDaysYamlLog;
+                        if (!int.TryParse(this.ZipOlderThanNumDaysYamlLog, out int zipolderthannumdaysValue))
+                        {
+#pragma warning disable S2372 // Exceptions should not be thrown from property getters
+                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
+#pragma warning restore S2372 // Exceptions should not be thrown from property getters
+                        }
+
+                        zipolderthannumdays = zipolderthannumdaysValue;
                     }
 
-                    return DefaultWinSWSettings.DefaultLogSettings.ZipOlderThanNumDays;
+                    return zipolderthannumdays;
                 }
             }
 
@@ -646,9 +662,9 @@ namespace WinSW.Configuration
 
         public List<string> ExtensionIds => this.YamlExtensionIds ?? this.Defaults.ExtensionIds;
 
-        public string BaseName => this.Defaults.BaseName;
+        public string BaseName { get; set; }
 
-        public string BasePath => this.Defaults.BasePath;
+        public string BasePath { get; set; }
 
         public string? SecurityDescriptor
         {

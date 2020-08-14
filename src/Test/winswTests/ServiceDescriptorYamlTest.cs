@@ -1,23 +1,461 @@
 ﻿using System;
+using System.Diagnostics;
 using NUnit.Framework;
 using WinSW;
 using WinSW.Configuration;
-using WinSW.Native;
+using WMI;
 
 namespace winswTests
 {
     class ServiceDescriptorYamlTest
     {
+        private IWinSWConfiguration _extendedServiceDescriptor;
 
-        private readonly string MinimalYaml = @"id: myapp
-name: This is a test
-executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
-description: This is test winsw";
+        private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
+        private const string Username = "User";
+        private const string Password = "Password";
+        private const string Domain = "Domain";
+        private const string AllowServiceAccountLogonRight = "true";
 
-        private readonly DefaultWinSWSettings Defaults = new DefaultWinSWSettings();
+
+        [SetUp]
+        public void SetUp()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+arguments: My Arguments
+log:
+    mode: roll
+    logpath: c:\logs
+serviceaccount:
+    domain: {Domain}
+    user: {Username}
+    password: {Password}
+    allowservicelogon: {AllowServiceAccountLogonRight}
+workingdirectory: {ExpectedWorkingDirectory}";
+
+            this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+        }
 
         [Test]
-        public void Parse_must_implemented_value_test()
+        public void DefaultStartMode()
+        {
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
+        }
+
+        [Test]
+        public void IncorrectStartMode()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+arguments: My Arguments
+startMode: roll
+log:
+    mode: roll
+    logpath: c:\logs
+serviceaccount:
+    domain: {Domain}
+    user: {Username}
+    password: {Password}
+    allowservicelogon: {AllowServiceAccountLogonRight}
+workingdirectory: {ExpectedWorkingDirectory}";
+
+            this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            Assert.That(() => this._extendedServiceDescriptor.StartMode, Throws.ArgumentException);
+        }
+
+        [Test]
+        public void ChangedStartMode()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+arguments: My Arguments
+startMode: manual
+log:
+    mode: roll
+    logpath: c:\logs
+serviceaccount:
+    domain: {Domain}
+    user: {Username}
+    password: {Password}
+    allowservicelogon: {AllowServiceAccountLogonRight}
+workingdirectory: {ExpectedWorkingDirectory}";
+
+            this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+        }
+
+        [Test]
+        public void VerifyWorkingDirectory()
+        {
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + this._extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+        }
+
+        [Test]
+        public void VerifyServiceLogonRight()
+        {
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.True);
+        }
+
+        [Test]
+        public void VerifyUsername()
+        {
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
+        }
+
+        [Test]
+        public void VerifyPassword()
+        {
+            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.ServiceAccountPassword, Is.EqualTo(Password));
+        }
+
+        [Test]
+        public void Priority()
+        {
+            var sd = ServiceDescriptorYaml.FromYaml(@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+priority: normal").Configurations;
+            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
+
+            sd = ServiceDescriptorYaml.FromYaml(@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+priority: idle").Configurations;
+            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Idle));
+
+            sd = ServiceDescriptorYaml.FromYaml(@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe").Configurations;
+            Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
+        }
+
+        [Test]
+        public void StopParentProcessFirstIsTrueByDefault()
+        {
+            Assert.That(this._extendedServiceDescriptor.StopParentProcessFirst, Is.True);
+        }
+
+        [Test]
+        public void CanParseStopParentProcessFirst()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+stopParentProcessFirst: false";
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.StopParentProcessFirst, Is.False);
+        }
+
+        [Test]
+        public void CanParseStopTimeout()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+stopTimeout: 60sec";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(60)));
+        }
+
+        [Test]
+        public void CanParseStopTimeoutFromMinutes()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+stopTimeout: 10min";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
+        }
+
+        [Test]
+        public void CanParseLogname()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    name: MyTestApp";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.Log.Name, Is.EqualTo("MyTestApp"));
+        }
+
+        [Test]
+        public void CanParseOutfileDisabled()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    outFileDisabled: true";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.Log.OutFileDisabled, Is.True);
+        }
+
+        [Test]
+        public void CanParseErrfileDisabled()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    errFileDisabled: true";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.Log.ErrFileDisabled, Is.True);
+        }
+
+        [Test]
+        public void CanParseOutfilePattern()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    outFilePattern: .out.test.log";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.Log.OutFilePattern, Is.EqualTo(".out.test.log"));
+        }
+
+        [Test]
+        public void CanParseErrfilePattern()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    errFilePattern: .err.test.log";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.Log.ErrFilePattern, Is.EqualTo(".err.test.log"));
+        }
+
+        [Test]
+        public void LogModeRollBySize()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    logpath: 'c:\\'
+    mode: roll-by-size
+    sizeThreshold: 112
+    keepFiles: 113";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            serviceDescriptor.BaseName = "service";
+
+            var logHandler = serviceDescriptor.Log.CreateLogHandler() as SizeBasedRollingLogAppender;
+            Assert.That(logHandler, Is.Not.Null);
+            Assert.That(logHandler.SizeTheshold, Is.EqualTo(112 * 1024));
+            Assert.That(logHandler.FilesToKeep, Is.EqualTo(113));
+        }
+
+        [Test]
+        public void LogModeRollByTime()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    logpath: c:\\
+    mode: roll-by-time
+    period: 7
+    pattern: log pattern";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            serviceDescriptor.BaseName = "service";
+
+            var logHandler = serviceDescriptor.Log.CreateLogHandler() as TimeBasedRollingLogAppender;
+            Assert.That(logHandler, Is.Not.Null);
+            Assert.That(logHandler.Period, Is.EqualTo(7));
+            Assert.That(logHandler.Pattern, Is.EqualTo("log pattern"));
+        }
+
+        [Test]
+        public void LogModeRollBySizeTime()
+        {
+            const string yaml = @"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+log:
+    logpath: c:\\
+    mode: roll-by-size-time
+    sizeThreshold: 10240
+    pattern: yyyy-MM-dd
+    autoRollAtTime: 00:00:00";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            serviceDescriptor.BaseName = "service";
+
+            var logHandler = serviceDescriptor.Log.CreateLogHandler() as RollingSizeTimeLogAppender;
+            Assert.That(logHandler, Is.Not.Null);
+            Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
+            Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
+            Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0, 0, 0)));
+        }
+
+        [Test]
+        public void VerifyServiceLogonRightGraceful()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+serviceaccount:
+    domain: {Domain}
+    user: {Username}
+    password: {Password}
+    allowservicelogon: false";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
+        }
+
+        [Test]
+        public void VerifyServiceLogonRightOmitted()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+serviceaccount:
+    domain: {Domain}
+    user: {Username}
+    password: {Password}";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
+        }
+
+        [Test]
+        public void VerifyWaitHint()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+waitHint: 20 min";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(20)));
+        }
+
+        [Test]
+        public void VerifySleepTime()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+sleepTime: 3 hrs";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.SleepTime, Is.EqualTo(TimeSpan.FromHours(3)));
+        }
+
+        [Test]
+        public void VerifyResetFailureAfter()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+resetFailureAfter: 75 sec";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.ResetFailureAfter, Is.EqualTo(TimeSpan.FromSeconds(75)));
+        }
+
+        [Test]
+        public void VerifyStopTimeout()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+stopTimeout: 35 sec";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(35)));
+        }
+
+        [Test]
+        public void Arguments_LegacyParam()
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+arguments: arg";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.Arguments, Is.EqualTo("arg"));
+        }
+
+        public void DelayedStart_RoundTrip(bool enabled)
+        {
+            string yaml = $@"id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+delayedAutoStart: true";
+
+            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+
+            Assert.That(serviceDescriptor.DelayedAutoStart, Is.EqualTo(true));
+        }
+
+
+        [Test]
+        public void Must_Specify_Values_Test()
         {
             var yml = @"name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
@@ -29,121 +467,5 @@ description: This is test winsw";
             }, Throws.TypeOf<InvalidOperationException>());
         }
 
-        [Test]
-        public void Default_value_map_test()
-        {
-            var configs = ServiceDescriptorYaml.FromYaml(MinimalYaml).Configurations;
-
-            Assert.IsNotNull(configs.ExecutablePath);
-            Assert.IsNotNull(configs.BaseName);
-            Assert.IsNotNull(configs.BasePath);
-        }
-
-        [Test]
-        public void Parse_downloads()
-        {
-            var yml = @"download:
-    -
-        from: www.sample.com
-        to: c://tmp
-    -
-        from: www.sample2.com
-        to: d://tmp
-    -
-        from: www.sample3.com
-        to: d://temp";
-
-            var configs = ServiceDescriptorYaml.FromYaml(yml).Configurations;
-
-            Assert.AreEqual(3, configs.Downloads.Count);
-            Assert.AreEqual("www.sample.com", configs.Downloads[0].From);
-            Assert.AreEqual("c://tmp", configs.Downloads[0].To);
-        }
-
-        [Test]
-        public void Parse_serviceaccount()
-        {
-            var yml = @"id: myapp
-name: winsw
-description: yaml test
-executable: java
-serviceaccount:
-    user: testuser
-    domain: mydomain
-    password: pa55w0rd
-    allowservicelogon: yes";
-
-            var serviceAccount = ServiceDescriptorYaml.FromYaml(yml).Configurations.ServiceAccount;
-
-            Assert.AreEqual("mydomain\\testuser", serviceAccount.ServiceAccountUser);
-            Assert.AreEqual(true, serviceAccount.AllowServiceAcountLogonRight);
-            Assert.AreEqual("pa55w0rd", serviceAccount.ServiceAccountPassword);
-            Assert.AreEqual(true, serviceAccount.HasServiceAccount());
-        }
-
-        [Test]
-        public void Parse_environment_variables()
-        {
-            var yml = @"id: myapp
-name: WinSW
-executable: java
-description: env test
-env:
-    -
-        name: MY_TOOL_HOME
-        value: 'C:\etc\tools\myTool'
-    -
-        name: LM_LICENSE_FILE
-        value: host1;host2";
-
-            var envs = ServiceDescriptorYaml.FromYaml(yml).Configurations.EnvironmentVariables;
-
-            Assert.That(@"C:\etc\tools\myTool", Is.EqualTo(envs["MY_TOOL_HOME"]));
-            Assert.That("host1;host2", Is.EqualTo(envs["LM_LICENSE_FILE"]));
-        }
-
-        [Test]
-        public void Parse_log()
-        {
-            var yml = @"id: myapp
-name: winsw
-description: yaml test
-executable: java
-log:
-    mode: roll
-    logpath: 'D://winsw/logs'";
-
-            var config = ServiceDescriptorYaml.FromYaml(yml).Configurations;
-
-            Assert.AreEqual("roll", config.LogMode);
-            Assert.AreEqual("D://winsw/logs", config.LogDirectory);
-        }
-
-        [Test]
-        public void Parse_onfailure_actions()
-        {
-            var yml = @"id: myapp
-name: winsw
-description: yaml test
-executable: java
-onFailure:
-    -
-        action: restart
-        delay: 5 sec
-    - 
-        action: reboot
-        delay: 10 min";
-
-            var onFailure = ServiceDescriptorYaml.FromYaml(yml).Configurations.FailureActions;
-
-            Assert.That(onFailure[0].Type, Is.EqualTo(SC_ACTION_TYPE.SC_ACTION_RESTART));
-
-            Assert.That(onFailure[1].Type, Is.EqualTo(SC_ACTION_TYPE.SC_ACTION_REBOOT));
-
-            Assert.That(TimeSpan.FromMilliseconds(onFailure[0].Delay), Is.EqualTo(TimeSpan.FromSeconds(5)));
-
-            Assert.That(TimeSpan.FromMilliseconds(onFailure[1].Delay), Is.EqualTo(TimeSpan.FromMinutes(10)));
-
-        }
     }
 }
