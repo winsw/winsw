@@ -214,15 +214,20 @@
         <xs:element name="sleeptime" type="xs:string" minOccurs="0" maxOccurs="unbounded">
           <xs:annotation>
             <xs:documentation xml:lang="en">
-             <!-- TODO : Add documentation -->
+             The time before the service should make its next call to the SetServiceStatus function
+             with an incremented checkPoint value (default 1 sec).
+             Do not wait longer than the wait hint. A good interval is one-tenth of the 
+             wait hint but not less than 1 second and not more than 10 seconds.
             </xs:documentation>
           </xs:annotation>
         </xs:element>
 
         <xs:element name="waithint" type="xs:string" minOccurs="0" maxOccurs="unbounded">
           <xs:annotation>
-            <xs:documentation xml:lang="en">
-             <!-- TODO : Add documentation -->
+            <xs:documentation xml:lang="en" source="http://msdn.microsoft.com/en-us/library/ms685996.aspx">
+             The estimated time required for a pending stop operation (default 15 secs).
+             Before the specified amount of time has elapsed, the service should make its next call to the SetServiceStatus function
+             with either an incremented checkPoint value or a change in currentState. See the source link for more details.
             </xs:documentation>
           </xs:annotation>
         </xs:element>
