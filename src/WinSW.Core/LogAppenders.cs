@@ -311,7 +311,7 @@ namespace WinSW
 
                     try
                     {
-                        for (int j = this.FilesToKeep; j >= 1; j--)
+                        for (int j = this.FilesToKeep; j >= 2; j--)
                         {
                             string dst = this.BaseLogFileName + "." + (j - 1) + ext;
                             string src = this.BaseLogFileName + "." + (j - 2) + ext;
