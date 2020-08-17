@@ -21,7 +21,8 @@ namespace winswTests
         [SetUp]
         public void SetUp()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -48,21 +49,13 @@ workingdirectory: {ExpectedWorkingDirectory}";
         [Test]
         public void IncorrectStartMode()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
 arguments: My Arguments
-startMode: roll
-log:
-    mode: roll
-    logpath: c:\logs
-serviceaccount:
-    domain: {Domain}
-    user: {Username}
-    password: {Password}
-    allowservicelogon: {AllowServiceAccountLogonRight}
-workingdirectory: {ExpectedWorkingDirectory}";
+startMode: roll";
 
             this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
             Assert.That(() => this._extendedServiceDescriptor.StartMode, Throws.ArgumentException);
@@ -71,21 +64,13 @@ workingdirectory: {ExpectedWorkingDirectory}";
         [Test]
         public void ChangedStartMode()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
 arguments: My Arguments
-startMode: manual
-log:
-    mode: roll
-    logpath: c:\logs
-serviceaccount:
-    domain: {Domain}
-    user: {Username}
-    password: {Password}
-    allowservicelogon: {AllowServiceAccountLogonRight}
-workingdirectory: {ExpectedWorkingDirectory}";
+startMode: manual";
 
             this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
             Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
@@ -121,21 +106,24 @@ workingdirectory: {ExpectedWorkingDirectory}";
         [Test]
         public void Priority()
         {
-            var sd = ServiceDescriptorYaml.FromYaml(@"id: service.exe
+            var sd = ServiceDescriptorYaml.FromYaml(@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
 priority: normal").Configurations;
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
 
-            sd = ServiceDescriptorYaml.FromYaml(@"id: service.exe
+            sd = ServiceDescriptorYaml.FromYaml(@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
 priority: idle").Configurations;
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Idle));
 
-            sd = ServiceDescriptorYaml.FromYaml(@"id: service.exe
+            sd = ServiceDescriptorYaml.FromYaml(@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe").Configurations;
@@ -151,7 +139,8 @@ executable: node.exe").Configurations;
         [Test]
         public void CanParseStopParentProcessFirst()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -178,7 +167,8 @@ stopTimeout: 60sec";
         [Test]
         public void CanParseStopTimeoutFromMinutes()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -192,7 +182,8 @@ stopTimeout: 10min";
         [Test]
         public void CanParseLogname()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -207,7 +198,8 @@ log:
         [Test]
         public void CanParseOutfileDisabled()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -222,7 +214,8 @@ log:
         [Test]
         public void CanParseErrfileDisabled()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -237,7 +230,8 @@ log:
         [Test]
         public void CanParseOutfilePattern()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -252,7 +246,8 @@ log:
         [Test]
         public void CanParseErrfilePattern()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -267,7 +262,8 @@ log:
         [Test]
         public void LogModeRollBySize()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -290,7 +286,8 @@ log:
         [Test]
         public void LogModeRollByTime()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -313,7 +310,8 @@ log:
         [Test]
         public void LogModeRollBySizeTime()
         {
-            const string yaml = @"id: service.exe
+            const string yaml = @"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -338,7 +336,8 @@ log:
         [Test]
         public void VerifyServiceLogonRightGraceful()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -356,7 +355,8 @@ serviceaccount:
         [Test]
         public void VerifyServiceLogonRightOmitted()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -373,7 +373,8 @@ serviceaccount:
         [Test]
         public void VerifyWaitHint()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -387,7 +388,8 @@ waitHint: 20 min";
         [Test]
         public void VerifySleepTime()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -401,7 +403,8 @@ sleepTime: 3 hrs";
         [Test]
         public void VerifyResetFailureAfter()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -415,7 +418,8 @@ resetFailureAfter: 75 sec";
         [Test]
         public void VerifyStopTimeout()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -429,7 +433,8 @@ stopTimeout: 35 sec";
         [Test]
         public void Arguments_LegacyParam()
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -442,7 +447,8 @@ arguments: arg";
 
         public void DelayedStart_RoundTrip(bool enabled)
         {
-            string yaml = $@"id: service.exe
+            string yaml = $@"
+id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
@@ -457,7 +463,8 @@ delayedAutoStart: true";
         [Test]
         public void Must_Specify_Values_Test()
         {
-            var yml = @"name: This is a test
+            var yml = @"
+name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";
 
