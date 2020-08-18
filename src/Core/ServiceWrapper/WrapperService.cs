@@ -280,7 +280,6 @@ namespace WinSW
             Log.Info("Starting " + this.descriptor.Executable + ' ' + startArguments);
 
             // Load and start extensions
-            Console.WriteLine("Loading extensinos");
             this.ExtensionManager.LoadExtensions();
             this.ExtensionManager.FireOnWrapperStarted();
 

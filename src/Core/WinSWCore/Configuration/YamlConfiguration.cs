@@ -648,16 +648,27 @@ namespace WinSW.Configuration
         {
             get
             {
+                int extensionNumber = 1;
+
                 if (this.YamlExtensionsConfiguration is null)
                 {
                     return new List<string>(0);
                 }
 
-                var result = new List<string>();
+                var result = new List<string>(this.YamlExtensionsConfiguration.Count);
 
                 foreach (var item in this.YamlExtensionsConfiguration)
                 {
-                    result.Add(item.GetId());
+                    try
+                    {
+                        result.Add(item.GetId());
+                    }
+                    catch (InvalidDataException)
+                    {
+                        throw new InvalidDataException("Id is null in Extension " + extensionNumber);
+                    }
+
+                    extensionNumber++;
                 }
 
                 return result;

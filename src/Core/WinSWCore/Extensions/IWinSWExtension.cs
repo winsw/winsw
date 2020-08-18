@@ -33,7 +33,7 @@ namespace WinSW.Extensions
         /// <summary>
         /// Configure the extension from Yaml configuration
         /// </summary>
-        /// <param name="descriptor">Yaml Service Descptor</param>
+        /// <param name="descriptor">YamlConfiguration</param>
         /// <param name="config">Configuration Node</param>
         void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config);
 

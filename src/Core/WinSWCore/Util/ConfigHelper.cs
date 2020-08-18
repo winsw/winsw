@@ -38,7 +38,7 @@ namespace WinSW.Util
         {
             value = value.ToLower();
 
-            if (value.Equals("true") || value.Equals("yes") || value.Equals("on"))
+            if (value.Equals("true") || value.Equals("yes") || value.Equals("on") || value.Equals("y") || value.Equals("1"))
             {
                 return true;
             }

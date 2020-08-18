@@ -22,7 +22,7 @@ namespace WinSW.Configuration
         {
             if (this.ExtensionId is null)
             {
-                throw new InvalidDataException("Extension Id can't be empty");
+                throw new InvalidDataException();
             }
 
             return this.ExtensionId;
@@ -32,7 +32,7 @@ namespace WinSW.Configuration
         {
             if (this.ExtensionClassName is null)
             {
-                throw new InvalidDataException("Extension ClassName can't be empty");
+                throw new InvalidDataException($@"Extension ClassName is empty in extension {this.GetId()}");
             }
 
             return this.ExtensionClassName;
@@ -42,7 +42,7 @@ namespace WinSW.Configuration
         {
             if (this.Settings is null)
             {
-                throw new InvalidDataException("Extension settings not found");
+                throw new InvalidDataException(@$"Extension settings is empty in extension {this.GetId()}");
             }
 
             return this.Settings;
