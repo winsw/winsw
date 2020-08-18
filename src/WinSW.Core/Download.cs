@@ -187,7 +187,7 @@ namespace WinSW
             }
             catch (WebException e)
             {
-                if (supportsIfModifiedSince && ((HttpWebResponse)e.Response).StatusCode == HttpStatusCode.NotModified)
+                if (supportsIfModifiedSince && ((HttpWebResponse?)e.Response)?.StatusCode == HttpStatusCode.NotModified)
                 {
                     Logger.Info($"Skipped downloading unmodified resource '{this.From}'");
                 }

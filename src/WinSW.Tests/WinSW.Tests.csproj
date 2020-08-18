@@ -40,7 +40,7 @@
   <Target Name="Copy" BeforeTargets="AfterBuild">
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp5.0'">
-      <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\netcoreapp3.1\WinSW.runtimeconfig*.json" />
+      <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net5.0\WinSW.runtimeconfig*.json" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp5.0'">

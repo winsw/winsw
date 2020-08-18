@@ -46,7 +46,7 @@ namespace WinSW
                 }
 
                 using Process current = Process.GetCurrentProcess();
-                return current.MainModule.FileName;
+                return current.MainModule!.FileName!;
             }
         }
 
@@ -463,7 +463,7 @@ namespace WinSW
                     if (username is null)
                     {
                         Console.Write("Username: ");
-                        username = Console.ReadLine();
+                        username = Console.ReadLine()!;
                     }
 
                     if (password is null && !IsSpecialAccount(username))
@@ -798,7 +798,7 @@ namespace WinSW
                         _ = evt.WaitOne();
                         Console.CancelKeyPress -= CancelKeyPress;
 
-                        void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+                        void CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
                         {
                             e.Cancel = true;
                             evt.Set();
@@ -968,14 +968,14 @@ namespace WinSW
                 {
                     UseShellExecute = true,
                     Verb = "runas",
-                    FileName = current.MainModule.FileName,
+                    FileName = current.MainModule!.FileName!,
                     Arguments = arguments,
                     WindowStyle = ProcessWindowStyle.Hidden,
                 };
 
                 try
                 {
-                    using Process elevated = Process.Start(startInfo);
+                    using Process elevated = Process.Start(startInfo)!;
 
                     elevated.WaitForExit();
                     Environment.Exit(elevated.ExitCode);
