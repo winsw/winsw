@@ -540,7 +540,7 @@ namespace WinSW
         /// </summary>
         private Process StartProcess(string executable, string? arguments, LogHandler? logHandler = null, Action<Process>? onExited = null)
         {
-            var startInfo = new ProcessStartInfo(executable, arguments)
+            var startInfo = new ProcessStartInfo(executable, arguments ?? string.Empty)
             {
                 UseShellExecute = false,
                 WorkingDirectory = this.config.WorkingDirectory,
@@ -572,7 +572,7 @@ namespace WinSW
             Process process;
             try
             {
-                process = Process.Start(startInfo);
+                process = Process.Start(startInfo)!;
             }
             finally
             {

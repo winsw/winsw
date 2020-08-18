@@ -22,7 +22,7 @@ namespace WinSW.Configuration
 
         public abstract string Executable { get; }
 
-        public virtual string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
+        public virtual string ExecutablePath => Process.GetCurrentProcess().MainModule!.FileName!;
 
         public virtual bool HideWindow => false;
 
