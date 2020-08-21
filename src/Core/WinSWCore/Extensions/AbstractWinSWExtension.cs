@@ -16,6 +16,11 @@ namespace WinSW.Extensions
             // Do nothing
         }
 
+        public virtual void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
+        {
+            // Do nothing
+        }
+
         public virtual void OnWrapperStarted()
         {
             // Do nothing

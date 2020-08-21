@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using WinSW;
+using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Plugins.SharedDirectoryMapper;
 
@@ -8,7 +9,8 @@ namespace winswTests.Extensions
     [TestFixture]
     class SharedDirectoryMapperTest : ExtensionTestBase
     {
-        ServiceDescriptor _testServiceDescriptor;
+        IWinSWConfiguration _testServiceDescriptor;
+        IWinSWConfiguration _testServiceDescriptorYaml;
 
         readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
@@ -39,12 +41,58 @@ $@"<service>
   </extensions>
 </service>";
             this._testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            string seedYaml = $@"---
+id: jenkins
+name: Jenkins
+description: This service runs Jenkins automation server.
+env:
+    -
+        name: JENKINS_HOME
+        value: '%LocalAppData%\Jenkins.jenkins'
+executable: java
+arguments: >-
+    -Xrs -Xmx256m -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle
+    -jar E:\Winsw Test\yml6\jenkins.war --httpPort=8081
+extensions:
+    - id: mapNetworDirs
+      className: ""{this.testExtension}""
+      enabled: true
+      settings:
+          mapping: 
+              - enabled: false
+                label: N
+                uncpath: \\UNC
+              - enabled: false
+                label: M
+                uncpath: \\UNC2
+    - id: mapNetworDirs2
+      className: ""{this.testExtension}""
+      enabled: true
+      settings:
+          mapping: 
+              - enabled: false
+                label: X
+                uncpath: \\UNC
+              - enabled: false
+                label: Y
+                uncpath: \\UNC2";
+
+            this._testServiceDescriptorYaml = ServiceDescriptorYaml.FromYaml(seedYaml).Configurations;
         }
 
         [Test]
         public void LoadExtensions()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
+            manager.LoadExtensions();
+            Assert.AreEqual(2, manager.Extensions.Count, "Two extensions should be loaded");
+        }
+
+        [Test]
+        public void LoadExtensionsYaml()
+        {
+            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptorYaml);
             manager.LoadExtensions();
             Assert.AreEqual(2, manager.Extensions.Count, "Two extensions should be loaded");
         }

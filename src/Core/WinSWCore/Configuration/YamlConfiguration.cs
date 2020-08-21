@@ -106,9 +106,6 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "securityDescriptor")]
         public string? SecurityDescriptorYaml { get; set; }
 
-        [YamlMember(Alias = "extensions")]
-        public List<string>? YamlExtensionIds { get; set; }
-
         public class YamlEnv
         {
             [YamlMember(Alias = "name")]
@@ -658,10 +655,42 @@ namespace WinSW.Configuration
 
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
-        // TODO - Extensions
-        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+        public XmlNode? ExtensionsConfiguration => null;
 
-        public List<string> ExtensionIds => this.YamlExtensionIds ?? this.Defaults.ExtensionIds;
+        // YAML Extension
+        [YamlMember(Alias = "extensions")]
+        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration { get; set; }
+
+        public List<string> ExtensionIds
+        {
+            get
+            {
+                int extensionNumber = 1;
+
+                if (this.YamlExtensionsConfiguration is null)
+                {
+                    return new List<string>(0);
+                }
+
+                var result = new List<string>(this.YamlExtensionsConfiguration.Count);
+
+                foreach (var item in this.YamlExtensionsConfiguration)
+                {
+                    try
+                    {
+                        result.Add(item.GetId());
+                    }
+                    catch (InvalidDataException)
+                    {
+                        throw new InvalidDataException("Id is null in Extension " + extensionNumber);
+                    }
+
+                    extensionNumber++;
+                }
+
+                return result;
+            }
+        }
 
         public string BaseName { get; set; }
 

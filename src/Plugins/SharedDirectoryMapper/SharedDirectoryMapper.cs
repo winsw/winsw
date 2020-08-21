@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 using log4net;
 using WinSW.Configuration;
@@ -40,6 +41,24 @@ namespace WinSW.Plugins.SharedDirectoryMapper
                         this._entries.Add(config);
                     }
                 }
+            }
+        }
+
+        public override void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
+        {
+            var dict = config.GetSettings();
+
+            var mappingNode = dict["mapping"];
+
+            if (!(mappingNode is List<object> mappings))
+            {
+                throw new InvalidDataException("SharedDirectoryMapper mapping should be a list");
+            }
+
+            foreach (var map in mappings)
+            {
+                var mapConfig = SharedDirectoryMapperConfig.FromYaml(map);
+                this._entries.Add(mapConfig);
             }
         }
 

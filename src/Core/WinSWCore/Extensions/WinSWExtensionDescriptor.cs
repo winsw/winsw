@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using WinSW.Configuration;
 using WinSW.Util;
 
 namespace WinSW.Extensions
@@ -38,6 +39,15 @@ namespace WinSW.Extensions
             bool enabled = XmlHelper.SingleAttribute(node, "enabled", true);
             string className = XmlHelper.SingleAttribute<string>(node, "className");
             string id = XmlHelper.SingleAttribute<string>(node, "id");
+            return new WinSWExtensionDescriptor(id, className, enabled);
+        }
+
+        public static WinSWExtensionDescriptor FromYaml(YamlExtensionConfiguration config)
+        {
+            bool enabled = config.Enabled;
+            string className = config.GetClassName();
+            string id = config.GetId();
+
             return new WinSWExtensionDescriptor(id, className, enabled);
         }
     }

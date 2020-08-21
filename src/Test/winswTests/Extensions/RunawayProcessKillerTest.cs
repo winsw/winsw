@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using NUnit.Framework;
 using WinSW;
+using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Plugins.RunawayProcessKiller;
 using WinSW.Util;
@@ -14,7 +15,8 @@ namespace winswTests.Extensions
     [TestFixture]
     class RunawayProcessKillerExtensionTest : ExtensionTestBase
     {
-        ServiceDescriptor _testServiceDescriptor;
+        IWinSWConfiguration _testServiceDescriptor;
+        IWinSWConfiguration _testServiceDescriptorYaml;
 
         readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
 
@@ -38,12 +40,50 @@ $@"<service>
   </extensions>
 </service>";
             this._testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+
+            string seedYaml = $@"---
+id: jenkins
+name: Jenkins
+description: This service runs Jenkins automation server.
+env:
+    -
+        name: JENKINS_HOME
+        value: '%LocalAppData%\Jenkins.jenkins'
+executable: java
+arguments: >-
+    -Xrs -Xmx256m -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle
+    -jar E:\Winsw Test\yml6\jenkins.war --httpPort=8081
+extensions:
+    - id: killRunawayProcess
+      enabled: yes
+      className: ""{this.testExtension}""
+      settings:
+            pidfile: 'foo/bar/pid.txt'
+            stopTimeOut: 5000
+            StopParentFirst: true";
+
+            this._testServiceDescriptorYaml = ServiceDescriptorYaml.FromYaml(seedYaml).Configurations;
         }
 
         [Test]
         public void LoadExtensions()
         {
             WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
+            manager.LoadExtensions();
+            Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
+
+            // Check the file is correct
+            var extension = manager.Extensions["killRunawayProcess"] as RunawayProcessKillerExtension;
+            Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
+            Assert.AreEqual("foo/bar/pid.txt", extension.Pidfile, "Loaded PID file path is not equal to the expected one");
+            Assert.AreEqual(5000, extension.StopTimeout.TotalMilliseconds, "Loaded Stop Timeout is not equal to the expected one");
+            Assert.AreEqual(true, extension.StopParentProcessFirst, "Loaded StopParentFirst is not equal to the expected one");
+        }
+
+        [Test]
+        public void LoadExtensionsYaml()
+        {
+            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptorYaml);
             manager.LoadExtensions();
             Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
 

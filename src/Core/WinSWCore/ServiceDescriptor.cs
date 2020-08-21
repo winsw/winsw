@@ -703,5 +703,7 @@ namespace WinSW
 
             return environment;
         }
+
+        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration => Defaults.YamlExtensionsConfiguration;
     }
 }
