@@ -9,8 +9,9 @@ Since: WinSW 2.0.
 
 ## Usage
 
-The extension can be configured via the [XML configuration file](../xmlConfigFile.md). 
-Configuration sample:
+The extension can be configured via the [XML configuration file](../xmlConfigFile.md) or [YAML configuration file](../yamlConfigFile.md).
+
+### XML configuration sample
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -31,6 +32,30 @@ Configuration sample:
     </extension>
   </extensions>
 </service>
+```
+
+### YAML configuration sample
+
+```yaml
+id: sampleService
+name: Sample Service
+description: This is a stub service.
+executable: '%BASE%\sleep.bat'
+arguments: arg1 arg2
+log:
+  mode: roll
+extensions:
+    - id: mapNetworDirs
+      className: winsw.Plugins.SharedDirectoryMapper.SharedDirectoryMapper
+      enabled: true
+      settings:
+          mapping:
+              - enabled: false
+                label: N
+                uncpath: \\UNC
+              - enabled: false
+                label: M
+                uncpath: \\UNC2
 ```
 
 ## Notes

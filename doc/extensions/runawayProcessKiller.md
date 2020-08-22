@@ -11,7 +11,9 @@ Since: WinSW 2.0.
 
 ## Usage
 
-The extension can be configured via the [XML configuration file](../xmlConfigFile.md). Configuration sample:
+The extension can be configured via the [XML configuration file](../xmlConfigFile.md) or [YAML configuration file](../yamlConfigFile.md). 
+
+### XML configuration sample
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -40,6 +42,26 @@ The extension can be configured via the [XML configuration file](../xmlConfigFil
     </extension>
   </extensions>
 </service>
+```
+
+### YAML configuration sample
+
+```yaml
+id: sampleService
+name: Sample Service
+description: This is a stub service.
+executable: '%BASE%\sleep.bat'
+arguments: arg1 arg2
+log:
+  mode: roll
+extensions:
+    - id: killRunawayProcess
+      enabled: yes
+      className: winsw.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension
+      settings:
+            pidfile: 'foo/bar/pid.txt'
+            stopTimeOut: 5000
+            StopParentFirst: true
 ```
 
 ## Notes
