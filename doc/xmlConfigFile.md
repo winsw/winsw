@@ -260,7 +260,7 @@ The security descriptor string for the service in SDDL form.
 For more information, see [Security Descriptor Definition Language](https://docs.microsoft.com/windows/win32/secauthz/security-descriptor-definition-language).
 
 ```xml
-<securtityDescriptor></securtityDescriptor>
+<securityDescriptor></securityDescriptor>
 ```
 
 ### Service account
