@@ -25,7 +25,7 @@ Generic extension creation guideline:
 * The extension should implement the configuration parsing from the `XmlNode` and `YamlExtensionConfiguration`.
 * The extension should support disabling from the configuration file.
 
-WinSW engine will automatically locate your extension using the class name in the [XML configuration file](../xmlConfigFile.md) or [YAML configuration file](../YamlConfigFile.md).
+WinSW engine will automatically locate your extension using the class name in the [XML configuration file](../xmlConfigFile.md) or [YAML configuration file](../yamlConfigFile.md).
 See configuration samples provided for the extensions in the core.
 For extensions from external DLLs, the `className` field should also specify the assembly name. 
 It can be done via fully qualified class name or just by the `${CLASS_NAME}, ${ASSEMBLY_NAME}` declaration.

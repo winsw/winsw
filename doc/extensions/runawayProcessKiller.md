@@ -11,9 +11,9 @@ Since: WinSW 2.0.
 
 ## Usage
 
-The extension can be configured via the [XML configuration file](../xmlConfigFile.md) or [YAML configuration file](../YamlConfigFile.md). 
+The extension can be configured via the [XML configuration file](../xmlConfigFile.md) or [YAML configuration file](../yamlConfigFile.md). 
 
-### XML Configuration sample
+### XML configuration sample
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -44,7 +44,7 @@ The extension can be configured via the [XML configuration file](../xmlConfigFil
 </service>
 ```
 
-### YAML Configuration Sample
+### YAML configuration sample
 
 ```yaml
 id: sampleService
