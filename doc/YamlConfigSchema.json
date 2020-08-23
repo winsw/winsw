@@ -1,0 +1,345 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "Windows Service Wrapper. YAML configuration schema",
+  "description": "This JSON schema validate the YAML configuaration file.",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "executable"
+  ],
+  "properties": {
+    "id": {
+      "$id": "#/properties/id",
+      "type": "string",
+      "title": "Service Id",
+      "maxLength": 256
+    },
+    "name": {
+      "$id": "#/properties/name",
+      "type": "string",
+      "title": "Service Display Name",
+      "maxLength": 256
+    },
+    "description": {
+      "$id": "#/properties/description",
+      "type": "string",
+      "title": "Service Description"
+    },
+    "executable": {
+      "$id": "#/properties/executable",
+      "type": "string",
+      "title": "Service Description"
+    },
+    "executablePath": {
+      "$id": "#/properties/executablePath",
+      "type": "string"
+    },
+    "hideWindow": {
+      "$id": "#/properties/hideWindow",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "workingdirectory": {
+      "$id": "#/properties/workingdirectory",
+      "type": "string"
+    },
+    "serviceAccount": {
+      "$id": "#/properties/serviceAccount",
+      "type": "object",
+      "properties": {
+        "user": {
+          "$id": "#/properties/serviceAccount/user",
+          "type": "string"
+        },
+        "domain": {
+          "$id": "#/properties/serviceAccount/domain",
+          "type": "string"
+        },
+        "password": {
+          "$id": "#/properties/serviceAccount/password",
+          "type": "string"
+        },
+        "allowservicelogon": {
+          "$id": "#/properties/serviceAccount/allowservicelogon",
+          "$ref": "#/definitions/boolPattern"
+        }
+      }
+    },
+    "log": {
+      "$id": "#/properties/log",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "$id": "#/properties/log/mode",
+          "type": "string",
+          "enum": [
+            "rotate",
+            "none",
+            "reset",
+            "roll",
+            "roll-by-time",
+            "roll-by-size",
+            "append",
+            "roll-by-size-time"
+          ]
+        },
+        "name": {
+          "$id": "#/properties/log/name",
+          "type": "string"
+        },
+        "sizeThreshold": {
+          "$id": "#/properties/log/sizeThreshold",
+          "type": "number"
+        },
+        "keepFiles": {
+          "$id": "#/properties/log/keepFiles",
+          "type": "number"
+        },
+        "pattern": {
+          "$id": "#/properties/log/pattern",
+          "type": "string"
+        },
+        "period": {
+          "$id": "#/properties/log/period",
+          "type": "number"
+        },
+        "logpath": {
+          "$id": "#/properties/log/logpath",
+          "type": "string"
+        },
+        "outFileDisabled": {
+          "$id": "#/properties/log/outFileDisabled",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "errFileDisabled": {
+          "$id": "#/properties/log/errFileDisabled",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "outFilePattern": {
+          "$id": "#/properties/log/outFilePattern",
+          "type": "string"
+        },
+        "errFilePattern": {
+          "$id": "#/properties/log/errFilePattern",
+          "type": "string"
+        },
+        "autoRollAtTime": {
+          "$id": "#/properties/log/autoRollAtTime",
+          "type": "string"
+        },
+        "zipOlderThanNumDays": {
+          "$id": "#/properties/log/zipOlderThanNumDays",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "zipDateFormat": {
+          "$id": "#/properties/log/zipDateFormat",
+          "$ref": "#/definitions/boolPattern"
+        }
+      }
+    },
+    "download": {
+      "$id": "#/properties/download",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/download"
+      }
+    },
+    "arguments": {
+      "$id": "#/properties/arguments",
+      "type": "string"
+    },
+    "startArguments": {
+      "$id": "#/properties/startArguments",
+      "type": "string"
+    },
+    "stopArguments": {
+      "$id": "#/properties/stopArguments",
+      "type": "string"
+    },
+    "stopExecutable": {
+      "$id": "#/properties/stopExecutable",
+      "type": "string"
+    },
+    "stopParentProcessFirst": {
+      "$id": "#/properties/stopParentProcessFirst",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "resetFailureAfter": {
+      "$id": "#/properties/resetFailureAfter",
+      "type": "string"
+    },
+    "stopTimeout": {
+      "$id": "#/properties/stopTimeout",
+      "type": "string"
+    },
+    "startMode": {
+      "$id": "#/properties/startMode",
+      "type": "string",
+      "enum": [
+        "Boot",
+        "System",
+        "Automatic",
+        "Manual",
+        "Disabled"
+      ]
+    },
+    "serviceDependencies": {
+      "$id": "#/properties/serviceDependencies",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "waitHint": {
+      "$id": "#/properties/waitHint",
+      "type": "string"
+    },
+    "sleepTime": {
+      "$id": "#/properties/sleepTime",
+      "type": "string"
+    },
+    "interactive": {
+      "$id": "#/properties/interactive",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "priority": {
+      "$id": "#/properties/priority",
+      "type": "string",
+      "enum": [
+        "Normal",
+        "Idle",
+        "High",
+        "RealTime",
+        "BelowNormal",
+        "AboveNormal"
+      ]
+    },
+    "beepOnShutdown": {
+      "$id": "#/properties/beepOnShutdown",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "env": {
+      "$id": "#/properties/env",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/env"
+      }
+    },
+    "delayedAutoStart": {
+      "$ref": "#/definitions/boolPattern"
+    },
+    "securityDescriptor": {
+      "$id": "#/properties/securityDescriptor",
+      "type": "string"
+    },
+    "extensions": {
+      "$id": "#/properties/extensions",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/extensions"
+      }
+    }
+  },
+  "definitions": {
+    "boolPattern": {
+      "type": "string",
+      "enum": [
+        "y", "Y", "yes", "Yes", "YES", 
+        "n", "N", "no", "No", "NO", 
+        "true", "True", "TRUE", 
+        "false", "False", "FALSE", 
+        "on", "On", "ON", 
+        "off", "Off", "OFF"
+      ]
+    },
+    "download": {
+      "$id": "#/definitions/download",
+      "type": "object",
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "$id": "#/definitions/download/from",
+          "type": "string"
+        },
+        "to": {
+          "$id": "#/definitions/download/to",
+          "type": "string"
+        },
+        "auth": {
+          "$id": "#/definitions/download/auth",
+          "type": "string"
+        },
+        "username": {
+          "$id": "#/definitions/download/username",
+          "type": "string"
+        },
+        "password": {
+          "$id": "#/definitions/download/password",
+          "type": "string"
+        },
+        "unsecureAuth": {
+          "$id": "#/definitions/download/unsecureAuth",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "failOnError": {
+          "$id": "#/definitions/download/failOnError",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "proxy": {
+          "$id": "#/definitions/download/proxy",
+          "type": "string"
+        }
+      }
+    },
+    "env": {
+      "$id": "#/definitions/env",
+      "type": "object",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "$id": "#/definitions/env/name",
+          "type": "string"
+        },
+        "value": {
+          "$id": "#/definitions/env/value",
+          "type": "string"
+        }
+      }
+    },
+    "extensions": {
+      "$id": "#/definitions/extensions",
+      "type": "object",
+      "required": [
+        "id",
+        "className",
+        "enabled",
+        "settings"
+      ],
+      "properties": {
+        "id": {
+          "$id": "#/definitions/extensions/id",
+          "type": "string"
+        },
+        "className": {
+          "$id": "#/definitions/extensions/className",
+          "type": "string"
+        },
+        "enabled": {
+          "$id": "#/definitions/extensions/enabled",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "settings": {
+          "$id": "#/definitions/extensions/settings",
+          "type": "object"
+        }
+      }
+    }
+  }
+}
