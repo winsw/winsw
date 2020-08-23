@@ -12,28 +12,29 @@
   "properties": {
     "id": {
       "$id": "#/properties/id",
+      "description": "Specifies the ID that Windows uses internally to identify the service.",
       "type": "string",
-      "title": "Service Id",
       "maxLength": 256
     },
     "name": {
       "$id": "#/properties/name",
+      "description": "Short display name of the service, which can contain spaces and other characters.",
       "type": "string",
-      "title": "Service Display Name",
       "maxLength": 256
     },
     "description": {
       "$id": "#/properties/description",
-      "type": "string",
-      "title": "Service Description"
+      "description": "Long human-readable description of the service.",
+      "type": "string"
     },
     "executable": {
       "$id": "#/properties/executable",
-      "type": "string",
-      "title": "Service Description"
+      "description": "This element specifies the executable to be launched.",
+      "type": "string"
     },
     "executablePath": {
       "$id": "#/properties/executablePath",
+      "description": "Path to the WinSW executable",
       "type": "string"
     },
     "hideWindow": {
@@ -42,10 +43,12 @@
     },
     "workingdirectory": {
       "$id": "#/properties/workingdirectory",
+      "description": "Some services need to run with a working directory specified. To do this, specify the workingdirectory element",
       "type": "string"
     },
     "serviceAccount": {
       "$id": "#/properties/serviceAccount",
+      "description": "Defines account, under which the service should run.",
       "type": "object",
       "properties": {
         "user": {
@@ -68,6 +71,7 @@
     },
     "log": {
       "$id": "#/properties/log",
+      "description": "All the log details. Read the loggingAndErrorreporting.md for more details",
       "type": "object",
       "properties": {
         "mode": {
@@ -140,29 +144,35 @@
     },
     "download": {
       "$id": "#/properties/download",
+      "description": "This optional element can be specified to have the service wrapper retrieve resources from URL and place it locally as a file.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/download"
       }
     },
     "arguments": {
+      "description": "Specifies the arguments to be passed to the executable. User can specify all the commands as a single line.",
       "$id": "#/properties/arguments",
       "type": "string"
     },
     "startArguments": {
+      "description": "When you use the stoparguments you must use startarguments instead of arguments",
       "$id": "#/properties/startArguments",
       "type": "string"
     },
     "stopArguments": {
       "$id": "#/properties/stopArguments",
+      "description": "If this configurations is present WinSW will launch another process of executable or stopexecutable (if specified) with stoparguments instead terminating the WinSW process.",
       "type": "string"
     },
     "stopExecutable": {
       "$id": "#/properties/stopExecutable",
+      "description": "If stoparguments is present then WinSW will laungh this executable with stoparguments instead terminating the WinSW process.",
       "type": "string"
     },
     "stopParentProcessFirst": {
       "$id": "#/properties/stopParentProcessFirst",
+      "description": "Optionally specify the order of service shutdown. If configed as true, parent process is shutdown first",
       "$ref": "#/definitions/boolPattern"
     },
     "resetFailureAfter": {
@@ -171,10 +181,12 @@
     },
     "stopTimeout": {
       "$id": "#/properties/stopTimeout",
+      "description": "This optional element allows you to change this 15 seconds value, so that you can control how long winsw gives the service to shut itself down.",
       "type": "string"
     },
     "startMode": {
       "$id": "#/properties/startMode",
+      "description": "This element specifies the start mode of the Windows service.",
       "type": "string",
       "enum": [
         "Boot",
@@ -186,6 +198,7 @@
     },
     "serviceDependencies": {
       "$id": "#/properties/serviceDependencies",
+      "description": "Optionally specified depend services that must start before this service starts.",
       "type": "array",
       "items": {
         "type": "string"
@@ -201,10 +214,12 @@
     },
     "interactive": {
       "$id": "#/properties/interactive",
+      "description": "If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes.",
       "$ref": "#/definitions/boolPattern"
     },
     "priority": {
       "$id": "#/properties/priority",
+      "description": "Optionally specify the scheduling priority of the service process.",
       "type": "string",
       "enum": [
         "Normal",
@@ -217,16 +232,20 @@
     },
     "beepOnShutdown": {
       "$id": "#/properties/beepOnShutdown",
+      "description": "This optional element is to emit beepsound when the service shuts down.",
       "$ref": "#/definitions/boolPattern"
     },
     "env": {
       "$id": "#/properties/env",
+      "description": "User can use specify environment variables with this configurations. Variables will be expand while parsing.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/env"
       }
     },
     "delayedAutoStart": {
+      "$id": "#/properties/delayedAutoStart",
+      "description": "This Boolean option enables the delayed start mode if the Automatic start mode is defined. ",
       "$ref": "#/definitions/boolPattern"
     },
     "securityDescriptor": {
@@ -235,6 +254,7 @@
     },
     "extensions": {
       "$id": "#/properties/extensions",
+      "description": "Read extension.md for more details",
       "type": "array",
       "items": {
         "$ref": "#/definitions/extensions"
