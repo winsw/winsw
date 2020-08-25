@@ -17,7 +17,6 @@ namespace WinSW.Native
             }
             finally
             {
-                _ = FreeSid(sid);
                 Marshal.FreeHGlobal(sid);
             }
         }
