@@ -228,7 +228,7 @@ namespace WinSW.Extensions
 
             try
             {
-                Type? t = Type.GetType(className);
+                Type? t = Type.GetType(className, throwOnError: false, ignoreCase: true);
                 if (t is null)
                 {
                     throw new ExtensionException(id, "Class " + className + " does not exist");
