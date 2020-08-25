@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="log4net" Version="2.0.9" />
     <PackageReference Include="YamlDotNet" Version="8.1.2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
