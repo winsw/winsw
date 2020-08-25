@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "type": "object",
   "title": "Windows Service Wrapper. YAML configuration schema",
-  "description": "This JSON schema validate the YAML configuaration file. You can find more details about YAML configurations from https://github.com/winsw/winsw/blob/master/doc/yamlConfigFile.md",
+  "description": "This JSON schema validate the YAML configuration file. You can find more details about YAML configurations from https://github.com/winsw/winsw/blob/master/doc/yamlConfigFile.md",
   "required": [
     "id",
     "name",
