@@ -228,7 +228,16 @@ namespace WinSW.Extensions
 
             try
             {
-                Type? t = Type.GetType(className, throwOnError: false, ignoreCase: true);
+                if (className == "winsw.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension")
+                {
+                    className = "WinSW.Plugins.RunawayProcessKillerExtension";
+                }
+                else if (className == "winsw.Plugins.SharedDirectoryMapper.SharedDirectoryMapper")
+                {
+                    className = "WinSW.Plugins.SharedDirectoryMapper";
+                }
+
+                Type? t = Type.GetType(className);
                 if (t is null)
                 {
                     throw new ExtensionException(id, "Class " + className + " does not exist");

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace WinSW.Plugins.RunawayProcessKiller
+namespace WinSW.Plugins
 {
     public partial class RunawayProcessKillerExtension
     {

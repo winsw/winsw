@@ -3,7 +3,7 @@ using System.IO;
 using System.Xml;
 using WinSW.Util;
 
-namespace WinSW.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins
 {
     /// <summary>
     /// Stores configuration entries for SharedDirectoryMapper extension.

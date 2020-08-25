@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <RootNamespace>winsw</RootNamespace>
+    <RootNamespace>WinSW</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using NUnit.Framework;
 using WinSW;
 using WinSW.Configuration;
 using WinSW.Extensions;
-using WinSW.Plugins.RunawayProcessKiller;
+using WinSW.Plugins;
 using WinSW.Util;
 using winswTests.Util;
 

@@ -9,9 +9,9 @@ using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
-using static WinSW.Plugins.RunawayProcessKiller.RunawayProcessKillerExtension.NativeMethods;
+using static WinSW.Plugins.RunawayProcessKillerExtension.NativeMethods;
 
-namespace WinSW.Plugins.RunawayProcessKiller
+namespace WinSW.Plugins
 {
     public partial class RunawayProcessKillerExtension : AbstractWinSWExtension
     {

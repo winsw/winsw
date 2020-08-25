@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using WinSW;
-using WinSW.Plugins.RunawayProcessKiller;
+using WinSW.Plugins;
 using winswTests.Extensions;
 
 namespace winswTests.Util
