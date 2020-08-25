@@ -31,9 +31,9 @@ log:
 ## YAML configuration schema validation
 
 Users can validate YAML configurations file against JSON schema.
-First you should convert YAML file into JSON and then you can
-validate the JSON file against JSON schema.
-[Find the JSON schema in this link.](yamlConfigurationSchema.json)
+You can use YAML utility tool for VSCode to validate your
+YAML configurations file with this JSON schema.
+[Download YAML utility tool for VSCode from Visual Studio Marketplace.](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
 
 ## Environment variable expansion
 
