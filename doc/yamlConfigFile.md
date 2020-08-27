@@ -7,7 +7,7 @@ Actual samples are also being published as part of releases on GitHub and NuGet.
 
 ## File structure
 
-YAML Configuration file shuold be in following format
+YAML Configuration file should be in following format
 
 Example:
 
@@ -27,6 +27,13 @@ arguments: >
 log:
     mode: roll
 ```
+
+## YAML configuration schema validation
+
+Users can validate YAML configurations file against JSON schema.
+You can use YAML utility tool for VSCode to validate your
+YAML configurations file with this JSON schema.
+[Download YAML utility tool for VSCode from Visual Studio Marketplace.](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
 
 ## Environment variable expansion
 
@@ -110,7 +117,7 @@ See the [Logging and error reporting](loggingAndErrorReporting.md) page for more
 arguments: arg1 arg2 arg3
 ```
 
-Also user can specify the arguemtns in more structured way with YAML multline strings.
+Also user can specify the arguments in more structured way with YAML multiline strings.
 
 ```yaml
 arguments: >
@@ -239,7 +246,7 @@ onFailure:
 
 This optional element controls the timing in which Windows SCM resets the failure count. 
 For example, if you specify `resetfailure: 1 hour` and your service continues to run longer than one hour, then the failure count is reset to zero. 
-This affects the behaviour of the failure actions (see `onfailure` above).
+This affects the behavior of the failure actions (see `onfailure` above).
 
 In other words, this is the duration in which you consider the service has been running successfully. 
 Defaults to 1 day.

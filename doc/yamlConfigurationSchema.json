@@ -1,0 +1,366 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "title": "Windows Service Wrapper. YAML configuration schema",
+  "description": "This JSON schema validate the YAML configuration file. You can find more details about YAML configurations from https://github.com/winsw/winsw/blob/master/doc/yamlConfigFile.md",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "executable"
+  ],
+  "properties": {
+    "id": {
+      "$id": "#/properties/id",
+      "description": "Specifies the ID that Windows uses internally to identify the service.",
+      "type": "string",
+      "maxLength": 256
+    },
+    "name": {
+      "$id": "#/properties/name",
+      "description": "Short display name of the service, which can contain spaces and other characters.",
+      "type": "string",
+      "maxLength": 256
+    },
+    "description": {
+      "$id": "#/properties/description",
+      "description": "Long human-readable description of the service.",
+      "type": "string"
+    },
+    "executable": {
+      "$id": "#/properties/executable",
+      "description": "This element specifies the executable to be launched.",
+      "type": "string"
+    },
+    "executablePath": {
+      "$id": "#/properties/executablePath",
+      "description": "Path to the WinSW executable",
+      "type": "string"
+    },
+    "hideWindow": {
+      "$id": "#/properties/hideWindow",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "workingdirectory": {
+      "$id": "#/properties/workingdirectory",
+      "description": "Some services need to run with a working directory specified. To do this, specify the workingdirectory element",
+      "type": "string"
+    },
+    "serviceAccount": {
+      "$id": "#/properties/serviceAccount",
+      "description": "Defines account, under which the service should run.",
+      "type": "object",
+      "properties": {
+        "user": {
+          "$id": "#/properties/serviceAccount/user",
+          "type": "string"
+        },
+        "domain": {
+          "$id": "#/properties/serviceAccount/domain",
+          "type": "string"
+        },
+        "password": {
+          "$id": "#/properties/serviceAccount/password",
+          "type": "string"
+        },
+        "allowservicelogon": {
+          "$id": "#/properties/serviceAccount/allowservicelogon",
+          "$ref": "#/definitions/boolPattern"
+        }
+      }
+    },
+    "log": {
+      "$id": "#/properties/log",
+      "description": "All the log details. Read the loggingAndErrorreporting.md for more details",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "$id": "#/properties/log/mode",
+          "type": "string",
+          "enum": [
+            "rotate",
+            "none",
+            "reset",
+            "roll",
+            "roll-by-time",
+            "roll-by-size",
+            "append",
+            "roll-by-size-time"
+          ]
+        },
+        "name": {
+          "$id": "#/properties/log/name",
+          "type": "string"
+        },
+        "sizeThreshold": {
+          "$id": "#/properties/log/sizeThreshold",
+          "type": "number"
+        },
+        "keepFiles": {
+          "$id": "#/properties/log/keepFiles",
+          "type": "number"
+        },
+        "pattern": {
+          "$id": "#/properties/log/pattern",
+          "type": "string"
+        },
+        "period": {
+          "$id": "#/properties/log/period",
+          "type": "number"
+        },
+        "logpath": {
+          "$id": "#/properties/log/logpath",
+          "type": "string"
+        },
+        "outFileDisabled": {
+          "$id": "#/properties/log/outFileDisabled",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "errFileDisabled": {
+          "$id": "#/properties/log/errFileDisabled",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "outFilePattern": {
+          "$id": "#/properties/log/outFilePattern",
+          "type": "string"
+        },
+        "errFilePattern": {
+          "$id": "#/properties/log/errFilePattern",
+          "type": "string"
+        },
+        "autoRollAtTime": {
+          "$id": "#/properties/log/autoRollAtTime",
+          "type": "string"
+        },
+        "zipOlderThanNumDays": {
+          "$id": "#/properties/log/zipOlderThanNumDays",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "zipDateFormat": {
+          "$id": "#/properties/log/zipDateFormat",
+          "$ref": "#/definitions/boolPattern"
+        }
+      }
+    },
+    "download": {
+      "$id": "#/properties/download",
+      "description": "This optional element can be specified to have the service wrapper retrieve resources from URL and place it locally as a file.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/download"
+      }
+    },
+    "arguments": {
+      "$id": "#/properties/arguments",
+      "description": "Specifies the arguments to be passed to the executable. User can specify all the commands as a single line.",
+      "type": "string"
+    },
+    "startArguments": {
+      "description": "When you use the stoparguments you must use startarguments instead of arguments",
+      "$id": "#/properties/startArguments",
+      "type": "string"
+    },
+    "stopArguments": {
+      "$id": "#/properties/stopArguments",
+      "description": "If this configurations is present WinSW will launch another process of executable or stopexecutable (if specified) with stoparguments instead terminating the WinSW process.",
+      "type": "string"
+    },
+    "stopExecutable": {
+      "$id": "#/properties/stopExecutable",
+      "description": "If stoparguments is present then WinSW will laungh this executable with stoparguments instead terminating the WinSW process.",
+      "type": "string"
+    },
+    "stopParentProcessFirst": {
+      "$id": "#/properties/stopParentProcessFirst",
+      "description": "Optionally specify the order of service shutdown. If configed as true, parent process is shutdown first",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "resetFailureAfter": {
+      "$id": "#/properties/resetFailureAfter",
+      "description": "This optional element controls the timing in which Windows SCM resets the failure count.",
+      "type": "string"
+    },
+    "stopTimeout": {
+      "$id": "#/properties/stopTimeout",
+      "description": "This optional element allows you to change this 15 seconds value, so that you can control how long winsw gives the service to shut itself down.",
+      "type": "string"
+    },
+    "startMode": {
+      "$id": "#/properties/startMode",
+      "description": "This element specifies the start mode of the Windows service.",
+      "type": "string",
+      "enum": [
+        "Boot",
+        "System",
+        "Automatic",
+        "Manual",
+        "Disabled"
+      ]
+    },
+    "serviceDependencies": {
+      "$id": "#/properties/serviceDependencies",
+      "description": "Optionally specified depend services that must start before this service starts.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "waitHint": {
+      "$id": "#/properties/waitHint",
+      "type": "string"
+    },
+    "sleepTime": {
+      "$id": "#/properties/sleepTime",
+      "type": "string"
+    },
+    "interactive": {
+      "$id": "#/properties/interactive",
+      "description": "If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes.",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "priority": {
+      "$id": "#/properties/priority",
+      "description": "Optionally specify the scheduling priority of the service process.",
+      "type": "string",
+      "enum": [
+        "Normal",
+        "Idle",
+        "High",
+        "RealTime",
+        "BelowNormal",
+        "AboveNormal"
+      ]
+    },
+    "beepOnShutdown": {
+      "$id": "#/properties/beepOnShutdown",
+      "description": "This optional element is to emit beepsound when the service shuts down.",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "env": {
+      "$id": "#/properties/env",
+      "description": "User can use specify environment variables with this configurations. Variables will be expand while parsing.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/env"
+      }
+    },
+    "delayedAutoStart": {
+      "$id": "#/properties/delayedAutoStart",
+      "description": "This Boolean option enables the delayed start mode if the Automatic start mode is defined. ",
+      "$ref": "#/definitions/boolPattern"
+    },
+    "securityDescriptor": {
+      "$id": "#/properties/securityDescriptor",
+      "type": "string"
+    },
+    "extensions": {
+      "$id": "#/properties/extensions",
+      "description": "Read extension.md for more details",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/extensions"
+      }
+    }
+  },
+  "definitions": {
+    "boolPattern": {
+      "type": "string",
+      "enum": [
+        "y", "Y", "yes", "Yes", "YES", 
+        "n", "N", "no", "No", "NO", 
+        "true", "True", "TRUE", 
+        "false", "False", "FALSE", 
+        "on", "On", "ON", 
+        "off", "Off", "OFF"
+      ]
+    },
+    "download": {
+      "$id": "#/definitions/download",
+      "type": "object",
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "$id": "#/definitions/download/from",
+          "type": "string"
+        },
+        "to": {
+          "$id": "#/definitions/download/to",
+          "type": "string"
+        },
+        "auth": {
+          "$id": "#/definitions/download/auth",
+          "type": "string"
+        },
+        "username": {
+          "$id": "#/definitions/download/username",
+          "type": "string"
+        },
+        "password": {
+          "$id": "#/definitions/download/password",
+          "type": "string"
+        },
+        "unsecureAuth": {
+          "$id": "#/definitions/download/unsecureAuth",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "failOnError": {
+          "$id": "#/definitions/download/failOnError",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "proxy": {
+          "$id": "#/definitions/download/proxy",
+          "type": "string"
+        }
+      }
+    },
+    "env": {
+      "$id": "#/definitions/env",
+      "type": "object",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "$id": "#/definitions/env/name",
+          "type": "string"
+        },
+        "value": {
+          "$id": "#/definitions/env/value",
+          "type": "string"
+        }
+      }
+    },
+    "extensions": {
+      "$id": "#/definitions/extensions",
+      "type": "object",
+      "required": [
+        "id",
+        "className",
+        "enabled",
+        "settings"
+      ],
+      "properties": {
+        "id": {
+          "$id": "#/definitions/extensions/id",
+          "type": "string"
+        },
+        "className": {
+          "$id": "#/definitions/extensions/className",
+          "type": "string"
+        },
+        "enabled": {
+          "$id": "#/definitions/extensions/enabled",
+          "$ref": "#/definitions/boolPattern"
+        },
+        "settings": {
+          "$id": "#/definitions/extensions/settings",
+          "type": "object"
+        }
+      }
+    }
+  }
+}
