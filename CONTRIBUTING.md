@@ -1,32 +1,26 @@
-# Contributing
+# Contribute
 
 ## Prerequisites
 
-You need to install either of the followings to develop .NET.
+[.NET 5 SDK or later](https://dotnet.microsoft.com/download/dotnet/5.0) and your favorite code editor.
 
-- [Visual Studio 2019](https://visualstudio.microsoft.com/downloads/) with *.NET desktop development* workload, which includes .NET SDK.
-- .NET SDK and your favorite code editor.
-  - You can find .NET SDK installation instructions on the [Download .NET](https://dotnet.microsoft.com/download) page.
-  - You can try [Visual Studio Code](https://code.visualstudio.com/Download), which is an open source and cross-platform editor.
+- [Visual Studio 2019 or later](https://visualstudio.microsoft.com/downloads/) with the **.NET desktop development** workload
+- [Visual Studio Code](https://code.visualstudio.com/Download) with the [C# for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) extension
 
-## Developing in Visual Studio
+## Develop in Visual Studio
 
-You can open `src\winsw.sln` and then build and run tests from within Visual Studio.
+You can open *src\WinSW.sln* and then build and run tests from within Visual Studio.
 
-## Developing with .NET SDK
+## Develop with .NET SDK
 
-### Building
+### Build
 
 ```console
 dotnet build src\winsw.sln
 ```
 
-### Testing
+### Test
 
 ```console
 dotnet test src\Test\winswTests\winswTests.csproj
 ```
-
-## Project Structure
-
-You can find the project structure guideline [here](docs/developer/project-structure.md).
