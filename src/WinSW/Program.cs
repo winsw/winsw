@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -22,6 +23,7 @@ using log4net.Layout;
 using WinSW.Logging;
 using WinSW.Native;
 using WinSW.Util;
+using static WinSW.Native.ServiceApis;
 using Process = System.Diagnostics.Process;
 using TimeoutException = System.ServiceProcess.TimeoutException;
 
@@ -271,27 +273,41 @@ namespace WinSW
             }
 
             {
-                var dev = new Command("dev", "Experimental commands.")
-                {
-                    config,
-                    noElevate,
-                };
+                var dev = new Command("dev", "Experimental commands.");
 
                 root.Add(dev);
 
-                var ps = new Command("ps", "Draws the process tree associated with the service.")
                 {
-                    Handler = CommandHandler.Create<string?, bool>(DevPs),
-                };
+                    var ps = new Command("ps", "Draws the process tree associated with the service.")
+                    {
+                        Handler = CommandHandler.Create<string?>(DevPs),
+                    };
 
-                dev.Add(ps);
+                    ps.Add(config);
 
-                var kill = new Command("kill", "Terminates the service if it has stopped responding.")
+                    dev.Add(ps);
+                }
+
                 {
-                    Handler = CommandHandler.Create<string?, bool>(DevKill),
-                };
+                    var kill = new Command("kill", "Terminates the service if it has stopped responding.")
+                    {
+                        Handler = CommandHandler.Create<string?, bool>(DevKill),
+                    };
 
-                dev.Add(kill);
+                    kill.Add(config);
+                    kill.Add(noElevate);
+
+                    dev.Add(kill);
+                }
+
+                {
+                    var list = new Command("list", "Lists services managed by the current executable.")
+                    {
+                        Handler = CommandHandler.Create(DevList),
+                    };
+
+                    dev.Add(list);
+                }
             }
 
             return new CommandLineBuilder(root)
@@ -374,7 +390,7 @@ namespace WinSW
 
                 Log.Info($"Installing service '{config.Format()}'...");
 
-                using ServiceManager scm = ServiceManager.Open();
+                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.CreateService);
 
                 if (scm.ServiceExists(config.Name))
                 {
@@ -499,7 +515,7 @@ namespace WinSW
 
                 Log.Info($"Uninstalling service '{config.Format()}'...");
 
-                using ServiceManager scm = ServiceManager.Open();
+                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
                 try
                 {
                     using Service sc = scm.OpenService(config.Name);
@@ -822,7 +838,7 @@ namespace WinSW
                     return;
                 }
 
-                using ServiceManager scm = ServiceManager.Open();
+                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
                 try
                 {
                     using Service sc = scm.OpenService(config.Name);
@@ -864,18 +880,12 @@ namespace WinSW
                 Log.Info($"Service '{config.Format()}' was refreshed successfully.");
             }
 
-            void DevPs(string? pathToConfig, bool noElevate)
+            static void DevPs(string? pathToConfig)
             {
                 XmlServiceConfig config = CreateConfig(pathToConfig);
 
-                if (!elevated)
-                {
-                    Elevate(noElevate);
-                    return;
-                }
-
-                using ServiceManager scm = ServiceManager.Open();
-                using Service sc = scm.OpenService(config.Name);
+                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
+                using Service sc = scm.OpenService(config.Name, ServiceAccess.QueryStatus);
 
                 int processId = sc.ProcessId;
                 if (processId >= 0)
@@ -935,6 +945,28 @@ namespace WinSW
                     using Process process = Process.GetProcessById(processId);
 
                     process.StopDescendants(config.StopTimeoutInMs);
+                }
+            }
+
+            static unsafe void DevList()
+            {
+                using var scm = ServiceManager.Open(ServiceManagerAccess.EnumerateService);
+                (IntPtr services, int count) = scm.EnumerateServices();
+                try
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        var status = (ServiceApis.ENUM_SERVICE_STATUS*)services + i;
+                        using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig);
+                        if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
+                        {
+                            Console.WriteLine(status->ToString());
+                        }
+                    }
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(services);
                 }
             }
 

@@ -29,8 +29,8 @@ namespace WinSW.Tests.Util
             var hitsField = this.hitsField = trackerType.GetField("HitsArray", BindingFlags.Public | BindingFlags.Static);
             Assert.NotNull(hitsField);
 
-            using var scm = ServiceManager.Open();
-            using var sc = scm.OpenService(serviceName, ServiceApis.ServiceAccess.QUERY_STATUS);
+            using var scm = ServiceManager.Open(ServiceApis.ServiceManagerAccess.Connect);
+            using var sc = scm.OpenService(serviceName, ServiceApis.ServiceAccess.QueryStatus);
 
             int processId = sc.ProcessId;
             Assert.True(processId >= 0);

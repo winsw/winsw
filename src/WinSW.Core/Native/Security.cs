@@ -37,20 +37,28 @@ namespace WinSW.Native
             _ = LookupAccountName(null, accountName, IntPtr.Zero, ref sidSize, null, ref domainNameLength, out _);
 
             IntPtr sid = Marshal.AllocHGlobal(sidSize);
-            string? domainName = domainNameLength == 0 ? null : new string('\0', domainNameLength - 1);
-
-            if (!LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref domainNameLength, out _))
+            try
             {
-                Throw.Command.Win32Exception("Failed to find the account.");
-            }
+                string? domainName = domainNameLength == 0 ? null : new string('\0', domainNameLength - 1);
 
-            // intentionally undocumented
-            if (!accountName.Contains("\\") && !accountName.Contains("@"))
+                if (!LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref domainNameLength, out _))
+                {
+                    Throw.Command.Win32Exception("Failed to find the account.");
+                }
+
+                // intentionally undocumented
+                if (!accountName.Contains("\\") && !accountName.Contains("@"))
+                {
+                    accountName = domainName + '\\' + accountName;
+                }
+
+                return sid;
+            }
+            catch
             {
-                accountName = domainName + '\\' + accountName;
+                Marshal.FreeHGlobal(sid);
+                throw;
             }
-
-            return sid;
         }
 
         /// <exception cref="Win32Exception" />

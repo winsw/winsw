@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="stylecop.analyzers" Version="1.2.0-beta.*">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -32,6 +32,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 
