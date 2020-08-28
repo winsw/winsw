@@ -64,10 +64,11 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 
 Experimental commands:
 
-| Command  | Description |
-| -------  | ----------- |
-| dev ps   | Draws the process tree associated with the service. |
-| dev kill | Terminates the service if it has stopped responding. |
+| Command                                           | Description |
+| -------                                           | ----------- |
+| [dev ps](docs/cli-commands.md#dev-ps-command)     | Draws the process tree associated with the service. |
+| [dev kill](docs/cli-commands.md#dev-kill-command) | Terminates the service if it has stopped responding. |
+| [dev list](docs/cli-commands.md#dev-list-command) | Lists services managed by the current executable. |
 
 Most commands require Administrator privileges to execute. WinSW will prompt for UAC in non-elevated sessions.
 

@@ -247,5 +247,25 @@ Draws the process tree associated with the service.
 ### Usage
 
 ```console
-winsw dev [<path-to-config>] ps
+winsw dev ps [<path-to-config>]
+```
+
+## `dev kill` command
+
+Terminates the service if it has stopped responding.
+
+### Usage
+
+```console
+winsw dev kill [<path-to-config>] [--no-elevate]
+```
+
+## `dev list` command
+
+Lists services managed by the current executable.
+
+### Usage
+
+```console
+winsw dev list
 ```
