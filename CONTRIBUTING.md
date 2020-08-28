@@ -11,16 +11,20 @@
 
 You can open *src\WinSW.sln* and then build and run tests from within Visual Studio.
 
-## Develop with .NET SDK
+## Develop with .NET CLI
 
 ### Build
 
 ```console
-dotnet build src\winsw.sln
+dotnet build src\WinSW.sln
 ```
 
 ### Test
 
 ```console
-dotnet test src\Test\winswTests\winswTests.csproj
+dotnet test src\WinSW.sln
 ```
+
+## See also
+
+[How to: Debug Windows Service Applications](https://docs.microsoft.com/dotnet/framework/windows-services/how-to-debug-windows-service-applications)
