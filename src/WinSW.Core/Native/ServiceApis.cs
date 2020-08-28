@@ -60,11 +60,28 @@ namespace WinSW.Native
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool DeleteService(IntPtr serviceHandle);
 
+        [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "EnumServicesStatusW")]
+        internal static extern unsafe bool EnumServicesStatus(
+            IntPtr databaseHandle,
+            ServiceType serviceType,
+            ServiceState serviceState,
+            IntPtr services,
+            int bufferSize,
+            out int bytesNeeded,
+            out int servicesReturned,
+            ref int resumeHandle);
+
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenSCManagerW")]
         internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, ServiceManagerAccess desiredAccess);
 
         [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenServiceW")]
+        internal static unsafe extern IntPtr OpenService(IntPtr databaseHandle, char* serviceName, ServiceAccess desiredAccess);
+
+        [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "OpenServiceW")]
         internal static extern IntPtr OpenService(IntPtr databaseHandle, string serviceName, ServiceAccess desiredAccess);
+
+        [DllImport(Libraries.Advapi32, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "QueryServiceConfigW")]
+        internal static extern bool QueryServiceConfig(IntPtr serviceHandle, IntPtr serviceConfig, int bufferSize, out int bytesNeeded);
 
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool QueryServiceStatus(IntPtr serviceHandle, out SERVICE_STATUS serviceStatus);
@@ -88,27 +105,27 @@ namespace WinSW.Native
         [Flags]
         internal enum ServiceAccess : uint
         {
-            QUERY_CONFIG = 0x0001,
-            CHANGE_CONFIG = 0x0002,
-            QUERY_STATUS = 0x0004,
-            ENUMERATE_DEPENDENTS = 0x0008,
-            START = 0x0010,
-            STOP = 0x0020,
-            PAUSE_CONTINUE = 0x0040,
-            INTERROGATE = 0x0080,
-            USER_DEFINED_CONTROL = 0x0100,
+            QueryConfig = 0x0001,
+            ChangeConfig = 0x0002,
+            QueryStatus = 0x0004,
+            EnumerateDependents = 0x0008,
+            Start = 0x0010,
+            Stop = 0x0020,
+            PauseContinue = 0x0040,
+            Interrogate = 0x0080,
+            UserDefinedControl = 0x0100,
 
-            ALL_ACCESS =
+            All =
                 SecurityApis.StandardAccess.REQUIRED |
-                QUERY_CONFIG |
-                CHANGE_CONFIG |
-                QUERY_STATUS |
-                ENUMERATE_DEPENDENTS |
-                START |
-                STOP |
-                PAUSE_CONTINUE |
-                INTERROGATE |
-                USER_DEFINED_CONTROL,
+                QueryConfig |
+                ChangeConfig |
+                QueryStatus |
+                EnumerateDependents |
+                Start |
+                Stop |
+                PauseContinue |
+                Interrogate |
+                UserDefinedControl,
         }
 
         // SERVICE_CONFIG_
@@ -140,27 +157,67 @@ namespace WinSW.Native
         [Flags]
         internal enum ServiceManagerAccess : uint
         {
-            CONNECT = 0x0001,
-            CREATE_SERVICE = 0x0002,
-            ENUMERATE_SERVICE = 0x0004,
-            LOCK = 0x0008,
-            QUERY_LOCK_STATUS = 0x0010,
-            MODIFY_BOOT_CONFIG = 0x0020,
+            Connect = 0x0001,
+            CreateService = 0x0002,
+            EnumerateService = 0x0004,
+            Lock = 0x0008,
+            QueryLockStatus = 0x0010,
+            ModifyBootConfig = 0x0020,
 
-            ALL_ACCESS =
+            All =
                 SecurityApis.StandardAccess.REQUIRED |
-                CONNECT |
-                CREATE_SERVICE |
-                ENUMERATE_SERVICE |
-                LOCK |
-                QUERY_LOCK_STATUS |
-                MODIFY_BOOT_CONFIG,
+                Connect |
+                CreateService |
+                EnumerateService |
+                Lock |
+                QueryLockStatus |
+                ModifyBootConfig,
+        }
+
+        // SERVICE_
+        internal enum ServiceState : uint
+        {
+            Active = 0x00000001,
+            Inactive = 0x00000002,
+            All = 0x00000003,
         }
 
         // SC_STATUS_
         internal enum ServiceStatusType
         {
             ProcessInfo = 0,
+        }
+
+        internal readonly unsafe struct ENUM_SERVICE_STATUS
+        {
+            public readonly char* ServiceName;
+            public readonly char* DisplayName;
+            public readonly SERVICE_STATUS ServiceStatus;
+
+            public override string ToString()
+            {
+                var serviceName = new ReadOnlySpan<char>(this.ServiceName, new ReadOnlySpan<char>(this.ServiceName, 256).IndexOf('\0'));
+                var displayName = new ReadOnlySpan<char>(this.DisplayName, new ReadOnlySpan<char>(this.DisplayName, 256).IndexOf('\0'));
+
+#if NETCOREAPP
+                return string.Concat(displayName, " (", serviceName, ")");
+#else
+                return string.Concat(displayName.ToString(), " (", serviceName.ToString(), ")");
+#endif
+            }
+        }
+
+        internal unsafe struct QUERY_SERVICE_CONFIG
+        {
+            public ServiceType ServiceType;
+            public ServiceStartMode StartType;
+            public ServiceErrorControl ErrorControl;
+            public char* BinaryPathName;
+            public char* LoadOrderGroup;
+            public uint TagId;
+            public char* Dependencies;
+            public char* ServiceStartName;
+            public char* DisplayName;
         }
 
         internal struct SERVICE_DELAYED_AUTO_START_INFO

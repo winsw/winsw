@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
@@ -56,9 +56,9 @@ namespace WinSW.Native
         private ServiceManager(IntPtr handle) => this.handle = handle;
 
         /// <exception cref="CommandException" />
-        internal static ServiceManager Open()
+        internal static ServiceManager Open(ServiceManagerAccess access = ServiceManagerAccess.All)
         {
-            IntPtr handle = OpenSCManager(null, null, ServiceManagerAccess.ALL_ACCESS);
+            IntPtr handle = OpenSCManager(null, null, access);
             if (handle == IntPtr.Zero)
             {
                 Throw.Command.Win32Exception("Failed to open the service control manager database.");
@@ -81,7 +81,7 @@ namespace WinSW.Native
                 this.handle,
                 serviceName,
                 displayName,
-                ServiceAccess.ALL_ACCESS,
+                ServiceAccess.All,
                 ServiceType.Win32OwnProcess,
                 startMode,
                 ServiceErrorControl.Normal,
@@ -100,7 +100,58 @@ namespace WinSW.Native
         }
 
         /// <exception cref="CommandException" />
-        internal Service OpenService(string serviceName, ServiceAccess access = ServiceAccess.ALL_ACCESS)
+        internal unsafe (IntPtr Services, int Count) EnumerateServices()
+        {
+            int resume = 0;
+            _ = EnumServicesStatus(
+                this.handle,
+                ServiceType.Win32OwnProcess,
+                ServiceState.All,
+                IntPtr.Zero,
+                0,
+                out int bytesNeeded,
+                out _,
+                ref resume);
+
+            IntPtr services = Marshal.AllocHGlobal(bytesNeeded);
+            try
+            {
+                if (!EnumServicesStatus(
+                    this.handle,
+                    ServiceType.Win32OwnProcess,
+                    ServiceState.All,
+                    services,
+                    bytesNeeded,
+                    out _,
+                    out int count,
+                    ref resume))
+                {
+                    Throw.Command.Win32Exception("Failed to enumerate services.");
+                }
+
+                return (services, count);
+            }
+            catch
+            {
+                Marshal.FreeHGlobal(services);
+                throw;
+            }
+        }
+
+        /// <exception cref="CommandException" />
+        internal unsafe Service OpenService(char* serviceName, ServiceAccess access = ServiceAccess.All)
+        {
+            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
+            if (serviceHandle == IntPtr.Zero)
+            {
+                Throw.Command.Win32Exception("Failed to open the service.");
+            }
+
+            return new Service(serviceHandle);
+        }
+
+        /// <exception cref="CommandException" />
+        internal Service OpenService(string serviceName, ServiceAccess access = ServiceAccess.All)
         {
             IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
             if (serviceHandle == IntPtr.Zero)
@@ -113,7 +164,7 @@ namespace WinSW.Native
 
         internal bool ServiceExists(string serviceName)
         {
-            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
+            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.All);
             if (serviceHandle == IntPtr.Zero)
             {
                 return false;
@@ -140,6 +191,39 @@ namespace WinSW.Native
 
         internal Service(IntPtr handle) => this.handle = handle;
 
+        /// <exception cref="CommandException" />
+        internal unsafe string ExecutablePath
+        {
+            get
+            {
+                _ = QueryServiceConfig(
+                    this.handle,
+                    IntPtr.Zero,
+                    0,
+                    out int bytesNeeded);
+
+                IntPtr config = Marshal.AllocHGlobal(bytesNeeded);
+                try
+                {
+                    if (!QueryServiceConfig(
+                        this.handle,
+                        config,
+                        bytesNeeded,
+                        out _))
+                    {
+                        Throw.Command.Win32Exception("Failed to query service config.");
+                    }
+
+                    return Marshal.PtrToStringUni((IntPtr)((QUERY_SERVICE_CONFIG*)config)->BinaryPathName)!;
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(config);
+                }
+            }
+        }
+
+        /// <exception cref="CommandException" />
         internal unsafe int ProcessId
         {
             get

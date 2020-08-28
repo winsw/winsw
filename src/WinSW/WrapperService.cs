@@ -502,7 +502,7 @@ namespace WinSW
         private void SignalStopped()
         {
             using ServiceManager scm = ServiceManager.Open();
-            using Service sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QUERY_STATUS);
+            using Service sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
 
             sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
         }
