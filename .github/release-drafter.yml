@@ -1,12 +1,11 @@
-# Configuration for Release Drafter: https://github.com/toolmantim/release-drafter
+# Configuration for Release Drafter: https://github.com/release-drafter/release-drafter
 name-template: WinSW v$NEXT_PATCH_VERSION
 tag-template: v$NEXT_PATCH_VERSION
+
 # This repo follows the Semantic Versioning 2.0.0 approach: https://semver.org/
 version-template: $MAJOR.$MINOR.$PATCH
 
-template: |
-  <!-- Optional: add a release summary here -->
-  $CHANGES
+template: $CHANGES
 
 # Emoji reference: https://gitmoji.carloscuesta.me/
 categories:
