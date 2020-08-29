@@ -10,7 +10,7 @@
 
 WinSW wraps and manages any application as a Windows service.
 
-**We are actively developing WinSW 3. Please refer to the v2 branch for previous version documentation.**
+**We are actively developing WinSW 3. Please refer to the [v2](https://github.com/winsw/winsw/tree/master) branch for previous version documentation.**
 
 **Please help us prioritize items by voting or commenting on the issues!**
 
