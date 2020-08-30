@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>Link</TrimMode>
 
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
