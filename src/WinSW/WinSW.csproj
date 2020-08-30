@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'net5.0'">
-    <ILMergeVersion>3.0.40</ILMergeVersion>
+    <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
 
   <ItemGroup>
