@@ -9,28 +9,28 @@ template: $CHANGES
 
 # Emoji reference: https://gitmoji.carloscuesta.me/
 categories:
-  - title: ':rotating_light: Removed'
+  - title: 🚨 Removed
     label: removed
-  - title: ':warning: Deprecated'
+  - title: ⚠️ Deprecated
     label: deprecated
-  - title: ':tada: New features'
+  - title: 🎉 New features
     label: new-feature
-  - title: ':rocket: Enhancements'
+  - title: 🚀 Enhancements
     label: enhancement
-  - title: ':bug: Bug fixes'
+  - title: 🐛 Bug fixes
     label: bug
-  - title: ':package: Packaging changes'
+  - title: 📦 Packaging changes
     label: packaging
-  - title: ':pencil: Documentation updates'
+  - title: 📝 Documentation updates
     label: documentation
   # Default label used by Dependabot
-  - title: ':arrow_up: Dependency updates'
+  - title: ⬆️ Dependency updates
     label: dependencies
-  - title: ':ghost: Maintenance'
+  - title: 👻 Maintenance
     labels: 
       - internal
       - build-flow
-  - title: ':vertical_traffic_light: Tests'
+  - title: 🚦 Tests
     label: tests
 exclude-labels:
   - reverted
