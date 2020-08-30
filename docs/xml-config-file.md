@@ -46,6 +46,11 @@ Specifies the ID that Windows uses internally to identify the service.
 This has to be unique among all the services installed in a system,
   and it should consist entirely out of alpha-numeric characters.
 
+### executable
+
+This element specifies the executable to be launched.
+It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
+
 ### name
 
 Short display name of the service, which can contain spaces and other characters.
@@ -56,15 +61,10 @@ This shouldn't be too long, like `<id>`, and this also needs to be unique among 
 Long human-readable description of the service.
 This gets displayed in Windows service manager when the service is selected.
 
-### executable
-
-This element specifies the executable to be launched.
-It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
-
 ### startmode
 
 This element specifies the start mode of the Windows service.
-It can be one of the following values: Boot, System, Automatic, or Manual.
+It can be one of the following values: Automatic, or Manual.
 For more information, see the [ChangeStartMode method](https://docs.microsoft.com/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service).
 The default value is `Automatic`.
 
@@ -237,12 +237,12 @@ This operation runs when the service is started, before the application specifie
 
 For servers requiring authentication some parameters must be specified depending on the type of authentication. Only the basic authentication requires additional sub-parameters. Supported authentication types are:
 
-* `none`:  default, must not be specified
-* `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/windows/win32/secauthn/sspi) including Kerberos, NTLM etc.
-* `basic`: Basic authentication, sub-parameters:
-  * `user="UserName"`
-  * `password="Passw0rd"`
-  * `unsecureAuth="true": default="false"`
+- `none`:  default, must not be specified
+- `sspi`: Windows [Security Support Provider Interface](https://docs.microsoft.com/windows/win32/secauthn/sspi) including Kerberos, NTLM etc.
+- `basic`: Basic authentication, sub-parameters:
+  - `user="UserName"`
+  - `password="Passw0rd"`
+  - `unsecureAuth="true": default="false"`
 
 The parameter `unsecureAuth` is only effective when the transfer protocol is HTTP - unencrypted data transfer. This is a security vulnerability because the credentials are send in clear text! For a SSPI authentication this is not relevant because the authentication tokens are encrypted.
 
@@ -299,9 +299,9 @@ For example, the above configuration causes the service to restart in 10 seconds
 Each element contains a mandatory `action` attribute, which controls what Windows SCM will do, and optional `delay` attribute, which controls the delay until the action is taken.
 The legal values for action are:
 
-* `restart`: restart the service
-* `reboot`: reboot Windows
-* `none`: do nothing and leave the service stopped
+- `restart`: restart the service
+- `reboot`: reboot Windows
+- `none`: do nothing and leave the service stopped
 
 The possible suffix for the delay attribute is sec/secs/min/mins/hour/hours/day/days. If missing, the delay attribute defaults to 0.
 
@@ -328,7 +328,7 @@ The security descriptor string for the service in SDDL form.
 For more information, see [Security Descriptor Definition Language](https://docs.microsoft.com/windows/win32/secauthz/security-descriptor-definition-language).
 
 ```xml
-<securtityDescriptor></securtityDescriptor>
+<securityDescriptor></securityDescriptor>
 ```
 
 ### Service account
@@ -434,3 +434,18 @@ Possible values are `idle`, `belownormal`, `normal`, `abovenormal`, `high`, `rea
 Specifying a priority higher than normal has unintended consequences.
 For more information, see [ProcessPriorityClass Enumeration](https://docs.microsoft.com/dotnet/api/system.diagnostics.processpriorityclass) in .NET docs.
 This feature is intended primarily to launch a process in a lower priority so as not to interfere with the computer's interactive usage.
+
+### Auto refresh
+
+```xml
+<autoRefresh>true</autoRefresh>
+```
+
+Automatically refreshes the service properties when the service starts or the following commands are executed:
+
+- [start](cli-commands.md#start-command)
+- [stop](cli-commands.md#stop-command)
+- [restart](cli-commands.md#restart-command)
+- [test](cli-commands.md#test-command)
+
+The default value is `true`.

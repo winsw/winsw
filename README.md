@@ -1,7 +1,7 @@
 # Windows Service Wrapper in a permissive license
 
 [![Github All Releases](https://img.shields.io/github/downloads/winsw/winsw/total?style=flat-square)](https://github.com/winsw/winsw/releases)
-[![GitHub Release](https://img.shields.io/github/v/release/winsw/winsw?include_prereleases&style=flat-square)](https://github.com/winsw/winsw/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/winsw/winsw?include_prereleases&sort=semver&style=flat-square)](https://github.com/winsw/winsw/releases)
 [![NuGet](https://img.shields.io/nuget/v/WinSW?style=flat-square)](https://www.nuget.org/packages/WinSW/)
 [![Build Status](https://img.shields.io/azure-devops/build/winsw/aabe43dd-6f6d-4660-b5dd-5b79e1e2ef4e/1?style=flat-square)](https://dev.azure.com/winsw/winsw/_build?definitionId=1&_a=summary)
 [![Deployment Status](https://img.shields.io/azure-devops/release/winsw/aabe43dd-6f6d-4660-b5dd-5b79e1e2ef4e/1/1?style=flat-square)](https://dev.azure.com/winsw/winsw/_release?_a=releases&view=mine&definitionId=1)
@@ -10,7 +10,7 @@
 
 WinSW wraps and manages any application as a Windows service.
 
-**We are actively developing WinSW 3. Please refer to the v2 branch for previous version documentation.**
+**We are actively developing WinSW 3. Please refer to the [v2](https://github.com/winsw/winsw/tree/master) branch for previous version documentation.**
 
 **Please help us prioritize items by voting or commenting on the issues!**
 
@@ -26,11 +26,11 @@ For systems without .NET Framework, the project provides native 64-bit and 32-bi
 More executables can be added upon request.
 
 [.NET Framework system requirements](https://docs.microsoft.com/dotnet/framework/get-started/system-requirements)\
-Preinstalled on Windows 10, version 1511 and Windows Server 2016.\
-Installable on Windows 7 SP1 and Windows Server 2008 R2 SP1.
+Preinstalled since Windows 10, version 1511 and Windows Server 2016.\
+Installable since Windows 7 SP1 and Windows Server 2008 R2 SP1.
 
 [.NET 5 system requirements](https://github.com/dotnet/core/blob/master/release-notes/5.0/5.0-supported-os.md)\
-Supported on Windows 7 SP1, Windows Server (Core) 2012 R2 and Nano Server, version 1809.
+Supported since Windows 7 SP1, Windows Server (Core) 2012 R2 and Nano Server, version 1809.
 
 ## Download
 
@@ -64,10 +64,11 @@ Your renamed *WinSW.exe* binary also accepts the following commands:
 
 Experimental commands:
 
-| Command  | Description |
-| -------  | ----------- |
-| dev ps   | Draws the process tree associated with the service. |
-| dev kill | Terminates the service if it has stopped responding. |
+| Command                                           | Description |
+| -------                                           | ----------- |
+| [dev ps](docs/cli-commands.md#dev-ps-command)     | Draws the process tree associated with the service. |
+| [dev kill](docs/cli-commands.md#dev-kill-command) | Terminates the service if it has stopped responding. |
+| [dev list](docs/cli-commands.md#dev-list-command) | Lists services managed by the current executable. |
 
 Most commands require Administrator privileges to execute. WinSW will prompt for UAC in non-elevated sessions.
 
