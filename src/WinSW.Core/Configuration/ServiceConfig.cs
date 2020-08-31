@@ -33,7 +33,7 @@ namespace WinSW.Configuration
 
         public virtual string? ServiceAccountUserName => null;
 
-        public virtual Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
+        public virtual Native.SC_ACTION[] FailureActions => Array.Empty<Native.SC_ACTION>();
 
         public virtual TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
@@ -55,7 +55,7 @@ namespace WinSW.Configuration
         // Service management
         public virtual ServiceStartMode StartMode => ServiceStartMode.Automatic;
 
-        public virtual string[] ServiceDependencies => new string[0];
+        public virtual string[] ServiceDependencies => Array.Empty<string>();
 
         public virtual bool Interactive => false;
 

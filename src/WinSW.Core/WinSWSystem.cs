@@ -4,7 +4,7 @@
     /// Class, which contains generic information about WinSW runtime.
     /// This information can be used by the service and extensions.
     /// </summary>
-    public class WinSWSystem
+    public static class WinSWSystem
     {
         /// <summary>
         /// Prefix for all environment variables being injected for WinSW
