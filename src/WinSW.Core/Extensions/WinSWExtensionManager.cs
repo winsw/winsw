@@ -19,6 +19,33 @@ namespace WinSW.Extensions
             this.Extensions = new Dictionary<string, IWinSWExtension>();
         }
 
+        private static IWinSWExtension CreateExtensionInstance(string id, string className)
+        {
+            object created;
+
+            try
+            {
+                Type? t = Type.GetType(className);
+                if (t is null)
+                {
+                    throw new ExtensionException(id, "Class " + className + " does not exist");
+                }
+
+                created = Activator.CreateInstance(t)!;
+            }
+            catch (Exception ex)
+            {
+                throw new ExtensionException(id, "Cannot load the class by name: " + className, ex);
+            }
+
+            if (!(created is IWinSWExtension extension))
+            {
+                throw new ExtensionException(id, "The loaded class is not a WinSW extension: " + className + ". Type is " + created.GetType());
+            }
+
+            return extension;
+        }
+
         /// <summary>
         /// Notifies all extensions that the wrapper is being started.
         /// They are supposed to run the initialization logic.
@@ -137,7 +164,7 @@ namespace WinSW.Extensions
             var descriptor = WinSWExtensionDescriptor.FromXml(configNode);
             if (descriptor.Enabled)
             {
-                IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 try
                 {
@@ -146,7 +173,7 @@ namespace WinSW.Extensions
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
                     Log.Fatal("Failed to configure the extension " + id, ex);
-                    throw ex;
+                    throw;
                 }
 
                 this.Extensions.Add(id, extension);
@@ -156,33 +183,6 @@ namespace WinSW.Extensions
             {
                 Log.Warn("Extension is disabled: " + id);
             }
-        }
-
-        private IWinSWExtension CreateExtensionInstance(string id, string className)
-        {
-            object created;
-
-            try
-            {
-                Type? t = Type.GetType(className);
-                if (t is null)
-                {
-                    throw new ExtensionException(id, "Class " + className + " does not exist");
-                }
-
-                created = Activator.CreateInstance(t)!;
-            }
-            catch (Exception ex)
-            {
-                throw new ExtensionException(id, "Cannot load the class by name: " + className, ex);
-            }
-
-            if (!(created is IWinSWExtension extension))
-            {
-                throw new ExtensionException(id, "The loaded class is not a WinSW extension: " + className + ". Type is " + created.GetType());
-            }
-
-            return extension;
         }
 
         #endregion

@@ -106,7 +106,7 @@ namespace WinSW
         }
 
         // Source: http://stackoverflow.com/questions/2764577/forcing-basic-authentication-in-webrequest
-        private void SetBasicAuthHeader(WebRequest request, string username, string password)
+        private static void SetBasicAuthHeader(WebRequest request, string username, string password)
         {
             string authInfo = username + ":" + password;
             authInfo = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(authInfo));
@@ -148,7 +148,7 @@ namespace WinSW
                     break;
 
                 case AuthType.Basic:
-                    this.SetBasicAuthHeader(request, this.Username!, this.Password!);
+                    SetBasicAuthHeader(request, this.Username!, this.Password!);
                     break;
 
                 default:
@@ -166,7 +166,7 @@ namespace WinSW
             string tmpFilePath = this.To + ".tmp";
             try
             {
-                using (WebResponse response = await request.GetResponseAsync())
+                using (WebResponse response = await request.GetResponseAsync().ConfigureAwait(false))
                 using (Stream responseStream = response.GetResponseStream())
                 using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
                 {
@@ -175,7 +175,7 @@ namespace WinSW
                         lastModified = ((HttpWebResponse)response).LastModified;
                     }
 
-                    await responseStream.CopyToAsync(tmpStream);
+                    await responseStream.CopyToAsync(tmpStream).ConfigureAwait(false);
                 }
 
                 FileHelper.MoveOrReplaceFile(this.To + ".tmp", this.To);

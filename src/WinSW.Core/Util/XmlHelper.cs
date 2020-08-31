@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace WinSW.Util
 {
-    public class XmlHelper
+    public static class XmlHelper
     {
         /// <summary>
         /// Retrieves a single string element

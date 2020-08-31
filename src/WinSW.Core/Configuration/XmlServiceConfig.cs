@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.ServiceProcess;
 using System.Text;
@@ -96,6 +97,27 @@ namespace WinSW
             return new XmlServiceConfig(dom);
         }
 
+        private static int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
+        {
+            XmlNode? e = parent.SelectSingleNode(tagName);
+
+            return e is null ? defaultValue : int.Parse(e.InnerText, NumberFormatInfo.InvariantInfo);
+        }
+
+        private static TimeSpan ParseTimeSpan(string v)
+        {
+            v = v.Trim();
+            foreach (var s in Suffix)
+            {
+                if (v.EndsWith(s.Key))
+                {
+                    return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0, v.Length - s.Key.Length).Trim(), NumberFormatInfo.InvariantInfo) * s.Value);
+                }
+            }
+
+            return TimeSpan.FromMilliseconds(int.Parse(v, NumberFormatInfo.InvariantInfo));
+        }
+
         private string SingleElement(string tagName)
         {
             return this.SingleElement(tagName, false)!;
@@ -119,31 +141,10 @@ namespace WinSW
             return e is null ? defaultValue : bool.Parse(e.InnerText);
         }
 
-        private int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
-        {
-            XmlNode? e = parent.SelectSingleNode(tagName);
-
-            return e is null ? defaultValue : int.Parse(e.InnerText);
-        }
-
         private TimeSpan SingleTimeSpanElement(XmlNode parent, string tagName, TimeSpan defaultValue)
         {
             string? value = this.SingleElement(tagName, true);
-            return value is null ? defaultValue : this.ParseTimeSpan(value);
-        }
-
-        private TimeSpan ParseTimeSpan(string v)
-        {
-            v = v.Trim();
-            foreach (var s in Suffix)
-            {
-                if (v.EndsWith(s.Key))
-                {
-                    return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0, v.Length - s.Key.Length).Trim()) * s.Value);
-                }
-            }
-
-            return TimeSpan.FromMilliseconds(int.Parse(v));
+            return value is null ? defaultValue : ParseTimeSpan(value);
         }
 
         private static readonly Dictionary<string, long> Suffix = new Dictionary<string, long>
@@ -398,19 +399,19 @@ namespace WinSW
                         }
 
                         var pattern = patternNode.InnerText;
-                        int period = this.SingleIntElement(e, "period", 1);
+                        int period = SingleIntElement(e, "period", 1);
                         return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period);
 
                     case "roll-by-size":
-                        sizeThreshold = this.SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB;
-                        int keepFiles = this.SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
+                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB;
+                        int keepFiles = SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
                         return new SizeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, sizeThreshold, keepFiles);
 
                     case "append":
                         return new DefaultLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                     case "roll-by-size-time":
-                        sizeThreshold = this.SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BytesPerKB;
+                        sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BytesPerKB;
                         XmlNode? filePatternNode = e.SelectSingleNode("pattern");
                         if (filePatternNode is null)
                         {
@@ -527,7 +528,7 @@ namespace WinSW
             get
             {
                 string? value = this.SingleElement("preshutdownTimeout", true);
-                return value is null ? default : this.ParseTimeSpan(value);
+                return value is null ? default : ParseTimeSpan(value);
             }
         }
 
@@ -581,7 +582,7 @@ namespace WinSW
                 XmlNodeList? childNodes = this.dom.SelectNodes("//onfailure");
                 if (childNodes is null)
                 {
-                    return new SC_ACTION[0];
+                    return Array.Empty<SC_ACTION>();
                 }
 
                 SC_ACTION[] result = new SC_ACTION[childNodes.Count];
@@ -597,7 +598,7 @@ namespace WinSW
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
                     XmlAttribute? delay = node.Attributes["delay"];
-                    result[i] = new SC_ACTION(type, delay != null ? this.ParseTimeSpan(delay.Value) : TimeSpan.Zero);
+                    result[i] = new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero);
                 }
 
                 return result;
