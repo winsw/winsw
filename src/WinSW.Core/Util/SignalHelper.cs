@@ -29,9 +29,10 @@ namespace WinSW.Util
                 return new KeyValuePair<bool, bool>(false, error == Errors.ERROR_INVALID_PARAMETER);
             }
 
-            _ = ConsoleApis.SetConsoleCtrlHandler(null, true);
+            // Don't call GenerateConsoleCtrlEvent immediately after SetConsoleCtrlHandler.
+            // A delay was observed as of Windows 10, version 2004 and Windows Server 2019.
             _ = ConsoleApis.GenerateConsoleCtrlEvent(ConsoleApis.CtrlEvents.CTRL_C_EVENT, 0);
-            _ = ConsoleApis.SetConsoleCtrlHandler(null, false);
+
             bool succeeded = ConsoleApis.FreeConsole();
             Debug.Assert(succeeded);
 
