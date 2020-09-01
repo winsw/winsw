@@ -1,6 +1,6 @@
 # YAML configuration file
 
-This page describes YAML the configuration file, which controls the behavior of the Windows service.
+This page describes the YAML configuration file, which controls the behavior of the Windows service.
 [Find the YAML configuration support project demo here.](https://youtu.be/G05unV7aDrg)
 
 You can find configuration file samples in the [examples](../examples) directory of the source code repository.
