@@ -2,7 +2,7 @@
 using WinSW;
 using WinSW.Configuration;
 using WinSW.Extensions;
-using WinSW.Plugins.SharedDirectoryMapper;
+using WinSW.Plugins;
 
 namespace winswTests.Extensions
 {

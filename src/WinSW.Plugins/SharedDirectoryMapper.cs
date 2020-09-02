@@ -6,8 +6,7 @@ using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
 
-
-namespace WinSW.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins
 {
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {

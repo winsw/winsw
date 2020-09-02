@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace WinSW.Plugins.SharedDirectoryMapper
+namespace WinSW.Plugins
 {
     class SharedDirectoryMappingHelper
     {

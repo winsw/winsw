@@ -29,10 +29,10 @@ jobs:
         BuildConfiguration: Release
   steps:
   - script: |
-      dotnet build -c $(BuildConfiguration) src\winsw.sln -p:Version=$(BuildVersion)
-      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 src\Core\ServiceWrapper\winsw.csproj -p:Version=$(BuildVersion)
-      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x64 src\Core\ServiceWrapper\winsw.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
-      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x86 src\Core\ServiceWrapper\winsw.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+      dotnet build -c $(BuildConfiguration) src\WinSW.sln -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 src\WinSW\WinSW.csproj -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x64 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x86 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
     displayName: Build
   - task: NuGetToolInstaller@1
     displayName: Install Nuget
@@ -45,7 +45,7 @@ jobs:
       packagesToPack: WinSW.nuspec
       versioningScheme: byEnvVar
       versionEnvVar: BuildVersion
-  - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\Test\winswTests\winswTests.csproj
+  - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
     displayName: Test
   - script: dotnet tool restore
     displayName: Restore tools
