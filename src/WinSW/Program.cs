@@ -7,6 +7,7 @@ using System.CommandLine.Parsing;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -33,6 +34,8 @@ namespace WinSW
     // NOTE: Keep description strings in sync with docs.
     public static class Program
     {
+        private const string NoPipe = "-";
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
 
         internal static Action<Exception, InvocationContext>? TestExceptionHandler;
@@ -63,13 +66,37 @@ namespace WinSW
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
 
+                string stdinName = args[1];
+                if (stdinName != NoPipe)
+                {
+                    var stdin = new NamedPipeClientStream(".", stdinName, PipeDirection.In, PipeOptions.Asynchronous);
+                    stdin.Connect();
+                    Console.SetIn(new StreamReader(stdin));
+                }
+
+                string stdoutName = args[2];
+                if (stdoutName != NoPipe)
+                {
+                    var stdout = new NamedPipeClientStream(".", stdoutName, PipeDirection.Out, PipeOptions.Asynchronous);
+                    stdout.Connect();
+                    Console.SetOut(new StreamWriter(stdout) { AutoFlush = true });
+                }
+
+                string stderrName = args[3];
+                if (stderrName != NoPipe)
+                {
+                    var stderr = new NamedPipeClientStream(".", stderrName, PipeDirection.Out, PipeOptions.Asynchronous);
+                    stderr.Connect();
+                    Console.SetError(new StreamWriter(stderr) { AutoFlush = true });
+                }
+
 #if NETCOREAPP
-                args = args[1..];
+                args = args[4..];
 #else
                 string[] oldArgs = args;
-                int newLength = oldArgs.Length - 1;
+                int newLength = oldArgs.Length - 4;
                 args = new string[newLength];
-                Array.Copy(oldArgs, 1, args, 0, newLength);
+                Array.Copy(oldArgs, 4, args, 0, newLength);
 #endif
             }
             else if (Environment.OSVersion.Version.Major == 5)
@@ -767,10 +794,13 @@ namespace WinSW
                     IntPtr.Zero,
                     null,
                     default,
-                    out _))
+                    out ProcessApis.PROCESS_INFORMATION processInfo))
                 {
                     Throw.Command.Win32Exception("Failed to invoke restart.");
                 }
+
+                _ = HandleApis.CloseHandle(processInfo.ProcessHandle);
+                _ = HandleApis.CloseHandle(processInfo.ThreadHandle);
             }
 
             static int Status(string? pathToConfig)
@@ -906,15 +936,15 @@ namespace WinSW
                     }
                 }
                 else
-            {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-
-                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
-                using Service sc = scm.OpenService(config.Name, ServiceAccess.QueryStatus);
-
-                int processId = sc.ProcessId;
-                if (processId >= 0)
                 {
+                    XmlServiceConfig config = LoadConfig(pathToConfig);
+
+                    using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
+                    using Service sc = scm.OpenService(config.Name, ServiceAccess.QueryStatus);
+
+                    int processId = sc.ProcessId;
+                    if (processId >= 0)
+                    {
                         using Process process = Process.GetProcessById(processId);
                         Draw(process, string.Empty, true);
                     }
@@ -927,30 +957,30 @@ namespace WinSW
                     const string Cross = " \u251c\u2500";
                     const string Space = "   ";
 
-                        Console.Write(indentation);
+                    Console.Write(indentation);
 
-                        if (isLastChild)
-                        {
-                            Console.Write(Corner);
-                            indentation += Space;
-                        }
-                        else
-                        {
-                            Console.Write(Cross);
-                            indentation += Vertical;
-                        }
+                    if (isLastChild)
+                    {
+                        Console.Write(Corner);
+                        indentation += Space;
+                    }
+                    else
+                    {
+                        Console.Write(Cross);
+                        indentation += Vertical;
+                    }
 
-                        Console.WriteLine(process.Format());
+                    Console.WriteLine(process.Format());
 
-                        List<Process> children = process.GetChildren();
-                        int count = children.Count;
-                        for (int i = 0; i < count; i++)
-                        {
-                            using Process child = children[i];
-                            Draw(child, indentation, i == count - 1);
-                        }
+                    List<Process> children = process.GetChildren();
+                    int count = children.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        using Process child = children[i];
+                        Draw(child, indentation, i == count - 1);
                     }
                 }
+            }
 
             void DevKill(string? pathToConfig, bool noElevate)
             {
@@ -1016,17 +1046,23 @@ namespace WinSW
                     Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
                 }
 
-                using Process current = Process.GetCurrentProcess();
+                string? stdinName = Console.IsInputRedirected ? Guid.NewGuid().ToString() : null;
+                string? stdoutName = Console.IsOutputRedirected ? Guid.NewGuid().ToString() : null;
+                string? stderrName = Console.IsErrorRedirected ? Guid.NewGuid().ToString() : null;
 
                 string exe = Environment.GetCommandLineArgs()[0];
                 string commandLine = Environment.CommandLine;
-                string arguments = "--elevated" + commandLine.Remove(commandLine.IndexOf(exe), exe.Length).TrimStart('"');
+                string arguments = "--elevated" +
+                    " " + (stdinName ?? NoPipe) +
+                    " " + (stdoutName ?? NoPipe) +
+                    " " + (stderrName ?? NoPipe) +
+                    commandLine.Remove(commandLine.IndexOf(exe), exe.Length).TrimStart('"');
 
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
                     UseShellExecute = true,
                     Verb = "runas",
-                    FileName = current.MainModule!.FileName!,
+                    FileName = ExecutablePath,
                     Arguments = arguments,
                     WindowStyle = ProcessWindowStyle.Hidden,
                 };
@@ -1034,6 +1070,24 @@ namespace WinSW
                 try
                 {
                     using Process elevated = Process.Start(startInfo)!;
+
+                    if (stdinName is not null)
+                    {
+                        var stdin = new NamedPipeServerStream(stdinName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        stdin.WaitForConnectionAsync().ContinueWith(_ => Console.OpenStandardInput().CopyToAsync(stdin));
+                    }
+
+                    if (stdoutName is not null)
+                    {
+                        var stdout = new NamedPipeServerStream(stdoutName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        stdout.WaitForConnectionAsync().ContinueWith(_ => stdout.CopyToAsync(Console.OpenStandardOutput()));
+                    }
+
+                    if (stderrName is not null)
+                    {
+                        var stderr = new NamedPipeServerStream(stderrName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        stderr.WaitForConnectionAsync().ContinueWith(_ => stderr.CopyToAsync(Console.OpenStandardError()));
+                    }
 
                     elevated.WaitForExit();
                     Environment.Exit(elevated.ExitCode);
