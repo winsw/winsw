@@ -355,24 +355,24 @@ $@"<service>
             };
             var poststart = new ProcessCommand
             {
-                Executable = "a1",
-                Arguments = "a2",
-                StdoutPath = "a3",
-                StderrPath = "a4",
+                Executable = "b1",
+                Arguments = "b2",
+                StdoutPath = "b3",
+                StderrPath = "b4",
             };
             var prestop = new ProcessCommand
             {
-                Executable = "a1",
-                Arguments = "a2",
-                StdoutPath = "a3",
-                StderrPath = "a4",
+                Executable = "c1",
+                Arguments = "c2",
+                StdoutPath = "c3",
+                StderrPath = "c4",
             };
             var poststop = new ProcessCommand
             {
-                Executable = "a1",
-                Arguments = "a2",
-                StdoutPath = "a3",
-                StderrPath = "a4",
+                Executable = "d1",
+                Arguments = "d2",
+                StdoutPath = "d3",
+                StderrPath = "d4",
             };
 
             string seedXml =
@@ -401,6 +401,8 @@ $@"<service>
     <stdoutPath>{poststop.StdoutPath}</stdoutPath>
     <stderrPath>{poststop.StderrPath}</stderrPath>
   </poststop>
+  <executable>executable</executable>
+  <arguments>arguments</arguments>
 </service>";
 
             XmlServiceConfig config = XmlServiceConfig.FromXml(seedXml);
