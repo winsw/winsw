@@ -182,6 +182,9 @@ namespace WinSW
 
         protected override void OnStart(string[] args)
         {
+            bool succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
+            Debug.Assert(succeeded);
+
             this.envs = this.descriptor.EnvironmentVariables;
 
             // TODO: Disabled according to security concerns in https://github.com/kohsuke/winsw/issues/54

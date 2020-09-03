@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Management;
 using System.Threading;
 using log4net;
+using WinSW.Native;
 
 namespace WinSW.Util
 {
@@ -168,7 +169,19 @@ namespace WinSW.Util
                 }
             }
 
-            processToStart.Start();
+            bool succeeded = ConsoleApis.SetConsoleCtrlHandler(null, false); // inherited
+            Debug.Assert(succeeded);
+
+            try
+            {
+                processToStart.Start();
+            }
+            finally
+            {
+                succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
+                Debug.Assert(succeeded);
+            }
+
             Logger.Info("Started process " + processToStart.Id);
 
             if (priority != null)
