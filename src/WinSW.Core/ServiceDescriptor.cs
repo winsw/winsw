@@ -17,6 +17,7 @@ namespace WinSW
     public class ServiceDescriptor : IWinSWConfiguration
     {
         protected readonly XmlDocument dom = new();
+
         private readonly Dictionary<string, string> environmentVariables;
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();

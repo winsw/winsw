@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+#if VNEXT
+using System.IO.Pipes;
+#endif
 #if NET
 using System.Reflection;
 #endif
@@ -28,6 +31,10 @@ namespace WinSW
 {
     public static class Program
     {
+#if VNEXT
+        private const string NoPipe = "-";
+#endif
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
 
         public static int Main(string[] args)
@@ -127,7 +134,35 @@ namespace WinSW
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
 
+#if VNEXT
+                string stdinName = args[1];
+                if (stdinName != NoPipe)
+                {
+                    var stdin = new NamedPipeClientStream(".", stdinName, PipeDirection.In, PipeOptions.Asynchronous);
+                    stdin.Connect();
+                    Console.SetIn(new StreamReader(stdin));
+                }
+
+                string stdoutName = args[2];
+                if (stdoutName != NoPipe)
+                {
+                    var stdout = new NamedPipeClientStream(".", stdoutName, PipeDirection.Out, PipeOptions.Asynchronous);
+                    stdout.Connect();
+                    Console.SetOut(new StreamWriter(stdout) { AutoFlush = true });
+                }
+
+                string stderrName = args[3];
+                if (stderrName != NoPipe)
+                {
+                    var stderr = new NamedPipeClientStream(".", stderrName, PipeDirection.Out, PipeOptions.Asynchronous);
+                    stderr.Connect();
+                    Console.SetError(new StreamWriter(stderr) { AutoFlush = true });
+                }
+
+                args = args.GetRange(4, args.Count - 4);
+#else
                 args = args.GetRange(1, args.Count - 1);
+#endif
             }
             else if (Environment.OSVersion.Version.Major == 5)
             {
@@ -565,24 +600,58 @@ namespace WinSW
             {
                 using var current = Process.GetCurrentProcess();
 
+#if VNEXT
+                string? stdinName = Console.IsInputRedirected ? Guid.NewGuid().ToString() : null;
+                string? stdoutName = Console.IsOutputRedirected ? Guid.NewGuid().ToString() : null;
+                string? stderrName = Console.IsErrorRedirected ? Guid.NewGuid().ToString() : null;
+#endif
+
+                string arguments = "/elevated " +
+#if VNEXT
+                    " " + (stdinName ?? NoPipe) +
+                    " " + (stdoutName ?? NoPipe) +
+                    " " + (stderrName ?? NoPipe) +
+#endif
+#if NET
+                    string.Join(' ', args);
+#elif !NET20
+                    string.Join(" ", args);
+#else
+                    string.Join(" ", args.ToArray());
+#endif
+
                 var startInfo = new ProcessStartInfo
                 {
                     UseShellExecute = true,
                     Verb = "runas",
                     FileName = current.MainModule!.FileName!,
-#if NET
-                    Arguments = "/elevated " + string.Join(' ', args),
-#elif !NET20
-                    Arguments = "/elevated " + string.Join(" ", args),
-#else
-                    Arguments = "/elevated " + string.Join(" ", args.ToArray()),
-#endif
+                    Arguments = arguments,
                     WindowStyle = ProcessWindowStyle.Hidden,
                 };
 
                 try
                 {
                     using var elevated = Process.Start(startInfo)!;
+
+#if VNEXT
+                    if (stdinName != null)
+                    {
+                        var stdin = new NamedPipeServerStream(stdinName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        stdin.WaitForConnectionAsync().ContinueWith(_ => Console.OpenStandardInput().CopyToAsync(stdin));
+                    }
+
+                    if (stdoutName != null)
+                    {
+                        var stdout = new NamedPipeServerStream(stdoutName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        stdout.WaitForConnectionAsync().ContinueWith(_ => stdout.CopyToAsync(Console.OpenStandardOutput()));
+                    }
+
+                    if (stderrName != null)
+                    {
+                        var stderr = new NamedPipeServerStream(stderrName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        stderr.WaitForConnectionAsync().ContinueWith(_ => stderr.CopyToAsync(Console.OpenStandardError()));
+                    }
+#endif
 
                     elevated.WaitForExit();
                     Environment.Exit(elevated.ExitCode);
@@ -661,7 +730,7 @@ namespace WinSW
             var process = ProcessApis.GetCurrentProcess();
             if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out var token))
             {
-                ThrowWin32Exception("Failed to open process token.");
+                Throw.Command.Win32Exception("Failed to open process token.");
             }
 
             try
@@ -673,7 +742,7 @@ namespace WinSW
                     sizeof(SecurityApis.TOKEN_ELEVATION),
                     out _))
                 {
-                    ThrowWin32Exception("Failed to get token information");
+                    Throw.Command.Win32Exception("Failed to get token information");
                 }
 
                 return elevation.TokenIsElevated != 0;
@@ -681,12 +750,6 @@ namespace WinSW
             finally
             {
                 _ = HandleApis.CloseHandle(token);
-            }
-
-            static void ThrowWin32Exception(string message)
-            {
-                var inner = new Win32Exception();
-                throw new Win32Exception(inner.NativeErrorCode, message + ' ' + inner.Message);
             }
         }
 
