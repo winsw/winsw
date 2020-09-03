@@ -42,8 +42,8 @@ jobs:
   - script: |
       dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion)
       dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion)
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesInSingleFile=true
-      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesInSingleFile=true
+      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
+      dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
     displayName: Build
   - task: DotNetCoreCLI@2
     displayName: Test
