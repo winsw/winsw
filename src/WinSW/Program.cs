@@ -813,13 +813,13 @@ namespace WinSW
                 {
                     Console.WriteLine(svc.Status switch
                     {
-                        ServiceControllerStatus.StartPending => "Starting",
-                        ServiceControllerStatus.StopPending => "Stopping",
-                        ServiceControllerStatus.Running => "Running",
-                        ServiceControllerStatus.ContinuePending => "Continuing",
-                        ServiceControllerStatus.PausePending => "Pausing",
-                        ServiceControllerStatus.Paused => "Paused",
-                        _ => "Stopped"
+                        ServiceControllerStatus.StartPending => "Active (starting)",
+                        ServiceControllerStatus.StopPending => "Active (stopping)",
+                        ServiceControllerStatus.Running => "Active (running)",
+                        ServiceControllerStatus.ContinuePending => "Active (continuing)",
+                        ServiceControllerStatus.PausePending => "Active (pausing)",
+                        ServiceControllerStatus.Paused => "Active (paused)",
+                        _ => "Inactive (stopped)"
                     });
 
                     return svc.Status switch
