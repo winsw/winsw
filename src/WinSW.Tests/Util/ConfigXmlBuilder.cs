@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using WinSW.Tests.Extensions;
 using Xunit.Abstractions;
 
 namespace WinSW.Tests.Util
@@ -57,7 +56,7 @@ namespace WinSW.Tests.Util
 
         public string ToXmlString(bool dumpConfig = false)
         {
-            StringBuilder str = new StringBuilder();
+            var str = new StringBuilder();
             if (this.PrintXmlVersion)
             {
                 // TODO: The encoding is generally wrong
@@ -121,7 +120,7 @@ namespace WinSW.Tests.Util
 
         public ConfigXmlBuilder WithDownload(Download download)
         {
-            StringBuilder xml = new StringBuilder();
+            var xml = new StringBuilder();
             xml.Append($"<download from=\"{download.From}\" to=\"{download.To}\" failOnError=\"{download.FailOnError}\"");
 
             // Authentication

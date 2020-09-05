@@ -17,7 +17,7 @@ namespace WinSW.Util
         /// <exception cref="InvalidDataException">The required element is missing</exception>
         public static string? SingleElement(XmlNode node, string tagName, bool optional)
         {
-            XmlNode? n = node.SelectSingleNode(tagName);
+            var n = node.SelectSingleNode(tagName);
             if (n is null && !optional)
             {
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");
@@ -36,7 +36,7 @@ namespace WinSW.Util
         /// <exception cref="InvalidDataException">The required element is missing</exception>
         public static XmlNode? SingleNode(XmlNode node, string tagName, bool optional)
         {
-            XmlNode? n = node.SelectSingleNode(tagName);
+            var n = node.SelectSingleNode(tagName);
             if (n is null && !optional)
             {
                 throw new InvalidDataException("<" + tagName + "> is missing in configuration XML");

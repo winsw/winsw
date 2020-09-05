@@ -10,7 +10,7 @@ namespace WinSW.Logging
         {
             Console.ResetColor();
 
-            Level level = loggingEvent.Level;
+            var level = loggingEvent.Level;
             Console.ForegroundColor =
                 level >= Level.Error ? ConsoleColor.Red :
                 level >= Level.Warn ? ConsoleColor.Yellow :

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Xml;
 using WinSW.Tests.Util;
 using Xunit;
@@ -15,7 +14,7 @@ namespace WinSW.Tests.Configuration
         [Fact]
         public void AllOptionsConfigShouldDeclareDefaults()
         {
-            XmlServiceConfig config = Load("complete");
+            var config = Load("complete");
 
             Assert.Equal("myapp", config.Name);
             Assert.Equal("%BASE%\\myExecutable.exe", config.Executable);
@@ -26,7 +25,7 @@ namespace WinSW.Tests.Configuration
         [Fact]
         public void MinimalConfigShouldDeclareDefaults()
         {
-            XmlServiceConfig config = Load("minimal");
+            var config = Load("minimal");
 
             Assert.Equal("myapp", config.Name);
             Assert.Equal("%BASE%\\myExecutable.exe", config.Executable);
@@ -41,7 +40,7 @@ namespace WinSW.Tests.Configuration
             string path = Path.Combine(directory, $@"samples\sample-{exampleName}.xml");
             Assert.True(File.Exists(path));
 
-            XmlDocument dom = new XmlDocument();
+            var dom = new XmlDocument();
             dom.Load(path);
             return new XmlServiceConfig(dom);
         }

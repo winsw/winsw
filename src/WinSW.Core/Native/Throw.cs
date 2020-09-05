@@ -51,7 +51,7 @@ namespace WinSW.Native
             internal static void Win32Exception(int error, string message)
             {
                 Debug.Assert(error != 0);
-                Win32Exception inner = new Win32Exception(error);
+                var inner = new Win32Exception(error);
                 Debug.Assert(message.EndsWith("."));
                 throw new CommandException(message + ' ' + inner.Message, inner);
             }
@@ -61,7 +61,7 @@ namespace WinSW.Native
             [MethodImpl(MethodImplOptions.NoInlining)]
             internal static void Win32Exception()
             {
-                Win32Exception inner = new Win32Exception();
+                var inner = new Win32Exception();
                 Debug.Assert(inner.NativeErrorCode != 0);
                 throw new CommandException(inner);
             }
@@ -70,7 +70,7 @@ namespace WinSW.Native
             [MethodImpl(MethodImplOptions.NoInlining)]
             internal static void Win32Exception(string message)
             {
-                Win32Exception inner = new Win32Exception();
+                var inner = new Win32Exception();
                 Debug.Assert(inner.NativeErrorCode != 0);
                 Debug.Assert(message.EndsWith("."));
                 throw new CommandException(message + ' ' + inner.Message, inner);

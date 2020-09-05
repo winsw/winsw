@@ -75,7 +75,7 @@ namespace WinSW.Tests
         {
             const string commandName = "unknown";
 
-            CommandLineTestResult result = Helper.ErrorTest(new[] { commandName });
+            var result = Helper.ErrorTest(new[] { commandName });
 
             Assert.Equal($"Unrecognized command or argument '{commandName}'\r\n\r\n", result.Error);
         }
@@ -101,7 +101,7 @@ namespace WinSW.Tests
             Assert.Equal(OldCompanyName, FileVersionInfo.GetVersionInfo(inputPath).CompanyName);
 
             // deny write access
-            using FileStream file = File.OpenRead(inputPath);
+            using var file = File.OpenRead(inputPath);
 
             string outputPath = Path.GetTempFileName();
             Program.TestExecutablePath = inputPath;

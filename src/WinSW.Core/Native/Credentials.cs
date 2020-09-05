@@ -20,7 +20,7 @@ namespace WinSW.Native
                 IntPtr.Zero,
                 ref inBufferSize);
 
-            IntPtr inBuffer = Marshal.AllocCoTaskMem(inBufferSize);
+            var inBuffer = Marshal.AllocCoTaskMem(inBufferSize);
             try
             {
                 if (!CredPackAuthenticationBuffer(
@@ -33,7 +33,7 @@ namespace WinSW.Native
                     Throw.Command.Win32Exception("Failed to pack auth buffer.");
                 }
 
-                CREDUI_INFO info = new CREDUI_INFO
+                var info = new CREDUI_INFO
                 {
                     Size = Marshal.SizeOf(typeof(CREDUI_INFO)),
                     CaptionText = caption,
@@ -47,7 +47,7 @@ namespace WinSW.Native
                     ref authPackage,
                     inBuffer,
                     inBufferSize,
-                    out IntPtr outBuffer,
+                    out var outBuffer,
                     out uint outBufferSize,
                     ref save,
                     CREDUIWIN_GENERIC);

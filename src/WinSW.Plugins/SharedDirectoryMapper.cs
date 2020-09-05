@@ -23,13 +23,13 @@ namespace WinSW.Plugins.SharedDirectoryMapper
 
         public SharedDirectoryMapper(bool enableMapping, string directoryUNC, string driveLabel)
         {
-            SharedDirectoryMapperConfig config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
+            var config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
             this.entries.Add(config);
         }
 
         public override void Configure(XmlServiceConfig config, XmlNode node)
         {
-            XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
+            var mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
             {
                 for (int i = 0; i < mapNodes.Count; i++)
@@ -44,7 +44,7 @@ namespace WinSW.Plugins.SharedDirectoryMapper
 
         public override void OnWrapperStarted()
         {
-            foreach (SharedDirectoryMapperConfig config in this.entries)
+            foreach (var config in this.entries)
             {
                 string label = config.Label;
                 string uncPath = config.UNCPath;
@@ -72,7 +72,7 @@ namespace WinSW.Plugins.SharedDirectoryMapper
 
         public override void BeforeWrapperStopped()
         {
-            foreach (SharedDirectoryMapperConfig config in this.entries)
+            foreach (var config in this.entries)
             {
                 string label = config.Label;
                 if (config.EnableMapping)
@@ -88,7 +88,7 @@ namespace WinSW.Plugins.SharedDirectoryMapper
 
         private void ThrowExtensionException(int error, string message)
         {
-            Win32Exception inner = new Win32Exception(error);
+            var inner = new Win32Exception(error);
             throw new ExtensionException(this.Descriptor.Id, $"{this.DisplayName}: {message} {inner.Message}", inner);
         }
 

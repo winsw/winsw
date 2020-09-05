@@ -19,7 +19,7 @@ namespace WinSW.Tests
 
         public DownloadTests()
         {
-            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
+            var tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
             int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
             string prefix = $"http://localhost:{port}/";
@@ -39,7 +39,7 @@ namespace WinSW.Tests
 
         private async Task TestClientServerAsync(Func<string, string, Task> client, Action<HttpListenerContext> server, AuthenticationSchemes authenticationSchemes = AuthenticationSchemes.Anonymous, [CallerMemberName] string path = null)
         {
-            HttpListener listener = new HttpListener();
+            var listener = new HttpListener();
             string prefix = $"{this.globalPrefix}{path}/";
             listener.Prefixes.Add(prefix);
             listener.AuthenticationSchemes = authenticationSchemes;
@@ -72,7 +72,7 @@ namespace WinSW.Tests
 
             async Task ListenAsync()
             {
-                HttpListenerContext context = await listener.GetContextAsync();
+                var context = await listener.GetContextAsync();
                 try
                 {
                     server(context);
@@ -136,7 +136,7 @@ namespace WinSW.Tests
                 },
                 context =>
                 {
-                    HttpListenerBasicIdentity identity = (HttpListenerBasicIdentity)context.User.Identity;
+                    var identity = (HttpListenerBasicIdentity)context.User.Identity;
                     if (identity.Name != username || identity.Password != password)
                     {
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
@@ -152,8 +152,8 @@ namespace WinSW.Tests
         [Fact]
         public async Task TestHttp_IfModifiedSince_ModifiedAsync()
         {
-            DateTime lastModified = DateTime.Now.TrimToSeconds();
-            DateTime prevModified = lastModified.AddDays(-1);
+            var lastModified = DateTime.Now.TrimToSeconds();
+            var prevModified = lastModified.AddDays(-1);
 
             await this.TestClientServerAsync(
                 async (source, dest) =>
@@ -180,7 +180,7 @@ namespace WinSW.Tests
         [Fact]
         public async Task TestHttp_IfModifiedSince_NotModifiedAsync()
         {
-            DateTime lastModified = DateTime.Now.TrimToSeconds();
+            var lastModified = DateTime.Now.TrimToSeconds();
 
             await this.TestClientServerAsync(
                 async (source, dest) =>
@@ -210,7 +210,7 @@ namespace WinSW.Tests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    WebException exception = await Assert.ThrowsAsync<WebException>(
+                    var exception = await Assert.ThrowsAsync<WebException>(
                         async () => await new Download(source, dest).PerformAsync());
 
                     Assert.Equal(WebExceptionStatus.ProtocolError, exception.Status);

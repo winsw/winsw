@@ -18,7 +18,7 @@ namespace WinSW.Util
         {
             StopPrivate(process, millisecondsTimeout);
 
-            foreach (Process child in GetChildren(process))
+            foreach (var child in GetChildren(process))
             {
                 using (child)
                 {
@@ -29,7 +29,7 @@ namespace WinSW.Util
 
         internal static void StopDescendants(this Process process, int millisecondsTimeout)
         {
-            foreach (Process child in GetChildren(process))
+            foreach (var child in GetChildren(process))
             {
                 using (child)
                 {
@@ -40,12 +40,12 @@ namespace WinSW.Util
 
         internal static unsafe List<Process> GetChildren(this Process process)
         {
-            DateTime startTime = process.StartTime;
+            var startTime = process.StartTime;
             int processId = process.Id;
 
             var children = new List<Process>();
 
-            foreach (Process other in Process.GetProcesses())
+            foreach (var other in Process.GetProcesses())
             {
                 try
                 {
@@ -54,12 +54,12 @@ namespace WinSW.Util
                         goto Next;
                     }
 
-                    IntPtr handle = other.Handle;
+                    var handle = other.Handle;
 
                     if (NtQueryInformationProcess(
                         handle,
                         PROCESSINFOCLASS.ProcessBasicInformation,
-                        out PROCESS_BASIC_INFORMATION information,
+                        out var information,
                         sizeof(PROCESS_BASIC_INFORMATION)) != 0)
                     {
                         goto Next;
@@ -119,7 +119,7 @@ namespace WinSW.Util
                 }
             }
 
-#if NETCOREAPP
+#if NET
             process.Kill();
 #else
             try
@@ -169,7 +169,7 @@ namespace WinSW.Util
                 }
             }
 
-#if NETCOREAPP
+#if NET
             process.Kill();
 #else
             try

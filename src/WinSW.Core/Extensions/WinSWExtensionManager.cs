@@ -25,7 +25,7 @@ namespace WinSW.Extensions
 
             try
             {
-                Type? t = Type.GetType(className);
+                var t = Type.GetType(className);
                 if (t is null)
                 {
                     throw new ExtensionException(id, "Class " + className + " does not exist");
@@ -154,8 +154,8 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            XmlNode? extensionsConfig = this.ServiceConfig.ExtensionsConfiguration;
-            XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
+            var extensionsConfig = this.ServiceConfig.ExtensionsConfiguration;
+            var configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
@@ -164,7 +164,7 @@ namespace WinSW.Extensions
             var descriptor = WinSWExtensionDescriptor.FromXml(configNode);
             if (descriptor.Enabled)
             {
-                IWinSWExtension extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                var extension = CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 try
                 {
