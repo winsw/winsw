@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP
+﻿#if NET
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -14,10 +14,10 @@ namespace WinSW.Tests.Extensions
         [ElevatedFact]
         public void TestMap()
         {
-            using TestData data = TestData.Create();
+            using var data = TestData.Create();
 
             const string label = "W:";
-            SharedDirectoryMapper mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
+            var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
 
             mapper.OnWrapperStarted();
             Assert.True(Directory.Exists($@"{label}\"));
@@ -28,10 +28,10 @@ namespace WinSW.Tests.Extensions
         [ElevatedFact]
         public void TestDisableMapping()
         {
-            using TestData data = TestData.Create();
+            using var data = TestData.Create();
 
             const string label = "W:";
-            SharedDirectoryMapper mapper = new SharedDirectoryMapper(enableMapping: false, $@"\\{Environment.MachineName}\{data.name}", label);
+            var mapper = new SharedDirectoryMapper(enableMapping: false, $@"\\{Environment.MachineName}\{data.name}", label);
 
             mapper.OnWrapperStarted();
             Assert.False(Directory.Exists($@"{label}\"));
@@ -41,10 +41,10 @@ namespace WinSW.Tests.Extensions
         [ElevatedFact]
         public void TestMap_PathEndsWithSlash_Throws()
         {
-            using TestData data = TestData.Create();
+            using var data = TestData.Create();
 
             const string label = "W:";
-            SharedDirectoryMapper mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}\", label);
+            var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}\", label);
 
             _ = Assert.ThrowsAny<Exception>(() => mapper.OnWrapperStarted());
             Assert.False(Directory.Exists($@"{label}\"));
@@ -54,10 +54,10 @@ namespace WinSW.Tests.Extensions
         [ElevatedFact]
         public void TestMap_LabelDoesNotEndWithColon_Throws()
         {
-            using TestData data = TestData.Create();
+            using var data = TestData.Create();
 
             const string label = "W";
-            SharedDirectoryMapper mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
+            var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
 
             _ = Assert.ThrowsAny<Exception>(() => mapper.OnWrapperStarted());
             Assert.False(Directory.Exists($@"{label}\"));
@@ -82,7 +82,7 @@ namespace WinSW.Tests.Extensions
 
                 try
                 {
-                    NativeMethods.SHARE_INFO_2 shareInfo = new NativeMethods.SHARE_INFO_2
+                    var shareInfo = new NativeMethods.SHARE_INFO_2
                     {
                         netname = name,
                         type = NativeMethods.STYPE_DISKTREE | NativeMethods.STYPE_TEMPORARY,

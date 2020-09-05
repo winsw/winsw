@@ -41,7 +41,7 @@ $@"<service>
         [Fact]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this.serviceConfig);
+            var manager = new WinSWExtensionManager(this.serviceConfig);
             manager.LoadExtensions();
             Assert.Equal(2, manager.Extensions.Count);
         }
@@ -49,7 +49,7 @@ $@"<service>
         [Fact]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this.serviceConfig);
+            var manager = new WinSWExtensionManager(this.serviceConfig);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();

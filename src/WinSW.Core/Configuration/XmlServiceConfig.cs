@@ -102,7 +102,7 @@ namespace WinSW
 
         private static int SingleIntElement(XmlNode parent, string tagName, int defaultValue)
         {
-            XmlNode? e = parent.SelectSingleNode(tagName);
+            var e = parent.SelectSingleNode(tagName);
 
             return e is null ? defaultValue : int.Parse(e.InnerText, NumberFormatInfo.InvariantInfo);
         }
@@ -128,13 +128,13 @@ namespace WinSW
 
         private string? SingleElementOrNull(string tagName)
         {
-            XmlNode? n = this.root.SelectSingleNode(tagName);
+            var n = this.root.SelectSingleNode(tagName);
             return n is null ? null : Environment.ExpandEnvironmentVariables(n.InnerText);
         }
 
         private bool SingleBoolElementOrDefault(string tagName, bool defaultValue)
         {
-            XmlNode? e = this.root.SelectSingleNode(tagName);
+            var e = this.root.SelectSingleNode(tagName);
 
             return e is null ? defaultValue : bool.Parse(e.InnerText);
         }
@@ -208,14 +208,14 @@ namespace WinSW
         {
             get
             {
-                XmlNode? argumentNode = this.ExtensionsConfiguration;
-                XmlNodeList? extensions = argumentNode?.SelectNodes("extension");
+                var argumentNode = this.ExtensionsConfiguration;
+                var extensions = argumentNode?.SelectNodes("extension");
                 if (extensions is null)
                 {
                     return new List<string>(0);
                 }
 
-                List<string> result = new List<string>(extensions.Count);
+                var result = new List<string>(extensions.Count);
                 for (int i = 0; i < extensions.Count; i++)
                 {
                     result.Add(XmlHelper.SingleAttribute<string>((XmlElement)extensions[i]!, "id"));
@@ -239,7 +239,7 @@ namespace WinSW
                 string? mode = null;
 
                 // first, backward compatibility with older configuration
-                XmlElement? e = (XmlElement?)this.root.SelectSingleNode("logmode");
+                var e = (XmlElement?)this.root.SelectSingleNode("logmode");
                 if (e != null)
                 {
                     mode = e.InnerText;
@@ -272,7 +272,7 @@ namespace WinSW
         {
             get
             {
-                XmlElement? e = (XmlElement?)this.root.SelectSingleNode("logmode");
+                var e = (XmlElement?)this.root.SelectSingleNode("logmode");
 
                 // this is more modern way, to support nested elements as configuration
                 e ??= (XmlElement?)this.root.SelectSingleNode("log")!; // WARNING: NRE
@@ -293,13 +293,13 @@ namespace WinSW
                         return new RollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                     case "roll-by-time":
-                        XmlNode? patternNode = e.SelectSingleNode("pattern");
+                        var patternNode = e.SelectSingleNode("pattern");
                         if (patternNode is null)
                         {
                             throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
                         }
 
-                        var pattern = patternNode.InnerText;
+                        string? pattern = patternNode.InnerText;
                         int period = SingleIntElement(e, "period", 1);
                         return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period);
 
@@ -313,18 +313,18 @@ namespace WinSW
 
                     case "roll-by-size-time":
                         sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * RollingSizeTimeLogAppender.BytesPerKB;
-                        XmlNode? filePatternNode = e.SelectSingleNode("pattern");
+                        var filePatternNode = e.SelectSingleNode("pattern");
                         if (filePatternNode is null)
                         {
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but no pattern can be found in configuration XML.");
                         }
 
-                        XmlNode? autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
+                        var autoRollAtTimeNode = e.SelectSingleNode("autoRollAtTime");
                         TimeSpan? autoRollAtTime = null;
                         if (autoRollAtTimeNode != null)
                         {
                             // validate it
-                            if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out TimeSpan autoRollAtTimeValue))
+                            if (!TimeSpan.TryParse(autoRollAtTimeNode.InnerText, out var autoRollAtTimeValue))
                             {
                                 throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
                             }
@@ -332,7 +332,7 @@ namespace WinSW
                             autoRollAtTime = autoRollAtTimeValue;
                         }
 
-                        XmlNode? zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
+                        var zipolderthannumdaysNode = e.SelectSingleNode("zipOlderThanNumDays");
                         int? zipolderthannumdays = null;
                         if (zipolderthannumdaysNode != null)
                         {
@@ -345,7 +345,7 @@ namespace WinSW
                             zipolderthannumdays = zipolderthannumdaysValue;
                         }
 
-                        XmlNode? zipdateformatNode = e.SelectSingleNode("zipDateFormat");
+                        var zipdateformatNode = e.SelectSingleNode("zipDateFormat");
                         string zipdateformat = zipdateformatNode is null ? "yyyyMM" : zipdateformatNode.InnerText;
 
                         return new RollingSizeTimeLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, sizeThreshold, filePatternNode.InnerText, autoRollAtTime, zipolderthannumdays, zipdateformat);
@@ -363,7 +363,7 @@ namespace WinSW
         {
             get
             {
-                XmlNodeList? nodeList = this.root.SelectNodes("depend");
+                var nodeList = this.root.SelectNodes("depend");
                 if (nodeList is null)
                 {
                     return base.ServiceDependencies;
@@ -404,7 +404,7 @@ namespace WinSW
                 }
                 catch (ArgumentException e)
                 {
-                    StringBuilder builder = new StringBuilder();
+                    var builder = new StringBuilder();
                     builder.AppendLine("Start mode in XML must be one of the following:");
                     foreach (string sm in Enum.GetNames(typeof(ServiceStartMode)))
                     {
@@ -457,13 +457,13 @@ namespace WinSW
         {
             get
             {
-                XmlNodeList? nodeList = this.root.SelectNodes("download");
+                var nodeList = this.root.SelectNodes("download");
                 if (nodeList is null)
                 {
                     return base.Downloads;
                 }
 
-                List<Download> result = new List<Download>(nodeList.Count);
+                var result = new List<Download>(nodeList.Count);
                 for (int i = 0; i < nodeList.Count; i++)
                 {
                     if (nodeList[i] is XmlElement element)
@@ -480,25 +480,25 @@ namespace WinSW
         {
             get
             {
-                XmlNodeList? childNodes = this.root.SelectNodes("onfailure");
+                var childNodes = this.root.SelectNodes("onfailure");
                 if (childNodes is null)
                 {
                     return Array.Empty<SC_ACTION>();
                 }
 
-                SC_ACTION[] result = new SC_ACTION[childNodes.Count];
+                var result = new SC_ACTION[childNodes.Count];
                 for (int i = 0; i < childNodes.Count; i++)
                 {
-                    XmlNode node = childNodes[i]!;
+                    var node = childNodes[i]!;
                     string action = node.Attributes!["action"]?.Value ?? throw new InvalidDataException("'action' is missing");
-                    SC_ACTION_TYPE type = action switch
+                    var type = action switch
                     {
                         "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
                         "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
                         "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
-                    XmlAttribute? delay = node.Attributes["delay"];
+                    var delay = node.Attributes["delay"];
                     result[i] = new SC_ACTION(type, delay != null ? ParseTimeSpan(delay.Value) : TimeSpan.Zero);
                 }
 
@@ -510,11 +510,11 @@ namespace WinSW
 
         protected string? GetServiceAccountPart(string subNodeName)
         {
-            XmlNode? node = this.root.SelectSingleNode("serviceaccount");
+            var node = this.root.SelectSingleNode("serviceaccount");
 
             if (node != null)
             {
-                XmlNode? subNode = node.SelectSingleNode(subNodeName);
+                var subNode = node.SelectSingleNode(subNodeName);
                 if (subNode != null)
                 {
                     return subNode.InnerText;
@@ -583,11 +583,11 @@ namespace WinSW
 
         private Dictionary<string, string> LoadEnvironmentVariables()
         {
-            XmlNodeList nodeList = this.root.SelectNodes("env")!;
-            Dictionary<string, string> environment = new Dictionary<string, string>(nodeList.Count);
+            var nodeList = this.root.SelectNodes("env")!;
+            var environment = new Dictionary<string, string>(nodeList.Count);
             for (int i = 0; i < nodeList.Count; i++)
             {
-                XmlNode node = nodeList[i]!;
+                var node = nodeList[i]!;
                 string key = node.Attributes!["name"]?.Value ?? throw new InvalidDataException("'name' is missing");
                 string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"]?.Value ?? throw new InvalidDataException("'value' is missing"));
                 environment[key] = value;
@@ -600,7 +600,7 @@ namespace WinSW
 
         private ProcessCommand GetProcessCommand(string name)
         {
-            XmlNode? node = this.root.SelectSingleNode(name);
+            var node = this.root.SelectSingleNode(name);
             return node is null ? default : new ProcessCommand
             {
                 Executable = GetInnerText(Names.Executable),

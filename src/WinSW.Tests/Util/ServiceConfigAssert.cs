@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using WinSW.Configuration;
+﻿using WinSW.Configuration;
 using Xunit;
 
 namespace WinSW.Tests.Util

@@ -11,7 +11,7 @@ namespace WinSW
         /// <exception cref="TimeoutException" />
         internal static void WaitForStatus(this ServiceController serviceController, ServiceControllerStatus desiredStatus, ServiceControllerStatus pendingStatus, CancellationToken ct)
         {
-            TimeSpan timeout = new TimeSpan(TimeSpan.TicksPerSecond);
+            var timeout = new TimeSpan(TimeSpan.TicksPerSecond);
             for (; ; )
             {
                 try

@@ -243,10 +243,10 @@ namespace WinSW
         /// </summary>
         private async Task CopyStreamWithDateRotationAsync(StreamReader reader, string ext)
         {
-            PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(this.Pattern, this.Period);
+            var periodicRollingCalendar = new PeriodicRollingCalendar(this.Pattern, this.Period);
             periodicRollingCalendar.Init();
 
-            StreamWriter writer = this.CreateWriter(new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Append));
+            var writer = this.CreateWriter(new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Append));
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
@@ -302,7 +302,7 @@ namespace WinSW
         /// </summary>
         private async Task CopyStreamWithRotationAsync(StreamReader reader, string ext)
         {
-            StreamWriter writer = this.CreateWriter(new FileStream(this.BaseLogFileName + ext, FileMode.Append));
+            var writer = this.CreateWriter(new FileStream(this.BaseLogFileName + ext, FileMode.Append));
             long fileLength = new FileInfo(this.BaseLogFileName + ext).Length;
 
             string? line;
@@ -426,20 +426,20 @@ namespace WinSW
         private async Task CopyStreamWithRotationAsync(StreamReader reader, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
-            var fileLock = new object();
+            object? fileLock = new object();
 
-            var baseDirectory = Path.GetDirectoryName(this.BaseLogFileName)!;
-            var baseFileName = Path.GetFileName(this.BaseLogFileName);
-            var logFile = this.BaseLogFileName + extension;
+            string? baseDirectory = Path.GetDirectoryName(this.BaseLogFileName)!;
+            string? baseFileName = Path.GetFileName(this.BaseLogFileName);
+            string? logFile = this.BaseLogFileName + extension;
 
             var writer = this.CreateWriter(new FileStream(logFile, FileMode.Append));
-            var fileLength = new FileInfo(logFile).Length;
+            long fileLength = new FileInfo(logFile).Length;
 
             // We auto roll at time is configured then we need to create a timer and wait until time is elasped and roll the file over
             if (this.AutoRollAtTime is TimeSpan autoRollAtTime)
             {
                 // Run at start
-                var tickTime = this.SetupRollTimer(autoRollAtTime);
+                double tickTime = this.SetupRollTimer(autoRollAtTime);
                 var timer = new System.Timers.Timer(tickTime);
                 timer.Elapsed += (_, _) =>
                 {
@@ -451,8 +451,8 @@ namespace WinSW
                             writer.Dispose();
 
                             var now = DateTime.Now.AddDays(-1);
-                            var nextFileNumber = this.GetNextFileNumber(extension, baseDirectory, baseFileName, now);
-                            var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(this.FilePattern), nextFileNumber, extension));
+                            int nextFileNumber = this.GetNextFileNumber(extension, baseDirectory, baseFileName, now);
+                            string? nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(this.FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
                             writer = this.CreateWriter(new FileStream(logFile, FileMode.Create));
@@ -488,8 +488,8 @@ namespace WinSW
                         {
                             // roll file
                             var now = DateTime.Now;
-                            var nextFileNumber = this.GetNextFileNumber(extension, baseDirectory, baseFileName, now);
-                            var nextFileName = Path.Combine(
+                            int nextFileNumber = this.GetNextFileNumber(extension, baseDirectory, baseFileName, now);
+                            string? nextFileName = Path.Combine(
                                     baseDirectory,
                                     string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(this.FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
@@ -589,21 +589,21 @@ namespace WinSW
 
         private int GetNextFileNumber(string ext, string baseDirectory, string baseFileName, DateTime now)
         {
-            var nextFileNumber = 0;
-            var files = Directory.GetFiles(baseDirectory, string.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(this.FilePattern), ext));
+            int nextFileNumber = 0;
+            string[]? files = Directory.GetFiles(baseDirectory, string.Format("{0}.{1}.#*{2}", baseFileName, now.ToString(this.FilePattern), ext));
             if (files.Length == 0)
             {
                 nextFileNumber = 1;
             }
             else
             {
-                foreach (var f in files)
+                foreach (string? f in files)
                 {
                     try
                     {
-                        var filenameOnly = Path.GetFileNameWithoutExtension(f);
-                        var hashIndex = filenameOnly.IndexOf('#');
-                        var lastNumberAsString = filenameOnly.Substring(hashIndex + 1, 4);
+                        string? filenameOnly = Path.GetFileNameWithoutExtension(f);
+                        int hashIndex = filenameOnly.IndexOf('#');
+                        string? lastNumberAsString = filenameOnly.Substring(hashIndex + 1, 4);
                         if (int.TryParse(lastNumberAsString, out int lastNumber))
                         {
                             if (lastNumber > nextFileNumber)

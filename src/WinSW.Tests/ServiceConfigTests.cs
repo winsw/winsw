@@ -405,7 +405,7 @@ $@"<service>
   <arguments>arguments</arguments>
 </service>";
 
-            XmlServiceConfig config = XmlServiceConfig.FromXml(seedXml);
+            var config = XmlServiceConfig.FromXml(seedXml);
 
             VerifyEqual(prestart, config.Prestart);
             VerifyEqual(poststart, config.Poststart);

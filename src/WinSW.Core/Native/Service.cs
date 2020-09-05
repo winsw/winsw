@@ -58,7 +58,7 @@ namespace WinSW.Native
         /// <exception cref="CommandException" />
         internal static ServiceManager Open(ServiceManagerAccess access = ServiceManagerAccess.All)
         {
-            IntPtr handle = OpenSCManager(null, null, access);
+            var handle = OpenSCManager(null, null, access);
             if (handle == IntPtr.Zero)
             {
                 Throw.Command.Win32Exception("Failed to open the service control manager database.");
@@ -77,7 +77,7 @@ namespace WinSW.Native
             string? username,
             string? password)
         {
-            IntPtr handle = ServiceApis.CreateService(
+            var handle = ServiceApis.CreateService(
                 this.handle,
                 serviceName,
                 displayName,
@@ -113,7 +113,7 @@ namespace WinSW.Native
                 out _,
                 ref resume);
 
-            IntPtr services = Marshal.AllocHGlobal(bytesNeeded);
+            var services = Marshal.AllocHGlobal(bytesNeeded);
             try
             {
                 if (!EnumServicesStatus(
@@ -141,7 +141,7 @@ namespace WinSW.Native
         /// <exception cref="CommandException" />
         internal unsafe Service OpenService(char* serviceName, ServiceAccess access = ServiceAccess.All)
         {
-            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
             if (serviceHandle == IntPtr.Zero)
             {
                 Throw.Command.Win32Exception("Failed to open the service.");
@@ -153,7 +153,7 @@ namespace WinSW.Native
         /// <exception cref="CommandException" />
         internal Service OpenService(string serviceName, ServiceAccess access = ServiceAccess.All)
         {
-            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
             if (serviceHandle == IntPtr.Zero)
             {
                 Throw.Command.Win32Exception("Failed to open the service.");
@@ -164,7 +164,7 @@ namespace WinSW.Native
 
         internal bool ServiceExists(string serviceName)
         {
-            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.All);
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.All);
             if (serviceHandle == IntPtr.Zero)
             {
                 return false;
@@ -202,7 +202,7 @@ namespace WinSW.Native
                     0,
                     out int bytesNeeded);
 
-                IntPtr config = Marshal.AllocHGlobal(bytesNeeded);
+                var config = Marshal.AllocHGlobal(bytesNeeded);
                 try
                 {
                     if (!QueryServiceConfig(
@@ -231,7 +231,7 @@ namespace WinSW.Native
                 if (!QueryServiceStatusEx(
                     this.handle,
                     ServiceStatusType.ProcessInfo,
-                    out SERVICE_STATUS_PROCESS status,
+                    out var status,
                     sizeof(SERVICE_STATUS_PROCESS),
                     out _))
                 {
@@ -247,7 +247,7 @@ namespace WinSW.Native
         {
             get
             {
-                if (!QueryServiceStatus(this.handle, out SERVICE_STATUS status))
+                if (!QueryServiceStatus(this.handle, out var status))
                 {
                     Throw.Command.Win32Exception("Failed to query service status.");
                 }
@@ -282,7 +282,7 @@ namespace WinSW.Native
         /// <exception cref="CommandException" />
         internal void SetStatus(IntPtr statusHandle, ServiceControllerStatus state)
         {
-            if (!QueryServiceStatus(this.handle, out SERVICE_STATUS status))
+            if (!QueryServiceStatus(this.handle, out var status))
             {
                 Throw.Command.Win32Exception("Failed to query service status.");
             }

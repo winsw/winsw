@@ -11,24 +11,24 @@ namespace WinSW.Native
         /// <exception cref="CommandException" />
         internal static unsafe bool UpdateCompanyName(string path, string outputPath, string companyName)
         {
-            IntPtr module = LoadLibraryW(path);
+            var module = LoadLibraryW(path);
             try
             {
-                IntPtr verInfo = FindResourceW(module, VS_VERSION_INFO, RT_VERSION);
+                var verInfo = FindResourceW(module, VS_VERSION_INFO, RT_VERSION);
                 if (verInfo == IntPtr.Zero)
                 {
                     Exit();
                 }
 
-                IntPtr resData = LoadResource(module, verInfo);
+                var resData = LoadResource(module, verInfo);
                 if (resData == IntPtr.Zero)
                 {
                     Exit();
                 }
 
-                IntPtr resAddr = LockResource(resData);
+                var resAddr = LockResource(resData);
 
-                IntPtr address = resAddr;
+                var address = resAddr;
                 int offset = 0;
 
                 short length = ((short*)address)[0];
@@ -81,7 +81,7 @@ namespace WinSW.Native
                     int newLength = companyName.Length + 1;
                     Debug.Assert(newLength > 12 && newLength <= 16);
 
-                    IntPtr newAddress = Marshal.AllocHGlobal(length);
+                    var newAddress = Marshal.AllocHGlobal(length);
                     try
                     {
                         Buffer.MemoryCopy((void*)resAddr, (void*)newAddress, length, length);
@@ -94,7 +94,7 @@ namespace WinSW.Native
 
                         File.Copy(path, outputPath, true);
 
-                        IntPtr update = BeginUpdateResourceW(outputPath, false);
+                        var update = BeginUpdateResourceW(outputPath, false);
                         if (update == IntPtr.Zero)
                         {
                             Exit();

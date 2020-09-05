@@ -51,7 +51,7 @@ namespace WinSW
                     return TestExecutablePath;
                 }
 
-                using Process current = Process.GetCurrentProcess();
+                using var current = Process.GetCurrentProcess();
                 return current.MainModule!.FileName!;
             }
         }
@@ -90,7 +90,7 @@ namespace WinSW
                     Console.SetError(new StreamWriter(stderr) { AutoFlush = true });
                 }
 
-#if NETCOREAPP
+#if NET
                 args = args[4..];
 #else
                 string[] oldArgs = args;
@@ -116,14 +116,12 @@ namespace WinSW
                     XmlServiceConfig config = null!;
                     try
                     {
-                        config = LoadConfig(pathToConfig);
+                        config = LoadConfigAndInitLoggers(pathToConfig, false);
                     }
                     catch (FileNotFoundException)
                     {
                         Throw.Command.Exception("The specified command or file was not found.");
                     }
-
-                    InitLoggers(config, enableConsoleLogging: false);
 
                     Log.Debug("Starting WinSW in service mode.");
 
@@ -141,9 +139,9 @@ namespace WinSW
                 }),
             };
 
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            using (var identity = WindowsIdentity.GetCurrent())
             {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                var principal = new WindowsPrincipal(identity);
                 if (principal.IsInRole(new SecurityIdentifier(WellKnownSidType.ServiceSid, null)) ||
                     principal.IsInRole(new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null)) ||
                     principal.IsInRole(new SecurityIdentifier(WellKnownSidType.LocalServiceSid, null)) ||
@@ -420,8 +418,7 @@ namespace WinSW
 
             void Install(string? pathToConfig, bool noElevate, string? username, string? password)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -431,7 +428,7 @@ namespace WinSW
 
                 Log.Info($"Installing service '{config.Format()}'...");
 
-                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.CreateService);
+                using var scm = ServiceManager.Open(ServiceManagerAccess.CreateService);
 
                 if (scm.ServiceExists(config.Name))
                 {
@@ -468,7 +465,7 @@ namespace WinSW
                     Security.AddServiceLogonRight(ref username);
                 }
 
-                using Service sc = scm.CreateService(
+                using var sc = scm.CreateService(
                     config.Name,
                     config.DisplayName,
                     config.StartMode,
@@ -483,7 +480,7 @@ namespace WinSW
                     sc.SetDescription(description);
                 }
 
-                SC_ACTION[] actions = config.FailureActions;
+                var actions = config.FailureActions;
                 if (actions.Length > 0)
                 {
                     sc.SetFailureActions(config.ResetFailureAfter, actions);
@@ -545,8 +542,7 @@ namespace WinSW
 
             void Uninstall(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -556,10 +552,10 @@ namespace WinSW
 
                 Log.Info($"Uninstalling service '{config.Format()}'...");
 
-                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
+                using var scm = ServiceManager.Open(ServiceManagerAccess.Connect);
                 try
                 {
-                    using Service sc = scm.OpenService(config.Name);
+                    using var sc = scm.OpenService(config.Name);
 
                     if (sc.Status != ServiceControllerStatus.Stopped)
                     {
@@ -595,8 +591,7 @@ namespace WinSW
 
             void Start(string? pathToConfig, bool noElevate, bool noWait, CancellationToken ct)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -641,8 +636,7 @@ namespace WinSW
 
             void Stop(string? pathToConfig, bool noElevate, bool noWait, bool force, CancellationToken ct)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -695,8 +689,7 @@ namespace WinSW
 
             void Restart(string? pathToConfig, bool noElevate, bool force, CancellationToken ct)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -758,7 +751,7 @@ namespace WinSW
 
                 if (startedDependentServices != null)
                 {
-                    foreach (ServiceController service in startedDependentServices)
+                    foreach (var service in startedDependentServices)
                     {
                         if (service.Status == ServiceControllerStatus.Stopped)
                         {
@@ -773,8 +766,7 @@ namespace WinSW
 
             void RestartSelf(string? pathToConfig)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -794,7 +786,7 @@ namespace WinSW
                     IntPtr.Zero,
                     null,
                     default,
-                    out ProcessApis.PROCESS_INFORMATION processInfo))
+                    out var processInfo))
                 {
                     Throw.Command.Win32Exception("Failed to invoke restart.");
                 }
@@ -805,8 +797,7 @@ namespace WinSW
 
             static int Status(string? pathToConfig)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 using var svc = new ServiceController(config.Name);
                 try
@@ -838,8 +829,7 @@ namespace WinSW
 
             void Test(string? pathToConfig, bool noElevate, bool noBreak)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -849,7 +839,7 @@ namespace WinSW
 
                 AutoRefresh(config);
 
-                using WrapperService wsvc = new WrapperService(config);
+                using var wsvc = new WrapperService(config);
                 wsvc.RaiseOnStart(args);
                 try
                 {
@@ -860,7 +850,7 @@ namespace WinSW
                     }
                     else
                     {
-                        using ManualResetEvent evt = new ManualResetEvent(false);
+                        using var evt = new ManualResetEvent(false);
 
                         Console.WriteLine("Press Ctrl+C to stop the service...");
                         Console.CancelKeyPress += CancelKeyPress;
@@ -883,8 +873,7 @@ namespace WinSW
 
             void Refresh(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
-                InitLoggers(config, enableConsoleLogging: true);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -900,7 +889,7 @@ namespace WinSW
                 if (all)
                 {
                     using var scm = ServiceManager.Open(ServiceManagerAccess.EnumerateService);
-                    (IntPtr services, int count) = scm.EnumerateServices();
+                    (var services, int count) = scm.EnumerateServices();
                     try
                     {
                         int prevProcessId = -1;
@@ -915,7 +904,7 @@ namespace WinSW
                                 {
                                     if (prevProcessId >= 0)
                                     {
-                                        using Process process = Process.GetProcessById(prevProcessId);
+                                        using var process = Process.GetProcessById(prevProcessId);
                                         Draw(process, string.Empty, false);
                                     }
                                 }
@@ -926,7 +915,7 @@ namespace WinSW
 
                         if (prevProcessId >= 0)
                         {
-                            using Process process = Process.GetProcessById(prevProcessId);
+                            using var process = Process.GetProcessById(prevProcessId);
                             Draw(process, string.Empty, true);
                         }
                     }
@@ -937,15 +926,15 @@ namespace WinSW
                 }
                 else
                 {
-                    XmlServiceConfig config = LoadConfig(pathToConfig);
+                    var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
-                    using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
-                    using Service sc = scm.OpenService(config.Name, ServiceAccess.QueryStatus);
+                    using var scm = ServiceManager.Open(ServiceManagerAccess.Connect);
+                    using var sc = scm.OpenService(config.Name, ServiceAccess.QueryStatus);
 
                     int processId = sc.ProcessId;
                     if (processId >= 0)
                     {
-                        using Process process = Process.GetProcessById(processId);
+                        using var process = Process.GetProcessById(processId);
                         Draw(process, string.Empty, true);
                     }
                 }
@@ -972,11 +961,11 @@ namespace WinSW
 
                     Console.WriteLine(process.Format());
 
-                    List<Process> children = process.GetChildren();
+                    var children = process.GetChildren();
                     int count = children.Count;
                     for (int i = 0; i < count; i++)
                     {
-                        using Process child = children[i];
+                        using var child = children[i];
                         Draw(child, indentation, i == count - 1);
                     }
                 }
@@ -984,7 +973,7 @@ namespace WinSW
 
             void DevKill(string? pathToConfig, bool noElevate)
             {
-                XmlServiceConfig config = LoadConfig(pathToConfig);
+                var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
                 if (!elevated)
                 {
@@ -992,13 +981,13 @@ namespace WinSW
                     return;
                 }
 
-                using ServiceManager scm = ServiceManager.Open();
-                using Service sc = scm.OpenService(config.Name);
+                using var scm = ServiceManager.Open();
+                using var sc = scm.OpenService(config.Name);
 
                 int processId = sc.ProcessId;
                 if (processId >= 0)
                 {
-                    using Process process = Process.GetProcessById(processId);
+                    using var process = Process.GetProcessById(processId);
 
                     process.StopDescendants(config.StopTimeoutInMs);
                 }
@@ -1007,7 +996,7 @@ namespace WinSW
             static unsafe void DevList()
             {
                 using var scm = ServiceManager.Open(ServiceManagerAccess.EnumerateService);
-                (IntPtr services, int count) = scm.EnumerateServices();
+                (var services, int count) = scm.EnumerateServices();
                 try
                 {
                     for (int i = 0; i < count; i++)
@@ -1058,7 +1047,7 @@ namespace WinSW
                     " " + (stderrName ?? NoPipe) +
                     commandLine.Remove(commandLine.IndexOf(exe), exe.Length).TrimStart('"');
 
-                ProcessStartInfo startInfo = new ProcessStartInfo
+                var startInfo = new ProcessStartInfo
                 {
                     UseShellExecute = true,
                     Verb = "runas",
@@ -1069,7 +1058,7 @@ namespace WinSW
 
                 try
                 {
-                    using Process elevated = Process.Start(startInfo)!;
+                    using var elevated = Process.Start(startInfo)!;
 
                     if (stdinName is not null)
                     {
@@ -1106,9 +1095,9 @@ namespace WinSW
                     return;
                 }
 
-                DateTime fileLastWriteTime = File.GetLastWriteTime(config.FullPath);
+                var fileLastWriteTime = File.GetLastWriteTime(config.FullPath);
 
-                using RegistryKey? registryKey = Registry.LocalMachine
+                using var registryKey = Registry.LocalMachine
                     .OpenSubKey("SYSTEM")?
                     .OpenSubKey("CurrentControlSet")?
                     .OpenSubKey("Services")?
@@ -1119,7 +1108,7 @@ namespace WinSW
                     return;
                 }
 
-                DateTime registryLastWriteTime = registryKey.GetLastWriteTime();
+                var registryLastWriteTime = registryKey.GetLastWriteTime();
 
                 if (fileLastWriteTime > registryLastWriteTime)
                 {
@@ -1129,16 +1118,16 @@ namespace WinSW
 
             static void DoRefresh(XmlServiceConfig config)
             {
-                using ServiceManager scm = ServiceManager.Open(ServiceManagerAccess.Connect);
+                using var scm = ServiceManager.Open(ServiceManagerAccess.Connect);
                 try
                 {
-                    using Service sc = scm.OpenService(config.Name);
+                    using var sc = scm.OpenService(config.Name);
 
                     sc.ChangeConfig(config.DisplayName, config.StartMode, config.ServiceDependencies);
 
                     sc.SetDescription(config.Description);
 
-                    SC_ACTION[] actions = config.FailureActions;
+                    var actions = config.FailureActions;
                     if (actions.Length > 0)
                     {
                         sc.SetFailureActions(config.ResetFailureAfter, actions);
@@ -1173,42 +1162,54 @@ namespace WinSW
         }
 
         /// <exception cref="FileNotFoundException" />
-        private static XmlServiceConfig LoadConfig(string? path)
+        private static XmlServiceConfig LoadConfigAndInitLoggers(string? path, bool enableConsoleLogging)
         {
             if (TestConfig != null)
             {
                 return TestConfig;
             }
 
-            if (path != null)
-            {
-                return new XmlServiceConfig(path);
-            }
-
-            path = Path.ChangeExtension(ExecutablePath, ".xml");
-            if (!File.Exists(path))
-            {
-                throw new FileNotFoundException("Unable to locate " + Path.GetFileNameWithoutExtension(path) + ".xml file within executable directory.");
-            }
-
-            return new XmlServiceConfig(path);
-        }
-
-        private static void InitLoggers(XmlServiceConfig config, bool enableConsoleLogging)
-        {
-            if (XmlServiceConfig.TestConfig != null)
-            {
-                return;
-            }
-
             // TODO: Make logging levels configurable
-            Level fileLogLevel = Level.Debug;
+            var fileLogLevel = Level.Debug;
+
             // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted
             // This is a workaround till there is a better command line parsing, which will allow determining
-            Level consoleLogLevel = Level.Info;
-            Level eventLogLevel = Level.Warn;
+            var consoleLogLevel = Level.Info;
+            var eventLogLevel = Level.Warn;
 
-            List<IAppender> appenders = new List<IAppender>();
+            // console log
+            if (enableConsoleLogging)
+            {
+                var consoleAppender = new WinSWConsoleAppender
+                {
+                    Name = "Wrapper console log",
+                    Threshold = consoleLogLevel,
+                    Layout = new PatternLayout("%date{ABSOLUTE} - %message%newline"),
+                };
+                consoleAppender.ActivateOptions();
+
+                BasicConfigurator.Configure(
+#if NET
+                    LogManager.GetRepository(Assembly.GetExecutingAssembly()),
+#endif
+                    consoleAppender);
+            }
+
+            XmlServiceConfig config;
+            if (path != null)
+            {
+                config = new XmlServiceConfig(path);
+            }
+            else
+            {
+                path = Path.ChangeExtension(ExecutablePath, ".xml");
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException("Unable to locate " + Path.GetFileNameWithoutExtension(path) + ".xml file within executable directory.");
+                }
+
+                config = new XmlServiceConfig(path);
+            }
 
             // .wrapper.log
             string wrapperLogPath = Path.Combine(config.LogDirectory, config.BaseName + ".wrapper.log");
@@ -1223,20 +1224,6 @@ namespace WinSW
                 Layout = new PatternLayout("%date %-5level - %message%newline"),
             };
             wrapperLog.ActivateOptions();
-            appenders.Add(wrapperLog);
-
-            // console log
-            if (enableConsoleLogging)
-            {
-                var consoleAppender = new WinSWConsoleAppender
-                {
-                    Name = "Wrapper console log",
-                    Threshold = consoleLogLevel,
-                    Layout = new PatternLayout("%date{ABSOLUTE} - %message%newline"),
-                };
-                consoleAppender.ActivateOptions();
-                appenders.Add(consoleAppender);
-            }
 
             // event log
             var systemEventLogger = new ServiceEventLogAppender(WrapperService.eventLogProvider)
@@ -1245,20 +1232,22 @@ namespace WinSW
                 Threshold = eventLogLevel,
             };
             systemEventLogger.ActivateOptions();
-            appenders.Add(systemEventLogger);
 
             BasicConfigurator.Configure(
-#if NETCOREAPP
-                LogManager.GetRepository(System.Reflection.Assembly.GetExecutingAssembly()),
+#if NET
+                LogManager.GetRepository(Assembly.GetExecutingAssembly()),
 #endif
-                appenders.ToArray());
+                wrapperLog,
+                systemEventLogger);
+
+            return config;
         }
 
         /// <exception cref="CommandException" />
         internal static bool IsProcessElevated()
         {
-            IntPtr process = ProcessApis.GetCurrentProcess();
-            if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
+            var process = ProcessApis.GetCurrentProcess();
+            if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out var token))
             {
                 Throw.Command.Win32Exception("Failed to open process token.");
             }
@@ -1270,7 +1259,7 @@ namespace WinSW
                     if (!SecurityApis.GetTokenInformation(
                         token,
                         SecurityApis.TOKEN_INFORMATION_CLASS.TokenElevation,
-                        out SecurityApis.TOKEN_ELEVATION elevation,
+                        out var elevation,
                         sizeof(SecurityApis.TOKEN_ELEVATION),
                         out _))
                     {
@@ -1288,10 +1277,10 @@ namespace WinSW
 
         private static string ReadPassword()
         {
-            StringBuilder buf = new StringBuilder();
+            var buf = new StringBuilder();
             while (true)
             {
-                ConsoleKeyInfo key = Console.ReadKey(true);
+                var key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Enter)
                 {
                     return buf.ToString();

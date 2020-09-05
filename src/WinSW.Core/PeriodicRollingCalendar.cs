@@ -40,15 +40,15 @@ namespace WinSW
 
         private PeriodicityType DeterminePeriodicityType()
         {
-            PeriodicRollingCalendar periodicRollingCalendar = new PeriodicRollingCalendar(this.format, this.period);
-            DateTime epoch = new DateTime(1970, 1, 1);
+            var periodicRollingCalendar = new PeriodicRollingCalendar(this.format, this.period);
+            var epoch = new DateTime(1970, 1, 1);
 
-            foreach (PeriodicityType i in ValidOrderedList)
+            foreach (var i in ValidOrderedList)
             {
                 string r0 = epoch.ToString(this.format);
                 periodicRollingCalendar.Periodicity = i;
 
-                DateTime next = periodicRollingCalendar.NextTriggeringTime(epoch, 1);
+                var next = periodicRollingCalendar.NextTriggeringTime(epoch, 1);
                 string r1 = next.ToString(this.format);
 
                 if (r0 != r1)
@@ -91,7 +91,7 @@ namespace WinSW
         {
             get
             {
-                DateTime now = DateTime.Now;
+                var now = DateTime.Now;
                 if (now > this.nextRoll)
                 {
                     this.currentRoll = now;

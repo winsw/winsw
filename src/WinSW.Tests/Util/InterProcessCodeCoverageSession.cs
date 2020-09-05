@@ -48,7 +48,7 @@ namespace WinSW.Tests.Util
             hr = client.SetEventCallbacks(this);
             AssertEx.Succeeded(hr);
 
-            IntPtr pointer = Marshal.GetIUnknownForObject(client);
+            var pointer = Marshal.GetIUnknownForObject(client);
             Assert.Equal(1, Marshal.Release(pointer));
 
             target = DataTarget.CreateFromDbgEng(pointer);
@@ -125,7 +125,7 @@ namespace WinSW.Tests.Util
             {
                 using var runtime = this.target.ClrVersions.Single().CreateRuntime();
 
-                var module = runtime.EnumerateModules().First(module => module.Name == typeof(Program).Assembly.Location);
+                ClrModule module = runtime.EnumerateModules().First(module => module.Name == typeof(Program).Assembly.Location);
 
                 var type = module.GetTypeByName(this.trackerType.FullName);
                 var field = type.GetStaticFieldByName(this.hitsField.Name);

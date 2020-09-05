@@ -121,10 +121,10 @@ namespace WinSW
         /// </exception>
         public async Task PerformAsync()
         {
-            WebRequest request = WebRequest.Create(this.From);
+            var request = WebRequest.Create(this.From);
             if (!string.IsNullOrEmpty(this.Proxy))
             {
-                CustomProxyInformation proxyInformation = new CustomProxyInformation(this.Proxy!);
+                var proxyInformation = new CustomProxyInformation(this.Proxy!);
                 if (proxyInformation.Credentials != null)
                 {
                     request.Proxy = new WebProxy(proxyInformation.ServerAddress, false, null, proxyInformation.Credentials);
@@ -166,9 +166,9 @@ namespace WinSW
             string tmpFilePath = this.To + ".tmp";
             try
             {
-                using (WebResponse response = await request.GetResponseAsync().ConfigureAwait(false))
-                using (Stream responseStream = response.GetResponseStream())
-                using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
+                using (var response = await request.GetResponseAsync().ConfigureAwait(false))
+                using (var responseStream = response.GetResponseStream())
+                using (var tmpStream = new FileStream(tmpFilePath, FileMode.Create))
                 {
                     if (supportsIfModifiedSince)
                     {

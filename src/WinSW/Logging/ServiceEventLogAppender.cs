@@ -19,7 +19,7 @@ namespace WinSW.Logging
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-            IServiceEventLog? eventLog = this.provider.Locate();
+            var eventLog = this.provider.Locate();
 
             // We write the event iff the provider is ready
             eventLog?.WriteEntry(loggingEvent.RenderedMessage, ToEventLogEntryType(loggingEvent.Level));

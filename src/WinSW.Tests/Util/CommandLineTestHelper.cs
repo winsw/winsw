@@ -33,11 +33,11 @@ $@"<service>
         /// <exception cref="Exception">Command failure</exception>
         public static string Test(string[] arguments, XmlServiceConfig config = null)
         {
-            TextWriter tmpOut = Console.Out;
-            TextWriter tmpError = Console.Error;
+            var tmpOut = Console.Out;
+            var tmpError = Console.Error;
 
-            using StringWriter swOut = new StringWriter();
-            using StringWriter swError = new StringWriter();
+            using var swOut = new StringWriter();
+            using var swError = new StringWriter();
 
             Console.SetOut(swOut);
             Console.SetError(swError);
@@ -67,11 +67,11 @@ $@"<service>
         {
             Exception exception = null;
 
-            TextWriter tmpOut = Console.Out;
-            TextWriter tmpError = Console.Error;
+            var tmpOut = Console.Out;
+            var tmpError = Console.Error;
 
-            using StringWriter swOut = new StringWriter();
-            using StringWriter swError = new StringWriter();
+            using var swOut = new StringWriter();
+            using var swError = new StringWriter();
 
             Console.SetOut(swOut);
             Console.SetError(swError);

@@ -22,7 +22,7 @@ namespace WinSW
         private static readonly int additionalStopTimeout = 1_000;
 
         private static readonly ILog Log = LogManager.GetLogger(
-#if NETCOREAPP
+#if NET
             Assembly.GetExecutingAssembly(),
 #endif
             "WinSW");
@@ -71,7 +71,7 @@ namespace WinSW
         /// </summary>
         private void HandleFileCopies()
         {
-            var file = this.config.BasePath + ".copies";
+            string? file = this.config.BasePath + ".copies";
             if (!File.Exists(file))
             {
                 return; // nothing to handle
@@ -128,7 +128,7 @@ namespace WinSW
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = this.config.LogHandler;
+            var logAppender = this.config.LogHandler;
             logAppender.EventLogger = this;
             return logAppender;
         }
@@ -264,11 +264,11 @@ namespace WinSW
             this.HandleFileCopies();
 
             // handle downloads
-            List<Download> downloads = this.config.Downloads;
-            Task[] tasks = new Task[downloads.Count];
+            var downloads = this.config.Downloads;
+            var tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
             {
-                Download download = downloads[i];
+                var download = downloads[i];
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
                 Log.Info(downloadMessage);
                 tasks[i] = download.PerformAsync();
@@ -280,14 +280,14 @@ namespace WinSW
             }
             catch (AggregateException e)
             {
-                List<Exception> exceptions = new List<Exception>(e.InnerExceptions.Count);
+                var exceptions = new List<Exception>(e.InnerExceptions.Count);
                 for (int i = 0; i < tasks.Length; i++)
                 {
                     if (tasks[i].IsFaulted)
                     {
-                        Download download = downloads[i];
+                        var download = downloads[i];
                         string errorMessage = $"Failed to download {download.From} to {download.To}";
-                        AggregateException exception = tasks[i].Exception!;
+                        var exception = tasks[i].Exception!;
                         Log.Error(errorMessage, exception);
 
                         // TODO: move this code into the download logic
@@ -301,13 +301,13 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 
-            ProcessCommand prestart = this.config.Prestart;
+            var prestart = this.config.Prestart;
             string? prestartExecutable = prestart.Executable;
             if (prestartExecutable != null)
             {
                 try
                 {
-                    using Process process = this.StartProcess(prestartExecutable, prestart.Arguments, prestart.CreateLogHandler());
+                    using var process = this.StartProcess(prestartExecutable, prestart.Arguments, prestart.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -326,17 +326,17 @@ namespace WinSW
             this.ExtensionManager.LoadExtensions();
             this.ExtensionManager.FireOnWrapperStarted();
 
-            LogHandler executableLogHandler = this.CreateExecutableLogHandler();
+            var executableLogHandler = this.CreateExecutableLogHandler();
             this.process = this.StartProcess(this.config.Executable, startArguments, executableLogHandler, this.OnMainProcessExited);
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
-            ProcessCommand poststart = this.config.Poststart;
+            var poststart = this.config.Poststart;
             string? poststartExecutable = poststart.Executable;
             if (poststartExecutable != null)
             {
                 try
                 {
-                    using Process process = StartProcessLocked();
+                    using var process = StartProcessLocked();
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -362,13 +362,13 @@ namespace WinSW
         /// </summary>
         private void DoStop()
         {
-            ProcessCommand prestop = this.config.Prestop;
+            var prestop = this.config.Prestop;
             string? prestopExecutable = prestop.Executable;
             if (prestopExecutable != null)
             {
                 try
                 {
-                    using Process process = StartProcessLocked(prestopExecutable, prestop.Arguments, prestop.CreateLogHandler());
+                    using var process = StartProcessLocked(prestopExecutable, prestop.Arguments, prestop.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -387,7 +387,7 @@ namespace WinSW
             string? stopArguments = this.config.StopArguments;
             if (stopExecutable is null && stopArguments is null)
             {
-                Process process = this.process;
+                var process = this.process;
                 Log.Debug("ProcessKill " + process.Id);
                 bool? result = process.Stop(this.config.StopTimeoutInMs);
                 this.LogMinimal($"Child process '{process.Format()}' " + result switch
@@ -408,7 +408,7 @@ namespace WinSW
                 try
                 {
                     // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                    using Process stopProcess = StartProcessLocked(stopExecutable, stopArguments);
+                    using var stopProcess = StartProcessLocked(stopExecutable, stopArguments);
 
                     Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
                     this.WaitForProcessToExit(stopProcess);
@@ -425,13 +425,13 @@ namespace WinSW
                 }
             }
 
-            ProcessCommand poststop = this.config.Poststop;
+            var poststop = this.config.Poststop;
             string? poststopExecutable = poststop.Executable;
             if (poststopExecutable != null)
             {
                 try
                 {
-                    using Process process = StartProcessLocked(poststopExecutable, poststop.Arguments, poststop.CreateLogHandler());
+                    using var process = StartProcessLocked(poststopExecutable, poststop.Arguments, poststop.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Post-Stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
                     process.StopDescendants(additionalStopTimeout);
@@ -477,13 +477,13 @@ namespace WinSW
         private void AcceptPreshutdown()
         {
             const string acceptedCommandsFieldName =
-#if NETCOREAPP
+#if NET
                 "_acceptedCommands";
 #else
                 "acceptedCommands";
 #endif
 
-            FieldInfo? acceptedCommandsField = typeof(ServiceBase).GetField(acceptedCommandsFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var acceptedCommandsField = typeof(ServiceBase).GetField(acceptedCommandsFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             if (acceptedCommandsField is null)
             {
                 throw new MissingFieldException(nameof(ServiceBase), acceptedCommandsFieldName);
@@ -501,8 +501,8 @@ namespace WinSW
 
         private void SignalStopped()
         {
-            using ServiceManager scm = ServiceManager.Open();
-            using Service sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
+            using var scm = ServiceManager.Open();
+            using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
 
             sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
         }
@@ -549,16 +549,16 @@ namespace WinSW
                 RedirectStandardError = logHandler?.ErrFileDisabled == false,
             };
 
-            Dictionary<string, string> environment = this.config.EnvironmentVariables;
+            var environment = this.config.EnvironmentVariables;
             if (environment.Count > 0)
             {
                 var newEnvironment =
-#if NETCOREAPP
+#if NET
                     startInfo.Environment;
 #else
                     startInfo.EnvironmentVariables;
 #endif
-                foreach (KeyValuePair<string, string> pair in environment)
+                foreach (var pair in environment)
                 {
                     newEnvironment[pair.Key] = pair.Value;
                 }
@@ -607,7 +607,7 @@ namespace WinSW
             {
                 process.Exited += (sender, _) =>
                 {
-                    Process process = (Process)sender!;
+                    var process = (Process)sender!;
 
                     if (!process.EnableRaisingEvents)
                     {

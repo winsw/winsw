@@ -1,8 +1,8 @@
-﻿#if !NETCOREAPP
+﻿#if !NET
 using System;
 #endif
 using System.IO;
-#if !NETCOREAPP
+#if !NET
 using System.Runtime.InteropServices;
 #endif
 
@@ -12,7 +12,7 @@ namespace WinSW.Util
     {
         public static void MoveOrReplaceFile(string sourceFileName, string destFileName)
         {
-#if NETCOREAPP
+#if NET
             File.Move(sourceFileName, destFileName, true);
 #else
             string sourceFilePath = Path.GetFullPath(sourceFileName);
@@ -24,7 +24,7 @@ namespace WinSW.Util
             }
 #endif
         }
-#if !NETCOREAPP
+#if !NET
 
         private static Exception GetExceptionForLastWin32Error(string path) => Marshal.GetLastWin32Error() switch
         {
