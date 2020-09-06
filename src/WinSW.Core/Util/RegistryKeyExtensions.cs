@@ -16,7 +16,7 @@ namespace WinSW.Util
                 Throw.Command.Win32Exception(error, "Failed to query registry key.");
             }
 
-            return DateTime.FromFileTime(lastWriteTime.ToTicks());
+            return lastWriteTime.ToDateTime();
         }
     }
 }

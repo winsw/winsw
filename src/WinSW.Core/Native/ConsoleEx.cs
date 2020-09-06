@@ -75,6 +75,7 @@ namespace WinSW.Native
                     }
                     else if (key == '\r')
                     {
+                        Write(consoleOutput, Environment.NewLine);
                         break;
                     }
                     else if (key == '\b')
