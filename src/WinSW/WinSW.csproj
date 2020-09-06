@@ -39,9 +39,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
-    <ProjectReference Include="..\WinSW.Tasks\WinSW.Tasks.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
+    <ProjectReference Include="..\WinSW.Tasks\WinSW.Tasks.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0-windows' and '$(IncludeNativeLibrariesForSelfExtract)' != 'true'">

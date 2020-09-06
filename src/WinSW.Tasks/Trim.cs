@@ -15,7 +15,7 @@ namespace WinSW.Tasks
 
         public override bool Execute()
         {
-            using var module = ModuleDefinition.ReadModule(this.Path, new ReaderParameters { ReadWrite = true });
+            using var module = ModuleDefinition.ReadModule(this.Path, new() { ReadWrite = true, ReadSymbols = true });
 
             this.WalkType(module.EntryPoint.DeclaringType);
 
@@ -46,7 +46,7 @@ namespace WinSW.Tasks
                 types.RemoveAt(i);
             }
 
-            module.Write();
+            module.Write(new WriterParameters { WriteSymbols = true });
 
             return true;
         }

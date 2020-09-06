@@ -7,7 +7,24 @@ namespace WinSW.Native
 {
     internal static class Credentials
     {
-        internal static void PropmtForCredentialsDialog(ref string? userName, ref string? password, string caption, string message)
+        internal static void PromptForCredentialsConsole(ref string? userName, ref string? password)
+        {
+            using var consoleOutput = ConsoleEx.OpenConsoleOutput();
+
+            if (userName is null)
+            {
+                ConsoleEx.Write(consoleOutput, "Username: ");
+                userName = Console.ReadLine()!;
+            }
+
+            if (password is null && !Security.IsSpecialAccount(userName))
+            {
+                ConsoleEx.Write(consoleOutput, "Password: ");
+                password = ConsoleEx.ReadPassword();
+            }
+        }
+
+        internal static void PromptForCredentialsDialog(ref string? userName, ref string? password, string caption, string message)
         {
             userName ??= string.Empty;
             password ??= string.Empty;
