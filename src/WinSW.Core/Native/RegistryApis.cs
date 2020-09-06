@@ -18,14 +18,6 @@ namespace WinSW.Native
             int* maxValueNameLength,
             int* maxValueLength,
             int* securityDescriptorLength,
-            out FILETIME lastWriteTime);
-
-        internal struct FILETIME
-        {
-            internal int LowDateTime;
-            internal int HighDateTime;
-
-            public long ToTicks() => ((long)this.HighDateTime << 32) + this.LowDateTime;
-        }
+            out FileTime lastWriteTime);
     }
 }

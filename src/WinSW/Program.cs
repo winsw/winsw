@@ -434,6 +434,7 @@ namespace WinSW
                     Throw.Command.Win32Exception(Errors.ERROR_SERVICE_EXISTS, "Failed to install the service.");
                 }
 
+                bool saveCredential = false;
                 if (config.HasServiceAccount())
                 {
                     username = config.ServiceAccountUserName ?? username;
@@ -444,11 +445,16 @@ namespace WinSW
                         switch (config.ServiceAccountPrompt)
                         {
                             case "dialog":
-                                Credentials.PromptForCredentialsDialog(
-                                    ref username,
-                                    ref password,
-                                    "Windows Service Wrapper",
-                                    "Enter the service account credentials");
+                                if (!Credentials.Load($"WinSW:{config.Name}", out username, out password))
+                                {
+                                    Credentials.PromptForCredentialsDialog(
+                                        ref username,
+                                        ref password,
+                                        "Windows Service Wrapper",
+                                        "Enter the service account credentials",
+                                        ref saveCredential);
+                                }
+
                                 break;
 
                             case "console":
@@ -471,6 +477,11 @@ namespace WinSW
                     config.ServiceDependencies,
                     username,
                     password);
+
+                if (saveCredential)
+                {
+                    Credentials.Save($"WinSW:{config.Name}", username, password);
+                }
 
                 string description = config.Description;
                 if (description.Length != 0)
@@ -508,7 +519,7 @@ namespace WinSW
                     EventLog.CreateEventSource(eventLogSource, "Application");
                 }
 
-                Log.Info($"Service '{config.Format()}' was installed successfully.");                
+                Log.Info($"Service '{config.Format()}' was installed successfully.");
             }
 
             void Uninstall(string? pathToConfig, bool noElevate)
