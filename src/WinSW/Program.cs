@@ -13,7 +13,6 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
-using System.Text;
 using System.Threading;
 using log4net;
 using log4net.Appender;
@@ -440,12 +439,12 @@ namespace WinSW
                     username = config.ServiceAccountUserName ?? username;
                     password = config.ServiceAccountPassword ?? password;
 
-                    if (username is null || password is null && !IsSpecialAccount(username))
+                    if (username is null || password is null && !Security.IsSpecialAccount(username))
                     {
                         switch (config.ServiceAccountPrompt)
                         {
                             case "dialog":
-                                Credentials.PropmtForCredentialsDialog(
+                                Credentials.PromptForCredentialsDialog(
                                     ref username,
                                     ref password,
                                     "Windows Service Wrapper",
@@ -453,13 +452,13 @@ namespace WinSW
                                 break;
 
                             case "console":
-                                PromptForCredentialsConsole();
+                                Credentials.PromptForCredentialsConsole(ref username, ref password);
                                 break;
                         }
                     }
                 }
 
-                if (username != null && !IsSpecialAccount(username))
+                if (username != null && !Security.IsSpecialAccount(username))
                 {
                     Security.AddServiceLogonRight(ref username);
                 }
@@ -509,34 +508,7 @@ namespace WinSW
                     EventLog.CreateEventSource(eventLogSource, "Application");
                 }
 
-                Log.Info($"Service '{config.Format()}' was installed successfully.");
-
-                void PromptForCredentialsConsole()
-                {
-                    if (username is null)
-                    {
-                        Console.Write("Username: ");
-                        username = Console.ReadLine()!;
-                    }
-
-                    if (password is null && !IsSpecialAccount(username))
-                    {
-                        Console.Write("Password: ");
-                        password = ReadPassword();
-                    }
-
-                    Console.WriteLine();
-                }
-
-                static bool IsSpecialAccount(string accountName) => accountName switch
-                {
-                    @"LocalSystem" => true,
-                    @".\LocalSystem" => true,
-                    @"NT AUTHORITY\LocalService" => true,
-                    @"NT AUTHORITY\NetworkService" => true,
-                    string name when name == $@"{Environment.MachineName}\LocalSystem" => true,
-                    _ => false
-                };
+                Log.Info($"Service '{config.Format()}' was installed successfully.");                
             }
 
             void Uninstall(string? pathToConfig, bool noElevate)
@@ -1228,7 +1200,7 @@ namespace WinSW
                 Throw.Command.Win32Exception("Failed to open process token.");
             }
 
-            try
+            using (token)
             {
                 unsafe
                 {
@@ -1243,33 +1215,6 @@ namespace WinSW
                     }
 
                     return elevation.TokenIsElevated != 0;
-                }
-            }
-            finally
-            {
-                _ = HandleApis.CloseHandle(token);
-            }
-        }
-
-        private static string ReadPassword()
-        {
-            var buf = new StringBuilder();
-            while (true)
-            {
-                var key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
-                {
-                    return buf.ToString();
-                }
-                else if (key.Key == ConsoleKey.Backspace)
-                {
-                    _ = buf.Remove(buf.Length - 1, 1);
-                    Console.Write("\b \b");
-                }
-                else
-                {
-                    Console.Write('*');
-                    _ = buf.Append(key.KeyChar);
                 }
             }
         }
