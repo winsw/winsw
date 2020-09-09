@@ -292,10 +292,12 @@ namespace WinSW
                 {
                     var ps = new Command("ps", "Draws the process tree associated with the service.")
                     {
-                        Handler = CommandHandler.Create<string?>(DevPs),
+                        Handler = CommandHandler.Create<string?, bool>(DevPs),
                     };
 
                     ps.Add(config);
+
+                    ps.Add(new Option(new[] { "--all", "-a" }));
 
                     dev.Add(ps);
                 }
@@ -863,7 +865,47 @@ namespace WinSW
                 DoRefresh(config);
             }
 
-            static void DevPs(string? pathToConfig)
+            static unsafe void DevPs(string? pathToConfig, bool all)
+            {
+                if (all)
+                {
+                    using var scm = ServiceManager.Open(ServiceManagerAccess.EnumerateService);
+                    (IntPtr services, int count) = scm.EnumerateServices();
+                    try
+                    {
+                        int prevProcessId = -1;
+                        for (int i = 0; i < count; i++)
+                        {
+                            var status = (ENUM_SERVICE_STATUS*)services + i;
+                            using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig | ServiceAccess.QueryStatus);
+                            if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
+                            {
+                                int processId = sc.ProcessId;
+                                if (processId >= 0)
+                                {
+                                    if (prevProcessId >= 0)
+                                    {
+                                        using Process process = Process.GetProcessById(prevProcessId);
+                                        Draw(process, string.Empty, false);
+                                    }
+                                }
+
+                                prevProcessId = processId;
+                            }
+                        }
+
+                        if (prevProcessId >= 0)
+                        {
+                            using Process process = Process.GetProcessById(prevProcessId);
+                            Draw(process, string.Empty, true);
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(services);
+                    }
+                }
+                else
             {
                 XmlServiceConfig config = LoadConfig(pathToConfig);
 
@@ -873,16 +915,18 @@ namespace WinSW
                 int processId = sc.ProcessId;
                 if (processId >= 0)
                 {
+                        using Process process = Process.GetProcessById(processId);
+                        Draw(process, string.Empty, true);
+                    }
+                }
+
+                static void Draw(Process process, string indentation, bool isLastChild)
+                {
                     const string Vertical = " \u2502 ";
                     const string Corner = " \u2514\u2500";
                     const string Cross = " \u251c\u2500";
                     const string Space = "   ";
 
-                    using Process process = Process.GetProcessById(processId);
-                    Draw(process, string.Empty, true);
-
-                    static void Draw(Process process, string indentation, bool isLastChild)
-                    {
                         Console.Write(indentation);
 
                         if (isLastChild)
@@ -907,7 +951,6 @@ namespace WinSW
                         }
                     }
                 }
-            }
 
             void DevKill(string? pathToConfig, bool noElevate)
             {
@@ -939,7 +982,7 @@ namespace WinSW
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        var status = (ServiceApis.ENUM_SERVICE_STATUS*)services + i;
+                        var status = (ENUM_SERVICE_STATUS*)services + i;
                         using var sc = scm.OpenService(status->ServiceName, ServiceAccess.QueryConfig);
                         if (sc.ExecutablePath.StartsWith($"\"{ExecutablePath}\""))
                         {
