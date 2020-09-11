@@ -1,0 +1,17 @@
+name: Milestone Management
+description: Milestone Management
+
+inputs:
+  repo-token:
+    description: The GITHUB_SECRET token
+    required: true
+  old:
+    description: The old milestone title
+    required: true
+  new:
+    description: The new milestone title
+    required: true
+
+runs:
+  using: node12
+  main: index.js
