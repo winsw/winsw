@@ -249,20 +249,6 @@ namespace WinSW
             }
 
             {
-                var test = new Command("test", "Checks if the service can be started and then stopped without installation.")
-                {
-                    Handler = CommandHandler.Create<string?, bool, bool>(Test),
-                };
-
-                test.Add(config);
-                test.Add(noElevate);
-
-                test.Add(new Option("--no-break", "Ignores keystrokes."));
-
-                root.Add(test);
-            }
-
-            {
                 var refresh = new Command("refresh", "Refreshes the service properties without reinstallation.")
                 {
                     Handler = CommandHandler.Create<string?, bool>(Refresh),
@@ -806,50 +792,6 @@ namespace WinSW
                 {
                     Console.WriteLine("NonExistent");
                     return Errors.ERROR_SERVICE_DOES_NOT_EXIST;
-                }
-            }
-
-            void Test(string? pathToConfig, bool noElevate, bool noBreak)
-            {
-                var config = LoadConfigAndInitLoggers(pathToConfig, true);
-
-                if (!elevated)
-                {
-                    Elevate(noElevate);
-                    return;
-                }
-
-                AutoRefresh(config);
-
-                using var wsvc = new WrapperService(config);
-                wsvc.RaiseOnStart(args);
-                try
-                {
-                    if (!noBreak)
-                    {
-                        Console.WriteLine("Press any key to stop the service...");
-                        _ = Console.ReadKey();
-                    }
-                    else
-                    {
-                        using var evt = new ManualResetEvent(false);
-
-                        Console.WriteLine("Press Ctrl+C to stop the service...");
-                        Console.CancelKeyPress += CancelKeyPress;
-
-                        _ = evt.WaitOne();
-                        Console.CancelKeyPress -= CancelKeyPress;
-
-                        void CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
-                        {
-                            e.Cancel = true;
-                            evt.Set();
-                        }
-                    }
-                }
-                finally
-                {
-                    wsvc.RaiseOnStop();
                 }
             }
 
