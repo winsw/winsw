@@ -1,8 +1,9 @@
 # Configuration for Release Drafter: https://github.com/release-drafter/release-drafter
+
 name-template: WinSW v$NEXT_PATCH_VERSION
 tag-template: v$NEXT_PATCH_VERSION
 
-# This repo follows the Semantic Versioning 2.0.0 approach: https://semver.org/
+# This repo follows the Semantic Versioning 2.0.0 convention: https://semver.org/spec/v2.0.0.html
 version-template: $MAJOR.$MINOR.$PATCH
 
 template: $CHANGES

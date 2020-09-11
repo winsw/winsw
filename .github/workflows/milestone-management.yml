@@ -1,0 +1,22 @@
+name: Milestone Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      old:
+        description: The old milestone name
+        required: true
+      new:
+        description: The new milestone name
+        required: true
+
+jobs:
+  new_milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - uses: ./.github/actions/milestone-management
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          old: ${{ github.event.inputs.old }}
+          new: ${{ github.event.inputs.new }}
