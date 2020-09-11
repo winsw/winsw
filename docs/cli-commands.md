@@ -8,7 +8,6 @@
 - [stop](#stop-command)
 - [restart](#restart-command)
 - [status](#status-command)
-- [test](#test-command)
 - [refresh](#refresh-command)
 - [customize](#customize-command)
 
@@ -163,39 +162,6 @@ winsw status [<path-to-config>]
 
 The path to the configuration file.
 If a file isn't specified, WinSW searches the executable directory for a *.xml* file with the same file name without the extension.
-
-## `test` command
-
-Checks if the service can be started and then stopped without installation.
-
-### Usage
-
-```console
-winsw test [<path-to-config>] [--no-elevate] [--timeout <timeout>] [--no-break]
-```
-
-### Arguments
-
-`path-to-config`
-
-The path to the configuration file.
-If a file isn't specified, WinSW searches the executable directory for a *.xml* file with the same file name without the extension.
-
-### Options
-
-- `--no-elevate`
-
-  Doesn't automatically trigger a UAC prompt.
-
-- `--timeout <timeout>`
-
-  Specifies the number of seconds to wait before the service is stopped.
-  If not specified or -1 is specified, WinSW waits for a keystroke indefinitely.
-
-- `--no-break`
-
-  Ignores keystrokes.
-  If specified, WinSW waits for Ctrl+C.
 
 ## `refresh` command
 
