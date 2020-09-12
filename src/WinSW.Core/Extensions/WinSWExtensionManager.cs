@@ -63,7 +63,7 @@ namespace WinSW.Extensions
                 catch (ExtensionException ex)
                 {
                     Log.Fatal("onWrapperStarted() handler failed for " + ext.Value.DisplayName, ex);
-                    throw ex; // Propagate error to stop the startup
+                    throw; // Propagate error to stop the startup
                 }
             }
         }

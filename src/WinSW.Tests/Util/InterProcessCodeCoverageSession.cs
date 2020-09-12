@@ -48,8 +48,10 @@ namespace WinSW.Tests.Util
             hr = client.SetEventCallbacks(this);
             AssertEx.Succeeded(hr);
 
+#pragma warning disable CA1416 // Validate platform compatibility
             IntPtr pointer = Marshal.GetIUnknownForObject(client);
             Assert.Equal(1, Marshal.Release(pointer));
+#pragma warning restore CA1416 // Validate platform compatibility
 
             target = DataTarget.CreateFromDbgEng(pointer);
 
