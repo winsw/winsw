@@ -23,7 +23,7 @@ namespace WinSW.Tests.Util
 
         public List<string> ExtensionXmls { get; } = new List<string>();
 
-        private readonly List<string> configEntries = new List<string>();
+        private readonly List<string> configEntries = new();
 
         private readonly ITestOutputHelper output;
 

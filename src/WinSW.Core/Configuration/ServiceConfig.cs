@@ -77,12 +77,14 @@ namespace WinSW.Configuration
         public virtual string ErrFilePattern => ".err.log";
 
         // Environment
-        public virtual List<Download> Downloads => new List<Download>(0);
+        public virtual List<Download> Downloads => new(0);
 
-        public virtual Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(0);
+        public virtual Dictionary<string, string> EnvironmentVariables => new(0);
 
         // Misc
         public virtual bool BeepOnShutdown => false;
+
+        public virtual List<SharedDirectoryMapperConfig> SharedDirectories => new(0);
 
         // Extensions
         public virtual XmlNode? ExtensionsConfiguration => null;

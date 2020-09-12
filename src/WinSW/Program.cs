@@ -1099,7 +1099,7 @@ namespace WinSW
             }
             else
             {
-                var eventLogAppender = new ServiceEventLogAppender(WrapperService.eventLogProvider)
+                var eventLogAppender = new ServiceEventLogAppender(WrapperService.EventLogProvider)
                 {
                     Name = "Wrapper event log",
                     Threshold = eventLogLevel,

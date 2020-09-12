@@ -7,9 +7,9 @@ namespace WinSW.Native
 {
     internal static class ResourceApis
     {
-        internal static readonly IntPtr VS_VERSION_INFO = new IntPtr(1);
+        internal static readonly IntPtr VS_VERSION_INFO = new(1);
 
-        internal static readonly IntPtr RT_VERSION = new IntPtr(16);
+        internal static readonly IntPtr RT_VERSION = new(16);
 
         [DllImport(Libraries.Kernel32, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr BeginUpdateResourceW(string fileName, bool deleteExistingResources);
