@@ -17,9 +17,9 @@ namespace WinSW
 {
     public sealed class WrapperService : ServiceBase, IEventLogger, IServiceEventLog
     {
-        internal static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
+        internal static readonly WrapperServiceEventLogProvider EventLogProvider = new();
 
-        private static readonly int additionalStopTimeout = 1_000;
+        private static readonly int AdditionalStopTimeout = 1_000;
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(WrapperService));
 
@@ -30,6 +30,8 @@ namespace WinSW
         private volatile Process? stoppingProcess;
 
         internal WinSWExtensionManager ExtensionManager { get; }
+
+        private SharedDirectoryMapper? sharedDirectoryMapper;
 
         private bool shuttingdown;
 
@@ -51,7 +53,7 @@ namespace WinSW
             this.ExtensionManager = new WinSWExtensionManager(config);
 
             // Register the event log provider
-            eventLogProvider.Service = this;
+            EventLogProvider.Service = this;
 
             if (config.Preshutdown)
             {
@@ -297,6 +299,13 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 
+            var sharedDirectories = this.config.SharedDirectories;
+            if (sharedDirectories.Count > 0)
+            {
+                this.sharedDirectoryMapper = new(sharedDirectories);
+                this.sharedDirectoryMapper.Map();
+            }
+
             var prestart = this.config.Prestart;
             string? prestartExecutable = prestart.Executable;
             if (prestartExecutable != null)
@@ -306,7 +315,7 @@ namespace WinSW
                     using var process = this.StartProcess(prestartExecutable, prestart.Arguments, prestart.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Pre-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
-                    process.StopDescendants(additionalStopTimeout);
+                    process.StopDescendants(AdditionalStopTimeout);
                 }
                 catch (Exception e)
                 {
@@ -335,7 +344,7 @@ namespace WinSW
                     using var process = StartProcessLocked();
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Post-start process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
-                    process.StopDescendants(additionalStopTimeout);
+                    process.StopDescendants(AdditionalStopTimeout);
                     this.startingProcess = null;
 
                     Process StartProcessLocked()
@@ -367,7 +376,7 @@ namespace WinSW
                     using var process = StartProcessLocked(prestopExecutable, prestop.Arguments, prestop.CreateLogHandler());
                     this.WaitForProcessToExit(process);
                     this.LogExited($"Pre-stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
-                    process.StopDescendants(additionalStopTimeout);
+                    process.StopDescendants(AdditionalStopTimeout);
                     this.stoppingProcess = null;
                 }
                 catch (Exception e)
@@ -408,7 +417,7 @@ namespace WinSW
 
                     Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
                     this.WaitForProcessToExit(stopProcess);
-                    stopProcess.StopDescendants(additionalStopTimeout);
+                    stopProcess.StopDescendants(AdditionalStopTimeout);
                     this.stoppingProcess = null;
 
                     this.WaitForProcessToExit(this.process);
@@ -429,14 +438,23 @@ namespace WinSW
                 {
                     using var process = StartProcessLocked(poststopExecutable, poststop.Arguments, poststop.CreateLogHandler());
                     this.WaitForProcessToExit(process);
-                    this.LogExited($"Post-Stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
-                    process.StopDescendants(additionalStopTimeout);
+                    this.LogExited($"Post-stop process '{process.Format()}' exited with code {process.ExitCode}.", process.ExitCode);
+                    process.StopDescendants(AdditionalStopTimeout);
                     this.stoppingProcess = null;
                 }
                 catch (Exception e)
                 {
                     Log.Error(e);
                 }
+            }
+
+            try
+            {
+                this.sharedDirectoryMapper?.Unmap();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e);
             }
 
             // Stop extensions
@@ -513,8 +531,8 @@ namespace WinSW
 
                     process.StopDescendants(this.config.StopTimeoutInMs);
 
-                    this.startingProcess?.StopTree(additionalStopTimeout);
-                    this.stoppingProcess?.StopTree(additionalStopTimeout);
+                    this.startingProcess?.StopTree(AdditionalStopTimeout);
+                    this.stoppingProcess?.StopTree(AdditionalStopTimeout);
 
                     // if we finished orderly, report that to SCM.
                     // by not reporting unclean shutdown, we let Windows SCM to decide if it wants to

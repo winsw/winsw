@@ -419,7 +419,7 @@ namespace WinSW
         private async Task CopyStreamWithRotationAsync(StreamReader reader, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
-            object? fileLock = new object();
+            object? fileLock = new();
 
             string? baseDirectory = Path.GetDirectoryName(this.BaseLogFileName)!;
             string? baseFileName = Path.GetFileName(this.BaseLogFileName);

@@ -420,5 +420,26 @@ $@"<service>
                 Assert.Equal(expected.StderrPath, actual.StderrPath);
             }
         }
+
+        [Fact]
+        public void SharedDirectoryMapping()
+        {
+            string seedXml =
+@"<service>
+  <sharedDirectoryMapping>
+    <map label=""N:"" uncpath=""\\UNC"" />
+    <map label=""M:"" uncpath=""\\UNC2"" />
+  </sharedDirectoryMapping>
+</service>";
+
+            var config = XmlServiceConfig.FromXml(seedXml);
+
+            var sharedDirectories = config.SharedDirectories;
+            Assert.Equal(2, sharedDirectories.Count);
+            Assert.Equal("N:", sharedDirectories[0].Label);
+            Assert.Equal(@"\\UNC", sharedDirectories[0].UncPath);
+            Assert.Equal("M:", sharedDirectories[1].Label);
+            Assert.Equal(@"\\UNC2", sharedDirectories[1].UncPath);
+        }
     }
 }

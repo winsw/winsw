@@ -3,39 +3,32 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using WinSW.Plugins.SharedDirectoryMapper;
 using Xunit;
 
 namespace WinSW.Tests.Extensions
 {
-    // TODO: Assert.Throws<ExtensionException>
     public class SharedDirectoryMapperTests
     {
+        private static SharedDirectoryMapper CreateMapper(string driveLabel, string directoryUncPath)
+        {
+            return new(new(1)
+            {
+                new(driveLabel, directoryUncPath),
+            });
+        }
+
         [ElevatedFact]
         public void TestMap()
         {
             using var data = TestData.Create();
 
             const string label = "W:";
-            var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
+            var mapper = CreateMapper(label, $@"\\{Environment.MachineName}\{data.name}");
 
-            mapper.OnWrapperStarted();
+            mapper.Map();
             Assert.True(Directory.Exists($@"{label}\"));
-            mapper.BeforeWrapperStopped();
+            mapper.Unmap();
             Assert.False(Directory.Exists($@"{label}\"));
-        }
-
-        [ElevatedFact]
-        public void TestDisableMapping()
-        {
-            using var data = TestData.Create();
-
-            const string label = "W:";
-            var mapper = new SharedDirectoryMapper(enableMapping: false, $@"\\{Environment.MachineName}\{data.name}", label);
-
-            mapper.OnWrapperStarted();
-            Assert.False(Directory.Exists($@"{label}\"));
-            mapper.BeforeWrapperStopped();
         }
 
         [ElevatedFact]
@@ -44,11 +37,11 @@ namespace WinSW.Tests.Extensions
             using var data = TestData.Create();
 
             const string label = "W:";
-            var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}\", label);
+            var mapper = CreateMapper(label, $@"\\{Environment.MachineName}\{data.name}\");
 
-            _ = Assert.ThrowsAny<Exception>(() => mapper.OnWrapperStarted());
+            _ = Assert.ThrowsAny<Exception>(() => mapper.Map());
             Assert.False(Directory.Exists($@"{label}\"));
-            _ = Assert.ThrowsAny<Exception>(() => mapper.BeforeWrapperStopped());
+            _ = Assert.ThrowsAny<Exception>(() => mapper.Unmap());
         }
 
         [ElevatedFact]
@@ -57,11 +50,11 @@ namespace WinSW.Tests.Extensions
             using var data = TestData.Create();
 
             const string label = "W";
-            var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}", label);
+            var mapper = CreateMapper(label, $@"\\{Environment.MachineName}\{data.name}");
 
-            _ = Assert.ThrowsAny<Exception>(() => mapper.OnWrapperStarted());
+            _ = Assert.ThrowsAny<Exception>(() => mapper.Map());
             Assert.False(Directory.Exists($@"{label}\"));
-            _ = Assert.ThrowsAny<Exception>(() => mapper.BeforeWrapperStopped());
+            _ = Assert.ThrowsAny<Exception>(() => mapper.Unmap());
         }
 
         private readonly ref struct TestData

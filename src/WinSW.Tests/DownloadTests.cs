@@ -11,7 +11,7 @@ namespace WinSW.Tests
 {
     public class DownloadTests : IDisposable
     {
-        private readonly HttpListener globalListener = new HttpListener();
+        private readonly HttpListener globalListener = new();
 
         private readonly byte[] contents = { 0x57, 0x69, 0x6e, 0x53, 0x57 };
 

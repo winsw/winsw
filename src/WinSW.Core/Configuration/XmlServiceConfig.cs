@@ -18,7 +18,7 @@ namespace WinSW
     /// </summary>
     public class XmlServiceConfig : ServiceConfig
     {
-        protected readonly XmlDocument dom = new XmlDocument();
+        protected readonly XmlDocument dom = new();
 
         private readonly XmlNode root;
         private readonly Dictionary<string, string> environmentVariables;
@@ -145,7 +145,7 @@ namespace WinSW
             return value is null ? defaultValue : ParseTimeSpan(value);
         }
 
-        private static readonly Dictionary<string, long> Suffix = new Dictionary<string, long>
+        private static readonly Dictionary<string, long> Suffix = new()
         {
             { "ms",     1 },
             { "sec",    1000L },
@@ -580,6 +580,31 @@ namespace WinSW
         public string? SecurityDescriptor => this.SingleElementOrNull("securityDescriptor");
 
         public bool AutoRefresh => this.SingleBoolElementOrDefault("autoRefresh", true);
+
+        public override List<SharedDirectoryMapperConfig> SharedDirectories
+        {
+            get
+            {
+                var mapNodes = this.root.SelectSingleNode("sharedDirectoryMapping")?.SelectNodes("map");
+                if (mapNodes is null)
+                {
+                    return new();
+                }
+
+                var result = new List<SharedDirectoryMapperConfig>(mapNodes.Count);
+                for (int i = 0; i < mapNodes.Count; i++)
+                {
+                    if (mapNodes[i] is XmlElement mapElement)
+                    {
+                        string label = XmlHelper.SingleAttribute<string>(mapElement, "label");
+                        string uncPath = XmlHelper.SingleAttribute<string>(mapElement, "uncpath");
+                        result.Add(new(label, uncPath));
+                    }
+                }
+
+                return result;
+            }
+        }
 
         private Dictionary<string, string> LoadEnvironmentVariables()
         {
