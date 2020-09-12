@@ -240,7 +240,7 @@ namespace WinSW
                 List<string> result = new List<string>(extensions.Count);
                 for (int i = 0; i < extensions.Count; i++)
                 {
-                    result.Add(XmlHelper.SingleAttribute<string>((XmlElement)extensions[i], "id"));
+                    result.Add(XmlHelper.SingleAttribute<string>((XmlElement)extensions[i]!, "id"));
                 }
 
                 return result;
@@ -263,12 +263,12 @@ namespace WinSW
 
             StringBuilder arguments = new StringBuilder();
 
-            XmlNodeList argumentNodeList = this.dom.SelectNodes("//" + tagName);
+            XmlNodeList argumentNodeList = this.dom.SelectNodes("//" + tagName)!;
             for (int i = 0; i < argumentNodeList.Count; i++)
             {
                 arguments.Append(' ');
 
-                string token = Environment.ExpandEnvironmentVariables(argumentNodeList[i].InnerText);
+                string token = Environment.ExpandEnvironmentVariables(argumentNodeList[i]!.InnerText);
 
                 if (token.StartsWith("\"") && token.EndsWith("\""))
                 {
@@ -470,7 +470,7 @@ namespace WinSW
                 string[] serviceDependencies = new string[nodeList.Count];
                 for (int i = 0; i < nodeList.Count; i++)
                 {
-                    serviceDependencies[i] = nodeList[i].InnerText;
+                    serviceDependencies[i] = nodeList[i]!.InnerText;
                 }
 
                 return serviceDependencies;
@@ -581,14 +581,14 @@ namespace WinSW
                 XmlNodeList? childNodes = this.dom.SelectNodes("//onfailure");
                 if (childNodes is null)
                 {
-                    return new SC_ACTION[0];
+                    return Array.Empty<SC_ACTION>();
                 }
 
                 SC_ACTION[] result = new SC_ACTION[childNodes.Count];
                 for (int i = 0; i < childNodes.Count; i++)
                 {
-                    XmlNode node = childNodes[i];
-                    string action = node.Attributes["action"].Value;
+                    XmlNode node = childNodes[i]!;
+                    string action = node.Attributes!["action"]?.Value ?? throw new InvalidDataException("'action' is missing");
                     SC_ACTION_TYPE type = action switch
                     {
                         "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
@@ -681,13 +681,13 @@ namespace WinSW
 
         private Dictionary<string, string> LoadEnvironmentVariables()
         {
-            XmlNodeList nodeList = this.dom.SelectNodes("//env");
+            XmlNodeList nodeList = this.dom.SelectNodes("//env")!;
             Dictionary<string, string> environment = new Dictionary<string, string>(nodeList.Count);
             for (int i = 0; i < nodeList.Count; i++)
             {
-                XmlNode node = nodeList[i];
-                string key = node.Attributes["name"].Value;
-                string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"].Value);
+                XmlNode node = nodeList[i]!;
+                string key = node.Attributes!["name"]?.Value ?? throw new InvalidDataException("'name' is missing");
+                string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"]?.Value ?? throw new InvalidDataException("'value' is missing"));
                 environment[key] = value;
 
                 Environment.SetEnvironmentVariable(key, value);

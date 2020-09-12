@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net461;net5.0</TargetFrameworks>
+    <TargetFrameworks>net461;net5.0-windows</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -16,11 +16,11 @@
     <Copyright>Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</Copyright>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0' AND '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0-windows' AND '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' != 'net5.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
     <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
 
@@ -28,11 +28,11 @@
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20303.1" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0-windows'">
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
     <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -42,20 +42,20 @@
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
     <ProjectReference Include="..\WinSW.Tasks\WinSW.Tasks.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
 
-  <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0' and '$(IncludeNativeLibrariesInSingleFile)' != 'true'">
+  <Target Name="PublishCoreZip" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0-windows' and '$(IncludeNativeLibrariesInSingleFile)' != 'true'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
     <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).zip" Overwrite="true" />
 
   </Target>
 
-  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0' and '$(IncludeNativeLibrariesInSingleFile)' == 'true'">
+  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0-windows' and '$(IncludeNativeLibrariesInSingleFile)' == 'true'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
     <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW.NETCore.$(PlatformTarget).exe" />
@@ -63,7 +63,7 @@
   </Target>
 
   <!-- Merge plugins and other DLLs into the executable -->
-  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net5.0'">
+  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net5.0-windows'">
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
       <TargetFrameworkSuffix>NET461</TargetFrameworkSuffix>
@@ -95,7 +95,7 @@
   </Target>
 
   <UsingTask TaskName="WinSW.Tasks.Trim" AssemblyFile="$(ArtifactsBinDir)WinSW.Tasks\$(Configuration)\net461\WinSW.Tasks.dll" />
-  <Target Name="Trim" AfterTargets="Merge" Condition="'$(TargetFramework)' != 'net5.0'">
+  <Target Name="Trim" AfterTargets="Merge" Condition="'$(TargetFramework)' != 'net5.0-windows'">
     <Trim Path="$(ArtifactsPublishDir)WinSW.$(TargetFrameworkSuffix).exe" />
   </Target>
 

@@ -36,7 +36,7 @@ namespace WinSW.Extensions
                 catch (ExtensionException ex)
                 {
                     Log.Fatal("onWrapperStarted() handler failed for " + ext.Value.DisplayName, ex);
-                    throw ex; // Propagate error to stop the startup
+                    throw; // Propagate error to stop the startup
                 }
             }
         }
@@ -146,7 +146,7 @@ namespace WinSW.Extensions
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal
                     Log.Fatal("Failed to configure the extension " + id, ex);
-                    throw ex;
+                    throw;
                 }
 
                 this.Extensions.Add(id, extension);
