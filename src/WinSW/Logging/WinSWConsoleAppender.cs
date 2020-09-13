@@ -18,7 +18,7 @@ namespace WinSW.Logging
                 ConsoleColor.DarkGray;
             try
             {
-                this.Layout.Format(Console.Out, loggingEvent);
+                this.RenderLoggingEvent(Console.Out, loggingEvent);
             }
             finally
             {
