@@ -880,8 +880,12 @@ namespace WinSW
                     int count = children.Count;
                     for (int i = 0; i < count; i++)
                     {
-                        using var child = children[i];
-                        Draw(child, indentation, i == count - 1);
+                        var child = children[i];
+                        using (child.Process)
+                        using (child.Handle)
+                        {
+                            Draw(child.Process, indentation, i == count - 1);
+                        }
                     }
                 }
             }
