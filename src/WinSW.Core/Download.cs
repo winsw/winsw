@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using log4net;
+using WinSW.Logging;
 using WinSW.Util;
 
 namespace WinSW
@@ -22,7 +23,7 @@ namespace WinSW
             Basic
         }
 
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(Download));
+        private static readonly ILog Logger = LogManager.GetLogger(LoggerNames.Service);
 
         public readonly string From;
         public readonly string To;

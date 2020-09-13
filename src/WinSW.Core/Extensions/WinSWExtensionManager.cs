@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using log4net;
+using WinSW.Logging;
 
 namespace WinSW.Extensions
 {
@@ -11,7 +12,7 @@ namespace WinSW.Extensions
 
         public XmlServiceConfig ServiceConfig { get; }
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
+        private static readonly ILog Log = LogManager.GetLogger(LoggerNames.Service);
 
         public WinSWExtensionManager(XmlServiceConfig serviceConfig)
         {
