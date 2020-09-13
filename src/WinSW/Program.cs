@@ -34,7 +34,7 @@ namespace WinSW
     {
         private const string NoPipe = "-";
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
+        private static readonly ILog Log = LogManager.GetLogger(LoggerNames.Console);
 
         internal static Action<Exception, InvocationContext>? TestExceptionHandler;
         internal static XmlServiceConfig? TestConfig;
@@ -1091,7 +1091,7 @@ namespace WinSW
                 {
                     Name = "Wrapper console log",
                     Threshold = consoleLogLevel,
-                    Layout = new PatternLayout("%date{ABSOLUTE} - %message%newline"),
+                    Layout = new PatternLayout("%message%newline"),
                 };
                 consoleAppender.ActivateOptions();
 
@@ -1135,7 +1135,7 @@ namespace WinSW
                 Name = "Wrapper file log",
                 Threshold = fileLogLevel,
                 LockingModel = new FileAppender.MinimalLock(),
-                Layout = new PatternLayout("%date %-5level - %message%newline"),
+                Layout = new PatternLayout("%date{yyyy-MM-ddTHH:mm:ss.fff} %-5level %logger - %message%newline"),
             };
             fileAppender.ActivateOptions();
 
