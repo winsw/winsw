@@ -20,9 +20,10 @@ namespace WinSW.Util
 
             foreach (var child in GetChildren(process))
             {
-                using (child)
+                using (child.Process)
+                using (child.Handle)
                 {
-                    StopTree(child, millisecondsTimeout);
+                    StopTree(child.Process, millisecondsTimeout);
                 }
             }
         }
@@ -31,54 +32,61 @@ namespace WinSW.Util
         {
             foreach (var child in GetChildren(process))
             {
-                using (child)
+                using (child.Process)
+                using (child.Handle)
                 {
-                    StopTree(child, millisecondsTimeout);
+                    StopTree(child.Process, millisecondsTimeout);
                 }
             }
         }
 
-        internal static unsafe List<Process> GetChildren(this Process process)
+        // The handle is to keep a reference to the process.
+        internal static unsafe List<(Process Process, Handle Handle)> GetChildren(this Process process)
         {
             var startTime = process.StartTime;
             int processId = process.Id;
 
-            var children = new List<Process>();
+            var children = new List<(Process Process, Handle Handle)>();
 
             foreach (var other in Process.GetProcesses())
             {
+                var handle = OpenProcess(ProcessAccess.QueryInformation, false, other.Id);
+                if (handle == IntPtr.Zero)
+                {
+                    goto Next;
+                }
+
                 try
                 {
                     if (other.StartTime <= startTime)
                     {
                         goto Next;
                     }
-
-                    var handle = other.Handle;
-
-                    if (NtQueryInformationProcess(
-                        handle,
-                        PROCESSINFOCLASS.ProcessBasicInformation,
-                        out var information,
-                        sizeof(PROCESS_BASIC_INFORMATION)) != 0)
-                    {
-                        goto Next;
-                    }
-
-                    if ((int)information.InheritedFromUniqueProcessId == processId)
-                    {
-                        Log.Debug($"Found child process '{other.Format()}'.");
-                        children.Add(other);
-                        continue;
-                    }
-
-                Next:
-                    other.Dispose();
                 }
                 catch (Exception e) when (e is InvalidOperationException || e is Win32Exception)
                 {
-                    other.Dispose();
+                    goto Next;
                 }
+
+                if (NtQueryInformationProcess(
+                    handle,
+                    PROCESSINFOCLASS.ProcessBasicInformation,
+                    out var information,
+                    sizeof(PROCESS_BASIC_INFORMATION)) != 0)
+                {
+                    goto Next;
+                }
+
+                if ((int)information.InheritedFromUniqueProcessId == processId)
+                {
+                    Log.Debug($"Found child process '{other.Format()}'.");
+                    children.Add((other, handle));
+                    continue;
+                }
+
+            Next:
+                other.Dispose();
+                handle.Dispose();
             }
 
             return children;
@@ -94,7 +102,7 @@ namespace WinSW.Util
                 return null;
             }
 
-            if (!(SendCtrlC(process) is bool sent))
+            if (SendCtrlC(process) is not bool sent)
             {
                 return null;
             }
@@ -143,7 +151,7 @@ namespace WinSW.Util
                 goto Exited;
             }
 
-            if (!(SendCtrlC(process) is bool sent))
+            if (SendCtrlC(process) is not bool sent)
             {
                 goto Exited;
             }
