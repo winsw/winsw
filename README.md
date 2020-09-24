@@ -75,7 +75,7 @@ Most commands require Administrator privileges to execute. WinSW will prompt for
 ## Documentation
 
 * [Get started](docs/installation.md)
-* [Migrate to WinSW 3.x](docs/migrate-to-3-x)
+* [Migrate to WinSW 3.x](docs/migrate-to-3-x.md)
 * Configuration:
   * [XML configuration file](docs/xml-config-file.md)
   * [Logging and error reporting](docs/logging-and-error-reporting.md)
