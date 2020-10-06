@@ -545,8 +545,8 @@ namespace WinSW
                 UseShellExecute = false,
                 WorkingDirectory = this.config.WorkingDirectory,
                 CreateNoWindow = this.config.HideWindow,
-                RedirectStandardOutput = logHandler != null,
-                RedirectStandardError = logHandler != null,
+                RedirectStandardOutput = logHandler?.OutFileDisabled == false,
+                RedirectStandardError = logHandler?.ErrFileDisabled == false,
             };
 
             Dictionary<string, string> environment = this.config.EnvironmentVariables;
@@ -598,7 +598,9 @@ namespace WinSW
 
             if (logHandler != null)
             {
-                logHandler.Log(process.StandardOutput, process.StandardError);
+                logHandler.Log(
+                    startInfo.RedirectStandardOutput ? process.StandardOutput : StreamReader.Null,
+                    startInfo.RedirectStandardError ? process.StandardError : StreamReader.Null);
             }
 
             if (onExited != null)

@@ -44,14 +44,24 @@ namespace WinSW
     /// </summary>
     public abstract class LogHandler
     {
-        public abstract void Log(StreamReader outputReader, StreamReader errorReader);
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        protected LogHandler(bool outFileDisabled, bool errFileDisabled)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        {
+            this.OutFileDisabled = outFileDisabled;
+            this.ErrFileDisabled = errFileDisabled;
+        }
 
         /// <summary>
         /// Error and information about logging should be reported here.
         /// </summary>
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public IEventLogger EventLogger { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
+        public bool OutFileDisabled { get; }
+
+        public bool ErrFileDisabled { get; }
+
+        public abstract void Log(StreamReader outputReader, StreamReader errorReader);
 
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
@@ -91,39 +101,26 @@ namespace WinSW
     {
         protected string BaseLogFileName { get; }
 
-        protected bool OutFileDisabled { get; }
-
-        protected bool ErrFileDisabled { get; }
-
         protected string OutFilePattern { get; }
 
         protected string ErrFilePattern { get; }
 
         protected AbstractFileLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
+            : base(outFileDisabled, errFileDisabled)
         {
             this.BaseLogFileName = Path.Combine(logDirectory, baseName);
-            this.OutFileDisabled = outFileDisabled;
             this.OutFilePattern = outFilePattern;
-            this.ErrFileDisabled = errFileDisabled;
             this.ErrFilePattern = errFilePattern;
         }
 
         public override void Log(StreamReader outputReader, StreamReader errorReader)
         {
-            if (this.OutFileDisabled)
-            {
-                outputReader.Dispose();
-            }
-            else
+            if (!this.OutFileDisabled)
             {
                 this.SafeLogOutput(outputReader);
             }
 
-            if (this.ErrFileDisabled)
-            {
-                errorReader.Dispose();
-            }
-            else
+            if (!this.ErrFileDisabled)
             {
                 this.SafeLogError(errorReader);
             }
@@ -208,10 +205,13 @@ namespace WinSW
     /// </summary>
     public class IgnoreLogAppender : LogHandler
     {
+        public IgnoreLogAppender()
+            : base(true, true)
+        {
+        }
+
         public override void Log(StreamReader outputReader, StreamReader errorReader)
         {
-            outputReader.Dispose();
-            errorReader.Dispose();
         }
     }
 
