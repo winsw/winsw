@@ -1,0 +1,51 @@
+<!--
+  MIT License
+
+  Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees,
+  Inc., Oleg Nenashev and other contributors
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+
+<!--
+ This is an example of using Node Http Server.
+ It must be globally installed.
+ For details about installation and all arguments you can check on https://www.npmjs.com/package/http-server
+
+ This configuration file should be placed near the WinSW executable.
+
+ You can find more information about the configuration options here: https://github.com/winsw/winsw/blob/master/docs/xml-config-file.md
+ Full example: https://github.com/winsw/winsw/blob/master/samples/sample-complete.xml
+-->
+<service>
+  <!-- ID of the service. It should be unique across the Windows system-->
+  <id>Node Http Server</id>
+  <description>A simple, zero-configuration command-line Node http server</description>
+
+  <executable>C:\Program Files\nodejs\npx.cmd</executable>
+  
+  <!-- Starts web server on default port 8080 -->
+  <startarguments>http-server</startarguments>
+
+  <!-- To change port, add -p argument -->
+  <!-- <startarguments>http-server -p 8888</startarguments> -->
+  
+  <!-- It is root folder exposed by http server -->
+  <workingdirectory>C:\www</workingdirectory>
+</service>
