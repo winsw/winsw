@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Management;
 using System.Threading;
 using log4net;
@@ -155,8 +156,8 @@ namespace WinSW.Util
             ps.CreateNoWindow = hideWindow;
             ps.UseShellExecute = false;
             ps.RedirectStandardInput = redirectStdin;
-            ps.RedirectStandardOutput = logHandler != null;
-            ps.RedirectStandardError = logHandler != null;
+            ps.RedirectStandardOutput = logHandler?.OutFileDisabled == false;
+            ps.RedirectStandardError = logHandler?.ErrFileDisabled == false;
 
             if (envVars != null)
             {
@@ -193,7 +194,9 @@ namespace WinSW.Util
             if (logHandler != null)
             {
                 Logger.Debug("Forwarding logs of the process " + processToStart + " to " + logHandler);
-                logHandler.Log(processToStart.StandardOutput, processToStart.StandardError);
+                logHandler.Log(
+                    ps.RedirectStandardOutput ? processToStart.StandardOutput : StreamReader.Null,
+                    ps.RedirectStandardError ? processToStart.StandardError : StreamReader.Null);
             }
 
             // monitor the completion of the process
