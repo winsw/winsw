@@ -247,8 +247,14 @@ Draws the process tree associated with the service.
 ### Usage
 
 ```console
-winsw dev ps [<path-to-config>]
+winsw dev ps [<path-to-config>] [-a|--all]
 ```
+
+### Options
+
+- `-a|--all`
+
+  Optional. Draws the process tree associated with all services.
 
 ## `dev kill` command
 
