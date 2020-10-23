@@ -399,7 +399,7 @@ namespace winsw
                             var nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
-                            writer = CreateWriter(new FileStream(logFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
                             fileLength = new FileInfo(logFile).Length;
                         }
 
@@ -441,7 +441,7 @@ namespace winsw
 
                             // even if the log rotation fails, create a new one, or else
                             // we'll infinitely try to roll.
-                            writer = CreateWriter(new FileStream(logFile, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
+                            writer = CreateWriter(new FileStream(logFile, FileMode.Create));
                             fileLength = new FileInfo(logFile).Length;
                         }
                         catch (Exception e)
@@ -492,47 +492,32 @@ namespace winsw
                 try
                 {
                     //Get all the zipfiles that might match the naming pattern
-                    List<string> ZipFiles = new List<string>(Directory.GetFiles(directory, zipFileBaseName + ".*.zip"));
-                    //Now delete the ones we don't want to keep, skipping any that don't match the naming pattern
-                    foreach ( string zipFilePath in ZipFiles)
+                    //and delete the ones we don't want to keep, skipping any that don't match the naming pattern
+                    foreach ( string zipFilePath in Directory.GetFiles(directory, zipFileBaseName + ".*.zip"))
                     {
                         if (File.Exists(zipFilePath))
                         {
                             //ZipDateFormat could contain literal characters, including the '.', so this gets a bit tricky
                             string fileNameOnly = Path.GetFileNameWithoutExtension(zipFilePath);
+                            int datePartStartIndex = zipFileBaseName.Split('.').Length; //zipFileBaseName could also contain '.'
                             string[] parts = fileNameOnly.Split('.');
-                            string datePart;
-                            if(parts.Length > 2)
+                            string datePart = parts[datePartStartIndex];
+                            if (parts.Length > 2)
                             {
-                                datePart = parts[1];
-                                for(int index = 2; index < parts.Length; index++)
+                                for (int index = datePartStartIndex + 1; index < parts.Length; index++)
                                 {
                                     datePart += "." + parts[index];
                                 }
                             }
-                            else
+                            if (DateTime.TryParseExact(datePart, ZipDateFormat, System.Globalization.CultureInfo.CurrentCulture, System.Globalization.DateTimeStyles.None, out DateTime date))
                             {
-                                datePart = parts[parts.Length - 1];
-                            }
-                            //EventLogger.LogEvent($"{zipFilePath}: datePart = {datePart}");
-                            if (DateTime.TryParseExact(datePart, ZipDateFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime date))
-                            {
-                                //the date portion of the name matches the configured ZipDateFormat
-                                if (date.CompareTo(DateTime.Now.AddDays((double)(-ZipDaysToKeep - ZipOlderThanNumDays))) < 0)
+                                    //the date portion of the name matches the configured ZipDateFormat
+                                    if (date < DateTime.Now.AddDays((double)(-ZipDaysToKeep - ZipOlderThanNumDays)))
                                 {
                                     //the file is older than the configured ZipDaysToKeep. Also take the configured ZipOlderThanNumDays into account as ZipDaysToKeep should only apply to zip files
-                                    //EventLogger.LogEvent($"{zipFilePath}: datePart matches format {datePart} : {ZipDateFormat}, is older than {ZipDaysToKeep + ZipOlderThanNumDays} days, deleting ");
                                     File.Delete(zipFilePath);
                                 }
-                                //else
-                                //{
-                                //    EventLogger.LogEvent($"{zipFilePath}: datePart matches format {datePart} : {ZipDateFormat}, is younger than {ZipDaysToKeep + ZipOlderThanNumDays} days, not deleting ");
-                                //}
                             }
-                            //else
-                            //{
-                            //    EventLogger.LogEvent($"datePart does not match format {datePart} : {ZipDateFormat}, not deleting {zipFilePath}");
-                            //}
                         }
                     }
                 } catch (Exception e)
@@ -577,13 +562,11 @@ namespace winsw
                 if (File.Exists(zipFilePath))
                 {
                     zipFile = new ZipFile(File.Open(zipFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
-                    //zipFile = new ZipFile(zipFilePath);
                 }
                 else
                 {
                     
                     zipFile = ZipFile.Create(File.Open(zipFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite));
-                    //zipFile = ZipFile.Create(zipFilePath);
                 }
 
                 zipFile.BeginUpdate();
@@ -644,7 +627,6 @@ namespace winsw
                         var filenameOnly = Path.GetFileNameWithoutExtension(f);
                         var hashIndex = filenameOnly.IndexOf('#');
                         var lastNumberAsString = filenameOnly.Substring(hashIndex + 1, 4);
-                        // var lastNumberAsString = filenameOnly.Substring(filenameOnly.Length - 4, 4);
                         if (int.TryParse(lastNumberAsString, out int lastNumber))
                         {
                             if (lastNumber > nextFileNumber)
