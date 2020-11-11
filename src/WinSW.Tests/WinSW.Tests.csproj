@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
-    <PackageReference Include="System.Reflection.Metadata" Version="1.8.1" />
+    <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 
