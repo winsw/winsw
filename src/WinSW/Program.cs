@@ -1055,9 +1055,9 @@ namespace WinSW
                 DateTime fileLastWriteTime = File.GetLastWriteTime(config.FullPath);
 
                 using RegistryKey? registryKey = Registry.LocalMachine
-                    .OpenSubKey("SYSTEM")
-                    .OpenSubKey("CurrentControlSet")
-                    .OpenSubKey("Services")
+                    .OpenSubKey("SYSTEM")?
+                    .OpenSubKey("CurrentControlSet")?
+                    .OpenSubKey("Services")?
                     .OpenSubKey(config.Name);
 
                 if (registryKey is null)
