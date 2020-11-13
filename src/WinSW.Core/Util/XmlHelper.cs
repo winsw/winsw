@@ -111,14 +111,12 @@ namespace WinSW.Util
             catch (ArgumentException ex)
             {
                 throw new InvalidDataException(
-                    "Cannot parse <" + attributeName + "> Enum value from string '" + substitutedValue +
-                    "'. Enum type: " + typeof(TAttributeType), ex);
+                    "Cannot parse <" + attributeName + "> Enum value from string '" + substitutedValue + "'. Enum type: " + typeof(TAttributeType), ex);
             }
 #else
             if (!Enum.TryParse(substitutedValue, true, out TAttributeType result))
             {
-                throw new InvalidDataException("Cannot parse <" + attributeName + "> Enum value from string '" + substitutedValue +
-                    "'. Enum type: " + typeof(TAttributeType));
+                throw new InvalidDataException("Cannot parse <" + attributeName + "> Enum value from string '" + substitutedValue + "'. Enum type: " + typeof(TAttributeType));
             }
 
             return result;
