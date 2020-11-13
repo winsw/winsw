@@ -30,7 +30,6 @@ jobs:
   steps:
   - script: |
       dotnet build -c $(BuildConfiguration) src\WinSW.sln -p:Version=$(BuildVersion)
-      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 src\WinSW\WinSW.csproj -p:Version=$(BuildVersion)
       dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x64 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
       dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x86 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
     displayName: Build
@@ -66,11 +65,6 @@ jobs:
     inputs:
       PathtoPublish: artifacts\WinSW.NET461.exe
       ArtifactName: WinSW.NET461.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
-    displayName: Publish .NET Core 3.1
-    inputs:
-      PathtoPublish: artifacts\WinSW.NETCore31.zip
-      ArtifactName: WinSW.NETCore31.zip_$(BuildConfiguration)
   - task: PublishBuildArtifacts@1
     displayName: Publish .NET Core 3.1 x64
     inputs:
