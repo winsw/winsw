@@ -300,7 +300,7 @@ Each element contains a mandatory `action` attribute, which controls what Window
 The legal values for action are:
 
 - `restart`: restart the service
-- `reboot`: reboot Windows
+- `reboot`: reboot Windows. A blue screen with the [CRITICAL_PROCESS_DIED](https://docs.microsoft.com/windows-hardware/drivers/debugger/bug-check-0xef--critical-process-died) bug check code will be displayed
 - `none`: do nothing and leave the service stopped
 
 The possible suffix for the delay attribute is sec/secs/min/mins/hour/hours/day/days. If missing, the delay attribute defaults to 0.

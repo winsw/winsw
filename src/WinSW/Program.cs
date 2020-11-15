@@ -279,7 +279,7 @@ namespace WinSW
             }
 
             {
-                var customize = new Command("customize")
+                var customize = new Command("customize", "Customizes the wrapper executable.")
                 {
                     Handler = CommandHandler.Create<string, string>(Customize),
                 };
