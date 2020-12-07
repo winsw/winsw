@@ -24,7 +24,7 @@ namespace WinSW.Configuration
 
         public bool HideWindow => false;
 
-        public string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
+        public string ExecutablePath => Process.GetCurrentProcess().MainModule!.FileName!;
 
         // Installation
         public Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
@@ -155,7 +155,7 @@ namespace WinSW.Configuration
         {
             get
             {
-                var d = new DirectoryInfo(Path.GetDirectoryName(this.ExecutablePath));
+                var d = new DirectoryInfo(Path.GetDirectoryName(this.ExecutablePath)!);
                 return Path.Combine(d.FullName, this.BaseName);
             }
         }

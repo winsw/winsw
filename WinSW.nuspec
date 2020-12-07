@@ -17,7 +17,7 @@ More info about the wrapper is available in the projects GitHub repository.
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/winsw/winsw</projectUrl>
     <!--<iconUrl>TODO</iconUrl>-->
-    <copyright>Copyright (c) 2010-2016 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</copyright>
+    <copyright>Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</copyright>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <tags>service wrapper</tags>
     <dependencies>
@@ -25,9 +25,9 @@ More info about the wrapper is available in the projects GitHub repository.
     </dependencies>
   </metadata>
   <files>
-    <file src="artifacts\WinSW.NET2.exe" target="lib\net20-full\WinSW.NET2.exe" />
-    <file src="artifacts\WinSW.NET4.exe" target="lib\net40-full\WinSW.NET4.exe" />
-    <file src="artifacts\WinSW.NET461.exe" target="lib\net461-full\WinSW.NET461.exe" />
+    <file src="artifacts\publish\WinSW.NET2.exe" target="lib\net20-full\WinSW.NET2.exe" />
+    <file src="artifacts\publish\WinSW.NET4.exe" target="lib\net40-full\WinSW.NET4.exe" />
+    <file src="artifacts\publish\WinSW.NET461.exe" target="lib\net461-full\WinSW.NET461.exe" />
     <file src="examples\sample-allOptions.xml" target="lib\net20-full\WinSW.NET2.xml" />
     <file src="examples\sample-allOptions.xml" target="lib\net40-full\WinSW.NET4.xml" />
     <file src="examples\sample-allOptions.xml" target="lib\net461-full\WinSW.NET461.xml" />

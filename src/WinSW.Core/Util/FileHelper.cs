@@ -12,7 +12,7 @@ namespace WinSW.Util
     {
         public static void MoveOrReplaceFile(string sourceFileName, string destFileName)
         {
-#if NETCOREAPP
+#if NET
             File.Move(sourceFileName, destFileName, true);
 #else
             string sourceFilePath = Path.GetFullPath(sourceFileName);
