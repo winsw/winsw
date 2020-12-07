@@ -31,7 +31,7 @@ namespace WinSW
         internal WinSWExtensionManager ExtensionManager { get; private set; }
 
         private static readonly ILog Log = LogManager.GetLogger(
-#if NETCOREAPP
+#if NET
             Assembly.GetExecutingAssembly(),
 #endif
             "WinSW");

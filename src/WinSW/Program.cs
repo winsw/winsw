@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-#if NETCOREAPP
+#if NET
 using System.Reflection;
 #endif
 using System.Runtime.InteropServices;
@@ -512,8 +512,8 @@ namespace WinSW
                 {
                     UseShellExecute = true,
                     Verb = "runas",
-                    FileName = current.MainModule.FileName,
-#if NETCOREAPP
+                    FileName = current.MainModule!.FileName!,
+#if NET
                     Arguments = "/elevated " + string.Join(' ', args),
 #elif !NET20
                     Arguments = "/elevated " + string.Join(" ", args),
@@ -525,7 +525,7 @@ namespace WinSW
 
                 try
                 {
-                    using Process elevated = Process.Start(startInfo);
+                    using Process elevated = Process.Start(startInfo)!;
 
                     elevated.WaitForExit();
                     Environment.Exit(elevated.ExitCode);
@@ -596,7 +596,7 @@ namespace WinSW
             appenders.Add(systemEventLogger);
 
             BasicConfigurator.Configure(
-#if NETCOREAPP
+#if NET
                 LogManager.GetRepository(Assembly.GetExecutingAssembly()),
 #endif
                 appenders.ToArray());
@@ -664,7 +664,7 @@ namespace WinSW
             var executablePath = new DefaultWinSWSettings().ExecutablePath;
             var baseName = Path.GetFileNameWithoutExtension(executablePath);
 
-            var d = new DirectoryInfo(Path.GetDirectoryName(executablePath));
+            var d = new DirectoryInfo(Path.GetDirectoryName(executablePath)!);
 
             if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
             {

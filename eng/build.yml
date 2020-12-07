@@ -28,11 +28,18 @@ jobs:
       Release:
         BuildConfiguration: Release
   steps:
-  - script: |
-      dotnet build -c $(BuildConfiguration) src\WinSW.sln -p:Version=$(BuildVersion)
-      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x64 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
-      dotnet publish -c $(BuildConfiguration) -f netcoreapp3.1 -r win-x86 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+  - task: DotNetCoreCLI@2
     displayName: Build
+    inputs:
+      command: build
+      projects: src\WinSW.sln
+      arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
+  - script: |
+      dotnet publish -c $(BuildConfiguration) -f net5.0-windows -r win-x64 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+      dotnet publish -c $(BuildConfiguration) -f net5.0-windows -r win-x86 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+    displayName: Build
+  - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
+    displayName: Test
   - task: NuGetToolInstaller@1
     displayName: Install Nuget
     inputs:
@@ -44,51 +51,41 @@ jobs:
       packagesToPack: WinSW.nuspec
       versioningScheme: byEnvVar
       versionEnvVar: BuildVersion
-  - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
-    displayName: Test
   - script: dotnet tool restore
     displayName: Restore tools
   - script: dotnet tool run codecov -- -f "src\**\TestResults\*\coverage.cobertura.xml" --required
     displayName: Upload code coverage reports
-  - task: PublishBuildArtifacts@1
+
+  - publish: artifacts\publish\WinSW.NET2.exe
+    artifact: WinSW.NET2.exe_$(BuildConfiguration)
     displayName: Publish .NET 2.0
-    inputs:
-      PathtoPublish: artifacts\WinSW.NET2.exe
-      ArtifactName: WinSW.NET2.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
+
+  - publish: artifacts\publish\WinSW.NET4.exe
+    artifact: WinSW.NET4.exe_$(BuildConfiguration)
     displayName: Publish .NET 4.0
-    inputs:
-      PathtoPublish: artifacts\WinSW.NET4.exe
-      ArtifactName: WinSW.NET4.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
+
+  - publish: artifacts\publish\WinSW.NET461.exe
+    artifact: WinSW.NET461.exe_$(BuildConfiguration)
     displayName: Publish .NET 4.6.1
-    inputs:
-      PathtoPublish: artifacts\WinSW.NET461.exe
-      ArtifactName: WinSW.NET461.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
-    displayName: Publish .NET Core 3.1 x64
-    inputs:
-      PathtoPublish: artifacts\WinSW.NETCore31.x64.exe
-      ArtifactName: WinSW.NETCore31.x64.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
-    displayName: Publish .NET Core 3.1 x86
-    inputs:
-      PathtoPublish: artifacts\WinSW.NETCore31.x86.exe
-      ArtifactName: WinSW.NETCore31.x86.exe_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
+
+  - publish: artifacts\publish\WinSW-x64.exe
+    artifact: WinSW-x64.exe_$(BuildConfiguration)
+    displayName: Publish .NET Core x64
+
+  - publish: artifacts\publish\WinSW-x86.exe
+    artifact: WinSW-x86.exe_$(BuildConfiguration)
+    displayName: Publish .NET Core x86
+
+  - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
+    artifact: WinSW.nupkg_$(BuildConfiguration)
     displayName: Publish Nuget
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
-      ArtifactName: WinSW.nupkg_$(BuildConfiguration)
-  - task: PublishBuildArtifacts@1
+
+  - publish: examples\sample-allOptions.xml
+    artifact: sample-allOptions.xml
     displayName: Publish full sample
     condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
-    inputs:
-      PathtoPublish: examples\sample-allOptions.xml
-      ArtifactName: sample-allOptions.xml
-  - task: PublishBuildArtifacts@1
+
+  - publish: examples\sample-minimal.xml
+    artifact: sample-minimal.xml
     displayName: Publish minimal sample
     condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
-    inputs:
-      PathtoPublish: examples\sample-minimal.xml
-      ArtifactName: sample-minimal.xml
