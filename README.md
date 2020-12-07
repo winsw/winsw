@@ -41,22 +41,20 @@ Alternative sources:
 * [Maven packaging](https://github.com/jenkinsci/winsw-maven-packaging) for executables, hosted by the [Jenkins project](https://jenkins.io/).
 Binaries are available [here](https://repo.jenkins-ci.org/releases/com/sun/winsw/winsw/). (2.x)
 
-# Get started
+## Get started
 
-## Use WinSW as a global tool
+### Use WinSW as a global tool
 
 1. Take *WinSW.exe* or *WinSW.zip* from the distribution.
-1. Write *myapp.xml* (see the [XML config file specification](docs/xml-config-file.md) for more details)
+1. Write *myapp.xml* (see the [XML config file specification](docs/xml-config-file.md) and [samples](samples) for more details).
 1. Run [`winsw install myapp.xml [options]`](docs/cli-commands.md#install-command) to install the service.
 1. Run [`winsw start myapp.xml`](docs/cli-commands.md#start-command) to start the service.
 1. Run [`winsw status myapp.xml`](docs/cli-commands.md#status-command) to see if your service is up and running.
 
-## Use WinSW as a bundled tool
+### Use WinSW as a bundled tool
 
-In order to setup WinSW, you commonly need to perform the following steps:
-
-1. Take *WinSW.exe* or *WinSW.zip* from the distribution, and rename the *.exe* to your taste (such as *myapp.exe*)
-1. Write *myapp.xml* (see the [XML config file specification](docs/xml-config-file.md) for more details)
+1. Take *WinSW.exe* or *WinSW.zip* from the distribution, and rename the *.exe* to your taste (such as *myapp.exe*).
+1. Write *myapp.xml* (see the [XML config file specification](docs/xml-config-file.md) and [samples](samples) for more details).
 1. Place those two files side by side, because that's how WinSW discovers its co-related configuration.
 1. Run [`myapp.exe install [options]`](docs/cli-commands.md#install-command) to install the service.
 1. Run [`myapp.exe start`](docs/cli-commands.md#start-command) to start the service.
