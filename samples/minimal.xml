@@ -30,7 +30,7 @@
  E.g. for myapp.exe the configuration file name should be myapp.xml
 
  You can find more information about the configuration options here: https://github.com/winsw/winsw/blob/master/docs/xml-config-file.md
- Full example: https://github.com/winsw/winsw/blob/master/samples/sample-complete.xml
+ Full example: https://github.com/winsw/winsw/blob/master/samples/complete.xml
 -->
 <service>
 
