@@ -296,7 +296,7 @@ namespace WinSW.Plugins
             bldr.Append(proc);
 
             Logger.Warn(bldr.ToString());
-            ProcessHelper.StopProcessAndChildren(pid, this.StopTimeout, this.StopParentProcessFirst);
+            ProcessHelper.StopProcessTree(proc, this.StopTimeout, this.StopParentProcessFirst);
         }
 
         /// <summary>

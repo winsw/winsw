@@ -351,7 +351,7 @@ namespace WinSW
                 try
                 {
                     Log.Debug("ProcessKill " + this.process.Id);
-                    ProcessHelper.StopProcessAndChildren(this.process.Id, this.descriptor.StopTimeout, this.descriptor.StopParentProcessFirst);
+                    ProcessHelper.StopProcessTree(this.process, this.descriptor.StopTimeout, this.descriptor.StopParentProcessFirst);
                     this.ExtensionManager.FireOnProcessTerminated(this.process);
                 }
                 catch (InvalidOperationException)
