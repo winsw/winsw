@@ -21,7 +21,6 @@ using log4net.Layout;
 using WinSW.Configuration;
 using WinSW.Logging;
 using WinSW.Native;
-using WinSW.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
@@ -74,7 +73,16 @@ namespace WinSW
             if (!inConsoleMode)
             {
                 Log.Debug("Starting WinSW in service mode");
-                ServiceBase.Run(new WrapperService(descriptor));
+                using var service = new WrapperService(descriptor);
+                try
+                {
+                    ServiceBase.Run(service);
+                }
+                catch
+                {
+                    // handled in OnStart
+                }
+
                 return;
             }
 
