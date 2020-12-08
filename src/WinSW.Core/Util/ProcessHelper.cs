@@ -29,11 +29,11 @@ namespace WinSW.Util
             try
             {
                 string query = "SELECT * FROM Win32_Process WHERE ParentProcessID = " + pid;
-                using ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                using ManagementObjectCollection results = searcher.Get();
-                foreach (ManagementBaseObject wmiObject in results)
+                using var searcher = new ManagementObjectSearcher(query);
+                using var results = searcher.Get();
+                foreach (var wmiObject in results)
                 {
-                    var childProcessId = wmiObject["ProcessID"];
+                    object childProcessId = wmiObject["ProcessID"];
                     Logger.Info("Found child process: " + childProcessId + " Name: " + wmiObject["Name"]);
                     childPids.Add(Convert.ToInt32(childProcessId));
                 }
@@ -67,7 +67,7 @@ namespace WinSW.Util
             }
 
             // (bool sent, bool exited)
-            KeyValuePair<bool, bool> result = SignalHelper.SendCtrlCToProcess(proc, stopTimeout);
+            var result = SignalHelper.SendCtrlCToProcess(proc, stopTimeout);
             bool exited = result.Value;
             if (!exited)
             {
@@ -107,7 +107,7 @@ namespace WinSW.Util
         {
             if (!stopParentProcessFirst)
             {
-                foreach (var childPid in GetChildPids(pid))
+                foreach (int childPid in GetChildPids(pid))
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
                 }
@@ -117,7 +117,7 @@ namespace WinSW.Util
 
             if (stopParentProcessFirst)
             {
-                foreach (var childPid in GetChildPids(pid))
+                foreach (int childPid in GetChildPids(pid))
                 {
                     StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
                 }

@@ -10,8 +10,8 @@ namespace WinSW.Plugins
 {
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {
-        private readonly SharedDirectoryMappingHelper _mapper = new SharedDirectoryMappingHelper();
-        private readonly List<SharedDirectoryMapperConfig> _entries = new List<SharedDirectoryMapperConfig>();
+        private readonly SharedDirectoryMappingHelper _mapper = new();
+        private readonly List<SharedDirectoryMapperConfig> _entries = new();
 
         public override string DisplayName => "Shared Directory Mapper";
 
@@ -23,13 +23,13 @@ namespace WinSW.Plugins
 
         public SharedDirectoryMapper(bool enableMapping, string directoryUNC, string driveLabel)
         {
-            SharedDirectoryMapperConfig config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
+            var config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
             this._entries.Add(config);
         }
 
         public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
-            XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
+            var mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
             {
                 for (int i = 0; i < mapNodes.Count; i++)
@@ -47,14 +47,14 @@ namespace WinSW.Plugins
         {
             var dict = config.GetSettings();
 
-            var mappingNode = dict["mapping"];
+            object mappingNode = dict["mapping"];
 
             if (!(mappingNode is List<object> mappings))
             {
                 throw new InvalidDataException("SharedDirectoryMapper mapping should be a list");
             }
 
-            foreach (var map in mappings)
+            foreach (object map in mappings)
             {
                 var mapConfig = SharedDirectoryMapperConfig.FromYaml(map);
                 this._entries.Add(mapConfig);
@@ -63,7 +63,7 @@ namespace WinSW.Plugins
 
         public override void OnWrapperStarted()
         {
-            foreach (SharedDirectoryMapperConfig config in this._entries)
+            foreach (var config in this._entries)
             {
                 if (config.EnableMapping)
                 {
@@ -86,7 +86,7 @@ namespace WinSW.Plugins
 
         public override void BeforeWrapperStopped()
         {
-            foreach (SharedDirectoryMapperConfig config in this._entries)
+            foreach (var config in this._entries)
             {
                 if (config.EnableMapping)
                 {

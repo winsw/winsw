@@ -9,7 +9,7 @@ namespace WinSW.Native
     {
         internal static void AddServiceLogonRight(string domain, string user)
         {
-            IntPtr sid = GetAccountSid(domain, user);
+            var sid = GetAccountSid(domain, user);
 
             try
             {
@@ -34,8 +34,8 @@ namespace WinSW.Native
             string accountName = domain + "\\" + user;
             _ = LookupAccountName(null, accountName, IntPtr.Zero, ref sidSize, IntPtr.Zero, ref domainNameLength, out _);
 
-            IntPtr sid = Marshal.AllocHGlobal(sidSize);
-            IntPtr domainName = Marshal.AllocHGlobal(domainNameLength * sizeof(char));
+            var sid = Marshal.AllocHGlobal(sidSize);
+            var domainName = Marshal.AllocHGlobal(domainNameLength * sizeof(char));
 
             try
             {
@@ -54,7 +54,7 @@ namespace WinSW.Native
 
         private static void AddAccountRight(IntPtr sid, string rightName)
         {
-            uint status = LsaOpenPolicy(IntPtr.Zero, default, PolicyAccess.ALL_ACCESS, out IntPtr policyHandle);
+            uint status = LsaOpenPolicy(IntPtr.Zero, default, PolicyAccess.ALL_ACCESS, out var policyHandle);
             if (status != 0)
             {
                 throw new Win32Exception(LsaNtStatusToWinError(status));
@@ -62,7 +62,7 @@ namespace WinSW.Native
 
             try
             {
-                LSA_UNICODE_STRING userRight = new LSA_UNICODE_STRING
+                var userRight = new LSA_UNICODE_STRING
                 {
                     Buffer = rightName,
                     Length = (ushort)(rightName.Length * sizeof(char)),

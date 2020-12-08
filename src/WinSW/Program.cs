@@ -87,8 +87,8 @@ namespace WinSW
             }
 
             // Get service info for the future use
-            IWin32Services svcs = new WmiRoot().GetCollection<IWin32Services>();
-            IWin32Service? svc = svcs.Select(descriptor.Id);
+            var svcs = new WmiRoot().GetCollection<IWin32Services>();
+            var svc = svcs.Select(descriptor.Id);
 
             var args = new List<string>(Array.AsReadOnly(argsArray));
             if (args[0] == "/redirect")
@@ -182,9 +182,7 @@ namespace WinSW
                 default:
                     Console.WriteLine("Unknown command: " + args[0]);
                     PrintAvailableCommands();
-#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Unknown command: " + args[0]);
-#pragma warning restore S112 // General exceptions should never be thrown
             }
 
             void Install()
@@ -202,9 +200,7 @@ namespace WinSW
                 {
                     Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
                     Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
-#pragma warning restore S112 // General exceptions should never be thrown
                 }
 
                 string? username = null;
@@ -252,12 +248,12 @@ namespace WinSW
                     password,
                     descriptor.ServiceDependencies);
 
-                using ServiceManager scm = ServiceManager.Open();
-                using Service sc = scm.OpenService(descriptor.Id);
+                using var scm = ServiceManager.Open();
+                using var sc = scm.OpenService(descriptor.Id);
 
                 sc.SetDescription(descriptor.Description);
 
-                SC_ACTION[] actions = descriptor.FailureActions;
+                var actions = descriptor.FailureActions;
                 if (actions.Length > 0)
                 {
                     sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
@@ -460,18 +456,14 @@ namespace WinSW
                 bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
                 if (!result)
                 {
-#pragma warning disable S112 // General exceptions should never be thrown
                     throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
-#pragma warning restore S112 // General exceptions should never be thrown
                 }
             }
 
             void Status()
             {
                 Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
-#pragma warning disable S3358 // Ternary operators should not be nested
                 Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
-#pragma warning restore S3358 // Ternary operators should not be nested
             }
 
             void Test()
@@ -482,7 +474,7 @@ namespace WinSW
                     return;
                 }
 
-                WrapperService wsvc = new WrapperService(descriptor);
+                var wsvc = new WrapperService(descriptor);
                 wsvc.RaiseOnStart(args.ToArray());
                 Thread.Sleep(1000);
                 wsvc.RaiseOnStop();
@@ -496,7 +488,7 @@ namespace WinSW
                     return;
                 }
 
-                WrapperService wsvc = new WrapperService(descriptor);
+                var wsvc = new WrapperService(descriptor);
                 wsvc.RaiseOnStart(args.ToArray());
                 Console.WriteLine("Press any key to stop the service...");
                 _ = Console.Read();
@@ -506,9 +498,9 @@ namespace WinSW
             // [DoesNotReturn]
             void Elevate()
             {
-                using Process current = Process.GetCurrentProcess();
+                using var current = Process.GetCurrentProcess();
 
-                ProcessStartInfo startInfo = new ProcessStartInfo
+                var startInfo = new ProcessStartInfo
                 {
                     UseShellExecute = true,
                     Verb = "runas",
@@ -525,7 +517,7 @@ namespace WinSW
 
                 try
                 {
-                    using Process elevated = Process.Start(startInfo)!;
+                    using var elevated = Process.Start(startInfo)!;
 
                     elevated.WaitForExit();
                     Environment.Exit(elevated.ExitCode);
@@ -544,18 +536,18 @@ namespace WinSW
         private static void InitLoggers(IWinSWConfiguration descriptor, bool enableConsoleLogging)
         {
             // TODO: Make logging levels configurable
-            Level fileLogLevel = Level.Debug;
+            var fileLogLevel = Level.Debug;
 
             // TODO: Debug should not be printed to console by default. Otherwise commands like 'status' will be pollutted
             // This is a workaround till there is a better command line parsing, which will allow determining
-            Level consoleLogLevel = Level.Info;
-            Level eventLogLevel = Level.Warn;
+            var consoleLogLevel = Level.Info;
+            var eventLogLevel = Level.Warn;
 
             // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
-            PatternLayout layout = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
+            var layout = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
             layout.ActivateOptions();
 
-            List<IAppender> appenders = new List<IAppender>();
+            var appenders = new List<IAppender>();
 
             // .wrapper.log
             string wrapperLogPath = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
@@ -604,8 +596,8 @@ namespace WinSW
 
         internal static unsafe bool IsProcessElevated()
         {
-            IntPtr process = ProcessApis.GetCurrentProcess();
-            if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out IntPtr token))
+            var process = ProcessApis.GetCurrentProcess();
+            if (!ProcessApis.OpenProcessToken(process, TokenAccessLevels.Read, out var token))
             {
                 ThrowWin32Exception("Failed to open process token.");
             }
@@ -615,7 +607,7 @@ namespace WinSW
                 if (!SecurityApis.GetTokenInformation(
                     token,
                     SecurityApis.TOKEN_INFORMATION_CLASS.TokenElevation,
-                    out SecurityApis.TOKEN_ELEVATION elevation,
+                    out var elevation,
                     sizeof(SecurityApis.TOKEN_ELEVATION),
                     out _))
                 {
@@ -631,17 +623,17 @@ namespace WinSW
 
             static void ThrowWin32Exception(string message)
             {
-                Win32Exception inner = new Win32Exception();
+                var inner = new Win32Exception();
                 throw new Win32Exception(inner.NativeErrorCode, message + ' ' + inner.Message);
             }
         }
 
         private static string ReadPassword()
         {
-            StringBuilder buf = new StringBuilder();
+            var buf = new StringBuilder();
             while (true)
             {
-                ConsoleKeyInfo key = Console.ReadKey(true);
+                var key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Enter)
                 {
                     return buf.ToString();
@@ -661,8 +653,8 @@ namespace WinSW
 
         private static IWinSWConfiguration GetServiceDescriptor()
         {
-            var executablePath = new DefaultWinSWSettings().ExecutablePath;
-            var baseName = Path.GetFileNameWithoutExtension(executablePath);
+            string executablePath = new DefaultWinSWSettings().ExecutablePath;
+            string baseName = Path.GetFileNameWithoutExtension(executablePath);
 
             var d = new DirectoryInfo(Path.GetDirectoryName(executablePath)!);
 

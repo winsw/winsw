@@ -87,7 +87,7 @@ namespace WMI
 
         public WmiRoot()
         {
-            ConnectionOptions options = new ConnectionOptions
+            var options = new ConnectionOptions
             {
                 EnablePrivileges = true,
                 Impersonation = ImpersonationLevel.Impersonate,
@@ -118,7 +118,7 @@ namespace WMI
 
             protected ManagementBaseObject GetMethodParameters(ManagementObject wmiObject, string methodName, ParameterInfo[] methodParameters, object[] arguments)
             {
-                ManagementBaseObject wmiParameters = wmiObject.GetMethodParameters(methodName);
+                var wmiParameters = wmiObject.GetMethodParameters(methodName);
                 for (int i = 0; i < arguments.Length; i++)
                 {
                     string capitalizedName = Capitalize(methodParameters[i].Name!);
@@ -155,9 +155,9 @@ namespace WMI
                 }
 
                 string methodName = method.Name;
-                using ManagementBaseObject? wmiParameters = arguments.Length == 0 ? null :
+                using var wmiParameters = arguments.Length == 0 ? null :
                     this.GetMethodParameters(this.wmiObject, methodName, method.GetParameters(), arguments);
-                using ManagementBaseObject result = this.wmiObject.InvokeMethod(methodName, wmiParameters, null);
+                using var result = this.wmiObject.InvokeMethod(methodName, wmiParameters, null);
                 this.CheckError(result);
                 return null;
             }
@@ -176,12 +176,12 @@ namespace WMI
 
             public override object? Invoke(object proxy, MethodInfo method, object[] arguments)
             {
-                ParameterInfo[] methodParameters = method.GetParameters();
+                var methodParameters = method.GetParameters();
 
                 if (method.Name == nameof(IWin32Services.Select))
                 {
                     // select method to find instances
-                    StringBuilder query = new StringBuilder("SELECT * FROM ").Append(this.className).Append(" WHERE ");
+                    var query = new StringBuilder("SELECT * FROM ").Append(this.className).Append(" WHERE ");
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         if (i != 0)
@@ -192,8 +192,8 @@ namespace WMI
                         query.Append(' ').Append(Capitalize(methodParameters[i].Name!)).Append(" = '").Append(arguments[i]).Append('\'');
                     }
 
-                    using ManagementObjectSearcher searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query.ToString()));
-                    using ManagementObjectCollection results = searcher.Get();
+                    using var searcher = new ManagementObjectSearcher(this.wmiClass.Scope, new ObjectQuery(query.ToString()));
+                    using var results = searcher.Get();
 
                     // TODO: support collections
                     foreach (ManagementObject wmiObject in results)
@@ -205,9 +205,9 @@ namespace WMI
                 }
 
                 string methodName = method.Name;
-                using ManagementBaseObject? wmiParameters = arguments.Length == 0 ? null :
+                using var wmiParameters = arguments.Length == 0 ? null :
                     this.GetMethodParameters(this.wmiClass, methodName, methodParameters, arguments);
-                using ManagementBaseObject result = this.wmiClass.InvokeMethod(methodName, wmiParameters, null);
+                using var result = this.wmiClass.InvokeMethod(methodName, wmiParameters, null);
                 this.CheckError(result);
                 return null;
             }
@@ -219,7 +219,7 @@ namespace WMI
         public T GetCollection<T>()
             where T : IWmiCollection
         {
-            WmiClassName className = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
+            var className = (WmiClassName)typeof(T).GetCustomAttributes(typeof(WmiClassName), false)[0];
 
             return (T)ProxyFactory.Create(new ClassHandler(this.wmiScope, className.Name), typeof(T), true);
         }

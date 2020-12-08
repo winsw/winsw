@@ -15,7 +15,7 @@ namespace winswTests
         public void Roundtrip_Defaults()
         {
             // Roundtrip data
-            Download d = new Download(From, To);
+            var d = new Download(From, To);
             var sd = ConfigXmlBuilder.create()
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
@@ -33,7 +33,7 @@ namespace winswTests
         public void Roundtrip_BasicAuth()
         {
             // Roundtrip data
-            Download d = new Download(From, To, true, Download.AuthType.Basic, "aUser", "aPassword", true);
+            var d = new Download(From, To, true, Download.AuthType.Basic, "aUser", "aPassword", true);
             var sd = ConfigXmlBuilder.create()
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
@@ -51,7 +51,7 @@ namespace winswTests
         public void Roundtrip_SSPI()
         {
             // Roundtrip data
-            Download d = new Download(From, To, false, Download.AuthType.Sspi);
+            var d = new Download(From, To, false, Download.AuthType.Sspi);
             var sd = ConfigXmlBuilder.create()
                 .WithDownload(d)
                 .ToServiceDescriptor(true);
@@ -98,7 +98,7 @@ namespace winswTests
         [TestCase(false)]
         public void Download_FailOnError(bool failOnError)
         {
-            Download d = new Download(From, To, failOnError);
+            var d = new Download(From, To, failOnError);
 
             var sd = ConfigXmlBuilder.create()
                 .WithDownload(d)

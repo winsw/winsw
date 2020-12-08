@@ -13,7 +13,7 @@ namespace WinSW.Plugins
         /// <exception cref="MapperException">Operation failure</exception>
         private void InvokeCommand(string command, string args)
         {
-            Process p = new Process
+            var p = new Process
             {
                 StartInfo =
                 {

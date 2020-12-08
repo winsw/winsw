@@ -19,7 +19,7 @@ namespace WinSW.Util
             return TimeSpan.FromMilliseconds(int.Parse(v));
         }
 
-        private static readonly Dictionary<string, long> Suffix = new Dictionary<string, long>
+        private static readonly Dictionary<string, long> Suffix = new()
         {
             { "ms",     1 },
             { "sec",    1000L },

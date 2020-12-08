@@ -463,7 +463,7 @@ delayedAutoStart: true";
         [Test]
         public void Must_Specify_Values_Test()
         {
-            var yml = @"
+            string yml = @"
 name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";

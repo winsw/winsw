@@ -54,7 +54,7 @@ namespace WinSW.Native
 
         internal static ServiceManager Open()
         {
-            IntPtr handle = OpenSCManager(null, null, ServiceManagerAccess.ALL_ACCESS);
+            var handle = OpenSCManager(null, null, ServiceManagerAccess.ALL_ACCESS);
             if (handle == IntPtr.Zero)
             {
                 Throw.Win32Exception("Failed to open the service control manager database.");
@@ -65,7 +65,7 @@ namespace WinSW.Native
 
         internal Service OpenService(string serviceName)
         {
-            IntPtr serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
             if (serviceHandle == IntPtr.Zero)
             {
                 Throw.Win32Exception("Failed to open the service.");

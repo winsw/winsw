@@ -26,11 +26,11 @@ namespace winswTests.Util
         /// <returns>Dictionary of the strings.</returns>
         public static Dictionary<string, string> parseSetOutput(string filePath)
         {
-            Dictionary<string, string> res = new Dictionary<string, string>();
-            var lines = File.ReadAllLines(filePath);
-            foreach (var line in lines)
+            var res = new Dictionary<string, string>();
+            string[] lines = File.ReadAllLines(filePath);
+            foreach (string line in lines)
             {
-                var parsed = line.Split("=".ToCharArray(), 2);
+                string[] parsed = line.Split("=".ToCharArray(), 2);
                 if (parsed.Length == 2)
                 {
                     res.Add(parsed[0], parsed[1]);

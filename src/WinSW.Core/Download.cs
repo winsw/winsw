@@ -150,10 +150,10 @@ namespace WinSW
         public void Perform()
 #endif
         {
-            WebRequest request = WebRequest.Create(this.From);
+            var request = WebRequest.Create(this.From);
             if (!string.IsNullOrEmpty(this.Proxy))
             {
-                CustomProxyInformation proxyInformation = new CustomProxyInformation(this.Proxy!);
+                var proxyInformation = new CustomProxyInformation(this.Proxy!);
                 if (proxyInformation.Credentials != null)
                 {
                     request.Proxy = new WebProxy(proxyInformation.ServerAddress, false, null, proxyInformation.Credentials);
@@ -196,12 +196,12 @@ namespace WinSW
             try
             {
 #if VNEXT
-                using (WebResponse response = await request.GetResponseAsync())
+                using (var response = await request.GetResponseAsync())
 #else
-                using (WebResponse response = request.GetResponse())
+                using (var response = request.GetResponse())
 #endif
-                using (Stream responseStream = response.GetResponseStream())
-                using (FileStream tmpStream = new FileStream(tmpFilePath, FileMode.Create))
+                using (var responseStream = response.GetResponseStream())
+                using (var tmpStream = new FileStream(tmpFilePath, FileMode.Create))
                 {
                     if (supportsIfModifiedSince)
                     {

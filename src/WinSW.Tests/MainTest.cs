@@ -18,7 +18,7 @@ namespace winswTests
             {
                 _ = CLITestHelper.CLITest(new[] { "install" });
 
-                using ServiceController controller = new ServiceController(CLITestHelper.Id);
+                using var controller = new ServiceController(CLITestHelper.Id);
                 Assert.That(controller.DisplayName, Is.EqualTo(CLITestHelper.Name));
                 Assert.That(controller.CanStop, Is.False);
                 Assert.That(controller.CanShutdown, Is.False);
@@ -61,7 +61,7 @@ namespace winswTests
         {
             const string commandName = "nonExistentCommand";
             string expectedMessage = "Unknown command: " + commandName;
-            CLITestResult result = CLITestHelper.CLIErrorTest(new[] { commandName });
+            var result = CLITestHelper.CLIErrorTest(new[] { commandName });
 
             Assert.That(result.HasException, Is.True);
             Assert.That(result.Out, Does.Contain(expectedMessage));
