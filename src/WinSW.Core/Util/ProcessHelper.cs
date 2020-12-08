@@ -187,7 +187,14 @@ namespace WinSW.Util
 
             if (priority != null)
             {
-                processToStart.PriorityClass = priority.Value;
+                try
+                {
+                    processToStart.PriorityClass = priority.Value;
+                }
+                catch (InvalidOperationException)
+                {
+                    // exited
+                }
             }
 
             // Redirect logs if required

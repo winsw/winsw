@@ -43,7 +43,7 @@ namespace WinSW
         /// so don't try to kill us when the child exits.
         /// </summary>
         private bool orderlyShutdown;
-        private bool systemShuttingdown;
+        private bool shuttingdown;
 
         /// <summary>
         /// Version of Windows service wrapper
@@ -56,7 +56,7 @@ namespace WinSW
         /// <summary>
         /// Indicates that the system is shutting down.
         /// </summary>
-        public bool IsShuttingDown => this.systemShuttingdown;
+        public bool IsShuttingDown => this.shuttingdown;
 
         public WrapperService(IWinSWConfiguration descriptor)
         {
@@ -67,7 +67,7 @@ namespace WinSW
             this.CanStop = true;
             this.CanPauseAndContinue = false;
             this.AutoLog = true;
-            this.systemShuttingdown = false;
+            this.shuttingdown = false;
 
             // Register the event log provider
             eventLogProvider.Service = this;
@@ -144,7 +144,7 @@ namespace WinSW
 
         public void LogEvent(string message)
         {
-            if (this.systemShuttingdown)
+            if (this.shuttingdown)
             {
                 /* NOP - cannot call EventLog because of shutdown. */
             }
@@ -163,7 +163,7 @@ namespace WinSW
 
         public void LogEvent(string message, EventLogEntryType type)
         {
-            if (this.systemShuttingdown)
+            if (this.shuttingdown)
             {
                 /* NOP - cannot call EventLog because of shutdown. */
             }
@@ -179,8 +179,51 @@ namespace WinSW
                 }
             }
         }
+        internal void RaiseOnStart(string[] args) => this.OnStart(args);
+
+        internal void RaiseOnStop() => this.OnStop();
 
         protected override void OnStart(string[] args)
+        {
+            try
+            {
+                this.DoStart();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to start service.", e);
+                throw;
+            }
+        }
+
+        protected override void OnStop()
+        {
+            try
+            {
+                this.DoStop();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to stop service.", e);
+                throw;
+            }
+        }
+
+        protected override void OnShutdown()
+        {
+            try
+            {
+                this.shuttingdown = true;
+                this.DoStop();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to shut down service.", e);
+                throw;
+            }
+        }
+
+        private void DoStart()
         {
             bool succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
             Debug.Assert(succeeded);
@@ -293,43 +336,10 @@ namespace WinSW
             this.process.StandardInput.Close(); // nothing for you to read!
         }
 
-        protected override void OnShutdown()
-        {
-            // WriteEvent("OnShutdown");
-
-            try
-            {
-                this.systemShuttingdown = true;
-                this.StopIt();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Shutdown exception", ex);
-            }
-        }
-
-        protected override void OnStop()
-        {
-            // WriteEvent("OnStop");
-
-            try
-            {
-                this.StopIt();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Cannot stop exception", ex);
-            }
-        }
-
-        internal void RaiseOnStart(string[] args) => this.OnStart(args);
-
-        internal void RaiseOnStop() => this.OnStop();
-
         /// <summary>
         /// Called when we are told by Windows SCM to exit.
         /// </summary>
-        private void StopIt()
+        private void DoStop()
         {
             string? stopArguments = this.descriptor.StopArguments;
             this.LogEvent("Stopping " + this.descriptor.Id);
@@ -371,7 +381,7 @@ namespace WinSW
             // Stop extensions
             this.ExtensionManager.FireBeforeWrapperStopped();
 
-            if (this.systemShuttingdown && this.descriptor.BeepOnShutdown)
+            if (this.shuttingdown && this.descriptor.BeepOnShutdown)
             {
                 Console.Beep();
             }
