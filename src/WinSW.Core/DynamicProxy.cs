@@ -27,7 +27,7 @@ namespace DynamicProxy
         private const string ModuleName = "ProxyModule";
         private const string HandlerName = "handler";
 
-        private static readonly Dictionary<string, Type> TypeCache = new Dictionary<string, Type>();
+        private static readonly Dictionary<string, Type> TypeCache = new();
 
         private static readonly AssemblyBuilder AssemblyBuilder =
 #if VNEXT
@@ -57,26 +57,26 @@ namespace DynamicProxy
 
         private static Type CreateType(string dynamicTypeName, Type[] interfaces)
         {
-            Type objType = typeof(object);
-            Type handlerType = typeof(IProxyInvocationHandler);
+            var objType = typeof(object);
+            var handlerType = typeof(IProxyInvocationHandler);
 
-            TypeAttributes typeAttributes = TypeAttributes.Public | TypeAttributes.Sealed;
+            var typeAttributes = TypeAttributes.Public | TypeAttributes.Sealed;
 
             // Gather up the proxy information and create a new type builder.  One that
             // inherits from Object and implements the interface passed in
-            TypeBuilder typeBuilder = ModuleBuilder.DefineType(
+            var typeBuilder = ModuleBuilder.DefineType(
                 dynamicTypeName, typeAttributes, objType, interfaces);
 
             // Define a member variable to hold the delegate
-            FieldBuilder handlerField = typeBuilder.DefineField(
+            var handlerField = typeBuilder.DefineField(
                 HandlerName, handlerType, FieldAttributes.Private | FieldAttributes.InitOnly);
 
             // build a constructor that takes the delegate object as the only argument
-            ConstructorInfo baseConstructor = objType.GetConstructor(Type.EmptyTypes)!;
-            ConstructorBuilder delegateConstructor = typeBuilder.DefineConstructor(
+            var baseConstructor = objType.GetConstructor(Type.EmptyTypes)!;
+            var delegateConstructor = typeBuilder.DefineConstructor(
                 MethodAttributes.Public, CallingConventions.Standard, new Type[] { handlerType });
 
-            ILGenerator constructorIL = delegateConstructor.GetILGenerator();
+            var constructorIL = delegateConstructor.GetILGenerator();
 
             // Load "this"
             constructorIL.Emit(OpCodes.Ldarg_0);
@@ -98,7 +98,7 @@ namespace DynamicProxy
 
             // for every method that the interfaces define, build a corresponding
             // method in the dynamic type that calls the handlers invoke method.
-            foreach (Type interfaceType in interfaces)
+            foreach (var interfaceType in interfaces)
             {
                 GenerateMethod(interfaceType, handlerField, typeBuilder);
             }
@@ -118,17 +118,17 @@ namespace DynamicProxy
 
         private static void GenerateMethod(Type interfaceType, FieldBuilder handlerField, TypeBuilder typeBuilder)
         {
-            MethodInfo[] interfaceMethods = interfaceType.GetMethods();
+            var interfaceMethods = interfaceType.GetMethods();
 
             for (int i = 0; i < interfaceMethods.Length; i++)
             {
-                MethodInfo methodInfo = interfaceMethods[i];
+                var methodInfo = interfaceMethods[i];
 
                 // Get the method parameters since we need to create an array
                 // of parameter types
-                ParameterInfo[] methodParams = methodInfo.GetParameters();
+                var methodParams = methodInfo.GetParameters();
                 int numOfParams = methodParams.Length;
-                Type[] methodParameters = new Type[numOfParams];
+                var methodParameters = new Type[numOfParams];
 
                 // convert the ParameterInfo objects into Type
                 for (int j = 0; j < numOfParams; j++)
@@ -137,14 +137,14 @@ namespace DynamicProxy
                 }
 
                 // create a new builder for the method in the interface
-                MethodBuilder methodBuilder = typeBuilder.DefineMethod(
+                var methodBuilder = typeBuilder.DefineMethod(
                     methodInfo.Name,
                     /*MethodAttributes.Public | MethodAttributes.Virtual | */ methodInfo.Attributes & ~MethodAttributes.Abstract,
                     CallingConventions.Standard,
                     methodInfo.ReturnType,
                     methodParameters);
 
-                ILGenerator methodIL = methodBuilder.GetILGenerator();
+                var methodIL = methodBuilder.GetILGenerator();
 
                 // invoke target: IProxyInvocationHandler
                 methodIL.Emit(OpCodes.Ldarg_0);
@@ -196,7 +196,7 @@ namespace DynamicProxy
             }
 
             // Iterate through the parent interfaces and recursively call this method
-            foreach (Type parentType in interfaceType.GetInterfaces())
+            foreach (var parentType in interfaceType.GetInterfaces())
             {
                 GenerateMethod(parentType, handlerField, typeBuilder);
             }

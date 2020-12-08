@@ -62,7 +62,7 @@ namespace WinSW.Configuration
         public bool Interactive => false;
 
         // Logging
-        public Log Log { get => new LogDefaults(); }
+        public Log Log => new LogDefaults();
 
         public string LogDirectory => DefaultLogSettings.Directory;
 
@@ -76,7 +76,7 @@ namespace WinSW.Configuration
 
         public string ErrFilePattern => this.Log.ErrFilePattern;
 
-        public ServiceAccount ServiceAccount => new ServiceAccount()
+        public ServiceAccount ServiceAccount => new()
         {
             ServiceAccountName = null,
             ServiceAccountDomain = null,
@@ -108,13 +108,13 @@ namespace WinSW.Configuration
 
             public override int? Period => 1;
 
-            public override bool OutFileDisabled { get => false; }
+            public override bool OutFileDisabled => false;
 
-            public override bool ErrFileDisabled { get => false; }
+            public override bool ErrFileDisabled => false;
 
-            public override string OutFilePattern { get => ".out.log"; }
+            public override string OutFilePattern => ".out.log";
 
-            public override string ErrFilePattern { get => ".err.log"; }
+            public override string ErrFilePattern => ".err.log";
 
             public override string? AutoRollAtTime => null;
 
@@ -125,9 +125,9 @@ namespace WinSW.Configuration
         }
 
         // Environment
-        public List<Download> Downloads => new List<Download>(0);
+        public List<Download> Downloads => new(0);
 
-        public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(0);
+        public Dictionary<string, string> EnvironmentVariables => new(0);
 
         // Misc
         public bool BeepOnShutdown => false;
@@ -135,7 +135,7 @@ namespace WinSW.Configuration
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
 
-        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration => new List<YamlExtensionConfiguration>(0);
+        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration => new(0);
 
         public string BaseName
         {
@@ -160,7 +160,7 @@ namespace WinSW.Configuration
             }
         }
 
-        public List<string> ExtensionIds => new List<string>(0);
+        public List<string> ExtensionIds => new(0);
 
         public string? SecurityDescriptor => null;
     }

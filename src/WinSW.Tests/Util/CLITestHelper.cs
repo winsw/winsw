@@ -36,11 +36,11 @@ $@"<service>
         /// <exception cref="Exception">Command failure</exception>
         public static string CLITest(string[] arguments, ServiceDescriptor descriptor = null)
         {
-            TextWriter tmpOut = Console.Out;
-            TextWriter tmpErr = Console.Error;
+            var tmpOut = Console.Out;
+            var tmpErr = Console.Error;
 
-            using StringWriter swOut = new StringWriter();
-            using StringWriter swErr = new StringWriter();
+            using var swOut = new StringWriter();
+            using var swErr = new StringWriter();
 
             Console.SetOut(swOut);
             Console.SetError(swErr);
@@ -68,11 +68,11 @@ $@"<service>
         public static CLITestResult CLIErrorTest(string[] arguments, ServiceDescriptor descriptor = null)
         {
             Exception testEx = null;
-            TextWriter tmpOut = Console.Out;
-            TextWriter tmpErr = Console.Error;
+            var tmpOut = Console.Out;
+            var tmpErr = Console.Error;
 
-            using StringWriter swOut = new StringWriter();
-            using StringWriter swErr = new StringWriter();
+            using var swOut = new StringWriter();
+            using var swErr = new StringWriter();
 
             Console.SetOut(swOut);
             Console.SetError(swErr);

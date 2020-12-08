@@ -11,7 +11,7 @@ namespace WinSW.Logging
 
         public EventLog? Locate()
         {
-            WrapperService? service = this.Service;
+            var service = this.Service;
             if (service != null && !service.IsShuttingDown)
             {
                 return service.EventLog;

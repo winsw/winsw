@@ -78,7 +78,7 @@ namespace WinSW.Configuration
                     if (this.AutoRollAtTime != null)
                     {
                         // validate it
-                        if (!TimeSpan.TryParse(this.AutoRollAtTime, out TimeSpan autoRollAtTimeValue))
+                        if (!TimeSpan.TryParse(this.AutoRollAtTime, out var autoRollAtTimeValue))
                         {
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but autoRollAtTime does not match the TimeSpan format HH:mm:ss found in configuration XML.");
                         }

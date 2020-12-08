@@ -84,7 +84,7 @@ extensions:
         [Test]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
+            var manager = new WinSWExtensionManager(this._testServiceDescriptor);
             manager.LoadExtensions();
             Assert.AreEqual(2, manager.Extensions.Count, "Two extensions should be loaded");
         }
@@ -92,7 +92,7 @@ extensions:
         [Test]
         public void LoadExtensionsYaml()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptorYaml);
+            var manager = new WinSWExtensionManager(this._testServiceDescriptorYaml);
             manager.LoadExtensions();
             Assert.AreEqual(2, manager.Extensions.Count, "Two extensions should be loaded");
         }
@@ -100,7 +100,7 @@ extensions:
         [Test]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
+            var manager = new WinSWExtensionManager(this._testServiceDescriptor);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();

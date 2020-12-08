@@ -17,7 +17,7 @@ namespace winswTests.Configuration
         [Test]
         public void AllOptionsConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor desc = Load("allOptions");
+            var desc = Load("allOptions");
 
             Assert.That(desc.Id, Is.EqualTo("myapp"));
             Assert.That(desc.Caption, Is.EqualTo("MyApp Service (powered by WinSW)"));
@@ -30,7 +30,7 @@ namespace winswTests.Configuration
         [Test]
         public void MinimalConfigShouldDeclareDefaults()
         {
-            ServiceDescriptor desc = Load("minimal");
+            var desc = Load("minimal");
 
             Assert.That(desc.Id, Is.EqualTo("myapp"));
             Assert.That(desc.Caption, Is.EqualTo("MyApp Service (powered by WinSW)"));
@@ -57,7 +57,7 @@ namespace winswTests.Configuration
             string path = Path.Combine(directory, $@"examples\sample-{exampleName}.xml");
             Assert.That(path, Does.Exist);
 
-            XmlDocument dom = new XmlDocument();
+            var dom = new XmlDocument();
             dom.Load(path);
             return new ServiceDescriptor(dom);
         }

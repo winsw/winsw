@@ -287,10 +287,8 @@ namespace WinSW.Configuration
                     {
                         if (!int.TryParse(this.ZipOlderThanNumDaysYamlLog, out int zipolderthannumdaysValue))
                         {
-// FIXME: Remove the build env specific warning suppression from the codebase
-#pragma warning disable S2372 // Exceptions should not be thrown from property getters
+                            // FIXME: Remove the build env specific warning suppression from the codebase
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
-#pragma warning restore S2372 // Exceptions should not be thrown from property getters
                         }
 
                         zipolderthannumdays = zipolderthannumdaysValue;
@@ -356,7 +354,7 @@ namespace WinSW.Configuration
                         return AuthType.None;
                     }
 
-                    var auth = ExpandEnv(this.AuthYamlDownload);
+                    string auth = ExpandEnv(this.AuthYamlDownload);
 
                     try
                     {
@@ -388,7 +386,7 @@ namespace WinSW.Configuration
             {
                 get
                 {
-                    SC_ACTION_TYPE actionType = this.FailureAction switch
+                    var actionType = this.FailureAction switch
                     {
                         "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
                         "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
@@ -493,7 +491,7 @@ namespace WinSW.Configuration
                     return this.Defaults.StartMode;
                 }
 
-                var p = ExpandEnv(this.StartModeYaml);
+                string p = ExpandEnv(this.StartModeYaml);
 
                 try
                 {
@@ -516,7 +514,7 @@ namespace WinSW.Configuration
         {
             get
             {
-                var args = this.GetArguments(this.ArgumentsYaml, ArgType.Arg);
+                string? args = this.GetArguments(this.ArgumentsYaml, ArgType.Arg);
                 return args is null ? this.Defaults.Arguments : args;
             }
         }
@@ -572,7 +570,7 @@ namespace WinSW.Configuration
                     return this.Defaults.Priority;
                 }
 
-                var p = ExpandEnv(this.PriorityYaml);
+                string p = ExpandEnv(this.PriorityYaml);
 
                 try
                 {
@@ -604,7 +602,7 @@ namespace WinSW.Configuration
 
                 var result = new List<string>(0);
 
-                foreach (var item in this.ServiceDependenciesYaml)
+                foreach (string item in this.ServiceDependenciesYaml)
                 {
                     result.Add(ExpandEnv(item));
                 }
@@ -638,8 +636,8 @@ namespace WinSW.Configuration
                         continue;
                     }
 
-                    var key = item.Name;
-                    var value = ExpandEnv(item.Value);
+                    string key = item.Name;
+                    string value = ExpandEnv(item.Value);
 
                     this.EnvironmentVariables[key] = value;
                     Environment.SetEnvironmentVariable(key, value);

@@ -14,7 +14,7 @@ namespace winswTests
     [TestFixture]
     public class DownloadTests
     {
-        private readonly HttpListener globalListener = new HttpListener();
+        private readonly HttpListener globalListener = new();
 
         private readonly byte[] contents = { 0x57, 0x69, 0x6e, 0x53, 0x57 };
 
@@ -23,7 +23,7 @@ namespace winswTests
         [OneTimeSetUp]
         public void SetUp()
         {
-            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
+            var tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
             int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
             string prefix = $"http://localhost:{port}/";
@@ -44,7 +44,7 @@ namespace winswTests
 
         private async Task TestClientServerAsync(Func<string, string, Task> client, Action<HttpListenerContext> server, AuthenticationSchemes authenticationSchemes = AuthenticationSchemes.Anonymous, [CallerMemberName] string path = null)
         {
-            HttpListener listener = new HttpListener();
+            var listener = new HttpListener();
             string prefix = $"{this.globalPrefix}{path}/";
             listener.Prefixes.Add(prefix);
             listener.AuthenticationSchemes = authenticationSchemes;
@@ -77,7 +77,7 @@ namespace winswTests
 
             async Task ListenAsync()
             {
-                HttpListenerContext context = await listener.GetContextAsync();
+                var context = await listener.GetContextAsync();
                 try
                 {
                     server(context);
@@ -141,7 +141,7 @@ namespace winswTests
                 },
                 context =>
                 {
-                    HttpListenerBasicIdentity identity = (HttpListenerBasicIdentity)context.User.Identity;
+                    var identity = (HttpListenerBasicIdentity)context.User.Identity;
                     if (identity.Name != username || identity.Password != password)
                     {
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
@@ -157,8 +157,8 @@ namespace winswTests
         [Test]
         public async Task TestHttp_IfModifiedSince_ModifiedAsync()
         {
-            DateTime lastModified = DateTime.Now.TrimToSeconds();
-            DateTime prevModified = lastModified.AddDays(-1);
+            var lastModified = DateTime.Now.TrimToSeconds();
+            var prevModified = lastModified.AddDays(-1);
 
             await this.TestClientServerAsync(
                 async (source, dest) =>
@@ -185,7 +185,7 @@ namespace winswTests
         [Test]
         public async Task TestHttp_IfModifiedSince_NotModifiedAsync()
         {
-            DateTime lastModified = DateTime.Now.TrimToSeconds();
+            var lastModified = DateTime.Now.TrimToSeconds();
 
             await this.TestClientServerAsync(
                 async (source, dest) =>
@@ -215,7 +215,7 @@ namespace winswTests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    WebException exception = await AsyncAssert.ThrowsAsync<WebException>(
+                    var exception = await AsyncAssert.ThrowsAsync<WebException>(
                         async () => await new Download(source, dest).PerformAsync());
 
                     Assert.That(exception.Status, Is.EqualTo(WebExceptionStatus.ProtocolError));

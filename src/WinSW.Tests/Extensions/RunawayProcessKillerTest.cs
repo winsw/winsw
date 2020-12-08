@@ -68,7 +68,7 @@ extensions:
         [Test]
         public void LoadExtensions()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
+            var manager = new WinSWExtensionManager(this._testServiceDescriptor);
             manager.LoadExtensions();
             Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
 
@@ -83,7 +83,7 @@ extensions:
         [Test]
         public void LoadExtensionsYaml()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptorYaml);
+            var manager = new WinSWExtensionManager(this._testServiceDescriptorYaml);
             manager.LoadExtensions();
             Assert.AreEqual(1, manager.Extensions.Count, "One extension should be loaded");
 
@@ -98,7 +98,7 @@ extensions:
         [Test]
         public void StartStopExtension()
         {
-            WinSWExtensionManager manager = new WinSWExtensionManager(this._testServiceDescriptor);
+            var manager = new WinSWExtensionManager(this._testServiceDescriptor);
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();
@@ -109,12 +109,12 @@ extensions:
         {
             Assert.Ignore();
 
-            var winswId = "myAppWithRunaway";
-            var extensionId = "runawayProcessKiller";
-            var tmpDir = FilesystemTestHelper.CreateTmpDirectory();
+            string winswId = "myAppWithRunaway";
+            string extensionId = "runawayProcessKiller";
+            string tmpDir = FilesystemTestHelper.CreateTmpDirectory();
 
             // Spawn the test process
-            Process proc = new Process();
+            var proc = new Process();
             var ps = proc.StartInfo;
             ps.FileName = "cmd.exe";
             ps.Arguments = "/c pause";
@@ -126,11 +126,11 @@ extensions:
             try
             {
                 // Generate extension and ensure that the roundtrip is correct
-                var pidfile = Path.Combine(tmpDir, "process.pid");
+                string pidfile = Path.Combine(tmpDir, "process.pid");
                 var sd = ConfigXmlBuilder.create(id: winswId)
                     .WithRunawayProcessKiller(new RunawayProcessKillerExtension(pidfile), extensionId)
                     .ToServiceDescriptor();
-                WinSWExtensionManager manager = new WinSWExtensionManager(sd);
+                var manager = new WinSWExtensionManager(sd);
                 manager.LoadExtensions();
                 var extension = manager.Extensions[extensionId] as RunawayProcessKillerExtension;
                 Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");

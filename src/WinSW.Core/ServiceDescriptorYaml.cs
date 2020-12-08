@@ -13,11 +13,11 @@ namespace WinSW
 
         public ServiceDescriptorYaml(string baseName, DirectoryInfo d)
         {
-            var basepath = Path.Combine(d.FullName, baseName);
+            string basepath = Path.Combine(d.FullName, baseName);
 
             using (var reader = new StreamReader(basepath + ".yml"))
             {
-                var file = reader.ReadToEnd();
+                string file = reader.ReadToEnd();
                 var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
 
                 this.Configurations = deserializer.Deserialize<YamlConfiguration>(file);
@@ -37,9 +37,7 @@ namespace WinSW
             this.Configurations.LoadEnvironmentVariables();
         }
 
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public ServiceDescriptorYaml(YamlConfiguration configs)
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.Configurations = configs;
             this.Configurations.LoadEnvironmentVariables();

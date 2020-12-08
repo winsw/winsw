@@ -22,7 +22,7 @@ namespace WinSW
     {
         private ServiceApis.SERVICE_STATUS wrapperServiceStatus;
         
-        private readonly Process process = new Process();
+        private readonly Process process = new();
         
         private readonly IWinSWConfiguration descriptor;
         
@@ -36,7 +36,7 @@ namespace WinSW
 #endif
             "WinSW");
 
-        internal static readonly WrapperServiceEventLogProvider eventLogProvider = new WrapperServiceEventLogProvider();
+        internal static readonly WrapperServiceEventLogProvider eventLogProvider = new();
 
         /// <summary>
         /// Indicates to the watch dog thread that we are going to terminate the process,
@@ -79,7 +79,7 @@ namespace WinSW
         /// </summary>
         private void HandleFileCopies()
         {
-            var file = this.descriptor.BasePath + ".copies";
+            string file = this.descriptor.BasePath + ".copies";
             if (!File.Exists(file))
             {
                 return; // nothing to handle
@@ -136,7 +136,7 @@ namespace WinSW
                 Directory.CreateDirectory(logDirectory);
             }
 
-            LogHandler logAppender = this.descriptor.Log.CreateLogHandler();
+            var logAppender = this.descriptor.Log.CreateLogHandler();
 
             logAppender.EventLogger = this;
             return logAppender;
@@ -198,11 +198,11 @@ namespace WinSW
 
             // handle downloads
 #if VNEXT
-            List<Download> downloads = this.descriptor.Downloads;
-            Task[] tasks = new Task[downloads.Count];
+            var downloads = this.descriptor.Downloads;
+            var tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
             {
-                Download download = downloads[i];
+                var download = downloads[i];
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
                 this.LogEvent(downloadMessage);
                 Log.Info(downloadMessage);
@@ -215,14 +215,14 @@ namespace WinSW
             }
             catch (AggregateException e)
             {
-                List<Exception> exceptions = new List<Exception>(e.InnerExceptions.Count);
+                var exceptions = new List<Exception>(e.InnerExceptions.Count);
                 for (int i = 0; i < tasks.Length; i++)
                 {
                     if (tasks[i].IsFaulted)
                     {
-                        Download download = downloads[i];
+                        var download = downloads[i];
                         string errorMessage = $"Failed to download {download.From} to {download.To}";
-                        AggregateException exception = tasks[i].Exception!;
+                        var exception = tasks[i].Exception!;
                         this.LogEvent($"{errorMessage}. {exception.Message}");
                         Log.Error(errorMessage, exception);
 
@@ -237,7 +237,7 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 #else
-            foreach (Download download in this.descriptor.Downloads)
+            foreach (var download in this.descriptor.Downloads)
             {
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
                 this.LogEvent(downloadMessage);
@@ -286,7 +286,7 @@ namespace WinSW
             this.ExtensionManager.LoadExtensions();
             this.ExtensionManager.FireOnWrapperStarted();
 
-            LogHandler executableLogHandler = this.CreateExecutableLogHandler();
+            var executableLogHandler = this.CreateExecutableLogHandler();
             this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler, true);
             this.ExtensionManager.FireOnProcessStarted(this.process);
 
@@ -355,7 +355,7 @@ namespace WinSW
 
                 stopArguments += " " + this.descriptor.Arguments;
 
-                Process stopProcess = new Process();
+                var stopProcess = new Process();
                 string? executable = this.descriptor.StopExecutable;
 
                 executable ??= this.descriptor.Executable;
@@ -432,7 +432,7 @@ namespace WinSW
 
         private void SignalShutdownComplete()
         {
-            IntPtr handle = this.ServiceHandle;
+            var handle = this.ServiceHandle;
             this.wrapperServiceStatus.CheckPoint++;
             // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
             this.wrapperServiceStatus.CurrentState = ServiceApis.ServiceState.STOPPED;

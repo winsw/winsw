@@ -140,8 +140,8 @@ namespace WinSW.Extensions
 
         private void LoadExtensionFromXml(string id)
         {
-            XmlNode? extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
-            XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
+            var extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
+            var configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
@@ -151,7 +151,7 @@ namespace WinSW.Extensions
 
             if (descriptor.Enabled)
             {
-                IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                var extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
                 try
                 {
@@ -187,7 +187,7 @@ namespace WinSW.Extensions
 
             if (descriptor.Enabled)
             {
-                IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                var extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
                 extension.Descriptor = descriptor;
 
                 try
@@ -237,7 +237,7 @@ namespace WinSW.Extensions
                     className = "WinSW.Plugins.SharedDirectoryMapper";
                 }
 
-                Type? t = Type.GetType(className);
+                var t = Type.GetType(className);
                 if (t is null)
                 {
                     throw new ExtensionException(id, "Class " + className + " does not exist");

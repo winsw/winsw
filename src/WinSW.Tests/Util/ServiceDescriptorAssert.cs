@@ -13,10 +13,10 @@ namespace winswTests.Util
 
         public static void AssertPropertyIsDefault(ServiceDescriptor desc, string property)
         {
-            PropertyInfo actualProperty = typeof(ServiceDescriptor).GetProperty(property);
+            var actualProperty = typeof(ServiceDescriptor).GetProperty(property);
             Assert.That(actualProperty, Is.Not.Null);
 
-            PropertyInfo defaultProperty = typeof(DefaultWinSWSettings).GetProperty(property);
+            var defaultProperty = typeof(DefaultWinSWSettings).GetProperty(property);
             Assert.That(defaultProperty, Is.Not.Null);
 
             Assert.That(actualProperty.GetValue(desc, null), Is.EqualTo(defaultProperty.GetValue(ServiceDescriptor.Defaults, null)));
@@ -24,7 +24,7 @@ namespace winswTests.Util
 
         public static void AssertPropertyIsDefault(ServiceDescriptor desc, List<string> properties)
         {
-            foreach (var prop in properties)
+            foreach (string prop in properties)
             {
                 AssertPropertyIsDefault(desc, prop);
             }

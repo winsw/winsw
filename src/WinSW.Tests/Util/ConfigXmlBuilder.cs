@@ -47,7 +47,7 @@ namespace winswTests.Util
 
         public string ToXMLString(bool dumpConfig = false)
         {
-            StringBuilder str = new StringBuilder();
+            var str = new StringBuilder();
             if (this.PrintXMLVersion)
             {
                 // TODO: The encoding is generally wrong
@@ -111,8 +111,8 @@ namespace winswTests.Util
 
         public ConfigXmlBuilder WithRunawayProcessKiller(RunawayProcessKillerExtension ext, string extensionId = "killRunawayProcess", bool enabled = true)
         {
-            var fullyQualifiedExtensionName = ExtensionTestBase.GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
-            StringBuilder str = new StringBuilder();
+            string fullyQualifiedExtensionName = ExtensionTestBase.GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
+            var str = new StringBuilder();
             str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new object[] { enabled, fullyQualifiedExtensionName, extensionId });
             str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.Pidfile);
             str.AppendFormat("      <stopTimeout>{0}</stopTimeout>\n", ext.StopTimeout.TotalMilliseconds);
@@ -126,7 +126,7 @@ namespace winswTests.Util
 
         public ConfigXmlBuilder WithDownload(Download download)
         {
-            StringBuilder xml = new StringBuilder();
+            var xml = new StringBuilder();
             xml.Append($"<download from=\"{download.From}\" to=\"{download.To}\" failOnError=\"{download.FailOnError}\"");
 
             // Authentication

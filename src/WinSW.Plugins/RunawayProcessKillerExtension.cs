@@ -96,7 +96,7 @@ namespace WinSW.Plugins
         {
             const int BaseBufferSize = 0x1000;
             string variableKey = '\0' + variable + '=';
-            string buffer = new string('\0', BaseBufferSize + variableKey.Length);
+            string buffer = new('\0', BaseBufferSize + variableKey.Length);
             fixed (char* bufferPtr = buffer)
             {
                 long startAddress = address;
@@ -171,7 +171,7 @@ namespace WinSW.Plugins
             _ = NtWow64QueryInformationProcess64(
                 processHandle,
                 PROCESSINFOCLASS.ProcessBasicInformation,
-                out PROCESS_BASIC_INFORMATION64 information,
+                out var information,
                 sizeof(PROCESS_BASIC_INFORMATION64));
 
             PEB64 peb;
@@ -190,7 +190,7 @@ namespace WinSW.Plugins
             this.StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
             this.ServiceId = descriptor.Id;
             // TODO: Consider making it documented
-            var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
+            string? checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }
 
@@ -282,7 +282,7 @@ namespace WinSW.Plugins
             }
 
             // Kill the runaway process
-            StringBuilder bldr = new StringBuilder("Stopping the runaway process (pid=");
+            var bldr = new StringBuilder("Stopping the runaway process (pid=");
             bldr.Append(pid);
             bldr.Append(") and its children. Environment was ");
             if (!this.CheckWinSWEnvironmentVariable)
