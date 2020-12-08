@@ -330,10 +330,8 @@ namespace WinSW
             this.ExtensionManager.FireOnWrapperStarted();
 
             var executableLogHandler = this.CreateExecutableLogHandler();
-            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler, true);
+            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler);
             this.ExtensionManager.FireOnProcessStarted(this.process);
-
-            this.process.StandardInput.Close(); // nothing for you to read!
         }
 
         /// <summary>
@@ -371,7 +369,7 @@ namespace WinSW
                 executable ??= this.descriptor.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
-                this.StartProcess(stopProcess, stopArguments, executable, null, false);
+                this.StartProcess(stopProcess, stopArguments, executable, null);
 
                 Log.Debug("WaitForProcessToExit " + this.process.Id + "+" + stopProcess.Id);
                 this.WaitForProcessToExit(this.process);
@@ -449,7 +447,7 @@ namespace WinSW
             ServiceApis.SetServiceStatus(handle, this.wrapperServiceStatus);
         }
 
-        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler, bool redirectStdin)
+        private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler)
         {
             // Define handler of the completed process
             void OnProcessCompleted(Process proc)
@@ -496,7 +494,6 @@ namespace WinSW
                 priority: this.descriptor.Priority,
                 callback: OnProcessCompleted,
                 logHandler: logHandler,
-                redirectStdin: redirectStdin,
                 hideWindow: this.descriptor.HideWindow);
         }
     }
