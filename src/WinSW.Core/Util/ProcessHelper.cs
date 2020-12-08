@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Management;
+using System.Runtime.InteropServices;
 using System.Threading;
 using log4net;
 using WinSW.Native;
+using static WinSW.Native.ConsoleApis;
+using static WinSW.Native.ProcessApis;
 
 namespace WinSW.Util
 {
@@ -17,111 +20,158 @@ namespace WinSW.Util
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProcessHelper));
 
-        /// <summary>
-        /// Gets all children of the specified process.
-        /// </summary>
-        /// <param name="pid">Process PID</param>
-        /// <returns>List of child process PIDs</returns>
-        public static List<int> GetChildPids(int pid)
-        {
-            var childPids = new List<int>();
-
-            try
-            {
-                string query = "SELECT * FROM Win32_Process WHERE ParentProcessID = " + pid;
-                using var searcher = new ManagementObjectSearcher(query);
-                using var results = searcher.Get();
-                foreach (var wmiObject in results)
-                {
-                    object childProcessId = wmiObject["ProcessID"];
-                    Logger.Info("Found child process: " + childProcessId + " Name: " + wmiObject["Name"]);
-                    childPids.Add(Convert.ToInt32(childProcessId));
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn("Failed to locate children of the process with PID=" + pid + ". Child processes won't be terminated", ex);
-            }
-
-            return childPids;
-        }
-
-        /// <summary>
-        /// Stops the process.
-        /// If the process cannot be stopped within the stop timeout, it gets killed
-        /// </summary>
-        /// <param name="pid">PID of the process</param>
-        /// <param name="stopTimeout">Stop timeout</param>
-        public static void StopProcess(int pid, TimeSpan stopTimeout)
-        {
-            Logger.Info("Stopping process " + pid);
-            Process proc;
-            try
-            {
-                proc = Process.GetProcessById(pid);
-            }
-            catch (ArgumentException ex)
-            {
-                Logger.Info("Process " + pid + " is already stopped", ex);
-                return;
-            }
-
-            // (bool sent, bool exited)
-            var result = SignalHelper.SendCtrlCToProcess(proc, stopTimeout);
-            bool exited = result.Value;
-            if (!exited)
-            {
-                try
-                {
-                    bool sent = result.Key;
-                    if (sent)
-                    {
-                        Logger.Warn("Process " + pid + " did not respond to Ctrl+C signal - Killing as fallback");
-                    }
-
-                    proc.Kill();
-                }
-                catch (Exception ex)
-                {
-                    if (!proc.HasExited)
-                    {
-                        throw;
-                    }
-
-                    // Process already exited.
-                    Logger.Warn("Ignoring exception from killing process because it has exited", ex);
-                }
-            }
-
-            // TODO: Propagate error if process kill fails? Currently we use the legacy behavior
-        }
-
-        /// <summary>
-        /// Terminate process and its children.
-        /// By default the child processes get terminated first.
-        /// </summary>
-        /// <param name="pid">Process PID</param>
-        /// <param name="stopTimeout">Stop timeout (for each process)</param>
-        /// <param name="stopParentProcessFirst">If enabled, the perent process will be terminated before its children on all levels</param>
-        public static void StopProcessAndChildren(int pid, TimeSpan stopTimeout, bool stopParentProcessFirst)
+        public static void StopProcessTree(Process process, TimeSpan stopTimeout, bool stopParentProcessFirst)
         {
             if (!stopParentProcessFirst)
             {
-                foreach (int childPid in GetChildPids(pid))
+                foreach (var child in GetChildren(process))
                 {
-                    StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
+                    StopProcessTree(child, stopTimeout, stopParentProcessFirst);
                 }
             }
 
-            StopProcess(pid, stopTimeout);
+            StopProcess(process, stopTimeout);
 
             if (stopParentProcessFirst)
             {
-                foreach (int childPid in GetChildPids(pid))
+                foreach (var child in GetChildren(process))
                 {
-                    StopProcessAndChildren(childPid, stopTimeout, stopParentProcessFirst);
+                    StopProcessTree(child, stopTimeout, stopParentProcessFirst);
                 }
             }
+        }
+
+        private static void StopProcess(Process process, TimeSpan stopTimeout)
+        {
+            Logger.Debug($"Stopping process {process.Id}...");
+
+            if (process.HasExited)
+            {
+                goto Exited;
+            }
+
+            if (SendCtrlC(process) is not bool sent)
+            {
+                goto Exited;
+            }
+
+            if (!sent)
+            {
+                try
+                {
+                    sent = process.CloseMainWindow();
+                }
+                catch (InvalidOperationException)
+                {
+                    goto Exited;
+                }
+            }
+
+            if (sent)
+            {
+                if (process.WaitForExit((int)stopTimeout.TotalMilliseconds))
+                {
+                    Logger.Debug($"Process {process.Id} canceled with code {process.ExitCode}.");
+                    return;
+                }
+            }
+
+#if NET
+            process.Kill();
+#else
+            try
+            {
+                process.Kill();
+            }
+            catch when (process.HasExited)
+            {
+            }
+#endif
+
+            Logger.Debug($"Process {process.Id} terminated.");
+            return;
+
+        Exited:
+            Logger.Debug($"Process {process.Id} has already exited.");
+        }
+
+        private static unsafe List<Process> GetChildren(Process process)
+        {
+            var startTime = process.StartTime;
+            int processId = process.Id;
+
+            var children = new List<Process>();
+
+            foreach (var other in Process.GetProcesses())
+            {
+                try
+                {
+                    if (other.StartTime <= startTime)
+                    {
+                        goto Next;
+                    }
+
+                    var handle = other.Handle;
+
+                    if (NtQueryInformationProcess(
+                        handle,
+                        PROCESSINFOCLASS.ProcessBasicInformation,
+                        out var information,
+                        sizeof(PROCESS_BASIC_INFORMATION)) != 0)
+                    {
+                        goto Next;
+                    }
+
+                    if ((int)information.InheritedFromUniqueProcessId == processId)
+                    {
+                        Logger.Debug($"Found child process {other.Id}.");
+                        children.Add(other);
+                        continue;
+                    }
+
+                Next:
+                    other.Dispose();
+                }
+                catch (Exception e) when (e is InvalidOperationException || e is Win32Exception)
+                {
+                    other.Dispose();
+                }
+            }
+
+            return children;
+        }
+
+        private static bool? SendCtrlC(Process process)
+        {
+            if (!AttachConsole(process.Id))
+            {
+                int error = Marshal.GetLastWin32Error();
+                switch (error)
+                {
+                    // The process does not have a console.
+                    case Errors.ERROR_INVALID_HANDLE:
+                        return false;
+
+                    // The process has exited.
+                    case Errors.ERROR_INVALID_PARAMETER:
+                        return null;
+
+                    // The calling process is already attached to a console.
+                    case Errors.ERROR_ACCESS_DENIED:
+                    default:
+                        Logger.Warn("Failed to attach to console. " + new Win32Exception(error).Message);
+                        return false;
+                }
+            }
+
+            // Don't call GenerateConsoleCtrlEvent immediately after SetConsoleCtrlHandler.
+            // A delay was observed as of Windows 10, version 2004 and Windows Server 2019.
+            _ = GenerateConsoleCtrlEvent(CtrlEvents.CTRL_C_EVENT, 0);
+
+            bool succeeded = FreeConsole();
+            Debug.Assert(succeeded);
+
+            return true;
         }
 
         /// <summary>
@@ -170,7 +220,7 @@ namespace WinSW.Util
                 }
             }
 
-            bool succeeded = ConsoleApis.SetConsoleCtrlHandler(null, false); // inherited
+            bool succeeded = SetConsoleCtrlHandler(null, false); // inherited
             Debug.Assert(succeeded);
 
             try
@@ -179,7 +229,7 @@ namespace WinSW.Util
             }
             finally
             {
-                succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
+                succeeded = SetConsoleCtrlHandler(null, true);
                 Debug.Assert(succeeded);
             }
 
