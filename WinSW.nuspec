@@ -26,6 +26,6 @@ More info about the wrapper is available in the projects GitHub repository.
   </metadata>
   <files>
     <file src="artifacts\publish\WinSW-net461.exe" target="lib\net461\WinSW-net461.exe" />
-    <file src="samples\sample-complete.xml" target="lib\net461\WinSW-net461.xml" />
+    <file src="samples\complete.xml" target="lib\net461\WinSW-net461.xml" />
   </files>
 </package>

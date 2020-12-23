@@ -37,7 +37,7 @@ namespace WinSW.Tests.Configuration
         {
             string directory = Layout.RepositoryRoot;
 
-            string path = Path.Combine(directory, $@"samples\sample-{exampleName}.xml");
+            string path = Path.Combine(directory, $@"samples\{exampleName}.xml");
             Assert.True(File.Exists(path));
 
             var dom = new XmlDocument();

@@ -20,7 +20,7 @@
 
 ## :open_file_folder: samples
 
-This folder contains templates for configuration files. *sample-minimal.xml* contains a template for mandatory configurations and *sample-complete.xml* contains all possible configurations with documentation.
+This folder contains templates for configuration files. *minimal.xml* contains a template for mandatory configurations and *complete.xml* contains all possible configurations with documentation.
 
 ## :open_file_folder: Core
 
