@@ -20,8 +20,6 @@ namespace WinSW
 {
     public class WrapperService : ServiceBase, IEventLogger
     {
-        private ServiceApis.SERVICE_STATUS wrapperServiceStatus;
-        
         private readonly Process process = new();
         
         private readonly IWinSWConfiguration descriptor;
@@ -61,7 +59,7 @@ namespace WinSW
         public WrapperService(IWinSWConfiguration descriptor)
         {
             this.descriptor = descriptor;
-            this.ServiceName = this.descriptor.Id;
+            this.ServiceName = this.descriptor.Name;
             this.ExtensionManager = new WinSWExtensionManager(this.descriptor);
             this.CanShutdown = true;
             this.CanStop = true;
@@ -340,8 +338,8 @@ namespace WinSW
         private void DoStop()
         {
             string? stopArguments = this.descriptor.StopArguments;
-            this.LogEvent("Stopping " + this.descriptor.Id);
-            Log.Info("Stopping " + this.descriptor.Id);
+            this.LogEvent("Stopping " + this.descriptor.Name);
+            Log.Info("Stopping " + this.descriptor.Name);
             this.orderlyShutdown = true;
 
             if (stopArguments is null)
@@ -359,7 +357,7 @@ namespace WinSW
             }
             else
             {
-                this.SignalShutdownPending();
+                this.SignalPending();
 
                 stopArguments += " " + this.descriptor.Arguments;
 
@@ -384,12 +382,12 @@ namespace WinSW
                 Console.Beep();
             }
 
-            Log.Info("Finished " + this.descriptor.Id);
+            Log.Info("Finished " + this.descriptor.Name);
         }
 
         private void WaitForProcessToExit(Process processoWait)
         {
-            this.SignalShutdownPending();
+            this.SignalPending();
 
             int effectiveProcessWaitSleepTime;
             if (this.descriptor.SleepTime.TotalMilliseconds > int.MaxValue)
@@ -409,7 +407,7 @@ namespace WinSW
 
                 while (!processoWait.WaitForExit(effectiveProcessWaitSleepTime))
                 {
-                    this.SignalShutdownPending();
+                    this.SignalPending();
                     // WriteEvent("WaitForProcessToExit [repeat]");
                 }
             }
@@ -421,7 +419,7 @@ namespace WinSW
             // WriteEvent("WaitForProcessToExit [finished]");
         }
 
-        private void SignalShutdownPending()
+        private void SignalPending()
         {
             int effectiveWaitHint;
             if (this.descriptor.WaitHint.TotalMilliseconds > int.MaxValue)
@@ -438,13 +436,12 @@ namespace WinSW
             this.RequestAdditionalTime(effectiveWaitHint);
         }
 
-        private void SignalShutdownComplete()
+        private void SignalStopped()
         {
-            var handle = this.ServiceHandle;
-            this.wrapperServiceStatus.CheckPoint++;
-            // WriteEvent("SignalShutdownComplete " + wrapperServiceStatus.checkPoint + ":" + wrapperServiceStatus.waitHint);
-            this.wrapperServiceStatus.CurrentState = ServiceApis.ServiceState.STOPPED;
-            ServiceApis.SetServiceStatus(handle, this.wrapperServiceStatus);
+            using var scm = ServiceManager.Open();
+            using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
+
+            sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler)
@@ -468,7 +465,7 @@ namespace WinSW
                         // restart the service automatically
                         if (proc.ExitCode == 0)
                         {
-                            this.SignalShutdownComplete();
+                            this.SignalStopped();
                         }
 
                         Environment.Exit(proc.ExitCode);

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.ServiceProcess;
+using System.Text;
 using static WinSW.Native.ServiceApis;
 
 namespace WinSW.Native
@@ -52,26 +55,70 @@ namespace WinSW.Native
 
         private ServiceManager(IntPtr handle) => this.handle = handle;
 
-        internal static ServiceManager Open()
+        internal static ServiceManager Open(ServiceManagerAccess access = ServiceManagerAccess.All)
         {
-            var handle = OpenSCManager(null, null, ServiceManagerAccess.ALL_ACCESS);
+            var handle = OpenSCManager(null, null, access);
             if (handle == IntPtr.Zero)
             {
-                Throw.Win32Exception("Failed to open the service control manager database.");
+                Throw.Command.Win32Exception("Failed to open the service control manager database.");
             }
 
             return new ServiceManager(handle);
         }
 
-        internal Service OpenService(string serviceName)
+        internal Service CreateService(
+            string serviceName,
+            string displayName,
+            bool interactive,
+            ServiceStartMode startMode,
+            string executablePath,
+            string[] dependencies,
+            string? username,
+            string? password)
         {
-            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.ALL_ACCESS);
+            var handle = ServiceApis.CreateService(
+                this.handle,
+                serviceName,
+                displayName,
+                ServiceAccess.All,
+                ServiceType.Win32OwnProcess | (interactive ? ServiceType.InteractiveProcess : default),
+                startMode,
+                ServiceErrorControl.Normal,
+                executablePath,
+                default,
+                default,
+                Service.GetNativeDependencies(dependencies),
+                username,
+                password);
+            if (handle == IntPtr.Zero)
+            {
+                Throw.Command.Win32Exception("Failed to create service.");
+            }
+
+            return new Service(handle);
+        }
+
+        internal Service OpenService(string serviceName, ServiceAccess access = ServiceAccess.All)
+        {
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, access);
             if (serviceHandle == IntPtr.Zero)
             {
-                Throw.Win32Exception("Failed to open the service.");
+                Throw.Command.Win32Exception("Failed to open the service.");
             }
 
             return new Service(serviceHandle);
+        }
+
+        internal bool ServiceExists(string serviceName)
+        {
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.All);
+            if (serviceHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            _ = CloseServiceHandle(this.handle);
+            return true;
         }
 
         public void Dispose()
@@ -91,6 +138,67 @@ namespace WinSW.Native
 
         internal Service(IntPtr handle) => this.handle = handle;
 
+        internal ServiceControllerStatus Status
+        {
+            get
+            {
+                if (!QueryServiceStatus(this.handle, out var status))
+                {
+                    Throw.Command.Win32Exception("Failed to query service status.");
+                }
+
+                return status.CurrentState;
+            }
+        }
+
+        internal static StringBuilder? GetNativeDependencies(string[] dependencies)
+        {
+            int arrayLength = 1;
+            for (int i = 0; i < dependencies.Length; i++)
+            {
+                arrayLength += dependencies[i].Length + 1;
+            }
+
+            StringBuilder? array = null;
+            if (dependencies.Length != 0)
+            {
+                array = new StringBuilder(arrayLength);
+                for (int i = 0; i < dependencies.Length; i++)
+                {
+                    _ = array.Append(dependencies[i]).Append('\0');
+                }
+
+                _ = array.Append('\0');
+            }
+
+            return array;
+        }
+
+        internal void SetStatus(IntPtr statusHandle, ServiceControllerStatus state)
+        {
+            if (!QueryServiceStatus(this.handle, out var status))
+            {
+                Throw.Command.Win32Exception("Failed to query service status.");
+            }
+
+            status.CheckPoint = 0;
+            status.WaitHint = 0;
+            status.CurrentState = state;
+
+            if (!SetServiceStatus(statusHandle, status))
+            {
+                Throw.Command.Win32Exception("Failed to set service status.");
+            }
+        }
+
+        internal void Delete()
+        {
+            if (!DeleteService(this.handle))
+            {
+                Throw.Command.Win32Exception("Failed to delete service.");
+            }
+        }
+
         internal void SetDescription(string description)
         {
             if (!ChangeServiceConfig2(
@@ -98,7 +206,7 @@ namespace WinSW.Native
                 ServiceConfigInfoLevels.DESCRIPTION,
                 new SERVICE_DESCRIPTION { Description = description }))
             {
-                Throw.Win32Exception("Failed to configure the description.");
+                Throw.Command.Win32Exception("Failed to configure the description.");
             }
         }
 
@@ -118,7 +226,7 @@ namespace WinSW.Native
                         Actions = actionsPtr,
                     }))
                 {
-                    Throw.Win32Exception("Failed to configure the failure actions.");
+                    Throw.Command.Win32Exception("Failed to configure the failure actions.");
                 }
             }
         }
@@ -130,7 +238,7 @@ namespace WinSW.Native
                 ServiceConfigInfoLevels.DELAYED_AUTO_START_INFO,
                 new SERVICE_DELAYED_AUTO_START_INFO { DelayedAutostart = enabled }))
             {
-                Throw.Win32Exception("Failed to configure the delayed auto-start setting.");
+                Throw.Command.Win32Exception("Failed to configure the delayed auto-start setting.");
             }
         }
 
@@ -140,7 +248,7 @@ namespace WinSW.Native
             securityDescriptor.GetBinaryForm(securityDescriptorBytes, 0);
             if (!SetServiceObjectSecurity(this.handle, SecurityInfos.DiscretionaryAcl, securityDescriptorBytes))
             {
-                Throw.Win32Exception("Failed to configure the security descriptor.");
+                Throw.Command.Win32Exception("Failed to configure the security descriptor.");
             }
         }
 
