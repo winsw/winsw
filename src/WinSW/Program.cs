@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 #if NET
 using System.Reflection;
 #endif
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -21,8 +19,10 @@ using log4net.Layout;
 using WinSW.Configuration;
 using WinSW.Logging;
 using WinSW.Native;
-using WMI;
-using ServiceType = WMI.ServiceType;
+using static WinSW.FormatExtensions;
+using static WinSW.ServiceControllerExtension;
+using static WinSW.Native.ServiceApis;
+using TimeoutException = System.ServiceProcess.TimeoutException;
 
 namespace WinSW
 {
@@ -35,7 +35,6 @@ namespace WinSW
             try
             {
                 Run(args);
-                Log.Debug("Completed. Exit code is 0");
                 return 0;
             }
             catch (InvalidDataException e)
@@ -45,16 +44,27 @@ namespace WinSW
                 Console.Error.WriteLine(message);
                 return -1;
             }
-            catch (WmiException e)
+            catch (CommandException e)
             {
-                Log.Fatal("WMI Operation failure: " + e.ErrorCode, e);
-                Console.Error.WriteLine(e);
-                return (int)e.ErrorCode;
+                string message = e.Message;
+                Log.Fatal(message);
+                return e.InnerException is Win32Exception inner ? inner.NativeErrorCode : -1;
+            }
+            catch (InvalidOperationException e) when (e.InnerException is Win32Exception inner)
+            {
+                string message = e.Message;
+                Log.Fatal(message);
+                return inner.NativeErrorCode;
+            }
+            catch (Win32Exception e)
+            {
+                string message = e.Message;
+                Log.Fatal(message, e);
+                return e.NativeErrorCode;
             }
             catch (Exception e)
             {
                 Log.Fatal("Unhandled exception", e);
-                Console.Error.WriteLine(e);
                 return -1;
             }
         }
@@ -93,10 +103,6 @@ namespace WinSW
                 PrintHelp();
                 return;
             }
-
-            // Get service info for the future use
-            var svcs = new WmiRoot().GetCollection<IWin32Services>();
-            var svc = svcs.Select(descriptor.Id);
 
             var args = new List<string>(Array.AsReadOnly(argsArray));
             if (args[0] == "/redirect")
@@ -148,11 +154,11 @@ namespace WinSW
                     return;
 
                 case "stop":
-                    Stop();
+                    Stop(true);
                     return;
 
                 case "stopwait":
-                    StopWait();
+                    Stop(false);
                     return;
 
                 case "restart":
@@ -201,14 +207,15 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Installing the service with id '" + descriptor.Id + "'");
+                Log.Info($"Installing service '{Format(descriptor)}'...");
 
-                // Check if the service exists
-                if (svc != null)
+                using var scm = ServiceManager.Open(ServiceManagerAccess.CreateService);
+
+                if (scm.ServiceExists(descriptor.Name))
                 {
-                    Console.WriteLine("Service with id '" + descriptor.Id + "' already exists");
-                    Console.WriteLine("To install the service, delete the existing one or change service Id in the configuration file");
-                    throw new Exception("Installation failure: Service with id '" + descriptor.Id + "' already exists");
+
+                    Log.Error($"A service with ID '{descriptor.Name}' already exists.");
+                    Throw.Command.Win32Exception(Errors.ERROR_SERVICE_EXISTS, "Failed to install the service.");
                 }
 
                 string? username = null;
@@ -244,22 +251,21 @@ namespace WinSW
                     Security.AddServiceLogonRight(descriptor.ServiceAccount.ServiceAccountDomain!, descriptor.ServiceAccount.ServiceAccountName!);
                 }
 
-                svcs.Create(
-                    descriptor.Id,
-                    descriptor.Caption,
-                    "\"" + descriptor.ExecutablePath + "\"",
-                    ServiceType.OwnProcess,
-                    ErrorControl.UserNotified,
-                    descriptor.StartMode.ToString(),
+                using var sc = scm.CreateService(
+                    descriptor.Name,
+                    descriptor.DisplayName,
                     descriptor.Interactive,
+                    descriptor.StartMode,
+                    $"\"{descriptor.ExecutablePath}\"",
+                    descriptor.ServiceDependencies,
                     username,
-                    password,
-                    descriptor.ServiceDependencies);
+                    password);
 
-                using var scm = ServiceManager.Open();
-                using var sc = scm.OpenService(descriptor.Id);
-
-                sc.SetDescription(descriptor.Description);
+                string description = descriptor.Description;
+                if (description.Length != 0)
+                {
+                    sc.SetDescription(description);
+                }
 
                 var actions = descriptor.FailureActions;
                 if (actions.Length > 0)
@@ -267,7 +273,7 @@ namespace WinSW
                     sc.SetFailureActions(descriptor.ResetFailureAfter, actions);
                 }
 
-                bool isDelayedAutoStart = descriptor.StartMode == StartMode.Automatic && descriptor.DelayedAutoStart;
+                bool isDelayedAutoStart = descriptor.StartMode == ServiceStartMode.Automatic && descriptor.DelayedAutoStart;
                 if (isDelayedAutoStart)
                 {
                     sc.SetDelayedAutoStart(true);
@@ -280,11 +286,13 @@ namespace WinSW
                     sc.SetSecurityDescriptor(new RawSecurityDescriptor(securityDescriptor));
                 }
 
-                string eventLogSource = descriptor.Id;
+                string eventLogSource = descriptor.Name;
                 if (!EventLog.SourceExists(eventLogSource))
                 {
                     EventLog.CreateEventSource(eventLogSource, "Application");
                 }
+
+                Log.Info($"Service '{Format(descriptor)}' was installed successfully.");
             }
 
             void Uninstall()
@@ -295,40 +303,42 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Uninstalling the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    Log.Warn("The service with id '" + descriptor.Id + "' does not exist. Nothing to uninstall");
-                    return; // there's no such service, so consider it already uninstalled
-                }
+                Log.Info($"Uninstalling service '{Format(descriptor)}'...");
 
-                if (svc.Started)
-                {
-                    // We could fail the opeartion here, but it would be an incompatible change.
-                    // So it is just a warning
-                    Log.Warn("The service with id '" + descriptor.Id + "' is running. It may be impossible to uninstall it");
-                }
-
+                using var scm = ServiceManager.Open(ServiceManagerAccess.Connect);
                 try
                 {
-                    svc.Delete();
+                    using var sc = scm.OpenService(descriptor.Name);
+
+                    if (sc.Status != ServiceControllerStatus.Stopped)
+                    {
+                        // We could fail the opeartion here, but it would be an incompatible change.
+                        // So it is just a warning
+                        Log.Warn($"Service '{Format(descriptor)}' is started. It may be impossible to uninstall it.");
+                    }
+
+                    sc.Delete();
+
+                    Log.Info($"Service '{Format(descriptor)}' was uninstalled successfully.");
                 }
-                catch (WmiException e)
+                catch (CommandException e) when (e.InnerException is Win32Exception inner)
                 {
-                    if (e.ErrorCode == ReturnValue.ServiceMarkedForDeletion)
+                    switch (inner.NativeErrorCode)
                     {
-                        Log.Error("Failed to uninstall the service with id '" + descriptor.Id + "'"
-                           + ". It has been marked for deletion.");
+                        case Errors.ERROR_SERVICE_DOES_NOT_EXIST:
+                            Log.Warn($"Service '{Format(descriptor)}' does not exist.");
+                            break; // there's no such service, so consider it already uninstalled
 
-                        // TODO: change the default behavior to Error?
-                        return; // it's already uninstalled, so consider it a success
-                    }
-                    else
-                    {
-                        Log.Fatal("Failed to uninstall the service with id '" + descriptor.Id + "'. WMI Error code is '" + e.ErrorCode + "'");
-                    }
+                        case Errors.ERROR_SERVICE_MARKED_FOR_DELETE:
+                            Log.Error(e.Message);
 
-                    throw;
+                            // TODO: change the default behavior to Error?
+                            break; // it's already uninstalled, so consider it a success
+
+                        default:
+                            Throw.Command.Exception("Failed to uninstall the service.", inner);
+                            break;
+                    }
                 }
             }
 
@@ -340,30 +350,28 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Starting the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    ThrowNoSuchService();
-                }
+                using var svc = new ServiceController(descriptor.Name);
 
                 try
                 {
-                    svc.StartService();
+                    Log.Info($"Starting service '{Format(svc)}'...");
+                    svc.Start();
+
+                    Log.Info($"Service '{Format(svc)}' started successfully.");
                 }
-                catch (WmiException e)
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
-                    if (e.ErrorCode == ReturnValue.ServiceAlreadyRunning)
-                    {
-                        Log.Info($"The service with ID '{descriptor.Id}' has already been started");
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    Throw.Command.Exception(inner);
+                }
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_ALREADY_RUNNING)
+                {
+                    Log.Info($"Service '{Format(svc)}' has already started.");
                 }
             }
 
-            void Stop()
+            void Stop(bool noWait)
             {
                 if (!elevated)
                 {
@@ -371,56 +379,37 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-                if (svc is null)
-                {
-                    ThrowNoSuchService();
-                }
+                using var svc = new ServiceController(descriptor.Name);
 
                 try
                 {
-                    svc.StopService();
-                }
-                catch (WmiException e)
-                {
-                    if (e.ErrorCode == ReturnValue.ServiceCannotAcceptControl)
+                    Log.Info($"Stopping service '{Format(svc)}'...");
+                    svc.Stop();
+
+                    if (!noWait)
                     {
-                        Log.Info($"The service with ID '{descriptor.Id}' is not running");
+                        try
+                        {
+                            WaitForStatus(svc, ServiceControllerStatus.Stopped, ServiceControllerStatus.StopPending);
+                        }
+                        catch (TimeoutException)
+                        {
+                            Throw.Command.Exception("Failed to stop the service.");
+                        }
                     }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
 
-            void StopWait()
-            {
-                if (!elevated)
+                    Log.Info($"Service '{Format(svc)}' stopped successfully.");
+                }
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
                 {
-                    Elevate();
-                    return;
+                    Throw.Command.Exception(inner);
                 }
-
-                Log.Info("Stopping the service with id '" + descriptor.Id + "'");
-                if (svc is null)
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_NOT_ACTIVE)
                 {
-                    ThrowNoSuchService();
+                    Log.Info($"Service '{Format(svc)}' has already stopped.");
                 }
-
-                if (svc.Started)
-                {
-                    svc.StopService();
-                }
-
-                while (svc != null && svc.Started)
-                {
-                    Log.Info("Waiting the service to stop...");
-                    Thread.Sleep(1000);
-                    svc = svcs.Select(descriptor.Id);
-                }
-
-                Log.Info("The service stopped.");
             }
 
             void Restart()
@@ -431,47 +420,115 @@ namespace WinSW
                     return;
                 }
 
-                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
-                if (svc is null)
+
+                using var svc = new ServiceController(descriptor.Name);
+
+                List<ServiceController>? startedDependentServices = null;
+
+                try
                 {
-                    ThrowNoSuchService();
+                    if (HasAnyStartedDependentService(svc))
+                    {
+                        startedDependentServices = new();
+                        foreach (var service in svc.DependentServices)
+                        {
+                            if (service.Status != ServiceControllerStatus.Stopped)
+                            {
+                                startedDependentServices.Add(service);
+                            }
+                        }
+                    }
+
+                    Log.Info($"Stopping service '{Format(svc)}'...");
+                    svc.Stop();
+
+                    try
+                    {
+                        WaitForStatus(svc, ServiceControllerStatus.Stopped, ServiceControllerStatus.StopPending);
+                    }
+                    catch (TimeoutException)
+                    {
+                        Throw.Command.Exception("Failed to stop the service.");
+                    }
+                }
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
+                {
+                    Throw.Command.Exception(inner);
+                }
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_NOT_ACTIVE)
+                {
                 }
 
-                if (svc.Started)
+                Log.Info($"Starting service '{Format(svc)}'...");
+                svc.Start();
+
+                try
                 {
-                    svc.StopService();
+                    WaitForStatus(svc, ServiceControllerStatus.Running, ServiceControllerStatus.StartPending);
+                }
+                catch (TimeoutException)
+                {
+                    Throw.Command.Exception("Failed to start the service.");
                 }
 
-                while (svc.Started)
+                if (startedDependentServices != null)
                 {
-                    Thread.Sleep(1000);
-                    svc = svcs.Select(descriptor.Id)!;
+                    foreach (var service in startedDependentServices)
+                    {
+                        if (service.Status == ServiceControllerStatus.Stopped)
+                        {
+                            Log.Info($"Starting service '{Format(service)}'...");
+                            service.Start();
+                        }
+                    }
                 }
 
-                svc.StartService();
+                Log.Info($"Service '{Format(svc)}' restarted successfully.");
             }
 
             void RestartSelf()
             {
                 if (!elevated)
                 {
-                    throw new UnauthorizedAccessException("Access is denied.");
+                    Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
                 }
 
-                Log.Info("Restarting the service with id '" + descriptor.Id + "'");
+                Log.Info("Restarting the service with id '" + descriptor.Name + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
-                bool result = ProcessApis.CreateProcess(null, descriptor.ExecutablePath + " restart", IntPtr.Zero, IntPtr.Zero, false, ProcessApis.CREATE_NEW_PROCESS_GROUP, IntPtr.Zero, null, default, out _);
-                if (!result)
+                if (!ProcessApis.CreateProcess(
+                    null,
+                    descriptor.ExecutablePath + " restart",
+                    IntPtr.Zero,
+                    IntPtr.Zero,
+                    false,
+                    ProcessApis.CREATE_NEW_PROCESS_GROUP,
+                    IntPtr.Zero,
+                    null,
+                    default,
+                    out var processInfo))
                 {
-                    throw new Exception("Failed to invoke restart: " + Marshal.GetLastWin32Error());
+                    Throw.Command.Win32Exception("Failed to invoke restart.");
                 }
+
+                _ = HandleApis.CloseHandle(processInfo.ProcessHandle);
+                _ = HandleApis.CloseHandle(processInfo.ThreadHandle);
             }
 
             void Status()
             {
-                Log.Debug("User requested the status of the process with id '" + descriptor.Id + "'");
-                Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
+                using var svc = new ServiceController(descriptor.Name);
+                try
+                {
+                    Console.WriteLine(svc.Status != ServiceControllerStatus.Stopped ? "Started" : "Stopped");
+                }
+                catch (InvalidOperationException e)
+                when (e.InnerException is Win32Exception inner && inner.NativeErrorCode == Errors.ERROR_SERVICE_DOES_NOT_EXIST)
+                {
+                    Console.WriteLine("NonExistent");
+                }
             }
 
             void Test()
@@ -537,9 +594,6 @@ namespace WinSW
                 }
             }
         }
-
-        [DoesNotReturn]
-        private static void ThrowNoSuchService() => throw new WmiException(ReturnValue.NoSuchService);
 
         private static void InitLoggers(IWinSWConfiguration descriptor, bool enableConsoleLogging)
         {

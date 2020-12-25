@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.ServiceProcess;
 using System.Text;
 using System.Xml;
 using WinSW.Configuration;
 using WinSW.Native;
 using WinSW.Util;
-using WMI;
 
 namespace WinSW
 {
@@ -56,13 +56,13 @@ namespace WinSW
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", this.Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Name);
 
             // New name
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
 
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
@@ -455,16 +455,16 @@ namespace WinSW
             }
         }
 
-        public string Id => this.SingleElement("id");
+        public string Name => this.SingleElement("id");
 
-        public string Caption => this.SingleElement("name");
+        public string DisplayName => this.SingleElement("name");
 
         public string Description => this.SingleElement("description");
 
         /// <summary>
         /// Start mode of the Service
         /// </summary>
-        public StartMode StartMode
+        public ServiceStartMode StartMode
         {
             get
             {
@@ -476,12 +476,12 @@ namespace WinSW
 
                 try
                 {
-                    return (StartMode)Enum.Parse(typeof(StartMode), p, true);
+                    return (ServiceStartMode)Enum.Parse(typeof(ServiceStartMode), p, true);
                 }
                 catch
                 {
                     Console.WriteLine("Start mode in XML must be one of the following:");
-                    foreach (string sm in Enum.GetNames(typeof(StartMode)))
+                    foreach (string sm in Enum.GetNames(typeof(ServiceStartMode)))
                     {
                         Console.WriteLine(sm);
                     }
@@ -607,7 +607,7 @@ namespace WinSW
             return false;
         }
 
-        public ServiceAccount ServiceAccount
+        public Configuration.ServiceAccount ServiceAccount
         {
             get
             {

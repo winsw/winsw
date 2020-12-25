@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.ServiceProcess;
 using System.Xml;
-using WMI;
 
 namespace WinSW.Configuration
 {
@@ -14,9 +14,9 @@ namespace WinSW.Configuration
     {
         public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
 
-        public string Id => throw new InvalidOperationException(nameof(this.Id) + " must be specified.");
+        public string Name => throw new InvalidOperationException(nameof(this.Name) + " must be specified.");
 
-        public string Caption => throw new InvalidOperationException(nameof(this.Caption) + " must be specified.");
+        public string DisplayName => throw new InvalidOperationException(nameof(this.DisplayName) + " must be specified.");
 
         public string Description => throw new InvalidOperationException(nameof(this.Description) + " must be specified.");
 
@@ -49,7 +49,7 @@ namespace WinSW.Configuration
         public bool StopParentProcessFirst => true;
 
         // Service management
-        public StartMode StartMode => StartMode.Automatic;
+        public ServiceStartMode StartMode => ServiceStartMode.Automatic;
 
         public bool DelayedAutoStart => false;
 

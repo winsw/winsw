@@ -41,7 +41,7 @@ namespace WinSW.Native
             {
                 if (!LookupAccountName(null, accountName, sid, ref sidSize, domainName, ref domainNameLength, out _))
                 {
-                    Throw.Win32Exception("Failed to find the account.");
+                    Throw.Command.Win32Exception("Failed to find the account.");
                 }
 
                 return sid;

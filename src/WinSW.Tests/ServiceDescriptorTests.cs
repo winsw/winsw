@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
+using System.ServiceProcess;
 using NUnit.Framework;
 using WinSW;
 using winswTests.Util;
-using WMI;
 
 namespace winswTests
 {
@@ -44,7 +44,7 @@ $@"<service>
         [Test]
         public void DefaultStartMode()
         {
-            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Automatic));
         }
 
         [Test]
@@ -96,7 +96,7 @@ $@"<service>
 </service>";
 
             this._extendedServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
-            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Manual));
         }
 
         [Test]

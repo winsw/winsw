@@ -25,13 +25,8 @@
     <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0-windows'">
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
     <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 

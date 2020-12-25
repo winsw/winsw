@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.ServiceProcess;
 using System.Xml;
 using WinSW.Native;
 using WinSW.Util;
-using WMI;
 using YamlDotNet.Serialization;
 using static WinSW.Download;
 
@@ -458,7 +458,7 @@ namespace WinSW.Configuration
             return Environment.ExpandEnvironmentVariables(str);
         }
 
-        public string Id => this.IdYaml is null ? this.Defaults.Id : ExpandEnv(this.IdYaml);
+        public string Name => this.IdYaml is null ? this.Defaults.Name : ExpandEnv(this.IdYaml);
 
         public string Description => this.DescriptionYaml is null ? this.Defaults.Description : ExpandEnv(this.DescriptionYaml);
 
@@ -468,7 +468,7 @@ namespace WinSW.Configuration
             this.Defaults.ExecutablePath :
             ExpandEnv(this.ExecutablePathYaml);
 
-        public string Caption => this.NameYaml is null ? this.Defaults.Caption : ExpandEnv(this.NameYaml);
+        public string DisplayName => this.NameYaml is null ? this.Defaults.DisplayName : ExpandEnv(this.NameYaml);
 
         public bool HideWindow => this.HideWindowYaml is null ? this.Defaults.HideWindow : (bool)this.HideWindowYaml;
 
@@ -482,7 +482,7 @@ namespace WinSW.Configuration
             }
         }
 
-        public StartMode StartMode
+        public ServiceStartMode StartMode
         {
             get
             {
@@ -495,12 +495,12 @@ namespace WinSW.Configuration
 
                 try
                 {
-                    return (StartMode)Enum.Parse(typeof(StartMode), p, true);
+                    return (ServiceStartMode)Enum.Parse(typeof(ServiceStartMode), p, true);
                 }
                 catch
                 {
                     Console.WriteLine("Start mode in YAML must be one of the following:");
-                    foreach (string sm in Enum.GetNames(typeof(StartMode)))
+                    foreach (string sm in Enum.GetNames(typeof(ServiceStartMode)))
                     {
                         Console.WriteLine(sm);
                     }
