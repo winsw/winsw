@@ -11,9 +11,9 @@ namespace WinSW
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
-        public ServiceDescriptorYaml(string baseName, DirectoryInfo d)
+        public ServiceDescriptorYaml(string baseName, string directory)
         {
-            string basepath = Path.Combine(d.FullName, baseName);
+            string basepath = Path.Combine(directory, baseName);
 
             using (var reader = new StreamReader(basepath + ".yml"))
             {
@@ -23,7 +23,7 @@ namespace WinSW
                 this.Configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
 
-            Environment.SetEnvironmentVariable("BASE", d.FullName);
+            Environment.SetEnvironmentVariable("BASE", directory);
 
             // ditto for ID
             Environment.SetEnvironmentVariable("SERVICE_ID", this.Configurations.Name);
