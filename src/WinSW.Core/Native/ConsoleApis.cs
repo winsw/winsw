@@ -8,6 +8,8 @@ namespace WinSW.Native
     {
         internal const int ATTACH_PARENT_PROCESS = -1;
 
+        internal const uint CP_UTF8 = 65001;
+
         [DllImport(Libraries.Kernel32, SetLastError = true)]
         internal static extern bool AttachConsole(int processId);
 
@@ -19,6 +21,9 @@ namespace WinSW.Native
 
         [DllImport(Libraries.Kernel32)]
         internal static extern bool SetConsoleCtrlHandler(ConsoleCtrlHandlerRoutine? handlerRoutine, bool add);
+
+        [DllImport(Libraries.Kernel32)]
+        internal static extern bool SetConsoleOutputCP(uint codePageID);
 
         internal delegate bool ConsoleCtrlHandlerRoutine(CtrlEvents ctrlType);
 
