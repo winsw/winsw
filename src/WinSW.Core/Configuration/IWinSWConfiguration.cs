@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.ServiceProcess;
 using System.Xml;
-using WMI;
 
 namespace WinSW.Configuration
 {
     public interface IWinSWConfiguration
     {
         // TODO: Document the parameters && refactor
-        string Id { get; }
+        string Name { get; }
 
-        string Caption { get; }
+        string DisplayName { get; }
 
         string Description { get; }
 
@@ -44,7 +44,7 @@ namespace WinSW.Configuration
         bool StopParentProcessFirst { get; }
 
         // Service management
-        StartMode StartMode { get; }
+        ServiceStartMode StartMode { get; }
 
         string[] ServiceDependencies { get; }
 

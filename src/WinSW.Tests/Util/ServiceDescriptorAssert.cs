@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using NUnit.Framework;
 using WinSW;
 using WinSW.Configuration;
@@ -55,14 +54,14 @@ namespace winswTests.Util
             get
             {
                 var properties = AllProperties;
-                properties.Remove("Id");
-                properties.Remove("Caption");
-                properties.Remove("Description");
-                properties.Remove("Executable");
-                properties.Remove("BaseName");
-                properties.Remove("BasePath");
-                properties.Remove("Log");
-                properties.Remove("ServiceAccount");
+                properties.Remove(nameof(IWinSWConfiguration.Name));
+                properties.Remove(nameof(IWinSWConfiguration.DisplayName));
+                properties.Remove(nameof(IWinSWConfiguration.Description));
+                properties.Remove(nameof(IWinSWConfiguration.Executable));
+                properties.Remove(nameof(IWinSWConfiguration.BaseName));
+                properties.Remove(nameof(IWinSWConfiguration.BasePath));
+                properties.Remove(nameof(IWinSWConfiguration.Log));
+                properties.Remove(nameof(IWinSWConfiguration.ServiceAccount));
                 return properties;
             }
         }

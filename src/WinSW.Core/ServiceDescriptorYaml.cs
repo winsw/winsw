@@ -26,13 +26,13 @@ namespace WinSW
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
             // ditto for ID
-            Environment.SetEnvironmentVariable("SERVICE_ID", this.Configurations.Id);
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Configurations.Name);
 
             // New name
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, Defaults.ExecutablePath);
 
             // Also inject system environment variables
-            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Configurations.Id);
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Configurations.Name);
 
             this.Configurations.LoadEnvironmentVariables();
         }

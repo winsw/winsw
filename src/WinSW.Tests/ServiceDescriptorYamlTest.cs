@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.ServiceProcess;
 using NUnit.Framework;
 using WinSW;
 using WinSW.Configuration;
-using WMI;
 
 namespace winswTests
 {
@@ -43,7 +43,7 @@ workingdirectory: {ExpectedWorkingDirectory}";
         [Test]
         public void DefaultStartMode()
         {
-            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Automatic));
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Automatic));
         }
 
         [Test]
@@ -73,7 +73,7 @@ arguments: My Arguments
 startMode: manual";
 
             this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
-            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(StartMode.Manual));
+            Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Manual));
         }
 
         [Test]
@@ -470,7 +470,7 @@ description: This is test winsw";
 
             Assert.That(() =>
             {
-                _ = ServiceDescriptorYaml.FromYaml(yml).Configurations.Id;
+                _ = ServiceDescriptorYaml.FromYaml(yml).Configurations.Name;
             }, Throws.TypeOf<InvalidOperationException>());
         }
 
