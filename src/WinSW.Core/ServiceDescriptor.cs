@@ -39,10 +39,10 @@ namespace WinSW
         // Currently there is no opportunity to alter the executable path
         public virtual string ExecutablePath => Defaults.ExecutablePath;
 
-        public ServiceDescriptor(string baseName, DirectoryInfo d)
+        public ServiceDescriptor(string baseName, string directory)
         {
             this.BaseName = baseName;
-            this.BasePath = Path.Combine(d.FullName, this.BaseName);
+            this.BasePath = Path.Combine(directory, this.BaseName);
 
             try
             {
@@ -54,7 +54,7 @@ namespace WinSW
             }
 
             // register the base directory as environment variable so that future expansions can refer to this.
-            Environment.SetEnvironmentVariable("BASE", d.FullName);
+            Environment.SetEnvironmentVariable("BASE", directory);
 
             // ditto for ID
             Environment.SetEnvironmentVariable("SERVICE_ID", this.Name);

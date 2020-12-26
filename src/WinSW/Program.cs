@@ -6,9 +6,7 @@ using System.IO;
 #if VNEXT
 using System.IO.Pipes;
 #endif
-#if NET
 using System.Reflection;
-#endif
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -36,6 +34,15 @@ namespace WinSW
 #endif
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
+
+        private static string ExecutablePath
+        {
+            get
+            {
+                using var current = Process.GetCurrentProcess();
+                return current.MainModule!.FileName!;
+            }
+        }
 
         public static int Main(string[] args)
         {
@@ -81,11 +88,7 @@ namespace WinSW
             bool inConsoleMode = argsArray.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= GetServiceDescriptor();
-
-            // Configure the wrapper-internal logging.
-            // STDOUT and STDERR of the child process will be handled independently.
-            InitLoggers(descriptor, inConsoleMode);
+            descriptor ??= LoadConfigAndInitLoggers(inConsoleMode);
 
             if (!inConsoleMode)
             {
@@ -598,8 +601,6 @@ namespace WinSW
             // [DoesNotReturn]
             void Elevate()
             {
-                using var current = Process.GetCurrentProcess();
-
 #if VNEXT
                 string? stdinName = Console.IsInputRedirected ? Guid.NewGuid().ToString() : null;
                 string? stdoutName = Console.IsOutputRedirected ? Guid.NewGuid().ToString() : null;
@@ -624,7 +625,7 @@ namespace WinSW
                 {
                     UseShellExecute = true,
                     Verb = "runas",
-                    FileName = current.MainModule!.FileName!,
+                    FileName = ExecutablePath,
                     Arguments = arguments,
                     WindowStyle = ProcessWindowStyle.Hidden,
                 };
@@ -664,7 +665,7 @@ namespace WinSW
             }
         }
 
-        private static void InitLoggers(IWinSWConfiguration descriptor, bool enableConsoleLogging)
+        private static IWinSWConfiguration LoadConfigAndInitLoggers(bool inConsoleMode)
         {
             // TODO: Make logging levels configurable
             var fileLogLevel = Level.Debug;
@@ -674,15 +675,47 @@ namespace WinSW
             var consoleLogLevel = Level.Info;
             var eventLogLevel = Level.Warn;
 
-            // Legacy format from winsw-1.x: (DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message);
             var layout = new PatternLayout { ConversionPattern = "%d %-5p - %m%n" };
             layout.ActivateOptions();
 
-            var appenders = new List<IAppender>();
+            var repository = LogManager.GetRepository(Assembly.GetExecutingAssembly());
+
+            if (inConsoleMode)
+            {
+                var consoleAppender = new ConsoleAppender
+                {
+                    Name = "Wrapper console log",
+                    Threshold = consoleLogLevel,
+                    Layout = layout,
+                };
+                consoleAppender.ActivateOptions();
+
+                BasicConfigurator.Configure(repository, consoleAppender);
+            }
+            else
+            {
+                var eventLogAppender = new ServiceEventLogAppender(WrapperService.eventLogProvider)
+                {
+                    Name = "Wrapper event log",
+                    Threshold = eventLogLevel,
+                };
+                eventLogAppender.ActivateOptions();
+
+                BasicConfigurator.Configure(repository, eventLogAppender);
+            }
+
+            string executablePath = ExecutablePath;
+            string directory = Path.GetDirectoryName(executablePath)!;
+            string baseName = Path.GetFileNameWithoutExtension(executablePath);
+
+            IWinSWConfiguration config =
+                File.Exists(Path.Combine(directory, baseName + ".xml")) ? new ServiceDescriptor(baseName, directory) :
+                File.Exists(Path.Combine(directory, baseName + ".yml")) ? new ServiceDescriptorYaml(baseName, directory).Configurations :
+                throw new FileNotFoundException($"Unable to locate {baseName}.[xml|yml] file within executable directory");
 
             // .wrapper.log
-            string wrapperLogPath = Path.Combine(descriptor.LogDirectory, descriptor.BaseName + ".wrapper.log");
-            var wrapperLog = new FileAppender
+            string wrapperLogPath = Path.Combine(config.LogDirectory, config.BaseName + ".wrapper.log");
+            var fileAppender = new FileAppender
             {
                 AppendToFile = true,
                 File = wrapperLogPath,
@@ -692,37 +725,11 @@ namespace WinSW
                 LockingModel = new FileAppender.MinimalLock(),
                 Layout = layout,
             };
-            wrapperLog.ActivateOptions();
-            appenders.Add(wrapperLog);
+            fileAppender.ActivateOptions();
 
-            // console log
-            if (enableConsoleLogging)
-            {
-                var consoleAppender = new ConsoleAppender
-                {
-                    Name = "Wrapper console log",
-                    Threshold = consoleLogLevel,
-                    Layout = layout,
-                };
-                consoleAppender.ActivateOptions();
-                appenders.Add(consoleAppender);
-            }
+            BasicConfigurator.Configure(repository, fileAppender);
 
-            // event log
-            var systemEventLogger = new ServiceEventLogAppender
-            {
-                Name = "Wrapper event log",
-                Threshold = eventLogLevel,
-                Provider = WrapperService.eventLogProvider,
-            };
-            systemEventLogger.ActivateOptions();
-            appenders.Add(systemEventLogger);
-
-            BasicConfigurator.Configure(
-#if NET
-                LogManager.GetRepository(Assembly.GetExecutingAssembly()),
-#endif
-                appenders.ToArray());
+            return config;
         }
 
         internal static unsafe bool IsProcessElevated()
@@ -774,26 +781,6 @@ namespace WinSW
                     _ = buf.Append(key.KeyChar);
                 }
             }
-        }
-
-        private static IWinSWConfiguration GetServiceDescriptor()
-        {
-            string executablePath = new DefaultWinSWSettings().ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(executablePath);
-
-            var d = new DirectoryInfo(Path.GetDirectoryName(executablePath)!);
-
-            if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
-            {
-                return new ServiceDescriptor(baseName, d);
-            }
-
-            if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
-            {
-                return new ServiceDescriptorYaml(baseName, d).Configurations;
-            }
-
-            throw new FileNotFoundException($"Unable to locate { baseName }.[xml|yml] file within executable directory");
         }
 
         private static void PrintHelp()
