@@ -287,7 +287,6 @@ namespace WinSW.Configuration
                     {
                         if (!int.TryParse(this.ZipOlderThanNumDaysYamlLog, out int zipolderthannumdaysValue))
                         {
-                            // FIXME: Remove the build env specific warning suppression from the codebase
                             throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
                         }
 
