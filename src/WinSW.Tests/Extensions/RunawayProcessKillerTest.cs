@@ -14,8 +14,8 @@ namespace winswTests.Extensions
     [TestFixture]
     class RunawayProcessKillerExtensionTest : ExtensionTestBase
     {
-        IWinSWConfiguration _testServiceDescriptor;
-        IWinSWConfiguration _testServiceDescriptorYaml;
+        IServiceConfig _testServiceDescriptor;
+        IServiceConfig _testServiceDescriptorYaml;
 
         readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
 
@@ -38,7 +38,7 @@ $@"<service>
     </extension>
   </extensions>
 </service>";
-            this._testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this._testServiceDescriptor = XmlServiceConfig.FromXML(seedXml);
 
             string seedYaml = $@"---
 id: jenkins
@@ -61,7 +61,7 @@ extensions:
             stopTimeOut: 5000
             StopParentFirst: true";
 
-            this._testServiceDescriptorYaml = ServiceDescriptorYaml.FromYaml(seedYaml).Configurations;
+            this._testServiceDescriptorYaml = YamlServiceConfigLoader.FromYaml(seedYaml).Config;
         }
 
         [Test]

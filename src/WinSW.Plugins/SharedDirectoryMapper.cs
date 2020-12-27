@@ -27,7 +27,7 @@ namespace WinSW.Plugins
             this._entries.Add(config);
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        public override void Configure(IServiceConfig descriptor, XmlNode node)
         {
             var mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
@@ -43,7 +43,7 @@ namespace WinSW.Plugins
             }
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
+        public override void Configure(IServiceConfig descriptor, YamlExtensionConfig config)
         {
             var dict = config.GetSettings();
 

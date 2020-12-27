@@ -11,12 +11,12 @@ namespace WinSW.Extensions
         public WinSWExtensionDescriptor Descriptor { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-        public virtual void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        public virtual void Configure(IServiceConfig descriptor, XmlNode node)
         {
             // Do nothing
         }
 
-        public virtual void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
+        public virtual void Configure(IServiceConfig descriptor, YamlExtensionConfig config)
         {
             // Do nothing
         }

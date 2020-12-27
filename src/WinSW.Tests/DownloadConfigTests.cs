@@ -177,7 +177,7 @@ namespace winswTests
             }
         }
 
-        private Download GetSingleEntry(ServiceDescriptor sd)
+        private Download GetSingleEntry(XmlServiceConfig sd)
         {
             var downloads = sd.Downloads.ToArray();
             Assert.That(downloads.Length, Is.EqualTo(1), "Service Descriptor is expected to have only one entry");

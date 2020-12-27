@@ -40,7 +40,7 @@ namespace winswTests.Configuration
             ServiceDescriptorAssert.AssertAllOptionalPropertiesAreDefault(desc);
         }
 
-        private static ServiceDescriptor Load(string exampleName)
+        private static XmlServiceConfig Load(string exampleName)
         {
             string directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             while (true)
@@ -59,7 +59,7 @@ namespace winswTests.Configuration
 
             var dom = new XmlDocument();
             dom.Load(path);
-            return new ServiceDescriptor(dom);
+            return new(dom);
         }
     }
 }

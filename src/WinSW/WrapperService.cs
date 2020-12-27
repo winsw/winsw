@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -22,7 +22,7 @@ namespace WinSW
     {
         private readonly Process process = new();
         
-        private readonly IWinSWConfiguration descriptor;
+        private readonly IServiceConfig config;
         
         private Dictionary<string, string>? envs;
 
@@ -52,11 +52,11 @@ namespace WinSW
         /// </summary>
         public bool IsShuttingDown => this.shuttingdown;
 
-        public WrapperService(IWinSWConfiguration descriptor)
+        public WrapperService(IServiceConfig config)
         {
-            this.descriptor = descriptor;
-            this.ServiceName = this.descriptor.Name;
-            this.ExtensionManager = new WinSWExtensionManager(this.descriptor);
+            this.config = config;
+            this.ServiceName = this.config.Name;
+            this.ExtensionManager = new WinSWExtensionManager(this.config);
             this.CanShutdown = true;
             this.CanStop = true;
             this.CanPauseAndContinue = false;
@@ -73,7 +73,7 @@ namespace WinSW
         /// </summary>
         private void HandleFileCopies()
         {
-            string file = this.descriptor.BasePath + ".copies";
+            string file = this.config.BasePath + ".copies";
             if (!File.Exists(file))
             {
                 return; // nothing to handle
@@ -123,14 +123,14 @@ namespace WinSW
         /// <returns>Log Handler, which should be used for the spawned process</returns>
         private LogHandler CreateExecutableLogHandler()
         {
-            string? logDirectory = this.descriptor.LogDirectory;
+            string? logDirectory = this.config.LogDirectory;
 
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
 
-            var logAppender = this.descriptor.Log.CreateLogHandler();
+            var logAppender = this.config.Log.CreateLogHandler();
 
             logAppender.EventLogger = this;
             return logAppender;
@@ -222,7 +222,7 @@ namespace WinSW
             bool succeeded = ConsoleApis.SetConsoleCtrlHandler(null, true);
             Debug.Assert(succeeded);
 
-            this.envs = this.descriptor.EnvironmentVariables;
+            this.envs = this.config.EnvironmentVariables;
 
             // TODO: Disabled according to security concerns in https://github.com/kohsuke/winsw/issues/54
             // Could be restored, but unlikely it's required in event logs at all
@@ -235,7 +235,7 @@ namespace WinSW
 
             // handle downloads
 #if VNEXT
-            var downloads = this.descriptor.Downloads;
+            var downloads = this.config.Downloads;
             var tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
             {
@@ -274,7 +274,7 @@ namespace WinSW
                 throw new AggregateException(exceptions);
             }
 #else
-            foreach (var download in this.descriptor.Downloads)
+            foreach (var download in this.config.Downloads)
             {
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
                 this.LogEvent(downloadMessage);
@@ -300,15 +300,15 @@ namespace WinSW
             }
 #endif
 
-            string? startArguments = this.descriptor.StartArguments;
+            string? startArguments = this.config.StartArguments;
 
             if (startArguments is null)
             {
-                startArguments = this.descriptor.Arguments;
+                startArguments = this.config.Arguments;
             }
             else
             {
-                startArguments += " " + this.descriptor.Arguments;
+                startArguments += " " + this.config.Arguments;
             }
 
             // Converting newlines, line returns, tabs into a single
@@ -316,15 +316,15 @@ namespace WinSW
             // in the xml for readability.
             startArguments = Regex.Replace(startArguments, @"\s*[\n\r]+\s*", " ");
 
-            this.LogEvent("Starting " + this.descriptor.Executable + ' ' + startArguments);
-            Log.Info("Starting " + this.descriptor.Executable + ' ' + startArguments);
+            this.LogEvent("Starting " + this.config.Executable + ' ' + startArguments);
+            Log.Info("Starting " + this.config.Executable + ' ' + startArguments);
 
             // Load and start extensions
             this.ExtensionManager.LoadExtensions();
             this.ExtensionManager.FireOnWrapperStarted();
 
             var executableLogHandler = this.CreateExecutableLogHandler();
-            this.StartProcess(this.process, startArguments, this.descriptor.Executable, executableLogHandler);
+            this.StartProcess(this.process, startArguments, this.config.Executable, executableLogHandler);
             this.ExtensionManager.FireOnProcessStarted(this.process);
         }
 
@@ -333,9 +333,9 @@ namespace WinSW
         /// </summary>
         private void DoStop()
         {
-            string? stopArguments = this.descriptor.StopArguments;
-            this.LogEvent("Stopping " + this.descriptor.Name);
-            Log.Info("Stopping " + this.descriptor.Name);
+            string? stopArguments = this.config.StopArguments;
+            this.LogEvent("Stopping " + this.config.Name);
+            Log.Info("Stopping " + this.config.Name);
             this.orderlyShutdown = true;
 
             if (stopArguments is null)
@@ -343,7 +343,7 @@ namespace WinSW
                 try
                 {
                     Log.Debug("ProcessKill " + this.process.Id);
-                    ProcessHelper.StopProcessTree(this.process, this.descriptor.StopTimeout, this.descriptor.StopParentProcessFirst);
+                    ProcessHelper.StopProcessTree(this.process, this.config.StopTimeout, this.config.StopParentProcessFirst);
                     this.ExtensionManager.FireOnProcessTerminated(this.process);
                 }
                 catch (InvalidOperationException)
@@ -355,12 +355,12 @@ namespace WinSW
             {
                 this.SignalPending();
 
-                stopArguments += " " + this.descriptor.Arguments;
+                stopArguments += " " + this.config.Arguments;
 
                 var stopProcess = new Process();
-                string? executable = this.descriptor.StopExecutable;
+                string? executable = this.config.StopExecutable;
 
-                executable ??= this.descriptor.Executable;
+                executable ??= this.config.Executable;
 
                 // TODO: Redirect logging to Log4Net once https://github.com/kohsuke/winsw/pull/213 is integrated
                 this.StartProcess(stopProcess, stopArguments, executable, null);
@@ -373,12 +373,12 @@ namespace WinSW
             // Stop extensions
             this.ExtensionManager.FireBeforeWrapperStopped();
 
-            if (this.shuttingdown && this.descriptor.BeepOnShutdown)
+            if (this.shuttingdown && this.config.BeepOnShutdown)
             {
                 Console.Beep();
             }
 
-            Log.Info("Finished " + this.descriptor.Name);
+            Log.Info("Finished " + this.config.Name);
         }
 
         private void WaitForProcessToExit(Process processoWait)
@@ -386,15 +386,15 @@ namespace WinSW
             this.SignalPending();
 
             int effectiveProcessWaitSleepTime;
-            if (this.descriptor.SleepTime.TotalMilliseconds > int.MaxValue)
+            if (this.config.SleepTime.TotalMilliseconds > int.MaxValue)
             {
-                Log.Warn("The requested sleep time " + this.descriptor.SleepTime.TotalMilliseconds + "is greater that the max value " +
+                Log.Warn("The requested sleep time " + this.config.SleepTime.TotalMilliseconds + "is greater that the max value " +
                     int.MaxValue + ". The value will be truncated");
                 effectiveProcessWaitSleepTime = int.MaxValue;
             }
             else
             {
-                effectiveProcessWaitSleepTime = (int)this.descriptor.SleepTime.TotalMilliseconds;
+                effectiveProcessWaitSleepTime = (int)this.config.SleepTime.TotalMilliseconds;
             }
 
             try
@@ -418,15 +418,15 @@ namespace WinSW
         private void SignalPending()
         {
             int effectiveWaitHint;
-            if (this.descriptor.WaitHint.TotalMilliseconds > int.MaxValue)
+            if (this.config.WaitHint.TotalMilliseconds > int.MaxValue)
             {
-                Log.Warn("The requested WaitHint value (" + this.descriptor.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
+                Log.Warn("The requested WaitHint value (" + this.config.WaitHint.TotalMilliseconds + " ms)  is greater that the max value " +
                     int.MaxValue + ". The value will be truncated");
                 effectiveWaitHint = int.MaxValue;
             }
             else
             {
-                effectiveWaitHint = (int)this.descriptor.WaitHint.TotalMilliseconds;
+                effectiveWaitHint = (int)this.config.WaitHint.TotalMilliseconds;
             }
 
             this.RequestAdditionalTime(effectiveWaitHint);
@@ -483,11 +483,11 @@ namespace WinSW
                 executable: executable,
                 arguments: arguments,
                 envVars: this.envs,
-                workingDirectory: this.descriptor.WorkingDirectory,
-                priority: this.descriptor.Priority,
+                workingDirectory: this.config.WorkingDirectory,
+                priority: this.config.Priority,
                 callback: OnProcessCompleted,
                 logHandler: logHandler,
-                hideWindow: this.descriptor.HideWindow);
+                hideWindow: this.config.HideWindow);
         }
     }
 }

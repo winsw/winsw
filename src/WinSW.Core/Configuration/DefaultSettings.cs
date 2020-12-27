@@ -10,7 +10,7 @@ namespace WinSW.Configuration
     /// <summary>
     /// Default WinSW settings.
     /// </summary>
-    public sealed class DefaultWinSWSettings : IWinSWConfiguration
+    public sealed class DefaultSettings : IServiceConfig
     {
         public static LogDefaults DefaultLogSettings { get; } = new LogDefaults();
 
@@ -86,11 +86,11 @@ namespace WinSW.Configuration
 
         public class LogDefaults : Log
         {
-            private readonly DefaultWinSWSettings defaults;
+            private readonly DefaultSettings defaults;
 
             public LogDefaults()
             {
-                this.defaults = new DefaultWinSWSettings();
+                this.defaults = new DefaultSettings();
             }
 
             public override string Mode => "append";
@@ -133,32 +133,13 @@ namespace WinSW.Configuration
         public bool BeepOnShutdown => false;
 
         // Extensions
-        public XmlNode? ExtensionsConfiguration => null;
+        public XmlNode? XmlExtensions => null;
 
-        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration => new(0);
+        public List<YamlExtensionConfig>? YamlExtensions => new(0);
 
-        public string BaseName
-        {
-            get
-            {
-                string baseName = Path.GetFileNameWithoutExtension(this.ExecutablePath);
-                if (baseName.EndsWith(".vshost"))
-                {
-                    baseName = baseName.Substring(0, baseName.Length - 7);
-                }
+        public string BaseName => Path.GetFileNameWithoutExtension(this.ExecutablePath);
 
-                return baseName;
-            }
-        }
-
-        public string BasePath
-        {
-            get
-            {
-                var d = new DirectoryInfo(Path.GetDirectoryName(this.ExecutablePath)!);
-                return Path.Combine(d.FullName, this.BaseName);
-            }
-        }
+        public string BasePath => Path.Combine(Path.GetDirectoryName(this.ExecutablePath)!, this.BaseName);
 
         public List<string> ExtensionIds => new(0);
 
