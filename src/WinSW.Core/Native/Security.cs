@@ -80,5 +80,15 @@ namespace WinSW.Native
                 _ = LsaClose(policyHandle);
             }
         }
+
+        internal static bool IsSpecialAccount(string accountName) => accountName switch
+        {
+            @"LocalSystem" => true,
+            @".\LocalSystem" => true,
+            @"NT AUTHORITY\LocalService" => true,
+            @"NT AUTHORITY\NetworkService" => true,
+            string name when name == $@"{Environment.MachineName}\LocalSystem" => true,
+            _ => false
+        };
     }
 }

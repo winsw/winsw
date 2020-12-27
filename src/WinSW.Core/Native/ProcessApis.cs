@@ -38,7 +38,7 @@ namespace WinSW.Native
         internal static extern bool OpenProcessToken(
             IntPtr processHandle,
             TokenAccessLevels desiredAccess,
-            out IntPtr tokenHandle);
+            out Handle tokenHandle);
 
         internal enum PROCESSINFOCLASS
         {
