@@ -78,10 +78,10 @@ namespace WinSW.Configuration
 
         public ServiceAccount ServiceAccount => new()
         {
-            ServiceAccountName = null,
-            ServiceAccountDomain = null,
-            ServiceAccountPassword = null,
-            AllowServiceAcountLogonRight = false
+            User = null,
+            Domain = null,
+            Password = null,
+            AllowServiceLogonRight = false
         };
 
         public class LogDefaults : Log

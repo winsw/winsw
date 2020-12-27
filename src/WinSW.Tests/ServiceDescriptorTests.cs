@@ -102,28 +102,25 @@ $@"<service>
         [Test]
         public void VerifyWorkingDirectory()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + this._extendedServiceDescriptor.WorkingDirectory);
             Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
         }
 
         [Test]
         public void VerifyServiceLogonRight()
         {
-            Assert.That(_extendedServiceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.True);
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.AllowServiceLogonRight, Is.True);
         }
 
         [Test]
         public void VerifyUsername()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccount.ServiceAccountUser, Is.EqualTo(Domain + "\\" + Username));
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.FullUser, Is.EqualTo(Domain + "\\" + Username));
         }
 
         [Test]
         public void VerifyPassword()
         {
-            Debug.WriteLine("_extendedServiceDescriptor.WorkingDirectory :: " + _extendedServiceDescriptor.WorkingDirectory);
-            Assert.That(_extendedServiceDescriptor.ServiceAccount.ServiceAccountPassword, Is.EqualTo(Password));
+            Assert.That(_extendedServiceDescriptor.ServiceAccount.Password, Is.EqualTo(Password));
         }
 
         [Test]
@@ -307,7 +304,7 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = XmlServiceConfig.FromXML(seedXml);
-            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
+            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceLogonRight, Is.False);
         }
 
         [Test]
@@ -321,7 +318,7 @@ $@"<service>
                                    + "</serviceaccount>"
                                    + "</service>";
             var serviceDescriptor = XmlServiceConfig.FromXML(seedXml);
-            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
+            Assert.That(serviceDescriptor.ServiceAccount.AllowServiceLogonRight, Is.False);
         }
 
         [Test]

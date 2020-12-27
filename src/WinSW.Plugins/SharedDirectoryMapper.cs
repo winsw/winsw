@@ -49,7 +49,7 @@ namespace WinSW.Plugins
 
             object mappingNode = dict["mapping"];
 
-            if (!(mappingNode is List<object> mappings))
+            if (mappingNode is not List<object> mappings)
             {
                 throw new InvalidDataException("SharedDirectoryMapper mapping should be a list");
             }

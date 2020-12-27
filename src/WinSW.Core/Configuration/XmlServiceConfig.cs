@@ -572,9 +572,9 @@ namespace WinSW
                     string action = node.Attributes!["action"]?.Value ?? throw new InvalidDataException("'action' is missing");
                     var type = action switch
                     {
-                        "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
-                        "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
-                        "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
+                        "restart" => SC_ACTION_TYPE.RESTART,
+                        "none" => SC_ACTION_TYPE.NONE,
+                        "reboot" => SC_ACTION_TYPE.REBOOT,
                         _ => throw new Exception("Invalid failure action: " + action)
                     };
                     var delay = node.Attributes["delay"];
@@ -621,15 +621,15 @@ namespace WinSW
 
                 var serviceAccount = Defaults.ServiceAccount;
 
-                serviceAccount.ServiceAccountDomain = this.GetServiceAccountPart(node, "domain");
+                serviceAccount.Domain = this.GetServiceAccountPart(node, "domain");
 
-                serviceAccount.ServiceAccountName = this.GetServiceAccountPart(node, "user");
+                serviceAccount.User = this.GetServiceAccountPart(node, "user");
 
-                serviceAccount.ServiceAccountPassword = this.GetServiceAccountPart(node, "password");
+                serviceAccount.Password = this.GetServiceAccountPart(node, "password");
 
                 string? loginRight = this.GetServiceAccountPart(node, "allowservicelogon");
 
-                serviceAccount.AllowServiceAcountLogonRight = this.ParseAllowServiceAcountLogonRight(loginRight);
+                serviceAccount.AllowServiceLogonRight = this.ParseAllowServiceAcountLogonRight(loginRight);
 
                 return serviceAccount;
             }

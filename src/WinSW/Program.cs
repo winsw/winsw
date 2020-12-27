@@ -272,15 +272,15 @@ namespace WinSW
                 {
                     if (config.ServiceAccount.HasServiceAccount())
                     {
-                        username = config.ServiceAccount.ServiceAccountUser;
-                        password = config.ServiceAccount.ServiceAccountPassword;
-                        allowServiceLogonRight = config.ServiceAccount.AllowServiceAcountLogonRight;
+                        username = config.ServiceAccount.FullUser;
+                        password = config.ServiceAccount.Password;
+                        allowServiceLogonRight = config.ServiceAccount.AllowServiceLogonRight;
                     }
                 }
 
                 if (allowServiceLogonRight)
                 {
-                    Security.AddServiceLogonRight(config.ServiceAccount.ServiceAccountDomain!, config.ServiceAccount.ServiceAccountName!);
+                    Security.AddServiceLogonRight(config.ServiceAccount.Domain!, config.ServiceAccount.User!);
                 }
 
                 using var sc = scm.CreateService(
@@ -704,7 +704,7 @@ namespace WinSW
 
             IServiceConfig config =
                 File.Exists(Path.Combine(directory, baseName + ".xml")) ? new XmlServiceConfig(baseName, directory) :
-                File.Exists(Path.Combine(directory, baseName + ".yml")) ? new YamlServiceConfigLoader(baseName, directory).Config :
+                File.Exists(Path.Combine(directory, baseName + ".yml")) ? new YamlServiceConfig(baseName, directory) :
                 throw new FileNotFoundException($"Unable to locate {baseName}.[xml|yml] file within executable directory");
 
             // .wrapper.log

@@ -62,10 +62,10 @@ extensions:
           mapping: 
               - enabled: false
                 label: N
-                uncpath: \\UNC
+                uncPath: \\UNC
               - enabled: false
                 label: M
-                uncpath: \\UNC2
+                uncPath: \\UNC2
     - id: mapNetworDirs2
       className: ""{this.testExtension}""
       enabled: true
@@ -73,12 +73,12 @@ extensions:
           mapping: 
               - enabled: false
                 label: X
-                uncpath: \\UNC
+                uncPath: \\UNC
               - enabled: false
                 label: Y
-                uncpath: \\UNC2";
+                uncPath: \\UNC2";
 
-            this._testServiceDescriptorYaml = YamlServiceConfigLoader.FromYaml(seedYaml).Config;
+            this._testServiceDescriptorYaml = YamlServiceConfig.FromYaml(seedYaml);
         }
 
         [Test]
