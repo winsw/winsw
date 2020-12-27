@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
-using System.Text;
 using System.Threading;
 using log4net;
 using log4net.Appender;
@@ -261,11 +260,7 @@ namespace WinSW
                 bool allowServiceLogonRight = false;
                 if (args.Count > 1 && args[1] == "/p")
                 {
-                    Console.Write("Username: ");
-                    username = Console.ReadLine();
-                    Console.Write("Password: ");
-                    password = ReadPassword();
-                    Console.WriteLine();
+                    Credentials.PromptForCredentialsConsole(ref username, ref password);
                     Console.Write("Set Account rights to allow log on as a service (y/n)?: ");
                     var keypressed = Console.ReadKey();
                     Console.WriteLine();
@@ -757,29 +752,6 @@ namespace WinSW
             finally
             {
                 _ = HandleApis.CloseHandle(token);
-            }
-        }
-
-        private static string ReadPassword()
-        {
-            var buf = new StringBuilder();
-            while (true)
-            {
-                var key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Enter)
-                {
-                    return buf.ToString();
-                }
-                else if (key.Key == ConsoleKey.Backspace)
-                {
-                    _ = buf.Remove(buf.Length - 1, 1);
-                    Console.Write("\b \b");
-                }
-                else
-                {
-                    Console.Write('*');
-                    _ = buf.Append(key.KeyChar);
-                }
             }
         }
 
