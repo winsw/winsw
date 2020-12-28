@@ -6,11 +6,11 @@ namespace WinSW
     public class PeriodicRollingCalendar
     {
         private readonly string format;
-        private readonly long period;
+        private readonly int period;
         private DateTime currentRoll;
         private DateTime nextRoll;
 
-        public PeriodicRollingCalendar(string format, long period)
+        public PeriodicRollingCalendar(string format, int period)
         {
             this.format = format;
             this.period = period;
@@ -30,12 +30,18 @@ namespace WinSW
             TOP_OF_SECOND,
             TOP_OF_MINUTE,
             TOP_OF_HOUR,
-            TOP_OF_DAY
+            TOP_OF_DAY,
+            TOP_OF_MONTH,
         }
 
         private static readonly Periodicity[] ValidOrderedList =
         {
-            Periodicity.TOP_OF_MILLISECOND, Periodicity.TOP_OF_SECOND, Periodicity.TOP_OF_MINUTE, Periodicity.TOP_OF_HOUR, Periodicity.TOP_OF_DAY
+            Periodicity.TOP_OF_MILLISECOND,
+            Periodicity.TOP_OF_SECOND,
+            Periodicity.TOP_OF_MINUTE,
+            Periodicity.TOP_OF_HOUR,
+            Periodicity.TOP_OF_DAY,
+            Periodicity.TOP_OF_MONTH,
         };
 
         private Periodicity DeterminePeriodicityType()
@@ -60,7 +66,7 @@ namespace WinSW
             return Periodicity.ERRONEOUS;
         }
 
-        private DateTime NextTriggeringTime(DateTime input, long increment) => this.PeriodicityType switch
+        private DateTime NextTriggeringTime(DateTime input, int increment) => this.PeriodicityType switch
         {
             Periodicity.TOP_OF_MILLISECOND =>
                 new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second, input.Millisecond)
@@ -81,6 +87,10 @@ namespace WinSW
             Periodicity.TOP_OF_DAY =>
                 new DateTime(input.Year, input.Month, input.Day)
                     .AddDays(increment),
+
+            Periodicity.TOP_OF_MONTH =>
+                new DateTime(input.Year, input.Month, 1)
+                    .AddMonths(increment),
 
             _ => throw new Exception("invalid periodicity type: " + this.PeriodicityType),
         };
