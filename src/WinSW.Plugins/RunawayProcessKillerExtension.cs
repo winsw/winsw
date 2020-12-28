@@ -17,7 +17,7 @@ namespace WinSW.Plugins
         /// <summary>
         /// Absolute path to the PID file, which stores ID of the previously launched process.
         /// </summary>
-        public string Pidfile { get; private set; }
+        public string PidFile { get; private set; }
 
         /// <summary>
         /// Defines the process termination timeout in milliseconds.
@@ -53,7 +53,7 @@ namespace WinSW.Plugins
         public RunawayProcessKillerExtension(string pidfile, int stopTimeoutMs = 5000, bool stopParentFirst = true, bool checkWinSWEnvironmentVariable = true)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
-            this.Pidfile = pidfile;
+            this.PidFile = pidfile;
             this.StopTimeout = TimeSpan.FromMilliseconds(stopTimeoutMs);
             this.StopParentProcessFirst = stopParentFirst;
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable;
@@ -184,7 +184,7 @@ namespace WinSW.Plugins
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
-            this.Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
+            this.PidFile = XmlHelper.SingleElement(node, "pidfile", false)!;
             this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
             this.StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
             this.ServiceId = descriptor.Name;
@@ -197,12 +197,12 @@ namespace WinSW.Plugins
         {
             var dict = config.GetSettings();
 
-            this.Pidfile = ExpandEnvironmentVariables((string)dict["pidfile"]);
+            this.PidFile = ExpandEnvironmentVariables((string)dict["pidFile"]);
 
-            string stopTimeOutConfig = ExpandEnvironmentVariables((string)dict["stopTimeOut"]);
+            string stopTimeOutConfig = ExpandEnvironmentVariables((string)dict["stopTimeout"]);
             this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(stopTimeOutConfig));
 
-            string StopParentProcessFirstConfig = ExpandEnvironmentVariables((string)dict["StopParentFirst"]);
+            string StopParentProcessFirstConfig = ExpandEnvironmentVariables((string)dict["stopParentFirst"]);
             this.StopParentProcessFirst = bool.Parse(StopParentProcessFirstConfig);
 
             try
@@ -224,16 +224,16 @@ namespace WinSW.Plugins
         {
             // Read PID file from the disk
             int pid;
-            if (File.Exists(this.Pidfile))
+            if (File.Exists(this.PidFile))
             {
                 string pidstring;
                 try
                 {
-                    pidstring = File.ReadAllText(this.Pidfile);
+                    pidstring = File.ReadAllText(this.PidFile);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Cannot read PID file from " + this.Pidfile, ex);
+                    Logger.Error("Cannot read PID file from " + this.PidFile, ex);
                     return;
                 }
 
@@ -243,13 +243,13 @@ namespace WinSW.Plugins
                 }
                 catch (FormatException e)
                 {
-                    Logger.Error("Invalid PID file number in '" + this.Pidfile + "'. The runaway process won't be checked", e);
+                    Logger.Error("Invalid PID file number in '" + this.PidFile + "'. The runaway process won't be checked", e);
                     return;
                 }
             }
             else
             {
-                Logger.Warn("The requested PID file '" + this.Pidfile + "' does not exist. The runaway process won't be checked");
+                Logger.Warn("The requested PID file '" + this.PidFile + "' does not exist. The runaway process won't be checked");
                 return;
             }
 
@@ -309,14 +309,14 @@ namespace WinSW.Plugins
         /// <param name="process"></param>
         public override void OnProcessStarted(Process process)
         {
-            Logger.Info("Recording PID of the started process:" + process.Id + ". PID file destination is " + this.Pidfile);
+            Logger.Info("Recording PID of the started process:" + process.Id + ". PID file destination is " + this.PidFile);
             try
             {
-                File.WriteAllText(this.Pidfile, process.Id.ToString());
+                File.WriteAllText(this.PidFile, process.Id.ToString());
             }
             catch (Exception ex)
             {
-                Logger.Error("Cannot update the PID file " + this.Pidfile, ex);
+                Logger.Error("Cannot update the PID file " + this.PidFile, ex);
             }
         }
     }

@@ -114,7 +114,7 @@ namespace winswTests.Util
             string fullyQualifiedExtensionName = ExtensionTestBase.GetExtensionClassNameWithAssembly(typeof(RunawayProcessKillerExtension));
             var str = new StringBuilder();
             str.AppendFormat("    <extension enabled=\"{0}\" className=\"{1}\" id=\"{2}\">\n", new object[] { enabled, fullyQualifiedExtensionName, extensionId });
-            str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.Pidfile);
+            str.AppendFormat("      <pidfile>{0}</pidfile>\n", ext.PidFile);
             str.AppendFormat("      <stopTimeout>{0}</stopTimeout>\n", ext.StopTimeout.TotalMilliseconds);
             str.AppendFormat("      <stopParentFirst>{0}</stopParentFirst>\n", ext.StopParentProcessFirst);
             str.AppendFormat("      <checkWinSWEnvironmentVariable>{0}</checkWinSWEnvironmentVariable>\n", ext.CheckWinSWEnvironmentVariable);

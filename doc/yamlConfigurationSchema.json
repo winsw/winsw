@@ -175,8 +175,8 @@
       "description": "Optionally specify the order of service shutdown. If configed as true, parent process is shutdown first",
       "$ref": "#/definitions/boolPattern"
     },
-    "resetFailureAfter": {
-      "$id": "#/properties/resetFailureAfter",
+    "resetFailure": {
+      "$id": "#/properties/resetFailure",
       "description": "This optional element controls the timing in which Windows SCM resets the failure count.",
       "type": "string"
     },

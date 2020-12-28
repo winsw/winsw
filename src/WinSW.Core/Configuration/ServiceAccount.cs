@@ -1,29 +1,23 @@
-﻿using YamlDotNet.Serialization;
-
-namespace WinSW.Configuration
+﻿namespace WinSW.Configuration
 {
     public class ServiceAccount
     {
-        [YamlMember(Alias = "user")]
-        public string? ServiceAccountName { get; set; }
+        public string? User { get; set; }
 
-        [YamlMember(Alias = "domain")]
-        public string? ServiceAccountDomain { get; set; }
+        public string? Domain { get; set; }
 
-        [YamlMember(Alias = "password")]
-        public string? ServiceAccountPassword { get; set; }
+        public string? Password { get; set; }
 
-        [YamlMember(Alias = "allowservicelogon")]
-        public bool AllowServiceAcountLogonRight { get; set; }
+        public bool AllowServiceLogonRight { get; set; }
 
-        public string? ServiceAccountUser
+        public string? FullUser
         {
-            get => this.ServiceAccountName is null ? null : (this.ServiceAccountDomain ?? ".") + "\\" + this.ServiceAccountName;
+            get => this.User is null ? null : (this.Domain ?? ".") + "\\" + this.User;
         }
 
         public bool HasServiceAccount()
         {
-            return !string.IsNullOrEmpty(this.ServiceAccountName);
+            return !string.IsNullOrEmpty(this.User);
         }
     }
 }

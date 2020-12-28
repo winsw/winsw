@@ -57,11 +57,11 @@ extensions:
       enabled: yes
       className: ""{this.testExtension}""
       settings:
-            pidfile: 'foo/bar/pid.txt'
-            stopTimeOut: 5000
-            StopParentFirst: true";
+            pidFile: 'foo/bar/pid.txt'
+            stopTimeout: 5000
+            stopParentFirst: true";
 
-            this._testServiceDescriptorYaml = YamlServiceConfigLoader.FromYaml(seedYaml).Config;
+            this._testServiceDescriptorYaml = YamlServiceConfig.FromYaml(seedYaml);
         }
 
         [Test]
@@ -74,7 +74,7 @@ extensions:
             // Check the file is correct
             var extension = manager.Extensions["killRunawayProcess"] as RunawayProcessKillerExtension;
             Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
-            Assert.AreEqual("foo/bar/pid.txt", extension.Pidfile, "Loaded PID file path is not equal to the expected one");
+            Assert.AreEqual("foo/bar/pid.txt", extension.PidFile, "Loaded PID file path is not equal to the expected one");
             Assert.AreEqual(5000, extension.StopTimeout.TotalMilliseconds, "Loaded Stop Timeout is not equal to the expected one");
             Assert.AreEqual(true, extension.StopParentProcessFirst, "Loaded StopParentFirst is not equal to the expected one");
         }
@@ -89,7 +89,7 @@ extensions:
             // Check the file is correct
             var extension = manager.Extensions["killRunawayProcess"] as RunawayProcessKillerExtension;
             Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
-            Assert.AreEqual("foo/bar/pid.txt", extension.Pidfile, "Loaded PID file path is not equal to the expected one");
+            Assert.AreEqual("foo/bar/pid.txt", extension.PidFile, "Loaded PID file path is not equal to the expected one");
             Assert.AreEqual(5000, extension.StopTimeout.TotalMilliseconds, "Loaded Stop Timeout is not equal to the expected one");
             Assert.AreEqual(true, extension.StopParentProcessFirst, "Loaded StopParentFirst is not equal to the expected one");
         }
@@ -133,7 +133,7 @@ extensions:
                 manager.LoadExtensions();
                 var extension = manager.Extensions[extensionId] as RunawayProcessKillerExtension;
                 Assert.IsNotNull(extension, "RunawayProcessKillerExtension should be loaded");
-                Assert.AreEqual(pidfile, extension.Pidfile, "PidFile should have been retained during the config roundtrip");
+                Assert.AreEqual(pidfile, extension.PidFile, "PidFile should have been retained during the config roundtrip");
 
                 // Inject PID
                 File.WriteAllText(pidfile, proc.Id.ToString());

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Text;
@@ -12,22 +11,22 @@ namespace WinSW.Native
         /// <summary>
         /// No action.
         /// </summary>
-        SC_ACTION_NONE = 0,
+        NONE = 0,
 
         /// <summary>
         /// Restart the service.
         /// </summary>
-        SC_ACTION_RESTART = 1,
+        RESTART = 1,
 
         /// <summary>
         /// Reboot the computer.
         /// </summary>
-        SC_ACTION_REBOOT = 2,
+        REBOOT = 2,
 
         /// <summary>
         /// Run a command.
         /// </summary>
-        SC_ACTION_RUN_COMMAND = 3,
+        RUN_COMMAND = 3,
     }
 
     public struct SC_ACTION

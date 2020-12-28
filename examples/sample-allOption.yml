@@ -16,7 +16,7 @@ executable: java
 #        delay: 20 sec
 #    -
 #        action: reboot
-#resetFailureAfter: 01:00:00
+#resetFailure: 01:00:00
 #securityDescriptor: security descriptor string
 #arguments: >
 #    -classpath 

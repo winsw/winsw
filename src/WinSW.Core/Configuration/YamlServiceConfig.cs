@@ -2,647 +2,249 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+#if VNEXT
+using System.Runtime.CompilerServices;
+#endif
 using System.ServiceProcess;
 using System.Xml;
 using WinSW.Native;
 using WinSW.Util;
 using YamlDotNet.Serialization;
-using static System.Environment;
-using static WinSW.Download;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace WinSW.Configuration
 {
     public class YamlServiceConfig : IServiceConfig
     {
         private readonly DefaultSettings defaults;
+        private readonly RawYamlServiceConfig raw;
 
-        public YamlServiceConfig()
+        public YamlServiceConfig(string baseName, string directory)
         {
             this.defaults = new DefaultSettings();
-            this.BaseName = this.defaults.BaseName;
-            this.BasePath = this.defaults.BasePath;
+
+            this.BaseName = baseName;
+            this.BasePath = Path.Combine(directory, baseName);
+
+            using (var reader = new StreamReader(this.BasePath + ".yml"))
+            {
+                var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+                this.raw = deserializer.Deserialize<RawYamlServiceConfig>(reader);
+            }
+
+            Environment.SetEnvironmentVariable("BASE", directory);
+
+            // ditto for ID
+            Environment.SetEnvironmentVariable("SERVICE_ID", this.Name);
+
+            // New name
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameExecutablePath, this.ExecutablePath);
+
+            // Also inject system environment variables
+            Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
+
+            this.LoadEnvironmentVariables();
         }
 
-        [YamlMember(Alias = "id")]
-        public string? IdYaml { get; set; }
-
-        [YamlMember(Alias = "name")]
-        public string? NameYaml { get; set; }
-
-        [YamlMember(Alias = "description")]
-        public string? DescriptionYaml { get; set; }
-
-        [YamlMember(Alias = "executable")]
-        public string? ExecutableYaml { get; set; }
-
-        [YamlMember(Alias = "executablePath")]
-        public string? ExecutablePathYaml { get; set; }
-
-        [YamlMember(Alias = "hideWindow")]
-        public bool? HideWindowYaml { get; set; }
-
-        [YamlMember(Alias = "workingdirectory")]
-        public string? WorkingDirectoryYaml { get; set; }
-
-        [YamlMember(Alias = "serviceaccount")]
-        public ServiceAccount? ServiceAccountYaml { get; set; }
-
-        [YamlMember(Alias = "log")]
-        public YamlLog? YAMLLog { get; set; }
-
-        [YamlMember(Alias = "download")]
-        public List<YamlDownload>? DownloadsYaml { get; set; }
-
-        [YamlMember(Alias = "arguments")]
-        public string? ArgumentsYaml { get; set; }
-
-        [YamlMember(Alias = "startArguments")]
-        public string? StartArgumentsYaml { get; set; }
-
-        [YamlMember(Alias = "stopArguments")]
-        public string? StopArgumentsYaml { get; set; }
-
-        [YamlMember(Alias = "stopExecutable")]
-        public string? StopExecutableYaml { get; set; }
-
-        [YamlMember(Alias = "stopParentProcessFirst")]
-        public bool? StopParentProcessFirstYaml { get; set; }
-
-        [YamlMember(Alias = "resetFailureAfter")]
-        public string? ResetFailureAfterYaml { get; set; }
-
-        [YamlMember(Alias = "stopTimeout")]
-        public string? StopTimeoutYaml { get; set; }
-
-        [YamlMember(Alias = "startMode")]
-        public string? StartModeYaml { get; set; }
-
-        [YamlMember(Alias = "serviceDependencies")]
-        public string[]? ServiceDependenciesYaml { get; set; }
-
-        [YamlMember(Alias = "waitHint")]
-        public string? WaitHintYaml { get; set; }
-
-        [YamlMember(Alias = "sleepTime")]
-        public string? SleepTimeYaml { get; set; }
-
-        [YamlMember(Alias = "interactive")]
-        public bool? InteractiveYaml { get; set; }
-
-        [YamlMember(Alias = "priority")]
-        public string? PriorityYaml { get; set; }
-
-        [YamlMember(Alias = "beepOnShutdown")]
-        public bool BeepOnShutdown { get; set; }
-
-        [YamlMember(Alias = "env")]
-        public List<YamlEnv>? EnvironmentVariablesYaml { get; set; }
-
-        [YamlMember(Alias = "onFailure")]
-        public List<YamlFailureAction>? YamlFailureActions { get; set; }
-
-        [YamlMember(Alias = "delayedAutoStart")]
-        public bool DelayedAutoStart { get; set; }
-
-        [YamlMember(Alias = "securityDescriptor")]
-        public string? SecurityDescriptorYaml { get; set; }
-
-        public class YamlEnv
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private YamlServiceConfig(RawYamlServiceConfig raw)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            [YamlMember(Alias = "name")]
-            public string? Name { get; set; }
-
-            [YamlMember(Alias = "value")]
-            public string? Value { get; set; }
+            this.defaults = new DefaultSettings();
+            this.raw = raw;
         }
 
-        public class YamlLog : Log
+        public static YamlServiceConfig FromYaml(string yaml)
         {
-            private readonly YamlServiceConfig configs;
-
-            public YamlLog()
-            {
-                this.configs = new YamlServiceConfig();
-            }
-
-            [YamlMember(Alias = "mode")]
-            public string? ModeYamlLog { get; set; }
-
-            [YamlMember(Alias = "name")]
-            public string? NameYamlLog { get; set; }
-
-            [YamlMember(Alias = "sizeThreshold")]
-            public int? SizeThresholdYamlLog { get; set; }
-
-            [YamlMember(Alias = "keepFiles")]
-            public int? KeepFilesYamlLog { get; set; }
-
-            [YamlMember(Alias = "pattern")]
-            public string? PatternYamlLog { get; set; }
-
-            [YamlMember(Alias = "period")]
-            public int? PeriodYamlLog { get; set; }
-
-            [YamlMember(Alias = "logpath")]
-            public string? LogPathYamlLog { get; set; }
-
-            // Filters
-            [YamlMember(Alias = "outFileDisabled")]
-            public bool? OutFileDisabledYamlLog { get; set; }
-
-            [YamlMember(Alias = "errFileDisabled")]
-            public bool? ErrFileDisabledYamlLog { get; set; }
-
-            [YamlMember(Alias = "outFilePattern")]
-            public string? OutFilePatternYamlLog { get; set; }
-
-            [YamlMember(Alias = "errFilePattern")]
-            public string? ErrFilePatternYamlLog { get; set; }
-
-            // Zip options
-            [YamlMember(Alias = "autoRollAtTime")]
-            public string? AutoRollAtTimeYamlLog { get; set; }
-
-            [YamlMember(Alias = "zipOlderThanNumDays")]
-            public string? ZipOlderThanNumDaysYamlLog { get; set; }
-
-            [YamlMember(Alias = "zipDateFormat")]
-            public string? ZipDateFormatYamlLog { get; set; }
-
-            public override string Mode => this.ModeYamlLog is null ?
-                DefaultSettings.DefaultLogSettings.Mode :
-                this.ModeYamlLog;
-
-            public override string Name
-            {
-                get
-                {
-                    return this.NameYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.Name :
-                        ExpandEnvironmentVariables(this.NameYamlLog);
-                }
-            }
-
-            public override string Directory
-            {
-                get
-                {
-                    return this.LogPathYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.Directory :
-                        ExpandEnvironmentVariables(this.LogPathYamlLog);
-                }
-            }
-
-            public override int? SizeThreshold
-            {
-                get
-                {
-                    return this.SizeThresholdYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.SizeThreshold :
-                        this.SizeThresholdYamlLog;
-                }
-            }
-
-            public override int? KeepFiles
-            {
-                get
-                {
-                    return this.KeepFilesYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.KeepFiles :
-                        this.KeepFilesYamlLog;
-                }
-            }
-
-            public override string Pattern
-            {
-                get
-                {
-                    if (this.PatternYamlLog != null)
-                    {
-                        return this.PatternYamlLog;
-                    }
-
-                    return DefaultSettings.DefaultLogSettings.Pattern;
-                }
-            }
-
-            public override int? Period => this.PeriodYamlLog is null ? 1 : this.PeriodYamlLog;
-
-            public override bool OutFileDisabled
-            {
-                get
-                {
-                    return this.OutFileDisabledYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.OutFileDisabled :
-                        (bool)this.OutFileDisabledYamlLog;
-                }
-            }
-
-            public override bool ErrFileDisabled
-            {
-                get
-                {
-                    return this.ErrFileDisabledYamlLog is null ?
-                        this.configs.defaults.ErrFileDisabled :
-                        (bool)this.ErrFileDisabledYamlLog;
-                }
-            }
-
-            public override string OutFilePattern
-            {
-                get
-                {
-                    return this.OutFilePatternYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.OutFilePattern :
-                        ExpandEnvironmentVariables(this.OutFilePatternYamlLog);
-                }
-            }
-
-            public override string ErrFilePattern
-            {
-                get
-                {
-                    return this.ErrFilePatternYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.ErrFilePattern :
-                        ExpandEnvironmentVariables(this.ErrFilePatternYamlLog);
-                }
-            }
-
-            public override string? AutoRollAtTime
-            {
-                get
-                {
-                    return this.AutoRollAtTimeYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.AutoRollAtTime :
-                        this.AutoRollAtTimeYamlLog;
-                }
-            }
-
-            public override int? ZipOlderThanNumDays
-            {
-                get
-                {
-                    int? zipolderthannumdays = null;
-
-                    if (!string.IsNullOrEmpty(this.ZipOlderThanNumDaysYamlLog))
-                    {
-                        if (!int.TryParse(this.ZipOlderThanNumDaysYamlLog, out int zipolderthannumdaysValue))
-                        {
-                            throw new InvalidDataException("Roll-Size-Time Based rolling policy is specified but zipOlderThanNumDays does not match the int format found in configuration XML.");
-                        }
-
-                        zipolderthannumdays = zipolderthannumdaysValue;
-                    }
-
-                    return zipolderthannumdays;
-                }
-            }
-
-            public override string? ZipDateFormat
-            {
-                get
-                {
-                    return this.ZipDateFormatYamlLog is null ?
-                        DefaultSettings.DefaultLogSettings.ZipDateFormat :
-                        this.ZipDateFormatYamlLog;
-                }
-            }
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+            var raw = deserializer.Deserialize<RawYamlServiceConfig>(yaml);
+            return new(raw);
         }
 
-        public class YamlDownload
+        private static string? Expand(string? value) => value is null ? null : Environment.ExpandEnvironmentVariables(value);
+
+        private static bool? ExpandBoolean(string? value) => value is null ? null : ConfigHelper.YamlBoolParse(Environment.ExpandEnvironmentVariables(value));
+
+        private static TimeSpan? ExpandTimeSpan(string? value) => value is null ? null : ConfigHelper.ParseTimeSpan(Environment.ExpandEnvironmentVariables(value));
+
+        private static T? ExpandEnum<T>(
+            string? value,
+#if VNEXT
+            [CallerMemberName] string? name = null)
+#else
+            string? name = null)
+#endif
+            where T : unmanaged, Enum
         {
-            [YamlMember(Alias = "from")]
-            public string FromYamlDownload { get; set; } = string.Empty;
-
-            [YamlMember(Alias = "to")]
-            public string ToYamlDownload { get; set; } = string.Empty;
-
-            [YamlMember(Alias = "auth")]
-            public string? AuthYamlDownload { get; set; }
-
-            [YamlMember(Alias = "username")]
-            public string? UsernameYamlDownload { get; set; }
-
-            [YamlMember(Alias = "password")]
-            public string? PasswordYamlDownload { get; set; }
-
-            [YamlMember(Alias = "unsecureAuth")]
-            public bool UnsecureAuthYamlDownload { get; set; }
-
-            [YamlMember(Alias = "failOnError")]
-            public bool FailOnErrorYamlDownload { get; set; }
-
-            [YamlMember(Alias = "proxy")]
-            public string? ProxyYamlDownload { get; set; }
-
-            public string FromDownload => ExpandEnvironmentVariables(this.FromYamlDownload);
-
-            public string ToDownload => ExpandEnvironmentVariables(this.ToYamlDownload);
-
-            public string? UsernameDownload => this.UsernameYamlDownload is null ? null : ExpandEnvironmentVariables(this.UsernameYamlDownload);
-
-            public string? PasswordDownload => this.PasswordYamlDownload is null ? null : ExpandEnvironmentVariables(this.PasswordYamlDownload);
-
-            public string? ProxyDownload => this.ProxyYamlDownload is null ? null : ExpandEnvironmentVariables(this.ProxyYamlDownload);
-
-            public AuthType AuthDownload
+            if (value is null)
             {
-                get
-                {
-                    if (this.AuthYamlDownload is null)
-                    {
-                        return AuthType.None;
-                    }
+                return null;
+            }
 
-                    string auth = ExpandEnvironmentVariables(this.AuthYamlDownload);
-
-                    try
-                    {
-                        return (AuthType)Enum.Parse(typeof(AuthType), auth, true);
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Auth type in YAML must be one of the following:");
-                        foreach (string at in Enum.GetNames(typeof(AuthType)))
-                        {
-                            Console.WriteLine(at);
-                        }
-
-                        throw;
-                    }
-                }
+            try
+            {
+                return (T)Enum.Parse(typeof(T), value, true);
+            }
+            catch
+            {
+                Console.WriteLine($"'{name ?? typeof(T).FullName}' in YAML must be one of the followings: {string.Join(", ", Enum.GetNames(typeof(T)))}.");
+                throw;
             }
         }
 
-        public class YamlFailureAction
-        {
-            [YamlMember(Alias = "action")]
-            public string? FailureAction { get; set; }
+        public string Name => Expand(this.raw.Id) ?? this.defaults.Name;
 
-            [YamlMember(Alias = "delay")]
-            public string? FailureActionDelay { get; set; }
+        public string Description => Expand(this.raw.Description) ?? this.defaults.Description;
 
-            public SC_ACTION_TYPE Type
-            {
-                get
-                {
-                    var actionType = this.FailureAction switch
-                    {
-                        "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
-                        "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
-                        "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
-                        _ => throw new InvalidDataException("Invalid failure action: " + this.FailureAction)
-                    };
+        public string Executable => Expand(this.raw.Executable) ?? this.defaults.Executable;
 
-                    return actionType;
-                }
-            }
+        public string ExecutablePath => this.defaults.ExecutablePath;
 
-            public TimeSpan Delay => this.FailureActionDelay is null ? TimeSpan.Zero : ConfigHelper.ParseTimeSpan(this.FailureActionDelay);
-        }
+        public string DisplayName => Expand(this.raw.Name) ?? this.defaults.DisplayName;
 
-        private string? GetArguments(string? args, ArgType type)
-        {
-            if (args is null)
-            {
-                switch (type)
-                {
-                    case ArgType.Arg:
-                        return this.defaults.Arguments;
-                    case ArgType.Startarg:
-                        return this.defaults.StartArguments;
-                    case ArgType.Stoparg:
-                        return this.defaults.StopArguments;
-                    default:
-                        return string.Empty;
-                }
-            }
+        public bool HideWindow => ExpandBoolean(this.raw.HideWindow) ?? this.defaults.HideWindow;
 
-            return ExpandEnvironmentVariables(args);
-        }
+        public bool StopParentProcessFirst => ExpandBoolean(this.raw.StopParentProcessFirst) ?? this.defaults.StopParentProcessFirst;
 
-        private enum ArgType
-        {
-            Arg = 0,
-            Startarg = 1,
-            Stoparg = 2
-        }
+        public ServiceStartMode StartMode => ExpandEnum<ServiceStartMode>(this.raw.StartMode) ?? this.defaults.StartMode;
 
-        private List<Download> GetDownloads(List<YamlDownload>? downloads)
-        {
-            if (downloads is null)
-            {
-                return this.defaults.Downloads;
-            }
+        public bool DelayedAutoStart => ExpandBoolean(this.raw.DelayedAutoStart) ?? this.defaults.DelayedAutoStart;
 
-            var result = new List<Download>(downloads.Count);
+        public bool BeepOnShutdown => ExpandBoolean(this.raw.BeepOnShutdown) ?? this.defaults.BeepOnShutdown;
 
-            foreach (var item in downloads)
-            {
-                result.Add(new Download(
-                    item.FromDownload,
-                    item.ToDownload,
-                    item.FailOnErrorYamlDownload,
-                    item.AuthDownload,
-                    item.UsernameDownload,
-                    item.PasswordDownload,
-                    item.UnsecureAuthYamlDownload,
-                    item.ProxyDownload));
-            }
+        public string Arguments => Expand(this.raw.Arguments) ?? this.defaults.Arguments;
 
-            return result;
-        }
+        public string? StartArguments => Expand(this.raw.StartArguments) ?? this.defaults.StartArguments;
 
-        public string Name => this.IdYaml is null ? this.defaults.Name : ExpandEnvironmentVariables(this.IdYaml);
+        public string? StopArguments => Expand(this.raw.StopArguments) ?? this.defaults.StopArguments;
 
-        public string Description => this.DescriptionYaml is null ? this.defaults.Description : ExpandEnvironmentVariables(this.DescriptionYaml);
-
-        public string Executable => this.ExecutableYaml is null ? this.defaults.Executable : ExpandEnvironmentVariables(this.ExecutableYaml);
-
-        public string ExecutablePath => this.ExecutablePathYaml is null ?
-            this.defaults.ExecutablePath :
-            ExpandEnvironmentVariables(this.ExecutablePathYaml);
-
-        public string DisplayName => this.NameYaml is null ? this.defaults.DisplayName : ExpandEnvironmentVariables(this.NameYaml);
-
-        public bool HideWindow => this.HideWindowYaml is null ? this.defaults.HideWindow : (bool)this.HideWindowYaml;
-
-        public bool StopParentProcessFirst
-        {
-            get
-            {
-                return this.StopParentProcessFirstYaml is null ?
-                    this.defaults.StopParentProcessFirst :
-                    (bool)this.StopParentProcessFirstYaml;
-            }
-        }
-
-        public ServiceStartMode StartMode
-        {
-            get
-            {
-                if (this.StartModeYaml is null)
-                {
-                    return this.defaults.StartMode;
-                }
-
-                string p = ExpandEnvironmentVariables(this.StartModeYaml);
-
-                try
-                {
-                    return (ServiceStartMode)Enum.Parse(typeof(ServiceStartMode), p, true);
-                }
-                catch
-                {
-                    Console.WriteLine("Start mode in YAML must be one of the following:");
-                    foreach (string sm in Enum.GetNames(typeof(ServiceStartMode)))
-                    {
-                        Console.WriteLine(sm);
-                    }
-
-                    throw;
-                }
-            }
-        }
-
-        public string Arguments
-        {
-            get
-            {
-                string? args = this.GetArguments(this.ArgumentsYaml, ArgType.Arg);
-                return args is null ? this.defaults.Arguments : args;
-            }
-        }
-
-        public string? StartArguments => this.GetArguments(this.StartArgumentsYaml, ArgType.Startarg);
-
-        public string? StopArguments => this.GetArguments(this.StopArgumentsYaml, ArgType.Stoparg);
-
-        public string? StopExecutable
-        {
-            get
-            {
-                return this.StopExecutableYaml is null ?
-                    this.defaults.StopExecutable :
-                    ExpandEnvironmentVariables(this.StopExecutableYaml);
-            }
-        }
+        public string? StopExecutable => Expand(this.raw.StopExecutable) ?? this.defaults.StopExecutable;
 
         public SC_ACTION[] FailureActions
         {
             get
             {
-                if (this.YamlFailureActions is null)
+                if (this.raw.OnFailure is null)
                 {
+#if VNEXT
+                    return Array.Empty<SC_ACTION>();
+#else
                     return new SC_ACTION[0];
+#endif
                 }
 
-                var arr = new List<SC_ACTION>();
+                var result = new SC_ACTION[this.raw.OnFailure.Count];
 
-                foreach (var item in this.YamlFailureActions)
+                for (int i = 0; i < result.Length; i++)
                 {
-                    arr.Add(new SC_ACTION(item.Type, item.Delay));
+                    var item = new YamlFailureAction(this.raw.OnFailure[i]);
+                    result[i] = new(item.Type, item.Delay);
                 }
 
-                return arr.ToArray();
+                return result;
             }
         }
 
-        public TimeSpan ResetFailureAfter => this.ResetFailureAfterYaml is null ?
-            this.defaults.ResetFailureAfter :
-            ConfigHelper.ParseTimeSpan(this.ResetFailureAfterYaml);
+        public TimeSpan ResetFailureAfter => ExpandTimeSpan(this.raw.ResetFailure) ?? this.defaults.ResetFailureAfter;
 
-        public string WorkingDirectory => this.WorkingDirectoryYaml is null ?
-            this.defaults.WorkingDirectory :
-            ExpandEnvironmentVariables(this.WorkingDirectoryYaml);
+        public string WorkingDirectory => Expand(this.raw.WorkingDirectory) ?? this.defaults.WorkingDirectory;
 
-        public ProcessPriorityClass Priority
-        {
-            get
-            {
-                if (this.PriorityYaml is null)
-                {
-                    return this.defaults.Priority;
-                }
+        public ProcessPriorityClass Priority => ExpandEnum<ProcessPriorityClass>(this.raw.Priority) ?? this.defaults.Priority;
 
-                string p = ExpandEnvironmentVariables(this.PriorityYaml);
-
-                try
-                {
-                    return (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), p, true);
-                }
-                catch
-                {
-                    Console.WriteLine("Priority in YAML must be one of the following:");
-                    foreach (string pr in Enum.GetNames(typeof(ProcessPriorityClass)))
-                    {
-                        Console.WriteLine(pr);
-                    }
-
-                    throw;
-                }
-            }
-        }
-
-        public TimeSpan StopTimeout => this.StopTimeoutYaml is null ? this.defaults.StopTimeout : ConfigHelper.ParseTimeSpan(this.StopTimeoutYaml);
+        public TimeSpan StopTimeout => ExpandTimeSpan(this.raw.StopTimeout) ?? this.defaults.StopTimeout;
 
         public string[] ServiceDependencies
         {
             get
             {
-                if (this.ServiceDependenciesYaml is null)
+                if (this.raw.Depend is null)
                 {
                     return this.defaults.ServiceDependencies;
                 }
 
-                var result = new List<string>(0);
+                string[] result = new string[this.raw.Depend.Length];
 
-                foreach (string item in this.ServiceDependenciesYaml)
+                for (int i = 0; i < result.Length; i++)
                 {
-                    result.Add(ExpandEnvironmentVariables(item));
+                    result[i] = Environment.ExpandEnvironmentVariables(this.raw.Depend[i]);
                 }
 
-                return result.ToArray();
+                return result;
             }
         }
 
-        public TimeSpan WaitHint => this.WaitHintYaml is null ? this.defaults.WaitHint : ConfigHelper.ParseTimeSpan(this.WaitHintYaml);
+        public TimeSpan WaitHint => this.defaults.WaitHint;
 
-        public TimeSpan SleepTime => this.SleepTimeYaml is null ? this.defaults.SleepTime : ConfigHelper.ParseTimeSpan(this.SleepTimeYaml);
+        public TimeSpan SleepTime => this.defaults.SleepTime;
 
-        public bool Interactive => this.InteractiveYaml is null ? this.defaults.Interactive : (bool)this.InteractiveYaml;
+        public bool Interactive => ExpandBoolean(this.raw.Interactive) ?? this.defaults.Interactive;
 
-        public List<Download> Downloads => this.GetDownloads(this.DownloadsYaml);
+        public List<Download> Downloads
+        {
+            get
+            {
+                if (this.raw.Download is null)
+                {
+                    return this.defaults.Downloads;
+                }
+
+                var result = new List<Download>(this.raw.Download.Count);
+
+                foreach (var item in this.raw.Download)
+                {
+                    result.Add(new YamlDownload(item).Download);
+                }
+
+                return result;
+            }
+        }
 
         public Dictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
 
         public void LoadEnvironmentVariables()
         {
-            if (this.EnvironmentVariablesYaml is null)
+            if (this.raw.Env is null)
             {
                 this.EnvironmentVariables = this.defaults.EnvironmentVariables;
+                return;
             }
-            else
+
+            foreach (var item in this.raw.Env)
             {
-                foreach (var item in this.EnvironmentVariablesYaml)
+                if (item.Name is null || item.Value is null)
                 {
-                    if (item.Name is null || item.Value is null)
-                    {
-                        continue;
-                    }
-
-                    string key = item.Name;
-                    string value = ExpandEnvironmentVariables(item.Value);
-
-                    this.EnvironmentVariables[key] = value;
-                    SetEnvironmentVariable(key, value);
+                    continue;
                 }
+
+                string key = item.Name;
+                string value = Environment.ExpandEnvironmentVariables(item.Value);
+
+                this.EnvironmentVariables[key] = value;
+                Environment.SetEnvironmentVariable(key, value);
             }
         }
 
-        public ServiceAccount ServiceAccount => this.ServiceAccountYaml is null ? this.defaults.ServiceAccount : this.ServiceAccountYaml;
+        public ServiceAccount ServiceAccount
+        {
+            get
+            {
+                var rawServiceAccount = this.raw.ServiceAccount;
+                if (rawServiceAccount is null)
+                {
+                    return this.defaults.ServiceAccount;
+                }
 
-        public Log Log => this.YAMLLog is null ? this.defaults.Log : this.YAMLLog;
+                return new()
+                {
+                    User = Expand(rawServiceAccount.User),
+                    Domain = Expand(rawServiceAccount.Domain),
+                    Password = Expand(rawServiceAccount.Password),
+                    AllowServiceLogonRight = ExpandBoolean(rawServiceAccount.AllowServiceLogon) ?? false,
+                };
+            }
+        }
+
+        public Log Log => this.raw.Log is null ? this.defaults.Log : new YamlLog(this.raw.Log);
 
         public string LogDirectory => this.Log.Directory;
 
@@ -650,9 +252,7 @@ namespace WinSW.Configuration
 
         public XmlNode? XmlExtensions => null;
 
-        // YAML Extension
-        [YamlMember(Alias = "extensions")]
-        public List<YamlExtensionConfig>? YamlExtensions { get; set; }
+        public List<YamlExtensionConfig>? YamlExtensions => this.raw.Extensions;
 
         public List<string> ExtensionIds
         {
@@ -689,17 +289,158 @@ namespace WinSW.Configuration
 
         public string BasePath { get; set; }
 
-        public string? SecurityDescriptor
-        {
-            get
-            {
-                if (this.SecurityDescriptorYaml is null)
-                {
-                    return this.defaults.SecurityDescriptor;
-                }
+        public string? SecurityDescriptor => Expand(this.raw.SecurityDescriptor) ?? this.defaults.SecurityDescriptor;
 
-                return ExpandEnvironmentVariables(this.SecurityDescriptorYaml);
-            }
+        internal sealed class RawYamlServiceConfig
+        {
+            public string? Id;
+            public string? Name;
+            public string? Description;
+            public string? Executable;
+            public string? HideWindow;
+            public string? WorkingDirectory;
+            public RawServiceAccount? ServiceAccount;
+            public RawYamlLog? Log;
+            public List<RawYamlDownload>? Download;
+            public string? Arguments;
+            public string? StartArguments;
+            public string? StopArguments;
+            public string? StopExecutable;
+            public string? StopParentProcessFirst;
+            public string? ResetFailure;
+            public string? StopTimeout;
+            public string? StartMode;
+            public string[]? Depend;
+            public string? Interactive;
+            public string? Priority;
+            public string? BeepOnShutdown;
+            public List<RawYamlEnv>? Env;
+            public List<RawYamlFailureAction>? OnFailure;
+            public string? DelayedAutoStart;
+            public string? SecurityDescriptor;
+            public List<YamlExtensionConfig>? Extensions;
+        }
+
+        internal sealed class RawServiceAccount
+        {
+            public string? User;
+            public string? Domain;
+            public string? Password;
+            public string? AllowServiceLogon;
+        }
+
+        internal sealed class YamlLog : Log
+        {
+            private readonly DefaultSettings.LogDefaults defaults = new();
+            private readonly RawYamlLog raw;
+
+            internal YamlLog(RawYamlLog raw) => this.raw = raw;
+
+            public override string Mode => Expand(this.raw.Mode) ?? this.defaults.Mode;
+
+            public override string Name => Expand(this.raw.Name) ?? this.defaults.Name;
+
+            public override string Directory => Expand(this.raw.LogPath) ?? this.defaults.Directory;
+
+            public override int? SizeThreshold => this.raw.SizeThreshold ?? this.defaults.SizeThreshold;
+
+            public override int? KeepFiles => this.raw.KeepFiles ?? this.defaults.KeepFiles;
+
+            public override string Pattern => Expand(this.raw.Pattern) ?? this.defaults.Pattern;
+
+            public override int? Period => this.raw.Period ?? this.defaults.Period;
+
+            public override bool OutFileDisabled => ExpandBoolean(this.raw.OutFileDisabled) ?? this.defaults.OutFileDisabled;
+
+            public override bool ErrFileDisabled => ExpandBoolean(this.raw.ErrFileDisabled) ?? this.defaults.ErrFileDisabled;
+
+            public override string OutFilePattern => Expand(this.raw.OutFilePattern) ?? this.defaults.OutFilePattern;
+
+            public override string ErrFilePattern => Expand(this.raw.ErrFilePattern) ?? this.defaults.ErrFilePattern;
+
+            public override string? AutoRollAtTime => Expand(this.raw.AutoRollAtTime) ?? this.defaults.AutoRollAtTime;
+
+            public override int? ZipOlderThanNumDays => this.raw.ZipOlderThanNumDays;
+
+            public override string? ZipDateFormat => Expand(this.raw.ZipDateFormat) ?? this.defaults.ZipDateFormat;
+        }
+
+        internal sealed class RawYamlLog
+        {
+            public string? Mode;
+            public string? Name;
+            public int? SizeThreshold;
+            public int? KeepFiles;
+            public string? Pattern;
+            public int? Period;
+            public string? LogPath;
+            public string? OutFileDisabled;
+            public string? ErrFileDisabled;
+            public string? OutFilePattern;
+            public string? ErrFilePattern;
+            public string? AutoRollAtTime;
+            public int? ZipOlderThanNumDays;
+            public string? ZipDateFormat;
+        }
+
+        internal sealed class YamlDownload
+        {
+            private readonly RawYamlDownload raw;
+
+            internal YamlDownload(RawYamlDownload raw) => this.raw = raw;
+
+            public Download Download => new(this.From, this.To, this.FailOnError, this.Auth, this.Username, this.Password, this.UnsecureAuth, this.Proxy);
+
+            public string From => Expand(this.raw.From)!;
+
+            public string To => Expand(this.raw.To)!;
+
+            public string? Username => Expand(this.raw.Username);
+
+            public string? Password => Expand(this.raw.Password);
+
+            public bool UnsecureAuth => ExpandBoolean(this.raw.UnsecureAuth) ?? false;
+
+            public bool FailOnError => ExpandBoolean(this.raw.FailOnError) ?? false;
+
+            public string? Proxy => Expand(this.raw.Proxy);
+
+            public Download.AuthType Auth => ExpandEnum<Download.AuthType>(this.raw.Auth) ?? Download.AuthType.None;
+        }
+
+        internal sealed class RawYamlDownload
+        {
+            public string From = string.Empty;
+            public string To = string.Empty;
+            public string? Auth;
+            public string? Username;
+            public string? Password;
+            public string? UnsecureAuth;
+            public string? FailOnError;
+            public string? Proxy;
+        }
+
+        internal sealed class RawYamlEnv
+        {
+            public string? Name;
+            public string? Value;
+        }
+
+        internal sealed class YamlFailureAction
+        {
+            private readonly RawYamlFailureAction raw;
+
+            internal YamlFailureAction(RawYamlFailureAction raw) => this.raw = raw;
+
+            public SC_ACTION_TYPE Type => ExpandEnum<SC_ACTION_TYPE>(this.raw.Action) ?? SC_ACTION_TYPE.NONE;
+
+            public TimeSpan Delay => ExpandTimeSpan(this.raw.Delay) ?? TimeSpan.Zero;
+        }
+
+        internal sealed class RawYamlFailureAction
+        {
+            public string? Action;
+            public string? Delay;
         }
     }
 }

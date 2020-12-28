@@ -32,7 +32,7 @@ namespace WinSW.Plugins
 
         public static SharedDirectoryMapperConfig FromYaml(object yamlObject)
         {
-            if (!(yamlObject is Dictionary<object, object> dict))
+            if (yamlObject is not Dictionary<object, object> dict)
             {
                 // TODO : throw ExtensionExeption
                 throw new InvalidDataException("SharedDirectoryMapperConfig config error");
@@ -42,7 +42,7 @@ namespace WinSW.Plugins
             bool enableMapping = ConfigHelper.YamlBoolParse(enableMappingConfig);
 
             string label = ExpandEnvironmentVariables((string)dict["label"]);
-            string uncPath = ExpandEnvironmentVariables((string)dict["uncpath"]);
+            string uncPath = ExpandEnvironmentVariables((string)dict["uncPath"]);
 
             return new SharedDirectoryMapperConfig(enableMapping, label, uncPath);
         }

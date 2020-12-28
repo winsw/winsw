@@ -249,7 +249,7 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Cannot load the class by name: " + className, ex);
             }
 
-            if (!(created is IWinSWExtension extension))
+            if (created is not IWinSWExtension extension)
             {
                 throw new ExtensionException(id, "The loaded class is not a WinSW extension: " + className + ". Type is " + created.GetType());
             }
