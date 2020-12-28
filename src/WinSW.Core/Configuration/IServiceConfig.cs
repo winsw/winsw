@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace WinSW.Configuration
 {
-    public interface IWinSWConfiguration
+    public interface IServiceConfig
     {
         // TODO: Document the parameters && refactor
         string Name { get; }
@@ -74,9 +74,9 @@ namespace WinSW.Configuration
         bool BeepOnShutdown { get; }
 
         // Extensions
-        XmlNode? ExtensionsConfiguration { get; }
+        XmlNode? XmlExtensions { get; }
 
-        List<YamlExtensionConfiguration>? YamlExtensionsConfiguration { get; }
+        List<YamlExtensionConfig>? YamlExtensions { get; }
 
         List<string> ExtensionIds { get; }
 

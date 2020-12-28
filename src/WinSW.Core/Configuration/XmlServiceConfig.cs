@@ -14,13 +14,13 @@ namespace WinSW
     /// <summary>
     /// In-memory representation of the configuration file.
     /// </summary>
-    public class ServiceDescriptor : IWinSWConfiguration
+    public class XmlServiceConfig : IServiceConfig
     {
         protected readonly XmlDocument dom = new();
 
         private readonly Dictionary<string, string> environmentVariables;
 
-        public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+        public static DefaultSettings Defaults { get; } = new DefaultSettings();
 
         /// <summary>
         /// Where did we find the configuration file?
@@ -39,7 +39,7 @@ namespace WinSW
         // Currently there is no opportunity to alter the executable path
         public virtual string ExecutablePath => Defaults.ExecutablePath;
 
-        public ServiceDescriptor(string baseName, string directory)
+        public XmlServiceConfig(string baseName, string directory)
         {
             this.BaseName = baseName;
             this.BasePath = Path.Combine(directory, this.BaseName);
@@ -72,7 +72,7 @@ namespace WinSW
         /// Loads descriptor from existing DOM
         /// </summary>
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public ServiceDescriptor(XmlDocument dom)
+        public XmlServiceConfig(XmlDocument dom)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
@@ -80,11 +80,11 @@ namespace WinSW
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
-        public static ServiceDescriptor FromXML(string xml)
+        public static XmlServiceConfig FromXML(string xml)
         {
             var xmlDom = new XmlDocument();
             xmlDom.LoadXml(xml);
-            return new ServiceDescriptor(xmlDom);
+            return new XmlServiceConfig(xmlDom);
         }
 
         private string SingleElement(string tagName)
@@ -208,7 +208,7 @@ namespace WinSW
         {
             get
             {
-                var argumentNode = this.ExtensionsConfiguration;
+                var argumentNode = this.XmlExtensions;
                 var extensions = argumentNode?.SelectNodes("extension");
                 if (extensions is null)
                 {
@@ -225,7 +225,7 @@ namespace WinSW
             }
         }
 
-        public XmlNode? ExtensionsConfiguration => this.dom.SelectSingleNode("//extensions");
+        public XmlNode? XmlExtensions => this.dom.SelectSingleNode("//extensions");
 
         /// <summary>
         /// Combines the contents of all the elements of the given name,
@@ -314,34 +314,34 @@ namespace WinSW
 
         private class XmlLogSettings : Log
         {
-            private readonly ServiceDescriptor d;
+            private readonly XmlServiceConfig config;
 
-            public XmlLogSettings(ServiceDescriptor d)
+            public XmlLogSettings(XmlServiceConfig config)
             {
-                this.d = d;
+                this.config = config;
             }
 
-            private XmlElement E
+            private XmlElement Element
             {
                 get
                 {
-                    var e = (XmlElement?)this.d.dom.SelectSingleNode("//logmode");
+                    var element = (XmlElement?)this.config.dom.SelectSingleNode("//logmode");
 
                     // this is more modern way, to support nested elements as configuration
-                    e ??= (XmlElement?)this.d.dom.SelectSingleNode("//log")!; // WARNING: NRE
-                    return e;
+                    element ??= (XmlElement?)this.config.dom.SelectSingleNode("//log")!; // WARNING: NRE
+                    return element;
                 }
             }
 
-            public override string? Mode => this.d.LogMode;
+            public override string? Mode => this.config.LogMode;
 
-            public override string Name => this.d.LogName;
+            public override string Name => this.config.LogName;
 
             public override string Directory
             {
                 get
                 {
-                    var loggingNode = this.d.dom.SelectSingleNode("//logpath");
+                    var loggingNode = this.config.dom.SelectSingleNode("//logpath");
 
                     return loggingNode is null
                         ? Defaults.LogDirectory
@@ -349,17 +349,17 @@ namespace WinSW
                 }
             }
 
-            public override int? SizeThreshold => this.d.SingleIntElement(this.E, "sizeThreshold", 10 * 1024);
+            public override int? SizeThreshold => this.config.SingleIntElement(this.Element, "sizeThreshold", 10 * 1024);
 
-            public override int? KeepFiles => this.d.SingleIntElement(this.E, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
+            public override int? KeepFiles => this.config.SingleIntElement(this.Element, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
 
-            public override int? Period => this.d.SingleIntElement(this.E, "period", 1);
+            public override int? Period => this.config.SingleIntElement(this.Element, "period", 1);
 
             public override string Pattern
             {
                 get
                 {
-                    var patternNode = this.E.SelectSingleNode("pattern");
+                    var patternNode = this.Element.SelectSingleNode("pattern");
                     if (patternNode is null)
                     {
                         throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
@@ -369,15 +369,15 @@ namespace WinSW
                 }
             }
 
-            public override bool OutFileDisabled => this.d.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
+            public override bool OutFileDisabled => this.config.SingleBoolElement("outfiledisabled", Defaults.OutFileDisabled);
 
-            public override bool ErrFileDisabled => this.d.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
+            public override bool ErrFileDisabled => this.config.SingleBoolElement("errfiledisabled", Defaults.ErrFileDisabled);
 
             public override string OutFilePattern
             {
                 get
                 {
-                    var loggingName = this.d.dom.SelectSingleNode("//outfilepattern");
+                    var loggingName = this.config.dom.SelectSingleNode("//outfilepattern");
 
                     return loggingName is null ? Defaults.OutFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
                 }
@@ -387,7 +387,7 @@ namespace WinSW
             {
                 get
                 {
-                    var loggingName = this.d.dom.SelectSingleNode("//errfilepattern");
+                    var loggingName = this.config.dom.SelectSingleNode("//errfilepattern");
 
                     return loggingName is null ? Defaults.ErrFilePattern : Environment.ExpandEnvironmentVariables(loggingName.InnerText);
                 }
@@ -397,7 +397,7 @@ namespace WinSW
             {
                 get
                 {
-                    var autoRollAtTimeNode = this.E.SelectSingleNode("autoRollAtTime");
+                    var autoRollAtTimeNode = this.Element.SelectSingleNode("autoRollAtTime");
                     return autoRollAtTimeNode?.InnerText;
                 }
             }
@@ -406,7 +406,7 @@ namespace WinSW
             {
                 get
                 {
-                    var zipolderthannumdaysNode = this.E.SelectSingleNode("zipOlderThanNumDays");
+                    var zipolderthannumdaysNode = this.Element.SelectSingleNode("zipOlderThanNumDays");
                     int? zipolderthannumdays = null;
                     if (zipolderthannumdaysNode != null)
                     {
@@ -427,7 +427,7 @@ namespace WinSW
             {
                 get
                 {
-                    var zipdateformatNode = this.E.SelectSingleNode("zipDateFormat");
+                    var zipdateformatNode = this.Element.SelectSingleNode("zipDateFormat");
                     return zipdateformatNode is null ? null : zipdateformatNode.InnerText;
                 }
             }
@@ -690,6 +690,6 @@ namespace WinSW
             return environment;
         }
 
-        public List<YamlExtensionConfiguration>? YamlExtensionsConfiguration => Defaults.YamlExtensionsConfiguration;
+        public List<YamlExtensionConfig>? YamlExtensions => Defaults.YamlExtensions;
     }
 }

@@ -25,7 +25,7 @@ $@"<service>
   <logpath>C:\winsw\logs</logpath>
 </service>";
 
-        public static readonly ServiceDescriptor DefaultServiceDescriptor = ServiceDescriptor.FromXML(SeedXml);
+        public static readonly XmlServiceConfig DefaultServiceDescriptor = XmlServiceConfig.FromXML(SeedXml);
 
         /// <summary>
         /// Runs a simle test, which returns the output CLI
@@ -34,7 +34,7 @@ $@"<service>
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>STDOUT if there's no exceptions</returns>
         /// <exception cref="Exception">Command failure</exception>
-        public static string CLITest(string[] arguments, ServiceDescriptor descriptor = null)
+        public static string CLITest(string[] arguments, XmlServiceConfig descriptor = null)
         {
             var tmpOut = Console.Out;
             var tmpErr = Console.Error;
@@ -65,7 +65,7 @@ $@"<service>
         /// <param name="arguments">CLI arguments to be passed</param>
         /// <param name="descriptor">Optional Service descriptor (will be used for initializationpurposes)</param>
         /// <returns>Test results</returns>
-        public static CLITestResult CLIErrorTest(string[] arguments, ServiceDescriptor descriptor = null)
+        public static CLITestResult CLIErrorTest(string[] arguments, XmlServiceConfig descriptor = null)
         {
             Exception testEx = null;
             var tmpOut = Console.Out;

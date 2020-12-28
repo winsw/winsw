@@ -7,6 +7,7 @@ using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
+using static System.Environment;
 using static WinSW.Plugins.RunawayProcessKillerExtension.NativeMethods;
 
 namespace WinSW.Plugins
@@ -179,7 +180,7 @@ namespace WinSW.Plugins
             return parameters.Environment;
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        public override void Configure(IServiceConfig descriptor, XmlNode node)
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
@@ -192,17 +193,22 @@ namespace WinSW.Plugins
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, YamlExtensionConfiguration config)
+        public override void Configure(IServiceConfig descriptor, YamlExtensionConfig config)
         {
             var dict = config.GetSettings();
 
-            this.Pidfile = (string)dict["pidfile"];
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)dict["stopTimeOut"]));
-            this.StopParentProcessFirst = bool.Parse((string)dict["StopParentFirst"]);
+            this.Pidfile = ExpandEnvironmentVariables((string)dict["pidfile"]);
+
+            string stopTimeOutConfig = ExpandEnvironmentVariables((string)dict["stopTimeOut"]);
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(stopTimeOutConfig));
+
+            string StopParentProcessFirstConfig = ExpandEnvironmentVariables((string)dict["StopParentFirst"]);
+            this.StopParentProcessFirst = bool.Parse(StopParentProcessFirstConfig);
 
             try
             {
-                this.CheckWinSWEnvironmentVariable = bool.Parse((string)dict["checkWinSWEnvironmentVariable"]);
+                string CheckWinSWEnvironmentVariableConfig = ExpandEnvironmentVariables((string)dict["checkWinSWEnvironmentVariable"]);
+                this.CheckWinSWEnvironmentVariable = bool.Parse(CheckWinSWEnvironmentVariableConfig);
             }
             catch
             {

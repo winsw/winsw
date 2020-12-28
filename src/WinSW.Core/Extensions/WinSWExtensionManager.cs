@@ -10,11 +10,11 @@ namespace WinSW.Extensions
     {
         public Dictionary<string, IWinSWExtension> Extensions { get; private set; }
 
-        public IWinSWConfiguration ServiceDescriptor { get; private set; }
+        public IServiceConfig ServiceDescriptor { get; private set; }
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
-        public WinSWExtensionManager(IWinSWConfiguration serviceDescriptor)
+        public WinSWExtensionManager(IServiceConfig serviceDescriptor)
         {
             this.ServiceDescriptor = serviceDescriptor;
             this.Extensions = new Dictionary<string, IWinSWExtension>();
@@ -127,7 +127,7 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            if (this.ServiceDescriptor.GetType() == typeof(ServiceDescriptor))
+            if (this.ServiceDescriptor.GetType() == typeof(XmlServiceConfig))
             {
                 this.LoadExtensionFromXml(id);
             }
@@ -139,7 +139,7 @@ namespace WinSW.Extensions
 
         private void LoadExtensionFromXml(string id)
         {
-            var extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
+            var extensionsConfig = this.ServiceDescriptor.XmlExtensions;
             var configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
             {
@@ -173,7 +173,7 @@ namespace WinSW.Extensions
 
         private void LoadExtensionFromYaml(string id)
         {
-            var extensionConfigList = this.ServiceDescriptor.YamlExtensionsConfiguration;
+            var extensionConfigList = this.ServiceDescriptor.YamlExtensions;
 
             if (extensionConfigList is null)
             {
@@ -207,7 +207,7 @@ namespace WinSW.Extensions
                 Log.Warn("Extension is disabled: " + id);
             }
 
-            YamlExtensionConfiguration GetYamlonfigById(List<YamlExtensionConfiguration> configs, string id)
+            YamlExtensionConfig GetYamlonfigById(List<YamlExtensionConfig> configs, string id)
             {
                 foreach (var item in configs)
                 {

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Xml;
 using WinSW.Util;
+using static System.Environment;
 
 namespace WinSW.Plugins
 {
@@ -37,9 +38,11 @@ namespace WinSW.Plugins
                 throw new InvalidDataException("SharedDirectoryMapperConfig config error");
             }
 
-            bool enableMapping = ConfigHelper.YamlBoolParse((string)dict["enabled"]);
-            string label = (string)dict["label"];
-            string uncPath = (string)dict["uncpath"];
+            string enableMappingConfig = ExpandEnvironmentVariables((string)dict["enabled"]);
+            bool enableMapping = ConfigHelper.YamlBoolParse(enableMappingConfig);
+
+            string label = ExpandEnvironmentVariables((string)dict["label"]);
+            string uncPath = ExpandEnvironmentVariables((string)dict["uncpath"]);
 
             return new SharedDirectoryMapperConfig(enableMapping, label, uncPath);
         }

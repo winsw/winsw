@@ -9,7 +9,7 @@ namespace winswTests
 {
     class ServiceDescriptorYamlTest
     {
-        private IWinSWConfiguration _extendedServiceDescriptor;
+        private IServiceConfig _extendedServiceDescriptor;
 
         private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
         private const string Username = "User";
@@ -37,7 +37,7 @@ serviceaccount:
     allowservicelogon: {AllowServiceAccountLogonRight}
 workingdirectory: {ExpectedWorkingDirectory}";
 
-            this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            this._extendedServiceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
         }
 
         [Test]
@@ -57,7 +57,7 @@ executable: node.exe
 arguments: My Arguments
 startMode: roll";
 
-            this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            this._extendedServiceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
             Assert.That(() => this._extendedServiceDescriptor.StartMode, Throws.ArgumentException);
         }
 
@@ -72,7 +72,7 @@ executable: node.exe
 arguments: My Arguments
 startMode: manual";
 
-            this._extendedServiceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            this._extendedServiceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
             Assert.That(this._extendedServiceDescriptor.StartMode, Is.EqualTo(ServiceStartMode.Manual));
         }
 
@@ -106,27 +106,27 @@ startMode: manual";
         [Test]
         public void Priority()
         {
-            var sd = ServiceDescriptorYaml.FromYaml(@"
+            var sd = YamlServiceConfigLoader.FromYaml(@"
 id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
-priority: normal").Configurations;
+priority: normal").Config;
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
 
-            sd = ServiceDescriptorYaml.FromYaml(@"
+            sd = YamlServiceConfigLoader.FromYaml(@"
 id: service.exe
 name: Service
 description: The Service.
 executable: node.exe
-priority: idle").Configurations;
+priority: idle").Config;
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Idle));
 
-            sd = ServiceDescriptorYaml.FromYaml(@"
+            sd = YamlServiceConfigLoader.FromYaml(@"
 id: service.exe
 name: Service
 description: The Service.
-executable: node.exe").Configurations;
+executable: node.exe").Config;
             Assert.That(sd.Priority, Is.EqualTo(ProcessPriorityClass.Normal));
         }
 
@@ -145,7 +145,7 @@ name: Service
 description: The Service.
 executable: node.exe
 stopParentProcessFirst: false";
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.StopParentProcessFirst, Is.False);
         }
@@ -159,7 +159,7 @@ description: The Service.
 executable: node.exe
 stopTimeout: 60sec";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(60)));
         }
@@ -174,7 +174,7 @@ description: The Service.
 executable: node.exe
 stopTimeout: 10min";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromMinutes(10)));
         }
@@ -190,7 +190,7 @@ executable: node.exe
 log:
     name: MyTestApp";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.Log.Name, Is.EqualTo("MyTestApp"));
         }
@@ -206,7 +206,7 @@ executable: node.exe
 log:
     outFileDisabled: true";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.Log.OutFileDisabled, Is.True);
         }
@@ -222,7 +222,7 @@ executable: node.exe
 log:
     errFileDisabled: true";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.Log.ErrFileDisabled, Is.True);
         }
@@ -238,7 +238,7 @@ executable: node.exe
 log:
     outFilePattern: .out.test.log";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.Log.OutFilePattern, Is.EqualTo(".out.test.log"));
         }
@@ -254,7 +254,7 @@ executable: node.exe
 log:
     errFilePattern: .err.test.log";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.Log.ErrFilePattern, Is.EqualTo(".err.test.log"));
         }
@@ -273,7 +273,7 @@ log:
     sizeThreshold: 112
     keepFiles: 113";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             serviceDescriptor.BaseName = "service";
 
@@ -297,7 +297,7 @@ log:
     period: 7
     pattern: log pattern";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             serviceDescriptor.BaseName = "service";
 
@@ -322,7 +322,7 @@ log:
     pattern: yyyy-MM-dd
     autoRollAtTime: 00:00:00";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             serviceDescriptor.BaseName = "service";
 
@@ -347,7 +347,7 @@ serviceaccount:
     password: {Password}
     allowservicelogon: false";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
         }
@@ -365,7 +365,7 @@ serviceaccount:
     user: {Username}
     password: {Password}";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.ServiceAccount.AllowServiceAcountLogonRight, Is.False);
         }
@@ -380,7 +380,7 @@ description: The Service.
 executable: node.exe
 waitHint: 20 min";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.WaitHint, Is.EqualTo(TimeSpan.FromMinutes(20)));
         }
@@ -395,7 +395,7 @@ description: The Service.
 executable: node.exe
 sleepTime: 3 hrs";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.SleepTime, Is.EqualTo(TimeSpan.FromHours(3)));
         }
@@ -410,7 +410,7 @@ description: The Service.
 executable: node.exe
 resetFailureAfter: 75 sec";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.ResetFailureAfter, Is.EqualTo(TimeSpan.FromSeconds(75)));
         }
@@ -425,7 +425,7 @@ description: The Service.
 executable: node.exe
 stopTimeout: 35 sec";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.StopTimeout, Is.EqualTo(TimeSpan.FromSeconds(35)));
         }
@@ -440,7 +440,7 @@ description: The Service.
 executable: node.exe
 arguments: arg";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.Arguments, Is.EqualTo("arg"));
         }
@@ -454,7 +454,7 @@ description: The Service.
 executable: node.exe
 delayedAutoStart: true";
 
-            var serviceDescriptor = ServiceDescriptorYaml.FromYaml(yaml).Configurations;
+            var serviceDescriptor = YamlServiceConfigLoader.FromYaml(yaml).Config;
 
             Assert.That(serviceDescriptor.DelayedAutoStart, Is.EqualTo(true));
         }
@@ -470,7 +470,7 @@ description: This is test winsw";
 
             Assert.That(() =>
             {
-                _ = ServiceDescriptorYaml.FromYaml(yml).Configurations.Name;
+                _ = YamlServiceConfigLoader.FromYaml(yml).Config.Name;
             }, Throws.TypeOf<InvalidOperationException>());
         }
 

@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using YamlDotNet.Serialization;
 
 namespace WinSW.Configuration
 {
-    public class YamlExtensionConfiguration
+    public class YamlExtensionConfig
     {
         [YamlMember(Alias = "id")]
         public string? ExtensionId { get; set; }

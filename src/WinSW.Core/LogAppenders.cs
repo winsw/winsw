@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 #if VNEXT
 using System.IO.Compression;

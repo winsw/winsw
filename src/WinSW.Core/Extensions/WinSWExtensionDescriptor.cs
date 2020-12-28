@@ -42,7 +42,7 @@ namespace WinSW.Extensions
             return new WinSWExtensionDescriptor(id, className, enabled);
         }
 
-        public static WinSWExtensionDescriptor FromYaml(YamlExtensionConfiguration config)
+        public static WinSWExtensionDescriptor FromYaml(YamlExtensionConfig config)
         {
             bool enabled = config.Enabled;
             string className = config.GetClassName();

@@ -219,7 +219,7 @@ namespace WinSW.Util
 
             bool succeeded = SetConsoleCtrlHandler(null, false); // inherited
             Debug.Assert(succeeded);
-            succeeded = ConsoleApis.SetConsoleOutputCP(ConsoleApis.CP_UTF8);
+            succeeded = SetConsoleOutputCP(CP_UTF8);
             Debug.Assert(succeeded);
 
             try

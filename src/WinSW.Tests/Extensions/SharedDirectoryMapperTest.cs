@@ -9,8 +9,8 @@ namespace winswTests.Extensions
     [TestFixture]
     class SharedDirectoryMapperTest : ExtensionTestBase
     {
-        IWinSWConfiguration _testServiceDescriptor;
-        IWinSWConfiguration _testServiceDescriptorYaml;
+        IServiceConfig _testServiceDescriptor;
+        IServiceConfig _testServiceDescriptorYaml;
 
         readonly string testExtension = GetExtensionClassNameWithAssembly(typeof(SharedDirectoryMapper));
 
@@ -40,7 +40,7 @@ $@"<service>
     </extension>
   </extensions>
 </service>";
-            this._testServiceDescriptor = ServiceDescriptor.FromXML(seedXml);
+            this._testServiceDescriptor = XmlServiceConfig.FromXML(seedXml);
 
             string seedYaml = $@"---
 id: jenkins
@@ -78,7 +78,7 @@ extensions:
                 label: Y
                 uncpath: \\UNC2";
 
-            this._testServiceDescriptorYaml = ServiceDescriptorYaml.FromYaml(seedYaml).Configurations;
+            this._testServiceDescriptorYaml = YamlServiceConfigLoader.FromYaml(seedYaml).Config;
         }
 
         [Test]
