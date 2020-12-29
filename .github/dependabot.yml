@@ -1,5 +1,11 @@
+# https://docs.github.com/free-pro-team@latest/github/administering-a-repository/configuration-options-for-dependency-updates
+
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
