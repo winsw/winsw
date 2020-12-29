@@ -7,7 +7,7 @@ using WinSW.Plugins;
 namespace winswTests.Extensions
 {
     [TestFixture]
-    class SharedDirectoryMapperTest : ExtensionTestBase
+    class SharedDirectoryMapperConfigTest : ExtensionTestBase
     {
         IServiceConfig _testServiceDescriptor;
         IServiceConfig _testServiceDescriptorYaml;
