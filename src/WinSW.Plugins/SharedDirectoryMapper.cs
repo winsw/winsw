@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Xml;
 using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
+using static WinSW.Plugins.SharedDirectoryMapper.Native;
 
 namespace WinSW.Plugins
 {
     public class SharedDirectoryMapper : AbstractWinSWExtension
     {
-        private readonly SharedDirectoryMappingHelper _mapper = new();
-        private readonly List<SharedDirectoryMapperConfig> _entries = new();
+        private readonly List<SharedDirectoryMapperConfig> entries = new();
 
         public override string DisplayName => "Shared Directory Mapper";
 
@@ -24,28 +26,27 @@ namespace WinSW.Plugins
         public SharedDirectoryMapper(bool enableMapping, string directoryUNC, string driveLabel)
         {
             var config = new SharedDirectoryMapperConfig(enableMapping, driveLabel, directoryUNC);
-            this._entries.Add(config);
+            this.entries.Add(config);
         }
 
-        public override void Configure(IServiceConfig descriptor, XmlNode node)
+        public override void Configure(IServiceConfig service, XmlNode extension)
         {
-            var mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
+            var mapNodes = XmlHelper.SingleNode(extension, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
             {
                 for (int i = 0; i < mapNodes.Count; i++)
                 {
                     if (mapNodes[i] is XmlElement mapElement)
                     {
-                        var config = SharedDirectoryMapperConfig.FromXml(mapElement);
-                        this._entries.Add(config);
+                        this.entries.Add(SharedDirectoryMapperConfig.FromXml(mapElement));
                     }
                 }
             }
         }
 
-        public override void Configure(IServiceConfig descriptor, YamlExtensionConfig config)
+        public override void Configure(IServiceConfig service, YamlExtensionConfig extension)
         {
-            var dict = config.GetSettings();
+            var dict = extension.GetSettings();
 
             object mappingNode = dict["mapping"];
 
@@ -56,57 +57,84 @@ namespace WinSW.Plugins
 
             foreach (object map in mappings)
             {
-                var mapConfig = SharedDirectoryMapperConfig.FromYaml(map);
-                this._entries.Add(mapConfig);
+                this.entries.Add(SharedDirectoryMapperConfig.FromYaml(map));
             }
         }
 
         public override void OnWrapperStarted()
         {
-            foreach (var config in this._entries)
+            foreach (var config in this.entries)
             {
+                string label = config.Label;
+                string uncPath = config.UNCPath;
                 if (config.EnableMapping)
                 {
-                    Logger.Info(this.DisplayName + ": Mapping shared directory " + config.UNCPath + " to " + config.Label);
-                    try
+                    Logger.Info(this.DisplayName + ": Mapping shared directory " + uncPath + " to " + label);
+
+                    int error = WNetAddConnection2(new()
                     {
-                        this._mapper.MapDirectory(config.Label, config.UNCPath);
-                    }
-                    catch (MapperException ex)
+                        Type = RESOURCETYPE_DISK,
+                        LocalName = label,
+                        RemoteName = uncPath,
+                    });
+                    if (error != 0)
                     {
-                        this.HandleMappingError(config, ex);
+                        this.ThrowExtensionException(error, $"Mapping of {label} failed.");
                     }
                 }
                 else
                 {
-                    Logger.Warn(this.DisplayName + ": Mapping of " + config.Label + " is disabled");
+                    Logger.Warn(this.DisplayName + ": Mapping of " + label + " is disabled");
                 }
             }
         }
 
         public override void BeforeWrapperStopped()
         {
-            foreach (var config in this._entries)
+            foreach (var config in this.entries)
             {
+                string label = config.Label;
                 if (config.EnableMapping)
                 {
-                    try
+                    int error = WNetCancelConnection2(label);
+                    if (error != 0)
                     {
-                        this._mapper.UnmapDirectory(config.Label);
-                    }
-                    catch (MapperException ex)
-                    {
-                        this.HandleMappingError(config, ex);
+                        this.ThrowExtensionException(error, $"Unmapping of {label} failed.");
                     }
                 }
             }
         }
 
-        private void HandleMappingError(SharedDirectoryMapperConfig config, MapperException ex)
+        private void ThrowExtensionException(int error, string message)
         {
-            Logger.Error("Mapping of " + config.Label + " failed. STDOUT: " + ex.Process.StandardOutput.ReadToEnd()
-                + " \r\nSTDERR: " + ex.Process.StandardError.ReadToEnd(), ex);
-            throw new ExtensionException(this.Descriptor.Id, this.DisplayName + ": Mapping of " + config.Label + "failed", ex);
+            var inner = new Win32Exception(error);
+            throw new ExtensionException(this.Descriptor.Id, $"{this.DisplayName}: {message} {inner.Message}", inner);
+        }
+
+        internal static class Native
+        {
+            internal const uint RESOURCETYPE_DISK = 0x00000001;
+
+            private const string MprLibraryName = "mpr.dll";
+
+            [DllImport(MprLibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "WNetAddConnection2W")]
+            internal static extern int WNetAddConnection2(in NETRESOURCE netResource, string? password = null, string? userName = null, uint flags = 0);
+
+            [DllImport(MprLibraryName, SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "WNetCancelConnection2W")]
+            internal static extern int WNetCancelConnection2(string name, uint flags = 0, bool force = false);
+
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            internal struct NETRESOURCE
+            {
+                public uint Scope;
+                public uint Type;
+                public uint DisplayType;
+                public uint Usage;
+                public string LocalName;
+                public string RemoteName;
+                public string Comment;
+                public string Provider;
+            }
         }
     }
 }
