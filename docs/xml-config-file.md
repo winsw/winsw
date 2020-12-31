@@ -446,6 +446,5 @@ Automatically refreshes the service properties when the service starts or the fo
 - [start](cli-commands.md#start-command)
 - [stop](cli-commands.md#stop-command)
 - [restart](cli-commands.md#restart-command)
-- [test](cli-commands.md#test-command)
 
 The default value is `true`.
