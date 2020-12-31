@@ -458,3 +458,17 @@ Automatically refreshes the service properties when the service starts or the fo
 - [restart](cli-commands.md#restart-command)
 
 The default value is `true`.
+
+### `sharedDirectoryMapping`
+
+By default Windows does not establish shared drive mapping for services even if it is configured in the Windows service profile.
+And sometimes it is impossible to workaround it due to the domain policies.
+
+This allows mapping external shared directories before starting up the executable.
+
+```xml
+<sharedDirectoryMapping>
+  <map label="N:" uncpath="\\UNC" />
+  <map label="M:" uncpath="\\UNC2" />
+</sharedDirectoryMapping>
+```
