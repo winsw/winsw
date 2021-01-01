@@ -276,7 +276,7 @@ log:
 
             var logHandler = serviceDescriptor.Log.CreateLogHandler() as SizeBasedRollingLogAppender;
             Assert.That(logHandler, Is.Not.Null);
-            Assert.That(logHandler.SizeTheshold, Is.EqualTo(112 * 1024));
+            Assert.That(logHandler.SizeThreshold, Is.EqualTo(112 * 1024));
             Assert.That(logHandler.FilesToKeep, Is.EqualTo(113));
         }
 
@@ -325,7 +325,7 @@ log:
 
             var logHandler = serviceDescriptor.Log.CreateLogHandler() as RollingSizeTimeLogAppender;
             Assert.That(logHandler, Is.Not.Null);
-            Assert.That(logHandler.SizeTheshold, Is.EqualTo(10240 * 1024));
+            Assert.That(logHandler.SizeThreshold, Is.EqualTo(10240 * 1024));
             Assert.That(logHandler.FilePattern, Is.EqualTo("yyyy-MM-dd"));
             Assert.That(logHandler.AutoRollAtTime, Is.EqualTo((TimeSpan?)new TimeSpan(0, 0, 0)));
         }

@@ -47,12 +47,11 @@ namespace WinSW
         /// <summary>
         /// Convenience method to copy stuff from StreamReader to StreamWriter
         /// </summary>
-        protected void CopyStream(StreamReader reader, StreamWriter writer)
+        protected void CopyStream(Stream reader, Stream writer)
         {
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            var copy = new StreamCopyOperation(reader, writer);
+            while (copy.CopyLine() != 0)
             {
-                writer.WriteLine(line);
             }
 
             reader.Dispose();
@@ -107,8 +106,6 @@ namespace WinSW
             }
         }
 
-        protected StreamWriter CreateWriter(FileStream stream) => new(stream) { AutoFlush = true };
-
         protected abstract void LogOutput(StreamReader outputReader);
 
         protected abstract void LogError(StreamReader errorReader);
@@ -132,12 +129,12 @@ namespace WinSW
 
         protected override void LogOutput(StreamReader outputReader)
         {
-            new Thread(() => this.CopyStream(outputReader, this.CreateWriter(new FileStream(this.OutputLogFileName, this.FileMode)))).Start();
+            new Thread(() => this.CopyStream(outputReader.BaseStream, new FileStream(this.OutputLogFileName, this.FileMode))).Start();
         }
 
         protected override void LogError(StreamReader errorReader)
         {
-            new Thread(() => this.CopyStream(errorReader, this.CreateWriter(new FileStream(this.ErrorLogFileName, this.FileMode)))).Start();
+            new Thread(() => this.CopyStream(errorReader.BaseStream, new FileStream(this.ErrorLogFileName, this.FileMode))).Start();
         }
     }
 
@@ -203,17 +200,15 @@ namespace WinSW
             var periodicRollingCalendar = new PeriodicRollingCalendar(this.Pattern, this.Period);
             periodicRollingCalendar.Init();
 
-            var writer = this.CreateWriter(new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Append));
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            var writer = new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Append);
+            var copy = new StreamCopyOperation(reader.BaseStream, writer);
+            while (copy.CopyLine() != 0)
             {
                 if (periodicRollingCalendar.ShouldRoll)
                 {
                     writer.Dispose();
-                    writer = this.CreateWriter(new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create));
+                    copy.Writer = writer = new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create);
                 }
-
-                writer.WriteLine(line);
             }
 
             reader.Dispose();
@@ -228,14 +223,14 @@ namespace WinSW
         public static int DefaultSizeThreshold = 10 * BytesPerMB; // roll every 10MB.
         public static int DefaultFilesToKeep = 8;
 
-        public int SizeTheshold { get; private set; }
+        public int SizeThreshold { get; private set; }
 
         public int FilesToKeep { get; private set; }
 
         public SizeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, int sizeThreshold, int filesToKeep)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
-            this.SizeTheshold = sizeThreshold;
+            this.SizeThreshold = sizeThreshold;
             this.FilesToKeep = filesToKeep;
         }
 
@@ -259,20 +254,21 @@ namespace WinSW
         /// </summary>
         private void CopyStreamWithRotation(StreamReader reader, string ext)
         {
-            var writer = this.CreateWriter(new FileStream(this.BaseLogFileName + ext, FileMode.Append));
+            var writer = new FileStream(this.BaseLogFileName + ext, FileMode.Append);
+            var copy = new StreamCopyOperation(reader.BaseStream, writer);
             long fileLength = new FileInfo(this.BaseLogFileName + ext).Length;
 
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            int written;
+            while ((written = copy.CopyLine()) != 0)
             {
-                int lengthToWrite = Encoding.UTF8.GetByteCount(line) + 2; // CRLF
-                if (fileLength + lengthToWrite > this.SizeTheshold)
+                fileLength += written;
+                if (fileLength > this.SizeThreshold)
                 {
                     writer.Dispose();
 
                     try
                     {
-                        for (int j = this.FilesToKeep; j >= 1; j--)
+                        for (int j = this.FilesToKeep; j >= 2; j--)
                         {
                             string dst = this.BaseLogFileName + "." + (j - 1) + ext;
                             string src = this.BaseLogFileName + "." + (j - 2) + ext;
@@ -296,12 +292,9 @@ namespace WinSW
 
                     // even if the log rotation fails, create a new one, or else
                     // we'll infinitely try to roll.
-                    writer = this.CreateWriter(new FileStream(this.BaseLogFileName + ext, FileMode.Create));
+                    copy.Writer = writer = new FileStream(this.BaseLogFileName + ext, FileMode.Create);
                     fileLength = new FileInfo(this.BaseLogFileName + ext).Length;
                 }
-
-                writer.WriteLine(line);
-                fileLength += lengthToWrite;
             }
 
             reader.Dispose();
@@ -339,7 +332,7 @@ namespace WinSW
     {
         public static int BytesPerKB = 1024;
 
-        public int SizeTheshold { get; private set; }
+        public int SizeThreshold { get; private set; }
 
         public string FilePattern { get; private set; }
 
@@ -363,7 +356,7 @@ namespace WinSW
             string zipdateformat)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
-            this.SizeTheshold = sizeThreshold;
+            this.SizeThreshold = sizeThreshold;
             this.FilePattern = filePattern;
             this.AutoRollAtTime = autoRollAtTime;
             this.ZipOlderThanNumDays = zipolderthannumdays;
@@ -383,13 +376,14 @@ namespace WinSW
         private void CopyStreamWithRotation(StreamReader reader, string extension)
         {
             // lock required as the timer thread and the thread that will write to the stream could try and access the file stream at the same time
-            object fileLock = new object();
+            object fileLock = new();
 
             string baseDirectory = Path.GetDirectoryName(this.BaseLogFileName)!;
             string baseFileName = Path.GetFileName(this.BaseLogFileName);
             string logFile = this.BaseLogFileName + extension;
 
-            var writer = this.CreateWriter(new FileStream(logFile, FileMode.Append));
+            var writer = new FileStream(logFile, FileMode.Append);
+            var copy = new StreamCopyOperation(reader.BaseStream, writer);
             long fileLength = new FileInfo(logFile).Length;
 
             // We auto roll at time is configured then we need to create a timer and wait until time is elasped and roll the file over
@@ -412,7 +406,7 @@ namespace WinSW
                             string nextFileName = Path.Combine(baseDirectory, string.Format("{0}.{1}.#{2:D4}{3}", baseFileName, now.ToString(this.FilePattern), nextFileNumber, extension));
                             File.Move(logFile, nextFileName);
 
-                            writer = this.CreateWriter(new FileStream(logFile, FileMode.Create));
+                            copy.Writer = writer = new FileStream(logFile, FileMode.Create);
                             fileLength = new FileInfo(logFile).Length;
                         }
 
@@ -433,13 +427,13 @@ namespace WinSW
                 timer.Start();
             }
 
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            int written;
+            while ((written = copy.CopyLine()) != 0)
             {
                 lock (fileLock)
                 {
-                    int lengthToWrite = Encoding.UTF8.GetByteCount(line) + 2; // CRLF
-                    if (fileLength + lengthToWrite > this.SizeTheshold)
+                    fileLength += written;
+                    if (fileLength > this.SizeThreshold)
                     {
                         try
                         {
@@ -453,7 +447,7 @@ namespace WinSW
 
                             // even if the log rotation fails, create a new one, or else
                             // we'll infinitely try to roll.
-                            writer = this.CreateWriter(new FileStream(logFile, FileMode.Create));
+                            copy.Writer = writer = new FileStream(logFile, FileMode.Create);
                             fileLength = new FileInfo(logFile).Length;
                         }
                         catch (Exception e)
@@ -461,9 +455,6 @@ namespace WinSW
                             this.EventLogger.LogEvent($"Failed to roll size time log: {e.Message}");
                         }
                     }
-
-                    writer.WriteLine(line);
-                    fileLength += lengthToWrite;
                 }
             }
 
@@ -616,6 +607,72 @@ namespace WinSW
             }
 
             return nextFileNumber;
+        }
+    }
+
+    internal sealed class StreamCopyOperation
+    {
+        private const int BufferSize = 1024;
+
+        private readonly byte[] buffer;
+        private readonly Stream reader;
+
+        private int startIndex;
+        private int endIndex;
+
+        internal Stream Writer;
+
+        internal StreamCopyOperation(Stream reader, Stream writer)
+        {
+            this.buffer = new byte[BufferSize];
+            this.reader = reader;
+            this.startIndex = 0;
+            this.endIndex = 0;
+            this.Writer = writer;
+        }
+
+        internal int CopyLine()
+        {
+            byte[] buffer = this.buffer;
+            var source = this.reader;
+            int startIndex = this.startIndex;
+            int endIndex = this.endIndex;
+            var destination = this.Writer;
+
+            int total = 0;
+            while (true)
+            {
+                if (startIndex == 0)
+                {
+                    if ((endIndex = source.Read(buffer, 0, BufferSize)) == 0)
+                    {
+                        break;
+                    }
+                }
+
+                int buffered = endIndex - startIndex;
+
+                int newLineIndex = Array.IndexOf(buffer, (byte)'\n', startIndex, buffered);
+                if (newLineIndex >= 0)
+                {
+                    int count = newLineIndex - startIndex + 1;
+                    total += count;
+                    destination.Write(buffer, startIndex, count);
+                    destination.Flush();
+                    startIndex = (newLineIndex + 1) % BufferSize;
+                    break;
+                }
+
+                total += buffered;
+                destination.Write(buffer, startIndex, buffered);
+                destination.Flush();
+                startIndex = 0;
+            }
+
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
+
+            return total;
         }
     }
 }
