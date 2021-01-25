@@ -601,19 +601,15 @@ namespace WinSW
                 string? stderrName = Console.IsErrorRedirected ? Guid.NewGuid().ToString() : null;
 #endif
 
-                string arguments = "/elevated " +
+                string exe = Environment.GetCommandLineArgs()[0];
+                string commandLine = Environment.CommandLine;
+                string arguments = "/elevated" +
 #if VNEXT
                     " " + (stdinName ?? NoPipe) +
                     " " + (stdoutName ?? NoPipe) +
                     " " + (stderrName ?? NoPipe) +
 #endif
-#if NET
-                    string.Join(' ', args);
-#elif !NET20
-                    string.Join(" ", args);
-#else
-                    string.Join(" ", args.ToArray());
-#endif
+                    commandLine.Remove(commandLine.IndexOf(exe), exe.Length).TrimStart('"');
 
                 var startInfo = new ProcessStartInfo
                 {
