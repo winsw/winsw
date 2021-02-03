@@ -1,0 +1,78 @@
+repository:
+  name: winsw
+  description: A wrapper executable that can be used to host any executable as an Windows service, in a liberal license
+  topics: 'windows-service, windows-service-wrapper, winsw, nuget, dotnet, dotnet-core'
+  private: false
+  default_branch: master
+  has_issues: true
+  has_wiki: false
+  allow_merge_commit: true
+  allow_squash_merge: true
+  allow_rebase_merge: true
+
+#TODO(oleg-nenashev): Consider moving to https://github.com/winsw/.github once https://github.com/probot/settings/issues/107 is fixed
+labels:
+  - name: good first issue
+    color: 7057ff
+  - name: help wanted
+    color: 008672
+  - name: question
+    color: D876E3
+  - name: wontfix
+    color: FFFFFF
+  - name: invalid
+    color: FFFFFF
+  - name: duplicate
+    color: CFD3D7
+  - name: bug
+    color: D73A4A
+  - name: documentation
+    color: 0e8a16
+    description: A change that adds to documentation
+  - name: new-feature
+    color: 1d00ff
+    description: A change that adds a feature
+  - name: enhancement
+    color: 1d00ff
+    description: A change that enhances an existing behavior/feature
+  - name: bugfix
+    oldname: fix
+    color: c9e85c
+    description: A change that fixes a bug - used by Release Drafter
+  - name: internal
+    color: c9abea
+    description: Internal changes that have no user-visible effect
+  - name: chore
+    color: c9abea
+    description: Project maintenance: Community tools, GitHub Apps and Actions, etc.
+  - name: test
+    color: d6e819
+    description: A change that adds to testing
+  - name: pinned
+    color: 5ed5e5
+    description: 'Used to avoid stale[bot] marking a issue/PR stale'
+  - name: plugin-compatibility
+    color: 8425c4
+  - name: stale
+    color: ffffff
+    description: 'Used by stale[bot] to mark a issue/PR stale'
+  - name: skip-changelog
+    color: f44271
+    description: A change that is excluded from Release draft
+  - name: removed
+    color: aa0f1c
+    description: A change that removes a feature or publicly consumable API
+  - name: deprecated
+    color: e2b626
+    description: A change that deprecates a feature
+  - name: breaking
+    color: 640910
+    description: A breaking change
+  - name: dependencies
+    color: 0366d6
+    description: A change that updates dependencies
+  - name: work-in-progress
+    color: bfd4f2
+    description: Issue or pull request are in progress, but no immediate change is expected
+   
+ 
