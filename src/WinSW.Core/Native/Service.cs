@@ -164,13 +164,13 @@ namespace WinSW.Native
 
         internal bool ServiceExists(string serviceName)
         {
-            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.All);
+            var serviceHandle = ServiceApis.OpenService(this.handle, serviceName, ServiceAccess.QueryStatus);
             if (serviceHandle == IntPtr.Zero)
             {
                 return false;
             }
 
-            _ = CloseServiceHandle(this.handle);
+            _ = CloseServiceHandle(serviceHandle);
             return true;
         }
 
