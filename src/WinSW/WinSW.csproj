@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net20;net40;net461;net5.0-windows</TargetFrameworks>
+    <TargetFrameworks>net20;net40;net461;net6.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -16,16 +16,15 @@
     <Copyright>Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</Copyright>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0-windows' AND '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-windows' AND '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
     <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
     <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -35,23 +34,15 @@
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
-  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net5.0-windows'">
-
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
-      <IdentifierSuffix>x64</IdentifierSuffix>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x86'">
-      <IdentifierSuffix>x86</IdentifierSuffix>
-    </PropertyGroup>
+  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net6.0-windows'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
-    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW-$(IdentifierSuffix).exe" />
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW-$(PlatformTarget).exe" />
 
   </Target>
 
   <!-- Merge plugins and other DLLs into the executable -->
-  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net5.0-windows'">
+  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net6.0-windows'">
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
       <TargetPlatform>v2</TargetPlatform>
