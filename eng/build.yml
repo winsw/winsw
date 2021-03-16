@@ -25,6 +25,12 @@ strategy:
     Release:
       BuildConfiguration: Release
 steps:
+- task: UseDotNet@2
+  displayName: Install .NET SDK
+  inputs:
+    packageType: sdk
+    version: 6.x
+    includePreviewVersions: true
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
@@ -32,10 +38,8 @@ steps:
     projects: src\WinSW.sln
     arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
 - script: |
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion)
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion)
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x64 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net5.0-windows -r win-x86 -p:Version=$(BuildVersion) -p:IncludeNativeLibrariesForSelfExtract=true
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-x64 -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-x86 -p:Version=$(BuildVersion)
   displayName: Build
 - task: DotNetCoreCLI@2
   displayName: Test
@@ -54,14 +58,6 @@ steps:
 - publish: artifacts\publish\WinSW-net461.exe
   artifact: WinSW-net461.exe_$(BuildConfiguration)
   displayName: Publish .NET 4.6.1
-
-- publish: artifacts\publish\WinSW-x64.zip
-  artifact: WinSW-x64.zip_$(BuildConfiguration)
-  displayName: Publish .NET x64 .zip
-
-- publish: artifacts\publish\WinSW-x86.zip
-  artifact: WinSW-x86.zip_$(BuildConfiguration)
-  displayName: Publish .NET x86 .zip
 
 - publish: artifacts\publish\WinSW-x64.exe
   artifact: WinSW-x64.exe_$(BuildConfiguration)
