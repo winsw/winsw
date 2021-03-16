@@ -42,27 +42,32 @@ The default working directory of the wrapper and it's child processes is the dir
 
 ### id
 
+**Required**
 Specifies the ID that Windows uses internally to identify the service.
 This has to be unique among all the services installed in a system,
   and it should consist entirely out of alpha-numeric characters.
 
 ### executable
 
+**Required**
 This element specifies the executable to be launched.
 It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
 
 ### name
 
+**Optional**
 Short display name of the service, which can contain spaces and other characters.
 This shouldn't be too long, like `<id>`, and this also needs to be unique among all the services in a given system.
 
 ### description
 
+**Optional**
 Long human-readable description of the service.
 This gets displayed in Windows service manager when the service is selected.
 
 ### startmode
 
+**Optional**
 This element specifies the start mode of the Windows service.
 It can be one of the following values: Automatic, or Manual.
 For more information, see the [ChangeStartMode method](https://docs.microsoft.com/windows/win32/cimwin32prov/changestartmode-method-in-class-win32-service).
@@ -70,6 +75,7 @@ The default value is `Automatic`.
 
 ### delayedAutoStart
 
+**Optional**
 This Boolean option enables the delayed start mode if the `Automatic` start mode is defined.
 For more information, see [Startup Processes and Delayed Automatic Start](https://techcommunity.microsoft.com/t5/ask-the-performance-team/ws2008-startup-processes-and-delayed-automatic-start/ba-p/372692).
 
@@ -82,6 +88,7 @@ Windows service installation may fail in such case.
 
 ### depend
 
+**Optional**
 Specify IDs of other services that this service depends on.
 When service `X` depends on service `Y`, `X` can only run if `Y` is running.
 
@@ -94,12 +101,14 @@ Multiple elements can be used to specify multiple dependencies.
 
 ### logging
 
+**Optional**
 Optionally set a different logging directory with `<logpath>` and startup `mode`: append (default), reset (clear log), ignore, roll (move to `\*.old`).
 
 See the [Logging and error reporting](logging-and-error-reporting.md) page for more info.
 
 ### Arguments
 
+**Optional**
 The `<arguments>` element specifies the arguments to be passed to the executable.
 
 ```xml
@@ -118,6 +127,7 @@ The `<arguments>` element specifies the arguments to be passed to the executable
 
 ### stopargument/stopexecutable
 
+**Optional**
 ~~When the service is requested to stop, winsw simply calls [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.~~
 However, if the `<stoparguments>` element is present, winsw will instead launch another process of `<executable>` (or `<stopexecutable>` if that's specified) with the specified arguments, and expects that to initiate the graceful shutdown of the service process.
 
@@ -446,6 +456,19 @@ Automatically refreshes the service properties when the service starts or the fo
 - [start](cli-commands.md#start-command)
 - [stop](cli-commands.md#stop-command)
 - [restart](cli-commands.md#restart-command)
-- [test](cli-commands.md#test-command)
 
 The default value is `true`.
+
+### `sharedDirectoryMapping`
+
+By default Windows does not establish shared drive mapping for services even if it is configured in the Windows service profile.
+And sometimes it is impossible to workaround it due to the domain policies.
+
+This allows mapping external shared directories before starting up the executable.
+
+```xml
+<sharedDirectoryMapping>
+  <map label="N:" uncpath="\\UNC" />
+  <map label="M:" uncpath="\\UNC2" />
+</sharedDirectoryMapping>
+```

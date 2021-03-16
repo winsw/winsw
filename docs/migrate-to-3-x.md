@@ -19,3 +19,5 @@ TODO
 1. Replace `<delayedAutoStart />` with `<delayedAutoStart>true</delayedAutoStart>`.
 1. Replace `<interactive />` with `<interactive>true</interactive>`.
 1. Replace `<beeponshutdown />` with `<beeponshutdown>true</beeponshutdown>`.
+1. Remove the `RunawayProcessKiller` extension.
+1. Move `<mapping>.<map>` to `<service>.<sharedDirectoryMapping>.<map>`. Remove the `SharedDirectoryMapper` extension.

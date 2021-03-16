@@ -114,7 +114,6 @@ Most commands require Administrator privileges to execute. WinSW will prompt for
   * [XML configuration file](docs/xml-config-file.md)
   * [Logging and error reporting](docs/logging-and-error-reporting.md)
   * [Extensions](docs/extensions/extensions.md)
-    * [Shared Directory Mapper](docs/extensions/shared-directory-mapper.md)
 * Use cases:
   * [Self-restarting services](docs/self-restarting-service.md)
   * [Deferred file operations](docs/deferred-file-operations.md)
