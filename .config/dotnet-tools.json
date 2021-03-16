@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "codecov.tool": {
-      "version": "1.12.1",
+      "version": "1.13.0",
       "commands": [
         "codecov"
       ]
