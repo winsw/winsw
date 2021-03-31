@@ -26,7 +26,11 @@ namespace WinSW.Util
             {
                 foreach (var child in GetChildren(process))
                 {
-                    StopProcessTree(child, stopTimeout, stopParentProcessFirst);
+                    using (child.Key)
+                    using (child.Value)
+                    {
+                        StopProcessTree(child.Key, stopTimeout, stopParentProcessFirst);
+                    }
                 }
             }
 
@@ -36,7 +40,11 @@ namespace WinSW.Util
             {
                 foreach (var child in GetChildren(process))
                 {
-                    StopProcessTree(child, stopTimeout, stopParentProcessFirst);
+                    using (child.Key)
+                    using (child.Value)
+                    {
+                        StopProcessTree(child.Key, stopTimeout, stopParentProcessFirst);
+                    }
                 }
             }
         }
@@ -95,47 +103,53 @@ namespace WinSW.Util
             Logger.Debug($"Process {process.Id} has already exited.");
         }
 
-        private static unsafe List<Process> GetChildren(Process process)
+        // The handle is to keep a reference to the process.
+        private static unsafe List<KeyValuePair<Process, Handle>> GetChildren(Process process)
         {
             var startTime = process.StartTime;
             int processId = process.Id;
 
-            var children = new List<Process>();
+            var children = new List<KeyValuePair<Process, Handle>>();
 
             foreach (var other in Process.GetProcesses())
             {
+                var handle = OpenProcess(ProcessAccess.QueryInformation, false, other.Id);
+                if (handle == IntPtr.Zero)
+                {
+                    goto Next;
+                }
+
                 try
                 {
                     if (other.StartTime <= startTime)
                     {
                         goto Next;
                     }
-
-                    var handle = other.Handle;
-
-                    if (NtQueryInformationProcess(
-                        handle,
-                        PROCESSINFOCLASS.ProcessBasicInformation,
-                        out var information,
-                        sizeof(PROCESS_BASIC_INFORMATION)) != 0)
-                    {
-                        goto Next;
-                    }
-
-                    if ((int)information.InheritedFromUniqueProcessId == processId)
-                    {
-                        Logger.Debug($"Found child process {other.Id}.");
-                        children.Add(other);
-                        continue;
-                    }
-
-                Next:
-                    other.Dispose();
                 }
                 catch (Exception e) when (e is InvalidOperationException || e is Win32Exception)
                 {
-                    other.Dispose();
+                    goto Next;
                 }
+
+                if (NtQueryInformationProcess(
+                    handle,
+                    PROCESSINFOCLASS.ProcessBasicInformation,
+                    out var information,
+                    sizeof(PROCESS_BASIC_INFORMATION)) != 0)
+                {
+                    goto Next;
+                }
+
+                if ((int)information.InheritedFromUniqueProcessId == processId)
+                {
+                    Logger.Debug($"Found child process {other.Id}.");
+                    children.Add(new(other, handle));
+                    continue;
+                }
+
+            Next:
+                other.Dispose();
+                handle.Dispose();
             }
 
             return children;
