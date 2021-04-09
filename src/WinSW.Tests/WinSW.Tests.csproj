@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net471;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net471;net5.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -20,7 +20,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
     <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -39,11 +39,11 @@
 
   <Target Name="Copy" BeforeTargets="AfterBuild">
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
-      <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net6.0-windows\WinSW.runtimeconfig*.json" />
+    <ItemGroup Condition="'$(TargetFramework)' == 'net5.0-windows'">
+      <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net5.0-windows\WinSW.runtimeconfig*.json" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
+    <ItemGroup Condition="'$(TargetFramework)' != 'net5.0-windows'">
       <_FilesToCopy Include="$(ArtifactsBinDir)WinSW\$(Configuration)\net461\System.ValueTuple.dll" />
     </ItemGroup>
 
