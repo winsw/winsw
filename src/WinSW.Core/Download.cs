@@ -122,9 +122,7 @@ namespace WinSW
         /// </exception>
         public async Task PerformAsync()
         {
-#pragma warning disable SYSLIB0014 // Type or member is obsolete
             var request = WebRequest.Create(this.From);
-#pragma warning restore SYSLIB0014 // Type or member is obsolete
             if (!string.IsNullOrEmpty(this.Proxy))
             {
                 var proxyInformation = new CustomProxyInformation(this.Proxy!);
