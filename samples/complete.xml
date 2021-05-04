@@ -65,8 +65,7 @@ Their modification will not take affect without the service re-installation.
   -->
   <!--
   <serviceaccount>
-    <domain>YOURDOMAIN</domain>
-    <user>useraccount</user>
+    <username>YOURDOMAIN\useraccount</username>
     <password>Pa55w0rd</password>
     <allowservicelogon>true</allowservicelogon>
   </serviceaccount>
