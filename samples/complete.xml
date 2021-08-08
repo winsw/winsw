@@ -37,18 +37,18 @@ SECTION: Mandatory options
 All options in other sections are optional
 -->
 
-  <!-- ID of the service. It should be unique accross the Windows system-->
+  <!-- ID of the service. It should be unique accross the Windows system. -->
   <id>myapp</id>
 
-  <!-- Path to the executable, which should be started -->
+  <!-- Path to the executable, which should be started. -->
   <executable>%BASE%\myExecutable.exe</executable>
 
-  <!-- Display name of the service -->
+  <!-- Display name of the service. -->
   <!--
   <name>MyApp Service (powered by WinSW)</name>
   -->
 
-  <!-- Service description -->
+  <!-- Service description. -->
   <!--
   <description>This service is a service created from a sample configuration</description>
   -->
@@ -106,7 +106,7 @@ SECTION: Executable management
 
   <!--
     OPTION: arguments
-    Arguments, which should be passed to the executable
+    Arguments, which should be passed to the executable.
   -->
   <!--
   <arguments>-classpath c:\cygwin\home\kohsuke\ws\hello-world\out\production\hello-world test.Main</arguments>
@@ -114,7 +114,7 @@ SECTION: Executable management
 
   <!--
     OPTION: startarguments
-    Arguments, which should be passed to the executable when it starts
+    Arguments, which should be passed to the executable when it starts.
     If specified, overrides 'arguments'.
   -->
   <!--
@@ -123,7 +123,7 @@ SECTION: Executable management
 
   <!--
     OPTION: workingdirectory
-    If specified, sets the default working directory of the executable
+    If specified, sets the default working directory of the executable.
     Default value: Directory of the service wrapper executable.
   -->
   <!--
@@ -140,7 +140,7 @@ SECTION: Executable management
 
   <!--
     OPTION: stoptimeout
-    Time to wait for the service to gracefully shutdown the executable before we forcibly kill it
+    Time to wait for the service to gracefully shutdown the executable before we forcibly kill it.
     Default value: 15 seconds
   -->
   <stoptimeout>15 sec</stoptimeout>
@@ -150,7 +150,7 @@ SECTION: Executable management
     OPTION: stopexecutable
     Path to an optional executable, which performs shutdown of the service.
     This executable will be used if and only if 'stoparguments' are specified.
-    If 'stoparguments' are defined without this option, 'executable' will be used as a stop executable
+    If 'stoparguments' are defined without this option, 'executable' will be used as a stop executable.
   -->
   <!--
   <stopexecutable>%BASE%\stop.exe</stopexecutable>
@@ -159,7 +159,7 @@ SECTION: Executable management
   <!--
     OPTION: stoparguments
     Additional arguments, which should be passed to the stop executable during termination.
-    This OPTION also enables termination of the executable via stop executable
+    This OPTION also enables termination of the executable via stop executable.
   -->
   <!--
   <stoparguments>-stop true</stoparguments>
@@ -193,7 +193,7 @@ SECTION: Service management
 
     <!--
       OPTION: interactive
-      Indicates the service can interactwith the desktop.
+      Indicates the service can interact with the desktop.
     -->
     <!--
     <interactive>true</interactive>
@@ -205,8 +205,8 @@ SECTION:Logging
 
   <!--
     OPTION: logpath
-    Sets a custom logging directory for all logs being produced by the service wrapper
-    Default value: Directory, which contains the executor
+    Sets a custom logging directory for all logs being produced by the service wrapper.
+    Default value: Directory, which contains the executor.
   -->
   <!--
     <logpath>%BASE%\logs</logpath>
@@ -250,7 +250,7 @@ SECTION: Environment setup
 
   <!--
     OPTION: download
-    List of downloads to be performed by the wrapper before starting
+    List of downloads to be performed by the wrapper before starting.
   -->
   <!--
   <download from="http://www.google.com/" to="%BASE%\index.html" />
