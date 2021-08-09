@@ -21,9 +21,9 @@ namespace WinSW
     public class WrapperService : ServiceBase, IEventLogger
     {
         private readonly Process process = new();
-        
+
         private readonly IServiceConfig config;
-        
+
         private Dictionary<string, string>? envs;
 
         internal WinSWExtensionManager ExtensionManager { get; private set; }
@@ -246,57 +246,14 @@ namespace WinSW
                 tasks[i] = download.PerformAsync();
             }
 
-            try
-            {
-                Task.WaitAll(tasks);
-            }
-            catch (AggregateException e)
-            {
-                var exceptions = new List<Exception>(e.InnerExceptions.Count);
-                for (int i = 0; i < tasks.Length; i++)
-                {
-                    if (tasks[i].IsFaulted)
-                    {
-                        var download = downloads[i];
-                        string errorMessage = $"Failed to download {download.From} to {download.To}";
-                        var exception = tasks[i].Exception!;
-                        this.LogEvent($"{errorMessage}. {exception.Message}");
-                        Log.Error(errorMessage, exception);
-
-                        // TODO: move this code into the download logic
-                        if (download.FailOnError)
-                        {
-                            exceptions.Add(new IOException(errorMessage, exception));
-                        }
-                    }
-                }
-
-                throw new AggregateException(exceptions);
-            }
+            Task.WaitAll(tasks);
 #else
             foreach (var download in this.config.Downloads)
             {
                 string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
                 this.LogEvent(downloadMessage);
                 Log.Info(downloadMessage);
-                try
-                {
-                    download.Perform();
-                }
-                catch (Exception e)
-                {
-                    string errorMessage = $"Failed to download {download.From} to {download.To}";
-                    this.LogEvent($"{errorMessage}. {e.Message}");
-                    Log.Error(errorMessage, e);
-
-                    // TODO: move this code into the download logic
-                    if (download.FailOnError)
-                    {
-                        throw new IOException(errorMessage, e);
-                    }
-
-                    // Else just keep going
-                }
+                download.Perform();
             }
 #endif
 
