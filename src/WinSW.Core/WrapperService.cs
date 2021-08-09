@@ -272,32 +272,7 @@ namespace WinSW
                 tasks[i] = download.PerformAsync();
             }
 
-            try
-            {
-                Task.WaitAll(tasks);
-            }
-            catch (AggregateException e)
-            {
-                var exceptions = new List<Exception>(e.InnerExceptions.Count);
-                for (int i = 0; i < tasks.Length; i++)
-                {
-                    if (tasks[i].IsFaulted)
-                    {
-                        var download = downloads[i];
-                        string errorMessage = $"Failed to download {download.From} to {download.To}";
-                        var exception = tasks[i].Exception!;
-                        Log.Error(errorMessage, exception);
-
-                        // TODO: move this code into the download logic
-                        if (download.FailOnError)
-                        {
-                            exceptions.Add(new IOException(errorMessage, exception));
-                        }
-                    }
-                }
-
-                throw new AggregateException(exceptions);
-            }
+            Task.WaitAll(tasks);
 
             var sharedDirectories = this.config.SharedDirectories;
             if (sharedDirectories.Count > 0)
