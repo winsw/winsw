@@ -193,10 +193,14 @@ namespace WinSW
                 if (supportsIfModifiedSince && ((HttpWebResponse?)e.Response)?.StatusCode == HttpStatusCode.NotModified)
                 {
                     Logger.Info($"Skipped downloading unmodified resource '{this.From}'");
+                    return;
                 }
-                else
+
+                string errorMessage = $"Failed to download {this.From} to {this.To}";
+                Logger.Error(errorMessage, e);
+                if (this.FailOnError)
                 {
-                    throw;
+                    throw new IOException(errorMessage, e);
                 }
             }
         }
