@@ -211,7 +211,7 @@ namespace WinSW.Tests
                 async (source, dest) =>
                 {
                     var exception = await Assert.ThrowsAsync<WebException>(
-                        async () => await new Download(source, dest).PerformAsync());
+                        async () => await new Download(source, dest, true).PerformAsync());
 
                     Assert.Equal(WebExceptionStatus.ProtocolError, exception.Status);
                 },
