@@ -26,6 +26,12 @@ strategy:
     Release:
       BuildConfiguration: Release
 steps:
+- task: UseDotNet@2
+  displayName: Install .NET SDK
+  inputs:
+    packageType: sdk
+    version: 6.x
+    includePreviewVersions: true
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
@@ -33,8 +39,8 @@ steps:
     projects: src\WinSW.sln
     arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
 - script: |
-    dotnet publish -c $(BuildConfiguration) -f net5.0-windows -r win-x64 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
-    dotnet publish -c $(BuildConfiguration) -f net5.0-windows -r win-x86 src\WinSW\WinSW.csproj -p:PublishSingleFile=true -p:PublishTrimmed=true -p:Version=$(BuildVersion)
+    dotnet publish -c $(BuildConfiguration) -f net6.0-windows -r win-x64 src\WinSW\WinSW.csproj -p:Version=$(BuildVersion)
+    dotnet publish -c $(BuildConfiguration) -f net6.0-windows -r win-x86 src\WinSW\WinSW.csproj -p:Version=$(BuildVersion)
   displayName: Build
 - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
   displayName: Test
@@ -47,8 +53,8 @@ steps:
     versionEnvVar: BuildVersion
 - script: dotnet tool restore
   displayName: Restore tools
-- script: dotnet tool run codecov -- -f "src\**\TestResults\*\coverage.cobertura.xml" --required
-  displayName: Upload code coverage reports
+# - script: dotnet tool run codecov -- -f "src\**\TestResults\*\coverage.cobertura.xml" --required
+#   displayName: Upload code coverage reports
 
 - publish: artifacts\publish\WinSW.NET2.exe
   artifact: WinSW.NET2.exe_$(BuildConfiguration)
@@ -64,11 +70,11 @@ steps:
 
 - publish: artifacts\publish\WinSW-x64.exe
   artifact: WinSW-x64.exe_$(BuildConfiguration)
-  displayName: Publish .NET Core x64
+  displayName: Publish .NET x64
 
 - publish: artifacts\publish\WinSW-x86.exe
   artifact: WinSW-x86.exe_$(BuildConfiguration)
-  displayName: Publish .NET Core x86
+  displayName: Publish .NET x86
 
 - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
   artifact: WinSW.nupkg_$(BuildConfiguration)
