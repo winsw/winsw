@@ -215,10 +215,11 @@ namespace winswTests
             await this.TestClientServerAsync(
                 async (source, dest) =>
                 {
-                    var exception = await AsyncAssert.ThrowsAsync<WebException>(
-                        async () => await new Download(source, dest).PerformAsync());
+                    var exception = await AsyncAssert.ThrowsAsync<IOException>(
+                        async () => await new Download(source, dest, true).PerformAsync());
 
-                    Assert.That(exception.Status, Is.EqualTo(WebExceptionStatus.ProtocolError));
+                    var inner = (WebException)exception.InnerException;
+                    Assert.That(inner.Status, Is.EqualTo(WebExceptionStatus.ProtocolError));
                 },
                 context =>
                 {
