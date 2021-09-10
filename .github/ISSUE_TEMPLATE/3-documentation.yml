@@ -1,0 +1,10 @@
+name: 📝 Documentation
+description: Let us know if any documentation is missing or could be improved
+labels: [documentation]
+body:
+  - type: textarea
+    attributes:
+      label: Summary
+      description: Describe your use-case which is not covered by existing documentation. If it is easier to submit a documentation patch instead of writing an issue, just do it!
+    validations:
+      required: true
