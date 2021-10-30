@@ -78,6 +78,8 @@ namespace WinSW
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
 
+            this.LoadEnvironmentVariablesFromFile();
+
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
@@ -450,6 +452,11 @@ namespace WinSW
         public override Dictionary<string, string> EnvironmentVariables => this.environmentVariables;
 
         /// <summary>
+        /// File from which environment variables are loaded.
+        /// </summary>
+        public string? EnvironmentVariablesFile => this.SingleElementOrNull("envFile");
+
+        /// <summary>
         /// List of downloads to be performed by the wrapper before starting
         /// a service.
         /// </summary>
@@ -621,6 +628,37 @@ namespace WinSW
             }
 
             return environment;
+        }
+
+        private void LoadEnvironmentVariablesFromFile()
+        {
+            var envFile = this.SingleElementOrNull("envFile");
+
+            if (envFile is null)
+            {
+                return;
+            }
+
+            foreach (string line in File.ReadAllLines(envFile))
+            {
+                if (line.Length == 0 || line.StartsWith("#"))
+                {
+                    // ignore empty lines and comments
+                    continue;
+                }
+
+                int equalsSignIndex = line.IndexOf("=");
+
+                if (equalsSignIndex == -1)
+                {
+                    throw new WinSWException("The environment variables file contains one or more invalid entries. Each variable definition must be on a separate line and in the format \"key=value\".");
+                }
+
+                string key = line.Substring(0, equalsSignIndex);
+                string value = line.Substring(equalsSignIndex + 1);
+
+                Environment.SetEnvironmentVariable(key, value);
+            }
         }
 
         private ProcessCommand GetProcessCommand(string name)
