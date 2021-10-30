@@ -171,6 +171,14 @@ env:
         value: host1;host2
 ```
 
+### Environment File
+
+This optional element can be specified one time to specify a file to load environment variables from. Each variable definition must be on a separate line and in the format "key=value". Empty lines an lines starting with "#" are ignored. The syntax is:
+
+```yaml
+envFile: '%BASE%/env.txt'
+```
+
 ### interactive
 
 If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes. 
