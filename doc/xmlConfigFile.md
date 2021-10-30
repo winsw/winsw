@@ -141,7 +141,7 @@ This optional element can be specified multiple times if necessary to specify en
 
 ### Environment File
 
-This optional element can be specified one time to specify a file to load environment variables from. Each variable definition must be on a separate line and in the format "key=value". Empty lines an lines starting with "#" are ignored. The syntax is:
+This optional element can be specified one time to specify a file to load environment variables from. Each variable definition must be on a separate line and in the format "key=value". Empty lines and lines starting with "#" are ignored. The syntax is:
 
 ```xml
 <envFile>%BASE%/env.txt</env-file>
