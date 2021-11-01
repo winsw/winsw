@@ -64,8 +64,8 @@ namespace WinSW.Util
                     throw new WinSWException("The environment variables file (env-file) contains one or more invalid entries. Each variable definition must be on a separate line and in the format \"key=value\".");
                 }
 
-                string key = line.Substring(0, equalsSignIndex);
-                string value = line.Substring(equalsSignIndex + 1);
+                string key = line.Substring(0, equalsSignIndex).Trim();
+                string value = line.Substring(equalsSignIndex + 1).Trim();
 
                 Environment.SetEnvironmentVariable(key, value);
             }
