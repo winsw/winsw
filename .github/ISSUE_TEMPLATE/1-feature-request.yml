@@ -1,0 +1,21 @@
+name: 🚀 Feature request
+description: I have a suggestion (and may want to implement it 🙂)!
+labels: [new-feature]
+body:
+  - type: textarea
+    attributes:
+      label: Problem statement
+      description: A clear and concise description of what the problem is.
+      placeholder: ex. I have an issue when [...], As a WinSW user, I want to [...]
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe the solution you'd like
+      description: Add any considered drawbacks.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.

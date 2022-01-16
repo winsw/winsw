@@ -1,0 +1,10 @@
+name: ❓ Need help
+description: Please ask in our Gitter channel first
+labels: [question]
+body:
+  - type: textarea
+    attributes:
+      label: Problem statement
+      description: Please describe your issue here, and explain what you have already tried to resolve it.
+    validations:
+      required: true
