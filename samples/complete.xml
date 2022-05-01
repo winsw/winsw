@@ -260,8 +260,8 @@ SECTION: Environment setup
 
   An example for unsecure Basic authentication because the connection is not encrypted:
   <download from="http://example.com/some.dat" to="%BASE%\some.dat"
-            auth="basic" unsecureAuth=“true”
-            username="aUser" password=“aPassw0rd" />
+            auth="basic" unsecureAuth="true"
+            username="aUser" password="aPassw0rd" />
 
   Secure Basic authentication via HTTPS:
   <download from="https://example.com/some.dat" to="%BASE%\some.dat"
