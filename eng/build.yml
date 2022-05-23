@@ -40,6 +40,7 @@ steps:
 - script: |
     dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-x64 -p:Version=$(BuildVersion)
     dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-x86 -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-arm64 -p:Version=$(BuildVersion)
   displayName: Build
 - task: DotNetCoreCLI@2
   displayName: Test
@@ -66,6 +67,10 @@ steps:
 - publish: artifacts\publish\WinSW-x86.exe
   artifact: WinSW-x86.exe_$(BuildConfiguration)
   displayName: Publish .NET x86 .exe
+
+- publish: artifacts\publish\WinSW-arm64.exe
+  artifact: WinSW-arm64.exe_$(BuildConfiguration)
+  displayName: Publish .NET arm64 .exe
 
 - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
   artifact: WinSW.nupkg_$(BuildConfiguration)
