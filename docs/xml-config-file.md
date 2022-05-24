@@ -412,7 +412,7 @@ Optional. Prompts for a user name and a password.
 ```xml
 <serviceaccount>
   <prompt>dialog|console</prompt>
-<serviceaccount>
+</serviceaccount>
 ```
 
 - `dialog`
