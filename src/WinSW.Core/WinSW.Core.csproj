@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.12" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.*">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0.pre.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
