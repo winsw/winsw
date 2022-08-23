@@ -216,7 +216,7 @@ SECTION:Logging
     OPTION: log
     Defines logging mode for logs produced by the executable.
     Supported modes:
-      * append - Rust update the existing log
+      * append - Just update the existing log
       * none - Do not save executable logs to the disk
       * reset - Wipe the log files on startup
       * roll - Roll logs based on size
