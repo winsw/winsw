@@ -108,8 +108,8 @@
           "$id": "#/properties/log/period",
           "type": "number"
         },
-        "logpath": {
-          "$id": "#/properties/log/logpath",
+        "logPath": {
+          "$id": "#/properties/log/logPath",
           "type": "string"
         },
         "outFileDisabled": {
