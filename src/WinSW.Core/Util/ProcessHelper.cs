@@ -249,7 +249,6 @@ namespace WinSW.Util
             // Redirect logs if required
             if (logHandler != null)
             {
-                Logger.Debug("Forwarding logs of the process " + processToStart + " to " + logHandler);
                 logHandler.Log(
                     ps.RedirectStandardOutput ? processToStart.StandardOutput : StreamReader.Null,
                     ps.RedirectStandardError ? processToStart.StandardError : StreamReader.Null);
