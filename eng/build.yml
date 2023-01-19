@@ -30,7 +30,6 @@ steps:
   inputs:
     packageType: sdk
     version: 6.x
-    includePreviewVersions: true
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
@@ -48,6 +47,10 @@ steps:
     command: test
     projects: src\WinSW.Tests\WinSW.Tests.csproj
     arguments: -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build
+- task: NuGetToolInstaller@1
+  displayName: Install NuGet
+  inputs:
+    versionSpec: 6.x
 - task: NuGetCommand@2
   displayName: Pack
   inputs:
