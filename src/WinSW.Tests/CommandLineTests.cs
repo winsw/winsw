@@ -77,7 +77,7 @@ namespace WinSW.Tests
 
             var result = Helper.ErrorTest(new[] { commandName });
 
-            Assert.Equal($"Unrecognized command or argument '{commandName}'\r\n\r\n", result.Error);
+            Assert.Equal($"Unrecognized command or argument '{commandName}'.\r\n\r\n", result.Error);
         }
 
         /// <summary>
