@@ -25,11 +25,6 @@ strategy:
     Release:
       BuildConfiguration: Release
 steps:
-- task: UseDotNet@2
-  displayName: Install .NET SDK
-  inputs:
-    packageType: sdk
-    version: 6.x
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
@@ -37,9 +32,9 @@ steps:
     projects: src\WinSW.sln
     arguments: -c $(BuildConfiguration) -p:Version=$(BuildVersion)
 - script: |
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-x64 -p:Version=$(BuildVersion)
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-x86 -p:Version=$(BuildVersion)
-    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net6.0-windows -r win-arm64 -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net7.0-windows -r win-x64 --sc -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net7.0-windows -r win-x86 --sc -p:Version=$(BuildVersion)
+    dotnet publish src\WinSW\WinSW.csproj -c $(BuildConfiguration) -f net7.0-windows -r win-arm64 --sc -p:Version=$(BuildVersion)
   displayName: Build
 - task: DotNetCoreCLI@2
   displayName: Test
@@ -73,7 +68,7 @@ steps:
 
 - publish: artifacts\publish\WinSW-arm64.exe
   artifact: WinSW-arm64.exe_$(BuildConfiguration)
-  displayName: Publish .NET arm64 .exe
+  displayName: Publish .NET Arm64 .exe
 
 - publish: $(Build.ArtifactStagingDirectory)\WinSW.$(BuildVersion).nupkg
   artifact: WinSW.nupkg_$(BuildConfiguration)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net461;net7.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>

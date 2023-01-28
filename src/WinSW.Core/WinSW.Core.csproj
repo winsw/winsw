@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;net6.0-windows</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
+    <TargetFrameworks>net461;net7.0-windows</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -15,13 +15,13 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0-windows'">
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="5.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="7.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <Reference Include="System.ServiceProcess" />
