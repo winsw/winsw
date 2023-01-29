@@ -59,7 +59,7 @@ const { endpoint } = require("@octokit/endpoint");
 Example for [List organization repositories](https://developer.github.com/v3/repos/#list-organization-repositories)
 
 ```js
-const requestOptions = endpoint("GET /orgs/:org/repos", {
+const requestOptions = endpoint("GET /orgs/{org}/repos", {
   headers: {
     authorization: "token 0000000000000000000000000000000000000001",
   },
@@ -123,7 +123,7 @@ axios(requestOptions);
         String
       </td>
       <td>
-        If set, it has to be a string consisting of URL and the request method, e.g., <code>GET /orgs/:org</code>. If it’s set to a URL, only the method defaults to <code>GET</code>.
+        If set, it has to be a string consisting of URL and the request method, e.g., <code>GET /orgs/{org}</code>. If it’s set to a URL, only the method defaults to <code>GET</code>.
       </td>
     </tr>
     <tr>
@@ -146,7 +146,7 @@ axios(requestOptions);
       </td>
       <td>
         <strong>Required unless <code>route</code> is set.</strong> A path or full URL which may contain <code>:variable</code> or <code>{variable}</code> placeholders,
-        e.g., <code>/orgs/:org/repos</code>. The <code>url</code> is parsed using <a href="https://github.com/bramstein/url-template">url-template</a>.
+        e.g., <code>/orgs/{org}/repos</code>. The <code>url</code> is parsed using <a href="https://github.com/bramstein/url-template">url-template</a>.
       </td>
     </tr>
     <tr>
@@ -222,7 +222,7 @@ axios(requestOptions);
 
 All other options will be passed depending on the `method` and `url` options.
 
-1. If the option key has a placeholder in the `url`, it will be used as the replacement. For example, if the passed options are `{url: '/orgs/:org/repos', org: 'foo'}` the returned `options.url` is `https://api.github.com/orgs/foo/repos`.
+1. If the option key has a placeholder in the `url`, it will be used as the replacement. For example, if the passed options are `{url: '/orgs/{org}/repos', org: 'foo'}` the returned `options.url` is `https://api.github.com/orgs/foo/repos`.
 2. If the `method` is `GET` or `HEAD`, the option is passed as a query parameter.
 3. Otherwise, the parameter is passed in the request body as a JSON key.
 
@@ -289,7 +289,7 @@ const myEndpoint = require("@octokit/endpoint").defaults({
   per_page: 100,
 });
 
-request(myEndpoint(`GET /orgs/:org/repos`));
+request(myEndpoint(`GET /orgs/{org}/repos`));
 ```
 
 You can call `.defaults()` again on the returned method, the defaults will cascade.
@@ -337,7 +337,7 @@ const myProjectEndpoint = endpoint.defaults({
   },
   org: "my-project",
 });
-myProjectEndpoint.merge("GET /orgs/:org/repos", {
+myProjectEndpoint.merge("GET /orgs/{org}/repos", {
   headers: {
     authorization: `token 0000000000000000000000000000000000000001`,
   },
@@ -348,7 +348,7 @@ myProjectEndpoint.merge("GET /orgs/:org/repos", {
 // {
 //   baseUrl: 'https://github-enterprise.acme-inc.com/api/v3',
 //   method: 'GET',
-//   url: '/orgs/:org/repos',
+//   url: '/orgs/{org}/repos',
 //   headers: {
 //     accept: 'application/vnd.github.v3+json',
 //     authorization: `token 0000000000000000000000000000000000000001`,
