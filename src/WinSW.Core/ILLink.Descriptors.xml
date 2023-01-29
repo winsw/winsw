@@ -1,0 +1,5 @@
+﻿<linker>
+  <assembly fullname="WinSW.Core">
+    <namespace fullname="WinSW.Configuration" />
+  </assembly>
+</linker>
