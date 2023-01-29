@@ -103,7 +103,7 @@ User can specify all log configurations as a single YAML dictionary
 ```yaml
 log:
     mode: roll-by-size
-    logpath: '%BASE/log%'
+    logpath: '%BASE%\log'
     sizeThreshold: 10240
     keepFiles: 8
 ```
