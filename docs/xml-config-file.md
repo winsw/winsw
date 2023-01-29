@@ -195,7 +195,7 @@ Specify `NUL` in `stdoutPath` or `stderrPath` to dispose of the corresponding st
 
 Gives the service more time to stop when the system is being shut down.
 
-The system default preshutdown timeout is there minutes.
+The system default preshutdown timeout is three minutes.
 
 ### stoptimeout
 
