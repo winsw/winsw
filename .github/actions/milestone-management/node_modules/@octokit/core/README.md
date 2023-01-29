@@ -298,7 +298,9 @@ const octokit = new Octokit({
 const { data } = await octokit.request("/user");
 ```
 
-To use a different authentication strategy, set `options.authStrategy`. A set of officially supported authentication strategies can be retrieved from [`@octokit/auth`](https://github.com/octokit/auth-app.js#readme). Example
+To use a different authentication strategy, set `options.authStrategy`. A list of authentication strategies is available at [octokit/authentication-strategies.js](https://github.com/octokit/authentication-strategies.js/#readme).
+
+Example
 
 ```js
 import { Octokit } from "@octokit/core";
@@ -358,7 +360,7 @@ octokit.hook.after("request", async (response, options) => {
 });
 octokit.hook.error("request", async (error, options) => {
   if (error.status === 304) {
-    return findInCache(error.headers.etag);
+    return findInCache(error.response.headers.etag);
   }
 
   throw error;
@@ -421,11 +423,19 @@ You can build your own Octokit class with preset default options and plugins. In
 ```js
 const { Octokit } = require("@octokit/core");
 const MyActionOctokit = Octokit.plugin(
-  require("@octokit/plugin-paginate-rest"),
-  require("@octokit/plugin-throttling"),
-  require("@octokit/plugin-retry")
+  require("@octokit/plugin-paginate-rest").paginateRest,
+  require("@octokit/plugin-throttling").throttling,
+  require("@octokit/plugin-retry").retry
 ).defaults({
-  authStrategy: require("@octokit/auth-action"),
+  throttle: {
+    onAbuseLimit: (retryAfter, options) => {
+      /* ... */
+    },
+    onRateLimit: (retryAfter, options) => {
+      /* ... */
+    },
+  },
+  authStrategy: require("@octokit/auth-action").createActionAuth,
   userAgent: `my-octokit-action/v1.2.3`,
 });
 
