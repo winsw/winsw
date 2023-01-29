@@ -27,7 +27,7 @@ namespace WinSW.Tests
                 Assert.Equal(ServiceControllerStatus.Stopped, controller.Status);
                 Assert.Equal(ServiceType.Win32OwnProcess, controller.ServiceType);
 
-#if NETFRAMEWORK
+#if NET
                 InterProcessCodeCoverageSession session = null;
                 try
                 {
