@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net20;net40;net461;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net20;net40;net461;net7.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PublishTrimmed>true</PublishTrimmed>
 
     <AssemblyTitle>Windows Service Wrapper</AssemblyTitle>
     <Description>Allows arbitrary process to run as a Windows service by wrapping it.</Description>
@@ -15,15 +14,23 @@
     <Copyright>Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</Copyright>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-windows' AND '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <DebuggerSupport>false</DebuggerSupport>
+    <NullabilityInfoContextSupport>false</NullabilityInfoContextSupport>
+    <_AggressiveAttributeTrimming>true</_AggressiveAttributeTrimming>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0-windows' AND '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
     <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0-windows'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
     <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -33,7 +40,7 @@
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
-  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net6.0-windows'">
+  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net7.0-windows'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
     <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW-$(PlatformTarget).exe" />
@@ -41,7 +48,7 @@
   </Target>
 
   <!-- Merge plugins and other DLLs into the executable -->
-  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net6.0-windows'">
+  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net7.0-windows'">
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
       <TargetPlatform>v2</TargetPlatform>
