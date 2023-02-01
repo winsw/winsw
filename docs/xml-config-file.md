@@ -219,6 +219,14 @@ This optional element can be specified multiple times if necessary to specify en
 <env name="HOME" value="c:\abc" />
 ```
 
+### Environment File
+
+This optional element can be specified one time to specify a file to load environment variables from. Each variable definition must be on a separate line and in the format "key=value". Empty lines and lines starting with "#" are ignored. The syntax is:
+
+```xml
+<envFile>%BASE%/env.txt</env-file>
+```
+
 ### interactive
 
 If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes.
