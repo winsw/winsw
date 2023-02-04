@@ -129,6 +129,8 @@ namespace WinSW.Configuration
 
         public Dictionary<string, string> EnvironmentVariables => new(0);
 
+        public string? EnvironmentVariablesFile => null;
+
         // Misc
         public bool BeepOnShutdown => false;
 
