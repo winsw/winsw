@@ -5,7 +5,7 @@ using static WinSW.Native.HandleApis;
 namespace WinSW.Native
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal readonly ref struct Handle
+    internal readonly struct Handle : IDisposable
     {
         private readonly IntPtr handle;
 
