@@ -38,7 +38,7 @@ waitHint: 15 sec
 sleepTime: 1 sec
 #interactive: true
 log:
-#    logpath: '%BASE%\logs'
+#    logPath: '%BASE%\logs'
     mode: append
 #env:
 #    -
