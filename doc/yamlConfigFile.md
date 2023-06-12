@@ -282,10 +282,10 @@ serviceaccount:
 ### Working directory
 
 Some services need to run with a working directory specified. 
-To do this, specify a `workingdirectory` element like this:
+To do this, specify a `workingDirectory` element like this:
 
 ```yaml
-workingdirectory: 'C:\application'
+workingDirectory: 'C:\application'
 ```
 
 ### Priority

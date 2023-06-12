@@ -41,9 +41,9 @@
       "$id": "#/properties/hideWindow",
       "$ref": "#/definitions/boolPattern"
     },
-    "workingdirectory": {
-      "$id": "#/properties/workingdirectory",
-      "description": "Some services need to run with a working directory specified. To do this, specify the workingdirectory element",
+    "workingDirectory": {
+      "$id": "#/properties/workingDirectory",
+      "description": "Some services need to run with a working directory specified. To do this, specify the workingDirectory element",
       "type": "string"
     },
     "serviceAccount": {
