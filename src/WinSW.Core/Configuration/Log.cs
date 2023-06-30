@@ -52,7 +52,16 @@ namespace WinSW.Configuration
                     return new RollingLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
 
                 case "roll-by-time":
-                    return new TimeBasedRollingLogAppender(this.Directory, this.Name, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, this.Pattern, this.Period.GetValueOrDefault(1));
+                    return new TimeBasedRollingLogAppender(
+                        this.Directory,
+                        this.Name,
+                        this.OutFileDisabled,
+                        this.ErrFileDisabled,
+                        this.OutFilePattern,
+                        this.ErrFilePattern,
+                        this.Pattern,
+                        this.Period.GetValueOrDefault(1),
+                        this.KeepFiles);
 
                 case "roll-by-size":
                     return new SizeBasedRollingLogAppender(
