@@ -351,7 +351,14 @@ namespace WinSW
 
             public override int? SizeThreshold => this.config.SingleIntElement(this.Element, "sizeThreshold", 10 * 1024);
 
-            public override int? KeepFiles => this.config.SingleIntElement(this.Element, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
+            public override int? KeepFiles
+            {
+                get
+                {
+                    var keepFiles = this.Element.SelectSingleNode("keepFiles");
+                    return keepFiles is null ? null : int.Parse(keepFiles.InnerText);
+                }
+            }
 
             public override int? Period => this.config.SingleIntElement(this.Element, "period", 1);
 
