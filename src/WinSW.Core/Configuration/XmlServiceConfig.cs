@@ -299,14 +299,24 @@ namespace WinSW
                             throw new InvalidDataException("Time Based rolling policy is specified but no pattern can be found in configuration XML.");
                         }
 
+                        var timeBasedRollingKeepFiles = e.SelectSingleNode("keepFiles");
                         string? pattern = patternNode.InnerText;
                         int period = SingleIntElement(e, "period", 1);
-                        return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period);
+                        return new TimeBasedRollingLogAppender(
+                            this.LogDirectory,
+                            this.LogName,
+                            this.OutFileDisabled,
+                            this.ErrFileDisabled,
+                            this.OutFilePattern,
+                            this.ErrFilePattern,
+                            pattern,
+                            period,
+                            timeBasedRollingKeepFiles == null ? TimeBasedRollingLogAppender.DefaultFilesToKeep : int.Parse(timeBasedRollingKeepFiles.InnerText));
 
                     case "roll-by-size":
                         sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB;
-                        int keepFiles = SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
-                        return new SizeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, sizeThreshold, keepFiles);
+                        int sizeBasedRollingKeepFiles = SingleIntElement(e, "keepFiles", SizeBasedRollingLogAppender.DefaultFilesToKeep);
+                        return new SizeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, sizeThreshold, sizeBasedRollingKeepFiles);
 
                     case "append":
                         return new DefaultLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern);
