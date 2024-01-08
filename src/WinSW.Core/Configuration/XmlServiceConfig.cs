@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.ServiceProcess;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using WinSW.Configuration;
 using WinSW.Native;
@@ -682,6 +683,25 @@ namespace WinSW
                 var node = nodeList[i]!;
                 string key = node.Attributes!["name"]?.Value ?? throw new InvalidDataException("'name' is missing");
                 string value = Environment.ExpandEnvironmentVariables(node.Attributes["value"]?.Value ?? throw new InvalidDataException("'value' is missing"));
+
+                if (node.HasChildNodes)
+                {
+                    var ruleList = node.SelectNodes("rule")!;
+
+                    for (int ruleNumber = 0; ruleNumber < ruleList.Count; ruleNumber++)
+                    {
+                        var rule = ruleList[ruleNumber]!;
+
+                        string regularExpression = rule.Attributes!["regex"]!.Value;
+                        string replacement = rule.Attributes!["replace"]!.Value;
+
+                        if (!string.IsNullOrEmpty(regularExpression) && !string.IsNullOrEmpty(replacement))
+                        {
+                            value = Regex.Replace(value, regularExpression, replacement);
+                        }
+                    }
+                }
+
                 environment[key] = value;
 
                 Environment.SetEnvironmentVariable(key, value);

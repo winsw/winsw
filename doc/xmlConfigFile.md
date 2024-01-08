@@ -16,7 +16,9 @@ Example:
   <id>jenkins</id>
   <name>Jenkins</name>
   <description>This service runs Jenkins continuous integration system.</description>
-  <env name="JENKINS_HOME" value="%BASE%"/>
+  <env name="JENKINS_HOME" value="%BASE%">
+    <rule regex="\\" replace="\/"/>
+  </env>
   <executable>java</executable>
   <arguments>-Xrs -Xmx256m -jar "%BASE%\jenkins.war" --httpPort=8080</arguments>
   <log mode="roll"></log>
@@ -138,6 +140,16 @@ This optional element can be specified multiple times if necessary to specify en
 ```xml
 <env name="HOME" value="c:\abc" />
 ```
+
+#### Rule
+
+This optional element can be specified multiple time within element "env". The syntax is:
+
+```xml
+<rule regex="\\" value="\/"
+```
+
+With the help of a rule replacements in a environment variable can be done after expansion. That is helpful e.g. when working with Linux tools on Windows and Windows environment variables are used in "env" for paths to change back slashes to forward slashes and mask white spaces.
 
 ### interactive
 
