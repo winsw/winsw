@@ -315,18 +315,14 @@ namespace WinSW
                         {
                             string dst = this.BaseLogFileName + "." + (j - 1) + ext;
                             string src = this.BaseLogFileName + "." + (j - 2) + ext;
-                            if (File.Exists(dst))
-                            {
-                                File.Delete(dst);
-                            }
 
                             if (File.Exists(src))
                             {
-                                File.Move(src, dst);
+                                File.Move(src, dst, true);
                             }
                         }
 
-                        File.Move(this.BaseLogFileName + ext, this.BaseLogFileName + ".0" + ext);
+                        File.Move(this.BaseLogFileName + ext, this.BaseLogFileName + ".0" + ext, true);
                     }
                     catch (IOException e)
                     {
