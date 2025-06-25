@@ -15,15 +15,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
     <DebuggerSupport>false</DebuggerSupport>
     <NullabilityInfoContextSupport>false</NullabilityInfoContextSupport>
-    <_AggressiveAttributeTrimming>true</_AggressiveAttributeTrimming>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0-windows' AND '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
+    <TrimMode>partial</TrimMode>
+    <_AggressiveAttributeTrimming>true</_AggressiveAttributeTrimming>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
