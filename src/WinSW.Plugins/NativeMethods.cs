@@ -11,6 +11,9 @@ namespace WinSW.Plugins
             private const string NTDll = "ntdll.dll";
 
             [DllImport(Kernel32)]
+            internal static extern bool CloseHandle(IntPtr objectHandle);
+
+            [DllImport(Kernel32)]
             internal static extern int IsWow64Process(IntPtr hProcess, out int Wow64Process);
 
             [DllImport(NTDll)]
@@ -52,6 +55,14 @@ namespace WinSW.Plugins
                 void* Buffer,
                 long BufferSize,
                 long NumberOfBytesRead = default);
+
+            [DllImport(Kernel32)]
+            internal static extern IntPtr OpenProcess(ProcessAccess desiredAccess, bool inheritHandle, int processId);
+
+            internal enum ProcessAccess : uint
+            {
+                QueryInformation = 0x0400,
+            }
 
             internal enum PROCESSINFOCLASS
             {

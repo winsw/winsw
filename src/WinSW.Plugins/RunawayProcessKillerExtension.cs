@@ -268,39 +268,54 @@ namespace WinSW.Plugins
 
             // Ensure the process references the service
             string expectedEnvVarName = WinSWSystem.EnvVarNameServiceId;
-            string? affiliatedServiceId = ReadEnvironmentVariable(proc.Handle, expectedEnvVarName);
-            if (affiliatedServiceId is null && this.CheckWinSWEnvironmentVariable)
-            {
-                Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. "
-                    + "The process has not been started by WinSW, hence it won't be terminated.");
 
+            var processHandle = OpenProcess(ProcessAccess.QueryInformation, false, pid);
+            if (processHandle == IntPtr.Zero)
+            {
+                Logger.Warn("Cannot get process handle of PID=" + pid + ". Assuming that the process has not been started by WinSW.");
                 return;
             }
 
-            // Check the service ID value
-            if (this.CheckWinSWEnvironmentVariable && !this.ServiceId.Equals(affiliatedServiceId))
+            try
             {
-                Logger.Warn("The process " + pid + " has been started by Windows service with ID='" + affiliatedServiceId + "'. "
-                    + "It is another service (current service id is '" + this.ServiceId + "'), hence the process won't be terminated.");
-                return;
-            }
+                string? affiliatedServiceId = ReadEnvironmentVariable(processHandle, expectedEnvVarName);
+                if (affiliatedServiceId is null && this.CheckWinSWEnvironmentVariable)
+                {
+                    Logger.Warn("The process " + pid + " has no " + expectedEnvVarName + " environment variable defined. "
+                        + "The process has not been started by WinSW, hence it won't be terminated.");
 
-            // Kill the runaway process
-            var bldr = new StringBuilder("Stopping the runaway process (pid=");
-            bldr.Append(pid);
-            bldr.Append(") and its children. Environment was ");
-            if (!this.CheckWinSWEnvironmentVariable)
+                    return;
+                }
+
+                // Check the service ID value
+                if (this.CheckWinSWEnvironmentVariable && !this.ServiceId.Equals(affiliatedServiceId))
+                {
+                    Logger.Warn("The process " + pid + " has been started by Windows service with ID='" + affiliatedServiceId + "'. "
+                        + "It is another service (current service id is '" + this.ServiceId + "'), hence the process won't be terminated.");
+                    return;
+                }
+
+                // Kill the runaway process
+                var bldr = new StringBuilder("Stopping the runaway process (pid=");
+                bldr.Append(pid);
+                bldr.Append(") and its children. Environment was ");
+                if (!this.CheckWinSWEnvironmentVariable)
+                {
+                    bldr.Append("not ");
+                }
+
+                bldr.Append("checked, affiliated service ID: ");
+                bldr.Append(affiliatedServiceId ?? "undefined");
+                bldr.Append(", process to kill: ");
+                bldr.Append(proc);
+
+                Logger.Warn(bldr.ToString());
+                ProcessHelper.StopProcessTree(proc, this.StopTimeout, this.StopParentProcessFirst);
+            }
+            finally
             {
-                bldr.Append("not ");
+                _ = CloseHandle(processHandle);
             }
-
-            bldr.Append("checked, affiliated service ID: ");
-            bldr.Append(affiliatedServiceId ?? "undefined");
-            bldr.Append(", process to kill: ");
-            bldr.Append(proc);
-
-            Logger.Warn(bldr.ToString());
-            ProcessHelper.StopProcessTree(proc, this.StopTimeout, this.StopParentProcessFirst);
         }
 
         /// <summary>

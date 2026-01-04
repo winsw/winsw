@@ -34,11 +34,19 @@ namespace WinSW.Native
             int processInformationLength,
             IntPtr returnLength = default);
 
+        [DllImport(Libraries.Kernel32)]
+        internal static extern Handle OpenProcess(ProcessAccess desiredAccess, bool inheritHandle, int processId);
+
         [DllImport(Libraries.Advapi32, SetLastError = true)]
         internal static extern bool OpenProcessToken(
             IntPtr processHandle,
             TokenAccessLevels desiredAccess,
             out Handle tokenHandle);
+
+        internal enum ProcessAccess : uint
+        {
+            QueryInformation = 0x0400,
+        }
 
         internal enum PROCESSINFOCLASS
         {
