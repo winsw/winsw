@@ -117,6 +117,7 @@ Most commands require Administrator privileges to execute. WinSW will prompt for
 * Use cases:
   * [Self-restarting services](docs/self-restarting-service.md)
   * [Deferred file operations](docs/deferred-file-operations.md)
+  * [Troubleshooting](docs/troubleshooting.md)
 
 ## Contributing
 
