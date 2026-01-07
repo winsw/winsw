@@ -3,6 +3,7 @@
 If your service fails to start, first check:
 
 - The stdout/stderr logs configured via the [`log` element](logging-and-error-reporting.md#logging)
+- The wrapper log (`<config-file-name>.wrapper.log`) in the log directory (respects `<logpath>`; defaults to the configuration file directory)
 - The Windows Event Log (WinSW reports more details there when running as a service)
 
 ## The system cannot find the file specified.
@@ -34,6 +35,7 @@ Prefer full paths in your WinSW configuration when diagnosing startup issues.
 Error `1067` (“The process terminated unexpectedly”) usually means the wrapped process exited shortly after starting.
 
 - Enable stdout/stderr logging via the `log` element and re-check the logs.
+- Check the wrapper log (`<config-file-name>.wrapper.log`) for WinSW-side errors (config parsing, process start failures).
 - Check the Windows Event Log for errors reported by WinSW.
 - Run the executable manually under the same account and working directory as the service to reproduce the failure.
 
@@ -50,4 +52,3 @@ See:
 - [XML configuration file](xml-config-file.md)
 - [Logging and error reporting](logging-and-error-reporting.md)
 - [CLI commands](cli-commands.md)
-
