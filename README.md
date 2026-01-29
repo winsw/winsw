@@ -126,3 +126,12 @@ See the [contributing guidelines](CONTRIBUTING.md) for more information.
 ## License
 
 WinSW is licensed under the [MIT](LICENSE.txt) license.
+
+## similar projects
+
+* srvany.exe from the Windows Server 2003 Resource Kit
+* [nssm](https://git.nssm.cc/nssm/nssm.git)
+* [srvany-ng](https://github.com/birkett/srvany-ng)
+* [shawl](https://github.com/mtkennerly/shawl)
+
+
