@@ -391,7 +391,7 @@ namespace WinSW
 
         private void SignalStopped()
         {
-            using var scm = ServiceManager.Open();
+            using var scm = ServiceManager.Open(ServiceApis.ServiceManagerAccess.Connect);
             using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
 
             sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
