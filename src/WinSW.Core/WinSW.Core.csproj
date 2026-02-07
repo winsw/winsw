@@ -9,6 +9,10 @@
     <RootNamespace>WinSW</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1902;NU1903</WarningsNotAsErrors>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.12" />
     <PackageReference Include="YamlDotNet" Version="8.1.2" />
