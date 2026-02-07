@@ -26,6 +26,10 @@
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0-windows'">
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
     <ILMergeVersion>3.0.41</ILMergeVersion>
   </PropertyGroup>
