@@ -3,10 +3,10 @@
 name: $(Major).$(Minor).$(Patch).$(Revision)
 
 trigger:
-- master
+- v2
 
 pr:
-- master
+- v2
 
 variables:
 - group: Version
