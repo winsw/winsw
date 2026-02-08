@@ -19,7 +19,7 @@ namespace WinSW.Plugins
         {
             this.EnableMapping = enableMapping;
             this.Label = label;
-            this.UNCPath = uncPath;
+            this.UNCPath = uncPath?.TrimEnd('\\', '/');
         }
 
         public static SharedDirectoryMapperConfig FromXml(XmlElement node)

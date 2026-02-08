@@ -40,16 +40,17 @@ namespace winswTests.Extensions
         }
 
         [Test]
-        public void TestMap_PathEndsWithSlash_Throws()
+        public void TestMap_PathEndsWithSlash_Works()
         {
             using var data = TestData.Create();
 
             const string label = "W:";
             var mapper = new SharedDirectoryMapper(true, $@"\\{Environment.MachineName}\{data.name}\", label);
 
-            Assert.That(() => mapper.OnWrapperStarted(), Throws.Exception);
+            mapper.OnWrapperStarted();
+            Assert.That($@"{label}\", Does.Exist);
+            mapper.BeforeWrapperStopped();
             Assert.That($@"{label}\", Does.Not.Exist);
-            Assert.That(() => mapper.BeforeWrapperStopped(), Throws.Exception);
         }
 
         [Test]
