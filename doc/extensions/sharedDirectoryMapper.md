@@ -51,11 +51,11 @@ extensions:
       settings:
           mapping:
               - enabled: false
-                label: N
-                uncpath: \\UNC
+                label: N:
+                uncPath: \\UNC
               - enabled: false
-                label: M
-                uncpath: \\UNC2
+                label: M:
+                uncPath: \\UNC2
 ```
 
 ## Notes
