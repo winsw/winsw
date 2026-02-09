@@ -3,10 +3,10 @@
 name: $(Major).$(Minor).$(Patch).$(Revision)
 
 trigger:
-- master
+- v2
 
 pr:
-- master
+- v2
 
 variables:
 - group: Version
@@ -38,6 +38,8 @@ steps:
   displayName: Build
 - script: dotnet test -c $(BuildConfiguration) --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
   displayName: Test
+  env:
+    DOTNET_ROLL_FORWARD: Major
 - task: NuGetToolInstaller@1
   displayName: Install NuGet
   inputs:
