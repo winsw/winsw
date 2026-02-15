@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using WinSW;
 using WinSW.Configuration;
 using WinSW.Extensions;
@@ -104,6 +105,40 @@ extensions:
             manager.LoadExtensions();
             manager.FireOnWrapperStarted();
             manager.FireBeforeWrapperStopped();
+        }
+
+        [Test]
+        public void FromYaml_LabelWithoutColon_IsNormalized()
+        {
+            var map = new Dictionary<object, object>
+            {
+                ["enabled"] = true,
+                ["label"] = "N",
+                ["uncpath"] = @"\\UNC\Share\\",
+            };
+
+            var config = SharedDirectoryMapperConfig.FromYaml(map);
+
+            Assert.That(config.EnableMapping, Is.True);
+            Assert.That(config.Label, Is.EqualTo("N:"));
+            Assert.That(config.UNCPath, Is.EqualTo(@"\\UNC\Share"));
+        }
+
+        [Test]
+        public void FromYaml_KeysAreCaseInsensitive()
+        {
+            var map = new Dictionary<object, object>
+            {
+                ["Enabled"] = "yes",
+                ["Label"] = "m:",
+                ["UNCPath"] = @"\\UNC2\Share2",
+            };
+
+            var config = SharedDirectoryMapperConfig.FromYaml(map);
+
+            Assert.That(config.EnableMapping, Is.True);
+            Assert.That(config.Label, Is.EqualTo("m:"));
+            Assert.That(config.UNCPath, Is.EqualTo(@"\\UNC2\Share2"));
         }
     }
 }
