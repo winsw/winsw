@@ -96,14 +96,14 @@ depend:
 
 ### log
 
-Optionally set a different logging directory with `logpath` and startup `mode`: append (default), reset (clear log), ignore, roll (move to `\*.old`).
+Optionally set a different logging directory with `logPath` and startup `mode`: append (default), reset (clear log), ignore, roll (move to `\*.old`).
 
 User can specify all log configurations as a single YAML dictionary
 
 ```yaml
 log:
     mode: roll-by-size
-    logpath: '%BASE%\log'
+    logPath: '%BASE%\log'
     sizeThreshold: 10240
     keepFiles: 8
 ```

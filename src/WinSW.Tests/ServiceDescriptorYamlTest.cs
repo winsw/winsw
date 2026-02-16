@@ -29,7 +29,7 @@ executable: node.exe
 arguments: My Arguments
 log:
     mode: roll
-    logpath: c:\logs
+    logPath: c:\logs
 serviceAccount:
     domain: {Domain}
     user: {Username}
@@ -80,6 +80,12 @@ startMode: manual";
         public void VerifyWorkingDirectory()
         {
             Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+        }
+
+        [Test]
+        public void VerifyLogDirectory()
+        {
+            Assert.That(this._extendedServiceDescriptor.Log.Directory, Is.EqualTo(@"c:\logs"));
         }
 
         [Test]
@@ -265,12 +271,14 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: 'c:\\'
+    logPath: 'c:\\'
     mode: roll-by-size
     sizeThreshold: 112
     keepFiles: 113";
 
             var serviceDescriptor = YamlServiceConfig.FromYaml(yaml);
+
+            Assert.That(serviceDescriptor.Log.Directory, Is.EqualTo(@"c:\\"));
 
             serviceDescriptor.BaseName = "service";
 
@@ -289,12 +297,14 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: c:\\
+    logPath: c:\\
     mode: roll-by-time
     period: 7
     pattern: log pattern";
 
             var serviceDescriptor = YamlServiceConfig.FromYaml(yaml);
+
+            Assert.That(serviceDescriptor.Log.Directory, Is.EqualTo(@"c:\\"));
 
             serviceDescriptor.BaseName = "service";
 
@@ -313,13 +323,15 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: c:\\
+    logPath: c:\\
     mode: roll-by-size-time
     sizeThreshold: 10240
     pattern: yyyy-MM-dd
     autoRollAtTime: 00:00:00";
 
             var serviceDescriptor = YamlServiceConfig.FromYaml(yaml);
+
+            Assert.That(serviceDescriptor.Log.Directory, Is.EqualTo(@"c:\\"));
 
             serviceDescriptor.BaseName = "service";
 
