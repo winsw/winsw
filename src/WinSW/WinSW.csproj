@@ -15,8 +15,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
     <DebuggerSupport>false</DebuggerSupport>
     <NullabilityInfoContextSupport>false</NullabilityInfoContextSupport>
     <_AggressiveAttributeTrimming>true</_AggressiveAttributeTrimming>

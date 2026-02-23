@@ -7,7 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <RootNamespace>WinSW</RootNamespace>
-	  <IsTrimmable>True</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup>
