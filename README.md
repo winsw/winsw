@@ -21,6 +21,13 @@ For systems without .NET Framework, the project provides native 64-bit and 32-bi
 
 More executables can be added upon request.
 
+[.NET Framework system requirements](https://docs.microsoft.com/dotnet/framework/get-started/system-requirements)\
+Preinstalled since Windows 10, version 1511 and Windows Server 2016.\
+Installable since Windows 7 SP1 and Windows Server 2008 R2 SP1.
+
+[.NET 10 system requirements](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md)\
+Supported since Windows 10, version 1607, Windows Server (Core) 2012 R2 and Nano Server, version 1809.
+
 ## Download
 
 WinSW binaries are available on [GitHub Releases](https://github.com/winsw/winsw/releases) and [NuGet](https://www.nuget.org/packages/WinSW/).
