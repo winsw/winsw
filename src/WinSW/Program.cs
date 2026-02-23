@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-#if VNEXT
 using System.IO.Pipes;
-#endif
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -23,14 +21,13 @@ using static WinSW.FormatExtensions;
 using static WinSW.ServiceControllerExtension;
 using static WinSW.Native.ServiceApis;
 using TimeoutException = System.ServiceProcess.TimeoutException;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WinSW
 {
     public static class Program
     {
-#if VNEXT
         private const string NoPipe = "-";
-#endif
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
 
@@ -135,7 +132,6 @@ namespace WinSW
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
 
-#if VNEXT
                 string stdinName = args[1];
                 if (stdinName != NoPipe)
                 {
@@ -161,9 +157,7 @@ namespace WinSW
                 }
 
                 args = args.GetRange(4, args.Count - 4);
-#else
-                args = args.GetRange(1, args.Count - 1);
-#endif
+
             }
             else if (Environment.OSVersion.Version.Major == 5)
             {
@@ -592,23 +586,19 @@ namespace WinSW
                 wsvc.RaiseOnStop();
             }
 
-            // [DoesNotReturn]
+            [DoesNotReturn]
             void Elevate()
             {
-#if VNEXT
                 string? stdinName = Console.IsInputRedirected ? Guid.NewGuid().ToString() : null;
                 string? stdoutName = Console.IsOutputRedirected ? Guid.NewGuid().ToString() : null;
                 string? stderrName = Console.IsErrorRedirected ? Guid.NewGuid().ToString() : null;
-#endif
 
                 string exe = Environment.GetCommandLineArgs()[0];
                 string commandLine = Environment.CommandLine;
                 string arguments = "/elevated" +
-#if VNEXT
                     " " + (stdinName ?? NoPipe) +
                     " " + (stdoutName ?? NoPipe) +
                     " " + (stderrName ?? NoPipe) +
-#endif
                     commandLine.Remove(commandLine.IndexOf(exe), exe.Length).TrimStart('"');
 
                 var startInfo = new ProcessStartInfo
@@ -624,7 +614,6 @@ namespace WinSW
                 {
                     using var elevated = Process.Start(startInfo)!;
 
-#if VNEXT
                     if (stdinName != null)
                     {
                         var stdin = new NamedPipeServerStream(stdinName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
@@ -642,7 +631,6 @@ namespace WinSW
                         var stderr = new NamedPipeServerStream(stderrName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                         stderr.WaitForConnectionAsync().ContinueWith(_ => stderr.CopyToAsync(Console.OpenStandardError()));
                     }
-#endif
 
                     elevated.WaitForExit();
                     Environment.Exit(elevated.ExitCode);

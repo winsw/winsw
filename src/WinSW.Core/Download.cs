@@ -197,11 +197,8 @@ namespace WinSW
             string tmpFilePath = this.To + ".tmp";
             try
             {
-#if VNEXT
                 using (var response = await request.GetResponseAsync())
-#else
-                using (var response = request.GetResponse())
-#endif
+
                 using (var responseStream = response.GetResponseStream())
                 using (var tmpStream = new FileStream(tmpFilePath, FileMode.Create))
                 {
@@ -210,13 +207,8 @@ namespace WinSW
                         lastModified = ((HttpWebResponse)response).LastModified;
                     }
 
-#if VNEXT
                     await responseStream.CopyToAsync(tmpStream);
-#elif NET20
-                    CopyStream(responseStream, tmpStream);
-#else
                     responseStream.CopyTo(tmpStream);
-#endif
                 }
 
                 FileHelper.MoveOrReplaceFile(this.To + ".tmp", this.To);
@@ -242,18 +234,6 @@ namespace WinSW
                 }
             }
         }
-
-#if NET20
-        private static void CopyStream(Stream source, Stream destination)
-        {
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = source.Read(buffer, 0, buffer.Length)) != 0)
-            {
-                destination.Write(buffer, 0, read);
-            }
-        }
-#endif
     }
 
     public class CustomProxyInformation

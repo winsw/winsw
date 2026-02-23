@@ -84,17 +84,7 @@ namespace WinSW.Util
                 }
             }
 
-#if NET
             process.Kill();
-#else
-            try
-            {
-                process.Kill();
-            }
-            catch when (process.HasExited)
-            {
-            }
-#endif
 
             Logger.Debug($"Process {process.Id} terminated.");
             return;

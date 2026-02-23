@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net20;net40;net461;net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>net10.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -11,33 +11,15 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.12" />
-    <PackageReference Include="YamlDotNet" Version="8.1.2" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.*">
+	  <PackageReference Include="YamlDotNet" Version="8.1.2" />
+	  <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+  <ItemGroup>
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.3" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
-    <EmbeddedResource Include="ILLink.Descriptors.xml">
-      <LogicalName>ILLink.Descriptors.xml</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-windows'">
-    <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System.IO.Compression" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
-    <PackageReference Include="SharpZipLib" Version="0.86.0" NoWarn="NU1902;NU1903" />
   </ItemGroup>
 
 </Project>
