@@ -40,16 +40,82 @@ namespace WinSW.Plugins
             if (yamlObject is not Dictionary<object, object> dict)
             {
                 // TODO : throw ExtensionExeption
-                throw new InvalidDataException("SharedDirectoryMapperConfig config error");
+                throw new InvalidDataException("SharedDirectoryMapperConfig mapping entry should be a dictionary");
             }
 
-            string enableMappingConfig = Environment.ExpandEnvironmentVariables((string)dict["enabled"]);
+            string enableMappingConfig = GetRequiredYamlString(dict, "enabled");
             bool enableMapping = ConfigHelper.YamlBoolParse(enableMappingConfig);
 
-            string label = Environment.ExpandEnvironmentVariables((string)dict["label"]);
-            string uncPath = Environment.ExpandEnvironmentVariables((string)dict["uncPath"]);
+            string label = NormalizeDriveLabel(GetRequiredYamlString(dict, "label"));
+            string uncPath = GetRequiredYamlString(dict, "uncPath");
 
             return new SharedDirectoryMapperConfig(enableMapping, label, uncPath);
+        }
+
+        private static string NormalizeDriveLabel(string label)
+        {
+            label = label.Trim();
+            if (label.Length == 1 && char.IsLetter(label[0]))
+            {
+                return label + ":";
+            }
+
+            return label;
+        }
+
+        private static string GetRequiredYamlString(Dictionary<object, object> dict, string key)
+        {
+            if (!TryGetYamlValue(dict, key, out object? rawValue))
+            {
+                throw new InvalidDataException($"SharedDirectoryMapperConfig mapping entry is missing '{key}'");
+            }
+
+            if (rawValue is null)
+            {
+                throw new InvalidDataException($"SharedDirectoryMapperConfig mapping entry key '{key}' cannot be null");
+            }
+
+            string? rawString = rawValue as string ?? rawValue.ToString();
+            if (rawString is null)
+            {
+                throw new InvalidDataException($"SharedDirectoryMapperConfig mapping entry key '{key}' must be a scalar value");
+            }
+
+            return Environment.ExpandEnvironmentVariables(rawString);
+        }
+
+        private static bool TryGetYamlValue(Dictionary<object, object> dict, string key, out object? value)
+        {
+            if (dict.TryGetValue(key, out value))
+            {
+                return true;
+            }
+
+            bool found = false;
+            object? foundValue = null;
+            foreach (var entry in dict)
+            {
+                if (entry.Key is not string stringKey)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(stringKey, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (found)
+                {
+                    throw new InvalidDataException($"SharedDirectoryMapperConfig mapping entry contains multiple '{key}' keys");
+                }
+
+                found = true;
+                foundValue = entry.Value;
+            }
+
+            value = foundValue;
+            return found;
         }
     }
 }
