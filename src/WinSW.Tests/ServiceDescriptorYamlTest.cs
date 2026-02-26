@@ -12,6 +12,7 @@ namespace winswTests
         private IServiceConfig _extendedServiceDescriptor;
 
         private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
+        private const string ExpectedLogDirectory = @"c:\logs";
         private const string Username = "User";
         private const string Password = "Password";
         private const string Domain = "Domain";
@@ -29,7 +30,7 @@ executable: node.exe
 arguments: My Arguments
 log:
     mode: roll
-    logpath: c:\logs
+    logPath: {ExpectedLogDirectory}
 serviceAccount:
     domain: {Domain}
     user: {Username}
@@ -80,6 +81,13 @@ startMode: manual";
         public void VerifyWorkingDirectory()
         {
             Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+        }
+
+        [Test]
+        public void VerifyLogPath()
+        {
+            Assert.That(this._extendedServiceDescriptor.Log.Directory, Is.EqualTo(ExpectedLogDirectory));
+            Assert.That(this._extendedServiceDescriptor.LogDirectory, Is.EqualTo(ExpectedLogDirectory));
         }
 
         [Test]
@@ -265,7 +273,7 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: 'c:\\'
+    logPath: 'c:\\'
     mode: roll-by-size
     sizeThreshold: 112
     keepFiles: 113";
@@ -289,7 +297,7 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: c:\\
+    logPath: c:\\
     mode: roll-by-time
     period: 7
     pattern: log pattern";
@@ -313,7 +321,7 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: c:\\
+    logPath: c:\\
     mode: roll-by-size-time
     sizeThreshold: 10240
     pattern: yyyy-MM-dd
