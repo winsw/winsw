@@ -171,6 +171,10 @@ env:
         value: host1;host2
 ```
 
+#### Rule
+
+This optional element can be specified multiple time within element "env". With the help of a rule replacements in a environment variable can be done after expansion. That is helpful e.g. when working with Linux tools on Windows and Windows environment variables are used in "env" for paths to change back slashes to forward slashes and mask white spaces.
+
 ### interactive
 
 If this optional element is specified, the service will be allowed to interact with the desktop, such as by showing a new window and dialog boxes. 
