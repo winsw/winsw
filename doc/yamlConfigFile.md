@@ -65,7 +65,7 @@ This gets displayed in Windows service manager when the service is selected.
 This element specifies the executable to be launched.
 It can be either absolute path, or you can just specify the executable name and let it be searched from `PATH` (although note that the services often run in a different user account and therefore it might have different `PATH` than your shell does.)
 
-### startmode
+### startMode
 
 This element specifies the start mode of the Windows service.
 It can be one of the following values: Boot, System, Automatic, or Manual.
@@ -130,31 +130,31 @@ arguments: >
 ### stoparguments/stopexecutable
 
 ~~When the service is requested to stop, winsw simply calls [TerminateProcess function](https://docs.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) to kill the service instantly.~~
-However, if `stoparguments` elements is present, winsw will instead launch another process of `executable` (or `stopexecutable` if that's specified) with the specified arguments, and expects that to initiate the graceful shutdown of the service process.
+However, if `stopArguments` elements is present, winsw will instead launch another process of `executable` (or `stoPexecutable` if that's specified) with the specified arguments, and expects that to initiate the graceful shutdown of the service process.
 
 Winsw will then wait for the two processes to exit on its own, before reporting back to Windows that the service has terminated.
 
-When you use the `stoparguments`, you must use `startarguments` instead of `arguments`. See the complete example below:
+When you use the `stopArguments`, you must use `startArguments` instead of `arguments`. See the complete example below:
 
 ```yaml
 executable: catalina.sh
-startarguments: >
+startArguments: >
   jpda
   run
-stopexecutable: catalina.sh
-stoparguments: stop
+stopExecutable: catalina.sh
+stopArguments: stop
 ```
 
-### stoptimeout
+### stopTimeout
 
 This optional element allows you to change this "15 seconds" value, so that you can control how long winsw gives the service to shut itself down.
 
-[Read more about stoptimeout](xmlConfigFile.md#stoptimeout)
+[Read more about stopTimeout](xmlConfigFile.md#stoptimeout)
 
-See `onfailure` below for how to specify time duration:
+See `onFailure` below for how to specify time duration:
 
 ```yaml
-stoptimeout: 15 sec
+stopTimeout: 15 sec
 ```
 
 ### Environment
@@ -183,7 +183,7 @@ interactive: true
 Note that since the introduction UAC (Windows Vista and onward), services are no longer really allowed to interact with the desktop. 
 In those OSes, all that this does is to allow the user to switch to a separate window station to interact with the service.
 
-### beeponshutdown
+### beepOnShutdown
 
 This optional element is to emit [simple tones](https://docs.microsoft.com/windows/win32/api/utilapiset/nf-utilapiset-beep) when the service shuts down. 
 This feature should be used only for debugging, as some operating systems and hardware do not support this functionality.
@@ -225,7 +225,7 @@ download:
         auth: sspi
 ```
 
-### onfailure
+### onFailure
 
 This optional element controls the behaviour when the process launched by winsw fails (i.e., exits with non-zero exit code).
 
@@ -243,11 +243,11 @@ onFailure:
 
 [Read more about onFailure](xmlConfigFile.md#onfailure)
 
-### resetfailure
+### resetFailure
 
 This optional element controls the timing in which Windows SCM resets the failure count. 
-For example, if you specify `resetfailure: 1 hour` and your service continues to run longer than one hour, then the failure count is reset to zero. 
-This affects the behavior of the failure actions (see `onfailure` above).
+For example, if you specify `resetFailure: 1 hour` and your service continues to run longer than one hour, then the failure count is reset to zero. 
+This affects the behavior of the failure actions (see `onFailure` above).
 
 In other words, this is the duration in which you consider the service has been running successfully. 
 Defaults to 1 day.
@@ -267,10 +267,10 @@ securtityDescriptor: 'D:(A;;DCSWRPDTRC;;;BA)(A;;DCSWRPDTRC;;;SY)S:NO\_ACCESS\_CO
 
 The service is installed as the [LocalSystem account](https://docs.microsoft.com/windows/win32/services/localsystem-account) by default. If your service does not need a high privilege level, consider using the [LocalService account](https://docs.microsoft.com/windows/win32/services/localservice-account), the [NetworkService account](https://docs.microsoft.com/windows/win32/services/networkservice-account) or a user account.
 
-To use a user account, specify a `serviceaccount` element like this:
+To use a user account, specify a `serviceAccount` element like this:
 
 ```yaml
-serviceaccount:
+serviceAccount:
   domain: YOURDOMAIN
   user: useraccount
   password: Pa55w0rd
@@ -285,7 +285,7 @@ Some services need to run with a working directory specified.
 To do this, specify a `workingdirectory` element like this:
 
 ```yaml
-workingdirectory: 'C:\application'
+workingDirectory: 'C:\application'
 ```
 
 ### Priority
@@ -308,5 +308,5 @@ If `true`, the parent process is shutdown first.
 This is useful when the main process is a console, which can respond to Ctrl+C command and will gracefully shutdown child processes.
 
 ```yaml
-stopparentprocessfirst: true
+stopParentProcessFirst: true
 ```
