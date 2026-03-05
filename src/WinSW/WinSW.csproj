@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net20;net40;net461;net7.0-windows</TargetFrameworks>
+    <TargetFrameworks>net10.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -14,79 +14,25 @@
     <Copyright>Copyright (c) 2008-2020 Kohsuke Kawaguchi, Sun Microsystems, Inc., CloudBees, Inc., Oleg Nenashev and other contributors</Copyright>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0-windows'">
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
+  <PropertyGroup>
     <DebuggerSupport>false</DebuggerSupport>
     <NullabilityInfoContextSupport>false</NullabilityInfoContextSupport>
     <_AggressiveAttributeTrimming>true</_AggressiveAttributeTrimming>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0-windows' AND '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
-    <ILMergeVersion>3.0.41</ILMergeVersion>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net7.0-windows'">
-    <PackageReference Include="ilmerge" Version="$(ILMergeVersion)" />
-    <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\WinSW.Core\WinSW.Core.csproj" />
     <ProjectReference Include="..\WinSW.Plugins\WinSW.Plugins.csproj" />
   </ItemGroup>
 
-  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net7.0-windows'">
+  <Target Name="PublishCoreExe" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net10.0-windows'">
 
     <MakeDir Directories="$(ArtifactsPublishDir)" />
     <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(ArtifactsPublishDir)WinSW-$(PlatformTarget).exe" />
-
-  </Target>
-
-  <!-- Merge plugins and other DLLs into the executable -->
-  <Target Name="Merge" BeforeTargets="AfterBuild" Condition="'$(TargetFramework)' != 'net7.0-windows'">
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
-      <TargetPlatform>v2</TargetPlatform>
-      <IdentifierSuffix>NET2</IdentifierSuffix>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-      <TargetPlatform>v4</TargetPlatform>
-      <IdentifierSuffix>NET4</IdentifierSuffix>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
-      <!-- v4.5+ -->
-      <TargetPlatform>v4.5</TargetPlatform>
-      <IdentifierSuffix>NET461</IdentifierSuffix>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <InputAssemblies>"$(OutDir)$(TargetFileName)"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Core.dll"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)WinSW.Plugins.dll"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)log4net.dll"</InputAssemblies>
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)YamlDotNet.dll"</InputAssemblies>
-      <OutputAssembly>"$(ArtifactsPublishDir)WinSW.$(IdentifierSuffix).exe"</OutputAssembly>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net20' or '$(TargetFramework)' == 'net40'">
-      <InputAssemblies>$(InputAssemblies) "$(OutDir)ICSharpCode.SharpZipLib.dll"</InputAssemblies>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <ILMerge>$(NuGetPackageRoot)ilmerge\$(ILMergeVersion)\tools\net452\ILMerge.exe</ILMerge>
-      <ILMergeArgs>/targetplatform:$(TargetPlatform) /out:$(OutputAssembly) $(InputAssemblies)</ILMergeArgs>
-      <ILMergeCommand>"$(ILMerge)" $(ILMergeArgs)</ILMergeCommand>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(ArtifactsPublishDir)" />
-    <Exec Command="$(ILMergeCommand)" />
 
   </Target>
 

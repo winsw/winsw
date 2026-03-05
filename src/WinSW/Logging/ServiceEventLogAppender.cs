@@ -37,8 +37,9 @@ namespace WinSW.Logging
             }
         }
 
-        private static EventLogEntryType ToEventLogEntryType(Level level)
+        private static EventLogEntryType ToEventLogEntryType(Level? level)
         {
+            if (level == null) return EventLogEntryType.Information;
             if (level.Value >= Level.Error.Value)
             {
                 return EventLogEntryType.Error;
