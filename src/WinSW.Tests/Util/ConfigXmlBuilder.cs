@@ -59,8 +59,9 @@ namespace WinSW.Tests.Util
             var str = new StringBuilder();
             if (this.PrintXmlVersion)
             {
-                // TODO: The encoding is generally wrong
-                str.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+                // XML is constructed as an in-memory .NET string,
+                // so specifying encoding here can be misleading.
+                str.Append("<?xml version=\"1.0\"?>\n");
             }
 
             if (this.XmlComment != null)
