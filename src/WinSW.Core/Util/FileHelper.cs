@@ -12,6 +12,7 @@ namespace WinSW.Util
     {
         public static void MoveOrReplaceFile(string sourceFileName, string destFileName)
         {
+            new FileInfo(destFileName).Directory?.Create();
 #if NET
             File.Move(sourceFileName, destFileName, true);
 #else
