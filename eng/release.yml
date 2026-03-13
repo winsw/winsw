@@ -1,0 +1,59 @@
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline: winsw
+    source: winsw.winsw
+
+stages:
+- stage: GitHub
+  jobs:
+  - job: Job
+    pool:
+      vmImage: windows-latest
+    steps:
+    - download: winsw
+      artifact: WinSW.NET2.exe_Release
+    - download: winsw
+      artifact: WinSW.NET4.exe_Release
+    - download: winsw
+      artifact: WinSW.NET461.exe_Release
+    - download: winsw
+      artifact: WinSW-x64.exe_Release
+    - download: winsw
+      artifact: WinSW-x86.exe_Release
+    - download: winsw
+      artifact: sample-allOptions.xml
+    - download: winsw
+      artifact: sample-minimal.xml
+    - ${{ if ne(variables['Build.RequestedForEmail'], '') }}:
+      - task: GitHubRelease@1
+        inputs:
+          gitHubConnection: GitHub $(Build.RequestedForEmail)
+          repositoryName: $(Build.Repository.Name)
+          action: create
+          target: $(Build.SourceVersion)
+          tagSource: userSpecifiedTag
+          tag: v$(Major).$(Minor).$(Patch)
+          title: WinSW v$(Major).$(Minor).$(Patch)
+          assets: |
+            $(Pipeline.Workspace)/**/*.xml
+            $(Pipeline.Workspace)/**/*.exe
+            $(Pipeline.Workspace)/**/*.zip
+          isDraft: true
+          isPreRelease: true
+          addChangeLog: false
+- stage: NuGet
+  jobs:
+  - job: Job
+    pool:
+      vmImage: windows-latest
+    steps:
+    - download: winsw
+      artifact: WinSW.nupkg_Release
+    - task: NuGetCommand@2
+      inputs:
+        command: pack
+        packagesToPush: $(Pipeline.Workspace)/**/WinSW.*.nupkg
+        nuGetFeedType: external
+        publishFeedCredentials: NuGet
