@@ -23,7 +23,7 @@ executable: java
 #    c:\cygwin\home\kohsuke\ws\hello-world\out\production\hello-world 
 #    test.Main
 #startArguments: start arguments
-#workingdirectory: C:\myApp\work
+#workingDirectory: C:\myApp\work
 priority: Normal
 stopTimeout: 15 sec
 stopParentProcessFirst: true 
