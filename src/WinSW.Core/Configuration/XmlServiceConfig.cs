@@ -85,6 +85,7 @@ namespace WinSW
         /// Loads config from existing DOM
         /// </summary>
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
         public XmlServiceConfig(XmlDocument dom)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
@@ -301,7 +302,8 @@ namespace WinSW
 
                         string? pattern = patternNode.InnerText;
                         int period = SingleIntElement(e, "period", 1);
-                        return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period);
+                        int filesToKeep = SingleIntElement(e, "keepFiles", -1);
+                        return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period, filesToKeep);
 
                     case "roll-by-size":
                         sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB;
