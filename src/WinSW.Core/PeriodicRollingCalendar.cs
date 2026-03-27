@@ -103,6 +103,8 @@ namespace WinSW
             }
         }
 
-        public string Format => this.currentRoll.ToString(this.format);
+        public string GetFormatForDateTime(DateTime datetime) => datetime.ToString(this.format);
+
+        public string Format => this.GetFormatForDateTime(this.currentRoll);
     }
 }

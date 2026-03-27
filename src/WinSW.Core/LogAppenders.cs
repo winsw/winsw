@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -104,10 +105,13 @@ namespace WinSW
 
         protected string ErrFilePattern { get; }
 
+        protected string LogDirectory { get; private set; }
+
         protected AbstractFileLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern)
             : base(outFileDisabled, errFileDisabled)
         {
             this.BaseLogFileName = Path.Combine(logDirectory, baseName);
+            this.LogDirectory = logDirectory;
             this.OutFilePattern = outFilePattern;
             this.ErrFilePattern = errFilePattern;
         }
@@ -216,13 +220,18 @@ namespace WinSW
     {
         public string Pattern { get; }
 
+        public static int? DefaultFilesToKeep = null;
+
         public int Period { get; }
 
-        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period)
+        public int? FilesToKeep { get; private set; }
+
+        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period, int? filesToKeep)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             this.Pattern = pattern;
             this.Period = period;
+            this.FilesToKeep = filesToKeep;
         }
 
         protected override Task LogOutput(StreamReader outputReader)
@@ -251,6 +260,40 @@ namespace WinSW
                 {
                     writer.Dispose();
                     copy.Writer = writer = new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create);
+
+                    if (this.FilesToKeep != null)
+                    {
+                        var logFiles = new List<string>();
+
+                        foreach (string file in Directory.GetFiles(this.LogDirectory, "*" + ext))
+                        {
+                            DateTime createdAt = File.GetCreationTime(file);
+
+                            if (this.BaseLogFileName + "_" + periodicRollingCalendar.GetFormatForDateTime(createdAt) + ext == file)
+                            {
+                                logFiles.Add(file);
+                            }
+                        }
+
+                        logFiles.Sort((x, y) => File.GetCreationTime(x).CompareTo(File.GetCreationTime(y)));
+                        try
+                        {
+                            while (this.FilesToKeep < logFiles.Count)
+                            {
+                                var filename = logFiles[0];
+                                if (File.Exists(filename))
+                                {
+                                    File.Delete(filename);
+                                }
+
+                                logFiles.RemoveAt(0);
+                            }
+                        }
+                        catch (IOException e)
+                        {
+                            this.EventLogger.WriteEntry("Failed to roll log: " + e.Message);
+                        }
+                    }
                 }
             }
 
