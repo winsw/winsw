@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Xunit;
@@ -113,7 +114,61 @@ namespace WinSW.Tests
             Assert.Equal(stderr.Skip(4), ReadAllBytes(Path.Combine(data.path, baseName + errFileExt)));
         }
 
-        private readonly ref struct TestData
+        [Fact]
+        public void TimeBasedRollingLogAppender_PurgeOldFiles_RemovesExcessFiles()
+        {
+            using var data = TestData.Create();
+
+            string outFileExt = ".out.log";
+            const int keepFiles = 3;
+
+            for (int i = 0; i < 5; i++)
+            {
+                string filePath = Path.Combine(data.path, $"{data.name}_{i:D8}{outFileExt}");
+                File.WriteAllText(filePath, "old log");
+                File.SetLastWriteTime(filePath, DateTime.Now.AddDays(-i));
+            }
+
+            var appender = new TimeBasedRollingLogAppender(
+                data.path, data.name,
+                false, false,
+                outFileExt, ".err.log",
+                "yyyyMMdd", 1,
+                filesToKeep: keepFiles);
+
+            appender.PurgeOldFiles(outFileExt);
+
+            var remaining = Directory.GetFiles(data.path, $"{data.name}_*{outFileExt}");
+            Assert.Equal(keepFiles, remaining.Length);
+        }
+
+        [Fact]
+        public void TimeBasedRollingLogAppender_PurgeOldFiles_NoLimitKeepsAllFiles()
+        {
+            using var data = TestData.Create();
+
+            string outFileExt = ".out.log";
+            const int totalFiles = 5;
+
+            for (int i = 0; i < totalFiles; i++)
+            {
+                File.WriteAllText(Path.Combine(data.path, $"{data.name}_{i:D8}{outFileExt}"), "log");
+            }
+
+            var appender = new TimeBasedRollingLogAppender(
+                data.path, data.name,
+                false, false,
+                outFileExt, ".err.log",
+                "yyyyMMdd", 1,
+                filesToKeep: -1);
+
+            appender.PurgeOldFiles(outFileExt);
+
+            var remaining = Directory.GetFiles(data.path, $"{data.name}_*{outFileExt}");
+            Assert.Equal(totalFiles, remaining.Length);
+        }
+
+        private readonly struct TestData : IDisposable
         {
             internal readonly string name;
             internal readonly string path;

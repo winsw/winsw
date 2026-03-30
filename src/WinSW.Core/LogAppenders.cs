@@ -264,7 +264,7 @@ namespace WinSW
             writer.Dispose();
         }
 
-        private void PurgeOldFiles(string ext)
+        internal void PurgeOldFiles(string ext)
         {
             if (this.FilesToKeep <= 0)
             {
