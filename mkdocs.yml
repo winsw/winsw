@@ -1,3 +1,6 @@
+edit_uri: /blob/master/
+docs_dir: .
+
 # Document structure for winsw.github.io
 nav:
   - Overview: README.md
