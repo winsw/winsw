@@ -61,7 +61,7 @@ namespace WinSW
             }
             catch (XmlException e)
             {
-                throw new InvalidDataException(e.Message, e);
+                throw new InvalidDataException(EscapeNonPrintableCharacters(e.Message), e);
             }
 
             this.root = this.dom.SelectSingleNode(Names.Service) ?? throw new InvalidDataException("<" + Names.Service + "> is missing in configuration XML");
@@ -92,6 +92,14 @@ namespace WinSW
             this.dom = dom;
             this.root = this.dom.SelectSingleNode(Names.Service) ?? throw new InvalidDataException("<" + Names.Service + "> is missing in configuration XML");
             this.environmentVariables = this.LoadEnvironmentVariables();
+        }
+
+        private static string EscapeNonPrintableCharacters(string message)
+        {
+            return message
+                .Replace("\r", "\\r")
+                .Replace("\n", "\\n")
+                .Replace("\t", "\\t");
         }
 
         public static XmlServiceConfig FromXml(string xml)
