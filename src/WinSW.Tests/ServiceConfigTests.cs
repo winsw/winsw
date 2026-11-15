@@ -44,6 +44,27 @@ $@"<service>
         }
 
         [Fact]
+        public void InvalidXmlEscapesNonPrintableCharactersInErrorMessage()
+        {
+            string directory = FilesystemTestHelper.CreateTmpDirectory();
+            string path = Path.Combine(directory, "config.xml");
+
+            try
+            {
+                File.WriteAllText(path, "<\tservice></service>");
+
+                var exception = Assert.Throws<InvalidDataException>(() => new XmlServiceConfig(path));
+
+                Assert.Contains("\\t", exception.Message);
+                Assert.DoesNotContain("\t", exception.Message);
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [Fact]
         public void DefaultStartMode()
         {
             Assert.Equal(ServiceStartMode.Automatic, this.extendedServiceConfig.StartMode);
