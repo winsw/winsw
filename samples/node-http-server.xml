@@ -1,0 +1,25 @@
+<!--
+ This is an example of using Node Http Server.
+ It must be globally installed.
+ For details about installation and all arguments you can check on https://www.npmjs.com/package/http-server
+
+ This configuration file should be placed near the WinSW executable.
+
+ You can find more information about the configuration options here: https://github.com/winsw/winsw/blob/master/docs/xml-config-file.md
+-->
+<service>
+  <!-- ID of the service. It should be unique across the Windows system-->
+  <id>Node Http Server</id>
+  <description>A simple, zero-configuration command-line Node http server</description>
+
+  <executable>C:\Program Files\nodejs\npx.cmd</executable>
+  
+  <!-- Starts web server on default port 8080 -->
+  <startarguments>http-server</startarguments>
+
+  <!-- To change port, add -p argument -->
+  <!-- <startarguments>http-server -p 8888</startarguments> -->
+  
+  <!-- It is root folder exposed by http server -->
+  <workingdirectory>C:\www</workingdirectory>
+</service>
