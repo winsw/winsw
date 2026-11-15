@@ -8,7 +8,6 @@ namespace winswTests.Util
     public static class ServiceDescriptorAssert
     {
         // TODO: convert to Extension attributes once the .NET dependency is upgraded
-        // BTW there is a way to get them working in .NET2, but KISS
 
         public static void AssertPropertyIsDefault(XmlServiceConfig desc, string property)
         {

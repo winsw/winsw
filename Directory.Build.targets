@@ -1,6 +1,6 @@
 ﻿<Project>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'net7.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462' or '$(TargetFramework)' == '8.0-windows'">
     <DefineConstants>VNEXT</DefineConstants>
   </PropertyGroup>
 

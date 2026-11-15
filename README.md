@@ -15,11 +15,27 @@ See the [project manifest](MANIFEST.md).
 
 ## Supported platforms
 
-WinSW offers executables for .NET Framework 2.0, 4.0 and 4.6.1.
-It can run on Windows platforms which have these versions of .NET Framework installed.
-For systems without .NET Framework, the project provides native 64-bit and 32-bit executables which are based on .NET Core 3.1.
+WinSW offers executables for .NET Framework 4.6.2+ and .NET 8 +.
+It can run on Windows platforms which have this or newer versions of .NET Framework installed.
 
+The support model largely follows [Microsoft .NET Framework Support Dates](https://learn.microsoft.com/en-us/lifecycle/products/microsoft-net-framework) and [Microsoft .NET Support Dates](https://learn.microsoft.com/fr-fr/lifecycle/products/microsoft-net-and-net-core)
+The support for older versions will be maintained as ling as it is considered feasible from the maintainability and security standpoints.
+
+Newer platforms are supported via WinSW 3.x.
 More executables can be added upon request.
+
+### Deprecated version
+
+* .NET 8 (LTS) reached and of life on 9 Nov 2026, and the support will be removed in future versions.
+
+### End of Life
+
+Support for some .NET Framework versions ended, and WinSW 2.x is no longer compatible with them.
+
+* .NET Framework 2.0 (EoL Jul 12, 2011) - WinSW 2.13.0
+* .NET Framework 4.0 (EoL Jan 12, 2016) - WinSW 2.13.0
+* .NET Framework 4.6.1 (EoL Apr 26, 2022) - WinSW 2.13.0
+* .NET 7.0 (EoL 13 mai 2024) - WinSW 2.13.0
 
 ## Download
 

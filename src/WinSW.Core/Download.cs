@@ -42,7 +42,7 @@ namespace WinSW
 
         static Download()
         {
-#if NET461
+#if NET462
             // If your app runs on .NET Framework 4.7 or later versions, but targets an earlier version
             AppContext.SetSwitch("Switch.System.Net.DontEnableSystemDefaultTlsVersions", false);
 #elif !VNEXT
@@ -212,8 +212,6 @@ namespace WinSW
 
 #if VNEXT
                     await responseStream.CopyToAsync(tmpStream);
-#elif NET20
-                    CopyStream(responseStream, tmpStream);
 #else
                     responseStream.CopyTo(tmpStream);
 #endif
@@ -242,18 +240,6 @@ namespace WinSW
                 }
             }
         }
-
-#if NET20
-        private static void CopyStream(Stream source, Stream destination)
-        {
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = source.Read(buffer, 0, buffer.Length)) != 0)
-            {
-                destination.Write(buffer, 0, read);
-            }
-        }
-#endif
     }
 
     public class CustomProxyInformation
