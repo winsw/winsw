@@ -19,6 +19,7 @@ jobs:
     env:
       Solution_Name: WinSW.sln
       Test_Project_Path: WinSW.Tests\WinSW.Tests.csproj                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
+      BuildVersion: 2.13.0
       
     steps:
     - name: Checkout
@@ -30,7 +31,10 @@ jobs:
     - name: Install .NET
       uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
+    - uses: nuget/setup-nuget@v3
+      with:
+        nuget-version: '6.x'
 
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
@@ -39,9 +43,59 @@ jobs:
     # Run the build
     - name: Build the project
       working-directory: ./src
-      run: dotnet build winsw.sln
+      run: |
+        dotnet build ./src/WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=${{ env.BuildVersion }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained src\WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained src\WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
+
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
       working-directory: ./src
-      run: dotnet test winswTests/winswTests.csproj
+      run: |
+        dotnet test -c ${{ matrix.configuration }} --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
+      env:
+        DOTNET_ROLL_FORWARD: Major
+
+    # NuGet packaging
+    - name: Build the NuGet package
+      run: |
+        nuget pack WinSW.nuspec -Prop Configuration=${{ matrix.configuration }} -Version ${{ env.BuildVersion }}
+
+    - name: Publish .NET 4.6.2
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinSW.NET462.exe_${{ matrix.configuration }}
+        path: artifacts/publish/WinSW.NET462.exe
+
+    - name: Publish .NET x64
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinSW-x64.exe_${{ matrix.configuration }}
+        path: artifacts/publish/WinSW-x64.exe
+
+    - name: Publish .NET x86
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinSW-x86.exe_${{ matrix.configuration }}
+        path: artifacts/publish/WinSW-x86.exe
+
+    - name: Publish NuGet
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinSW.nupkg_${{ matrix.configuration }}
+        path: WinSW.${{ env.BuildVersion }}.nupkg
+
+    - name: Publish full sample
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sample-allOptions.xml
+        path: examples/sample-allOptions.xml
+
+    - name: Publish minimal sample
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sample-minimal.xml
+        path: examples/sample-minimal.xml
