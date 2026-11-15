@@ -1,13 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-#if !VNEXT
-using System.Reflection;
-#endif
 using System.Text;
-#if VNEXT
 using System.Threading.Tasks;
-#endif
 using System.Xml;
 using log4net;
 using WinSW.Util;
@@ -45,26 +40,6 @@ namespace WinSW
 #if NET462
             // If your app runs on .NET Framework 4.7 or later versions, but targets an earlier version
             AppContext.SetSwitch("Switch.System.Net.DontEnableSystemDefaultTlsVersions", false);
-#elif !VNEXT
-            // If your app runs on .NET Framework 4.6, but targets an earlier version
-            Type.GetType("System.AppContext")?.InvokeMember("SetSwitch", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Static, null, null, new object[] { "Switch.System.Net.DontEnableSchUseStrongCrypto", false });
-
-            const SecurityProtocolType Tls12 = (SecurityProtocolType)0x00000C00;
-            const SecurityProtocolType Tls11 = (SecurityProtocolType)0x00000300;
-
-            // Windows 7 and Windows Server 2008 R2
-            if (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor == 1)
-            {
-                try
-                {
-                    ServicePointManager.SecurityProtocol |= Tls11 | Tls12;
-                    Logger.Info("TLS 1.1/1.2 enabled");
-                }
-                catch (NotSupportedException)
-                {
-                    Logger.Info("TLS 1.1/1.2 disabled");
-                }
-            }
 #endif
         }
 
@@ -144,11 +119,7 @@ namespace WinSW
         /// <exception cref="WebException">
         ///     Download failure. FailOnError flag should be processed outside.
         /// </exception>
-#if VNEXT
         public async Task PerformAsync()
-#else
-        public void Perform()
-#endif
         {
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
             var request = WebRequest.Create(this.From);
@@ -197,11 +168,7 @@ namespace WinSW
             string tmpFilePath = this.To + ".tmp";
             try
             {
-#if VNEXT
                 using (var response = await request.GetResponseAsync())
-#else
-                using (var response = request.GetResponse())
-#endif
                 using (var responseStream = response.GetResponseStream())
                 using (var tmpStream = new FileStream(tmpFilePath, FileMode.Create))
                 {
@@ -210,11 +177,7 @@ namespace WinSW
                         lastModified = ((HttpWebResponse)response).LastModified;
                     }
 
-#if VNEXT
                     await responseStream.CopyToAsync(tmpStream);
-#else
-                    responseStream.CopyTo(tmpStream);
-#endif
                 }
 
                 FileHelper.MoveOrReplaceFile(this.To + ".tmp", this.To);
