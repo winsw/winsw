@@ -13,6 +13,9 @@ jobs:
         configuration: [Debug, Release]
 
     runs-on: windows-latest 
+    permissions:
+      contents: write
+      packages: write
 
     env:
       Solution_Name: WinSW.sln
