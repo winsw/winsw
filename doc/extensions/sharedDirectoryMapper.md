@@ -24,7 +24,7 @@ The extension can be configured via the [XML configuration file](../xmlConfigFil
   <log mode="roll"></log>
 
   <extensions>
-    <extension enabled="true" className="winsw.Plugins.SharedDirectoryMapper.SharedDirectoryMapper" id="mapNetworDirs">
+    <extension enabled="true" className="WinSW.Plugins.SharedDirectoryMapper,WinSW.Plugins" id="mapNetworDirs">
       <mapping>
         <map enabled="false" label="N:" uncpath="\\UNC"/>
         <map enabled="false" label="M:" uncpath="\\UNC2"/>
