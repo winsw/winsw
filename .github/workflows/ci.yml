@@ -44,16 +44,16 @@ jobs:
     - name: Build the project
       working-directory: ./src
       run: |
-        dotnet build ./src/WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=${{ env.BuildVersion }}
-        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained src\WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
-        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained src\WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
+        dotnet build WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=${{ env.BuildVersion }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
 
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
       working-directory: ./src
       run: |
-        dotnet test -c ${{ matrix.configuration }} --collect "XPlat Code Coverage" --no-build src\WinSW.Tests\WinSW.Tests.csproj
+        dotnet test -c ${{ matrix.configuration }} --collect "XPlat Code Coverage" --no-build WinSW.Tests\WinSW.Tests.csproj
       env:
         DOTNET_ROLL_FORWARD: Major
 
