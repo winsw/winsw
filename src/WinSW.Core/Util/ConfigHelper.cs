@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace WinSW.Util
 {
@@ -44,6 +45,30 @@ namespace WinSW.Util
             }
 
             return false;
+        }
+
+        public static void LoadEnvironmentVariablesFile(string envFile)
+        {
+            foreach (string line in File.ReadAllLines(envFile))
+            {
+                if (line.Length == 0 || line.StartsWith("#"))
+                {
+                    // ignore empty lines and comments
+                    continue;
+                }
+
+                int equalsSignIndex = line.IndexOf("=");
+
+                if (equalsSignIndex == -1)
+                {
+                    throw new WinSWException("The environment variables file (env-file) contains one or more invalid entries. Each variable definition must be on a separate line and in the format \"key=value\".");
+                }
+
+                string key = line.Substring(0, equalsSignIndex).Trim();
+                string value = line.Substring(equalsSignIndex + 1).Trim();
+
+                Environment.SetEnvironmentVariable(key, value);
+            }
         }
     }
 }
