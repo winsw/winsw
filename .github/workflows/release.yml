@@ -49,9 +49,9 @@ jobs:
     - name: Build the project
       working-directory: ./src
       run: |
-        dotnet build WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=${VERSION}
-        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained WinSW\WinSW.csproj -p:Version=${VERSION}
-        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained WinSW\WinSW.csproj -p:Version=${VERSION}
+        dotnet build WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=$env:VERSION
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained WinSW\WinSW.csproj -p:Version=$env:VERSION
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained WinSW\WinSW.csproj -p:Version=$env:VERSION
 
 
     # Execute all unit tests in the solution
@@ -65,7 +65,7 @@ jobs:
     # NuGet packaging
     - name: Build the NuGet package
       run: |
-        nuget pack WinSW.nuspec -Prop Configuration=${{ matrix.configuration }} -Version ${VERSION}
+        nuget pack WinSW.nuspec -Prop Configuration=${{ matrix.configuration }} -Version $env:VERSION
 
     - name: Prepare release assets
       shell: pwsh
@@ -74,7 +74,7 @@ jobs:
         Copy-Item artifacts/publish/WinSW.NET462.exe "release-assets/WinSW.NET462.exe_${{ matrix.configuration }}"
         Copy-Item artifacts/publish/WinSW-x64.exe "release-assets/WinSW-x64.exe_${{ matrix.configuration }}"
         Copy-Item artifacts/publish/WinSW-x86.exe "release-assets/WinSW-x86.exe_${{ matrix.configuration }}"
-        Copy-Item "WinSW.${VERSION}.nupkg" "release-assets/WinSW.${VERSION}_${{ matrix.configuration }}.nupkg"
+        Copy-Item "WinSW.$env:VERSION.nupkg" "release-assets/WinSW.$env:VERSION_${{ matrix.configuration }}.nupkg"
         if ('${{ matrix.configuration }}' -eq 'Release') {
           Copy-Item examples/sample-allOptions.xml release-assets/
           Copy-Item examples/sample-minimal.xml release-assets/
@@ -97,4 +97,4 @@ jobs:
         user: ${{ secrets.NUGET_USER }}
     - name: NuGet push
       if: matrix.configuration == 'Release'
-      run: dotnet nuget push artifacts/WinSW.${VERSION}.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push artifacts/WinSW.$env:VERSION.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
