@@ -25,9 +25,9 @@ jobs:
         fetch-depth: 0
 
     - name: Set VERSION variable from tag
-        run: | 
-          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-          echo "VERSION=${VERSION:1}" >> $GITHUB_ENV
+      run: | 
+        echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+        echo "VERSION=${VERSION:1}" >> $GITHUB_ENV
 
     # Install the .NET Core workload
     - name: Install .NET
