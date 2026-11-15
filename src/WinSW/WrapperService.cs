@@ -391,10 +391,13 @@ namespace WinSW
 
         private void SignalStopped()
         {
-            using var scm = ServiceManager.Open(ServiceApis.ServiceManagerAccess.Connect);
-            using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
-
-            sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
+            try {
+                using var scm = ServiceManager.Open(ServiceApis.ServiceManagerAccess.Connect);
+                using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
+                sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
+            } catch (Exception e) {
+                Log.Error("Failed to signal service stopped status", e);
+            }
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler)
