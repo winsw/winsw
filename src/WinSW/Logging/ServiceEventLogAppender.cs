@@ -19,8 +19,12 @@ namespace WinSW.Logging
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-            var eventLog = this.provider.Locate();
+            if (loggingEvent.RenderedMessage is null)
+            {
+                return;
+            }
 
+            var eventLog = this.provider.Locate();
             if (eventLog is not null)
             {
                 eventLog.WriteEntry(loggingEvent.RenderedMessage, ToEventLogEntryType(loggingEvent.Level));
@@ -37,14 +41,15 @@ namespace WinSW.Logging
             }
         }
 
-        private static EventLogEntryType ToEventLogEntryType(Level level)
+        private static EventLogEntryType ToEventLogEntryType(Level? level)
         {
-            if (level.Value >= Level.Error.Value)
+            var actualLevel = level ?? Level.Info;
+            if (actualLevel.Value >= Level.Error.Value)
             {
                 return EventLogEntryType.Error;
             }
 
-            if (level.Value >= Level.Warn.Value)
+            if (actualLevel.Value >= Level.Warn.Value)
             {
                 return EventLogEntryType.Warning;
             }
