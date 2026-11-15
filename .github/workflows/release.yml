@@ -62,11 +62,6 @@ jobs:
       env:
         DOTNET_ROLL_FORWARD: Major
 
-    # NuGet packaging
-    - name: Build the NuGet package
-      run: |
-        nuget pack WinSW.nuspec -Prop Configuration=${{ matrix.configuration }} -Version $env:VERSION
-
     - name: Prepare release assets
       shell: pwsh
       run: |
@@ -74,11 +69,19 @@ jobs:
         Copy-Item artifacts/publish/WinSW.NET462.exe "release-assets/WinSW.NET462.exe_${{ matrix.configuration }}"
         Copy-Item artifacts/publish/WinSW-x64.exe "release-assets/WinSW-x64.exe_${{ matrix.configuration }}"
         Copy-Item artifacts/publish/WinSW-x86.exe "release-assets/WinSW-x86.exe_${{ matrix.configuration }}"
-        Copy-Item "WinSW.$env:VERSION.nupkg" "release-assets/WinSW.$env:VERSION_${{ matrix.configuration }}.nupkg"
         if ('${{ matrix.configuration }}' -eq 'Release') {
           Copy-Item examples/sample-allOptions.xml release-assets/
           Copy-Item examples/sample-minimal.xml release-assets/
         }
+
+
+    # NuGet packaging
+    - name: Build the NuGet package
+      if: matrix.configuration == 'Release'
+      shell: pwsh
+      run: |
+        nuget pack WinSW.nuspec -Prop Configuration=${{ matrix.configuration }} -Version $env:VERSION
+        Copy-Item "WinSW.$env:VERSION.nupkg" "release-assets/WinSW.$env:VERSION.nupkg"
 
     - name: Upload assets to GitHub Release
       env:
@@ -87,6 +90,7 @@ jobs:
       run: |
         $assets = Get-ChildItem release-assets -File | ForEach-Object { $_.FullName }
         gh release upload "${{ github.event.release.tag_name }}" $assets
+
 
     # NuGet Upload
     - name: NuGet login (OIDC → temp API key)
@@ -97,4 +101,7 @@ jobs:
         user: ${{ secrets.NUGET_USER }}
     - name: NuGet push
       if: matrix.configuration == 'Release'
-      run: dotnet nuget push artifacts/WinSW.$env:VERSION.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      shell: pwsh
+      run: dotnet nuget push WinSW.$env:VERSION.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+
+
