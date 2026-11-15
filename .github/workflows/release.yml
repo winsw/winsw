@@ -1,0 +1,97 @@
+name: CI - .NET
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: windows-latest 
+
+    env:
+      Solution_Name: WinSW.sln
+      Test_Project_Path: WinSW.Tests\WinSW.Tests.csproj
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6.0.2
+      with:
+        fetch-depth: 0
+
+    - name: Set VERSION variable from tag
+        run: | 
+          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION:1}" >> $GITHUB_ENV
+
+    # Install the .NET Core workload
+    - name: Install .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 8.0.x
+    - uses: nuget/setup-nuget@v3
+      with:
+        nuget-version: '6.x'
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    # Run the build
+    - name: Build the project
+      working-directory: ./src
+      run: |
+        dotnet build WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=${{ env.VERSION }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.VERSION }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.VERSION }}
+
+
+    # Execute all unit tests in the solution
+    - name: Execute unit tests
+      working-directory: ./src
+      run: |
+        dotnet test -c ${{ matrix.configuration }} --collect "XPlat Code Coverage" --no-build WinSW.Tests\WinSW.Tests.csproj
+      env:
+        DOTNET_ROLL_FORWARD: Major
+
+    # NuGet packaging
+    - name: Build the NuGet package
+      run: |
+        nuget pack WinSW.nuspec -Prop Configuration=${{ matrix.configuration }} -Version ${{ env.VERSION }}
+
+    - name: Prepare release assets
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force release-assets | Out-Null
+        Copy-Item artifacts/publish/WinSW.NET462.exe "release-assets/WinSW.NET462.exe_${{ matrix.configuration }}"
+        Copy-Item artifacts/publish/WinSW-x64.exe "release-assets/WinSW-x64.exe_${{ matrix.configuration }}"
+        Copy-Item artifacts/publish/WinSW-x86.exe "release-assets/WinSW-x86.exe_${{ matrix.configuration }}"
+        Copy-Item "WinSW.${{ env.VERSION }}.nupkg" "release-assets/WinSW.${{ env.VERSION }}_${{ matrix.configuration }}.nupkg"
+        if ('${{ matrix.configuration }}' -eq 'Release') {
+          Copy-Item examples/sample-allOptions.xml release-assets/
+          Copy-Item examples/sample-minimal.xml release-assets/
+        }
+
+    - name: Upload assets to GitHub Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: pwsh
+      run: |
+        $assets = Get-ChildItem release-assets -File | ForEach-Object { $_.FullName }
+        gh release upload "${{ github.event.release.tag_name }}" $assets
+
+    # NuGet Upload
+    - name: NuGet login (OIDC → temp API key)
+      if: matrix.configuration == 'Release'
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+    - name: NuGet push
+      if: matrix.configuration == 'Release'
+      run: dotnet nuget push artifacts/WinSW.${{ env.VERSION }}.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
