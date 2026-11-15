@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-#if VNEXT
 using System.Runtime.CompilerServices;
-#endif
 using System.ServiceProcess;
 using System.Xml;
 using WinSW.Native;
@@ -43,6 +41,8 @@ namespace WinSW.Configuration
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
 
+            this.LoadEnvironmentVariablesFromFile();
+
             this.LoadEnvironmentVariables();
         }
 
@@ -69,11 +69,8 @@ namespace WinSW.Configuration
 
         private static T? ExpandEnum<T>(
             string? value,
-#if VNEXT
             [CallerMemberName] string? name = null)
-#else
-            string? name = null)
-#endif
+
             where T : unmanaged, Enum
         {
             if (value is null)
@@ -126,11 +123,7 @@ namespace WinSW.Configuration
             {
                 if (this.raw.OnFailure is null)
                 {
-#if VNEXT
                     return Array.Empty<SC_ACTION>();
-#else
-                    return new SC_ACTION[0];
-#endif
                 }
 
                 var result = new SC_ACTION[this.raw.OnFailure.Count];
@@ -201,6 +194,8 @@ namespace WinSW.Configuration
 
         public Dictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
 
+        public string? EnvironmentVariablesFile => Expand(this.raw.EnvFile) ?? this.defaults.EnvironmentVariablesFile;
+
         public void LoadEnvironmentVariables()
         {
             if (this.raw.Env is null)
@@ -222,6 +217,18 @@ namespace WinSW.Configuration
                 this.EnvironmentVariables[key] = value;
                 Environment.SetEnvironmentVariable(key, value);
             }
+        }
+
+        private void LoadEnvironmentVariablesFromFile()
+        {
+            string? envFile = Expand(this.raw.EnvFile);
+
+            if (envFile is null)
+            {
+                return;
+            }
+
+            ConfigHelper.LoadEnvironmentVariablesFile(envFile);
         }
 
         public ServiceAccount ServiceAccount
@@ -315,6 +322,7 @@ namespace WinSW.Configuration
             public string? Priority;
             public string? BeepOnShutdown;
             public List<RawYamlEnv>? Env;
+            public string? EnvFile;
             public List<RawYamlFailureAction>? OnFailure;
             public string? DelayedAutoStart;
             public string? SecurityDescriptor;

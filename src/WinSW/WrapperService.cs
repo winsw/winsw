@@ -6,9 +6,7 @@ using System.Reflection;
 using System.ServiceProcess;
 using System.Text;
 using System.Text.RegularExpressions;
-#if VNEXT
 using System.Threading.Tasks;
-#endif
 using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
@@ -234,7 +232,6 @@ namespace WinSW
             this.HandleFileCopies();
 
             // handle downloads
-#if VNEXT
             var downloads = this.config.Downloads;
             var tasks = new Task[downloads.Count];
             for (int i = 0; i < downloads.Count; i++)
@@ -247,15 +244,6 @@ namespace WinSW
             }
 
             Task.WaitAll(tasks);
-#else
-            foreach (var download in this.config.Downloads)
-            {
-                string downloadMessage = $"Downloading: {download.From} to {download.To}. failOnError={download.FailOnError.ToString()}";
-                this.LogEvent(downloadMessage);
-                Log.Info(downloadMessage);
-                download.Perform();
-            }
-#endif
 
             string? startArguments = this.config.StartArguments;
 
@@ -391,10 +379,13 @@ namespace WinSW
 
         private void SignalStopped()
         {
-            using var scm = ServiceManager.Open(ServiceApis.ServiceManagerAccess.Connect);
-            using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
-
-            sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
+            try {
+                using var scm = ServiceManager.Open(ServiceApis.ServiceManagerAccess.Connect);
+                using var sc = scm.OpenService(this.ServiceName, ServiceApis.ServiceAccess.QueryStatus);
+                sc.SetStatus(this.ServiceHandle, ServiceControllerStatus.Stopped);
+            } catch (Exception e) {
+                Log.Error("Failed to signal service stopped status", e);
+            }
         }
 
         private void StartProcess(Process processToStart, string arguments, string executable, LogHandler? logHandler)
