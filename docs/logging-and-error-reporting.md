@@ -48,10 +48,12 @@ Works like the append mode, but in addition, if the log file gets bigger than a 
 Works like the roll mode, except that instead of using the size as a threshold, use the time period as the threshold.
 
 This configuration must accompany a nested `<pattern>` element, which specifies the timestamp pattern used as the log file name.
+The optional `<keepFiles>` element specifies the number of rolled log files to keep. When the limit is exceeded, the oldest files are deleted automatically. If omitted, no files are deleted.
 
 ```xml
 <log mode="roll-by-time">
   <pattern>yyyyMMdd</pattern>
+  <keepFiles>30</keepFiles>
 </log>
 ```
 

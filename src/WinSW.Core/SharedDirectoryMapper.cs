@@ -18,7 +18,7 @@ namespace WinSW
             foreach (var config in this.entries)
             {
                 string label = config.Label;
-                string uncPath = config.UncPath;
+                string uncPath = config.UncPath.TrimEnd('\\', '/');
 
                 int error = WNetAddConnection2W(new()
                 {

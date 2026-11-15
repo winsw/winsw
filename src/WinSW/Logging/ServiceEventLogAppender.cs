@@ -20,6 +20,10 @@ namespace WinSW.Logging
         protected override void Append(LoggingEvent loggingEvent)
         {
             var eventLog = this.provider.Locate();
+            if (loggingEvent.RenderedMessage is null)
+            {
+                return;
+            }
 
             if (eventLog is not null)
             {
@@ -37,14 +41,16 @@ namespace WinSW.Logging
             }
         }
 
-        private static EventLogEntryType ToEventLogEntryType(Level level)
+        private static EventLogEntryType ToEventLogEntryType(Level? level)
         {
-            if (level.Value >= Level.Error.Value)
+            var actualLevel = level ?? Level.Info;
+
+            if (actualLevel >= Level.Error)
             {
                 return EventLogEntryType.Error;
             }
 
-            if (level.Value >= Level.Warn.Value)
+            if (actualLevel >= Level.Warn)
             {
                 return EventLogEntryType.Warning;
             }

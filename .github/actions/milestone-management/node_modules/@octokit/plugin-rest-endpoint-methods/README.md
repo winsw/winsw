@@ -45,7 +45,7 @@ const MyOctokit = Octokit.plugin(restEndpointMethods);
 const octokit = new MyOctokit({ auth: "secret123" });
 
 // https://developer.github.com/v3/users/#get-the-authenticated-user
-octokit.users.getAuthenticated();
+octokit.rest.users.getAuthenticated();
 ```
 
 There is one method for each REST API endpoint documented at [https://developer.github.com/v3](https://developer.github.com/v3). All endpoint methods are documented in the [docs/](docs/) folder, e.g. [docs/users/getAuthenticated.md](docs/users/getAuthenticated.md)
@@ -62,6 +62,8 @@ import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 type UpdateLabelParameters = RestEndpointMethodTypes["issues"]["updateLabel"]["parameters"];
 type UpdateLabelResponse = RestEndpointMethodTypes["issues"]["updateLabel"]["response"];
 ```
+
+In order to get types beyond parameters and responses, check out [`@octokit/openapi-types`](https://github.com/octokit/openapi-types.ts/#readme), which is a direct transpliation from GitHub's official OpenAPI specification.
 
 ## Contributing
 

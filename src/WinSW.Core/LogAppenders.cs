@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using WinSW.Util;
 
@@ -45,6 +46,7 @@ namespace WinSW
     public abstract class LogHandler
     {
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
         protected LogHandler(bool outFileDisabled, bool errFileDisabled)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
@@ -218,11 +220,14 @@ namespace WinSW
 
         public int Period { get; }
 
-        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period)
+        public int FilesToKeep { get; }
+
+        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period, int filesToKeep = -1)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             this.Pattern = pattern;
             this.Period = period;
+            this.FilesToKeep = filesToKeep;
         }
 
         protected override Task LogOutput(StreamReader outputReader)
@@ -250,12 +255,40 @@ namespace WinSW
                 if (periodicRollingCalendar.ShouldRoll)
                 {
                     writer.Dispose();
+                    this.PurgeOldFiles(ext);
                     copy.Writer = writer = new FileStream(this.BaseLogFileName + "_" + periodicRollingCalendar.Format + ext, FileMode.Create);
                 }
             }
 
             reader.Dispose();
             writer.Dispose();
+        }
+
+        internal void PurgeOldFiles(string ext)
+        {
+            if (this.FilesToKeep <= 0)
+            {
+                return;
+            }
+
+            var directory = Path.GetDirectoryName(this.BaseLogFileName)!;
+            var baseName = Path.GetFileName(this.BaseLogFileName);
+
+            var files = Directory.GetFiles(directory, baseName + "_*" + ext)
+                .OrderByDescending(File.GetLastWriteTime)
+                .Skip(this.FilesToKeep);
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException e)
+                {
+                    this.EventLogger.WriteEntry("Failed to purge old log file: " + e.Message);
+                }
+            }
         }
     }
 

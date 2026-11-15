@@ -1,0 +1,22 @@
+edit_uri: /blob/master/
+docs_dir: .
+
+# Document structure for winsw.github.io
+nav:
+  - Overview: README.md
+  - Usage:
+    - XML Config File: docs/xml-config-file.md
+    - CLI Commands: docs/cli-commands.md
+    - Deferred File Operations: docs/deferred-file-operations.md
+    - Logging and Error Reporting: docs/logging-and-error-reporting.md
+    - Self Restarting Service: docs/self-restarting-service.md
+  - Troubleshooting: docs/troubleshooting.md
+  - Migration to 3.x: docs/migrate-to-3-x.md
+  - Developer:
+      - Contributing: CONTRIBUTING.md
+      - Project Structure: docs/developer/project-structure.md
+# FIXME - remove?
+#  - Extensions:
+#      - Extensions: docs/extensions/extensions.md
+
+

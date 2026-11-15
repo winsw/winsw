@@ -19,15 +19,15 @@ namespace WinSW.Tests
             {
                 _ = Helper.Test(new[] { "install", config.FullPath }, config);
 
-                using var controller = new ServiceController(Helper.Name);
-                Assert.Equal(Helper.DisplayName, controller.DisplayName);
+                using var controller = new ServiceController(config.Name);
+                Assert.Equal(config.DisplayName, controller.DisplayName);
                 Assert.False(controller.CanStop);
                 Assert.False(controller.CanShutdown);
                 Assert.False(controller.CanPauseAndContinue);
                 Assert.Equal(ServiceControllerStatus.Stopped, controller.Status);
                 Assert.Equal(ServiceType.Win32OwnProcess, controller.ServiceType);
 
-#if NETFRAMEWORK
+#if NET
                 InterProcessCodeCoverageSession session = null;
                 try
                 {
@@ -44,7 +44,7 @@ namespace WinSW.Tests
 
                         if (Environment.GetEnvironmentVariable("System.DefinitionId") != null)
                         {
-                            session = new InterProcessCodeCoverageSession(Helper.Name);
+                            session = new InterProcessCodeCoverageSession(config.Name);
                         }
                     }
                     finally
@@ -77,7 +77,7 @@ namespace WinSW.Tests
 
             var result = Helper.ErrorTest(new[] { commandName });
 
-            Assert.Equal($"Unrecognized command or argument '{commandName}'\r\n\r\n", result.Error);
+            Assert.Equal($"Unrecognized command or argument '{commandName}'.\r\n\r\n", result.Error);
         }
 
         /// <summary>

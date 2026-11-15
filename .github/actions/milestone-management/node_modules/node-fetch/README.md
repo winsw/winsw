@@ -188,6 +188,49 @@ fetch('https://assets-cdn.github.com/images/modules/logos_page/Octocat.png')
     });
 ```
 
+In Node.js 14 you can also use async iterators to read `body`; however, be careful to catch
+errors -- the longer a response runs, the more likely it is to encounter an error.
+
+```js
+const fetch = require('node-fetch');
+const response = await fetch('https://httpbin.org/stream/3');
+try {
+	for await (const chunk of response.body) {
+		console.dir(JSON.parse(chunk.toString()));
+	}
+} catch (err) {
+	console.error(err.stack);
+}
+```
+
+In Node.js 12 you can also use async iterators to read `body`; however, async iterators with streams
+did not mature until Node.js 14, so you need to do some extra work to ensure you handle errors
+directly from the stream and wait on it response to fully close.
+
+```js
+const fetch = require('node-fetch');
+const read = async body => {
+    let error;
+    body.on('error', err => {
+        error = err;
+    });
+    for await (const chunk of body) {
+        console.dir(JSON.parse(chunk.toString()));
+    }
+    return new Promise((resolve, reject) => {
+        body.on('close', () => {
+            error ? reject(error) : resolve();
+        });
+    });
+};
+try {
+    const response = await fetch('https://httpbin.org/stream/3');
+    await read(response.body);
+} catch (err) {
+    console.error(err.stack);
+}
+```
+
 #### Buffer
 If you prefer to cache binary data in full, use buffer(). (NOTE: `buffer()` is a `node-fetch`-only API)
 

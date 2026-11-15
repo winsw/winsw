@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Diagnostics.Runtime;
 using Microsoft.Diagnostics.Runtime.Interop;
+using Windows.Win32;
 using WinSW.Native;
 using Xunit;
 
@@ -36,20 +37,19 @@ namespace WinSW.Tests.Util
             Assert.True(processId >= 0);
 
             var guid = new Guid("27fe5639-8407-4f47-8364-ee118fb08ac8");
-            int hr = Native.DebugCreate(guid, out object unknown);
-            AssertEx.Succeeded(hr);
+            PInvoke.DebugCreate(guid, out object unknown).ThrowOnFailure();
 
             var client = (IDebugClient)unknown;
             this.control = (IDebugControl)unknown;
 
-            hr = client.AttachProcess(0, (uint)processId, DEBUG_ATTACH.DEFAULT);
+            int hr = client.AttachProcess(0, (uint)processId, DEBUG_ATTACH.DEFAULT);
             AssertEx.Succeeded(hr);
 
             hr = client.SetEventCallbacks(this);
             AssertEx.Succeeded(hr);
 
             var pointer = Marshal.GetIUnknownForObject(client);
-            Assert.Equal(1, Marshal.Release(pointer));
+            Assert.Equal(3, Marshal.Release(pointer));
 
             target = DataTarget.CreateFromDbgEng(pointer);
 
@@ -180,12 +180,6 @@ namespace WinSW.Tests.Util
         int IDebugEventCallbacks.ChangeSymbolState(DEBUG_CSS Flags, ulong Argument)
         {
             throw new NotImplementedException();
-        }
-
-        private static class Native
-        {
-            [DllImport("dbgeng.dll")]
-            internal static extern int DebugCreate(in Guid InterfaceId, [MarshalAs(UnmanagedType.IUnknown)] out object Interface);
         }
     }
 }

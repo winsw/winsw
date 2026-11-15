@@ -1,0 +1,14 @@
+{
+  "name": "C#/.NET for WinSW",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:2.3.5-10.0-noble",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "postCreateCommand": "dotnet restore"
+}

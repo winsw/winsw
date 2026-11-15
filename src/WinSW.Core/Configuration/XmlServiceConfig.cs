@@ -61,7 +61,7 @@ namespace WinSW
             }
             catch (XmlException e)
             {
-                throw new InvalidDataException(e.Message, e);
+                throw new InvalidDataException(EscapeNonPrintableCharacters(e.Message), e);
             }
 
             this.root = this.dom.SelectSingleNode(Names.Service) ?? throw new InvalidDataException("<" + Names.Service + "> is missing in configuration XML");
@@ -87,12 +87,21 @@ namespace WinSW
         /// Loads config from existing DOM
         /// </summary>
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
         public XmlServiceConfig(XmlDocument dom)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
             this.root = this.dom.SelectSingleNode(Names.Service) ?? throw new InvalidDataException("<" + Names.Service + "> is missing in configuration XML");
             this.environmentVariables = this.LoadEnvironmentVariables();
+        }
+
+        private static string EscapeNonPrintableCharacters(string message)
+        {
+            return message
+                .Replace("\r", "\\r")
+                .Replace("\n", "\\n")
+                .Replace("\t", "\\t");
         }
 
         public static XmlServiceConfig FromXml(string xml)
@@ -303,7 +312,8 @@ namespace WinSW
 
                         string? pattern = patternNode.InnerText;
                         int period = SingleIntElement(e, "period", 1);
-                        return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period);
+                        int filesToKeep = SingleIntElement(e, "keepFiles", -1);
+                        return new TimeBasedRollingLogAppender(this.LogDirectory, this.LogName, this.OutFileDisabled, this.ErrFileDisabled, this.OutFilePattern, this.ErrFilePattern, pattern, period, filesToKeep);
 
                     case "roll-by-size":
                         sizeThreshold = SingleIntElement(e, "sizeThreshold", 10 * 1024) * SizeBasedRollingLogAppender.BytesPerKB;

@@ -55,11 +55,11 @@ const error = new RequestError("Oops", 500, {
 
 error.message; // Oops
 error.status; // 500
-error.headers; // { 'x-github-request-id': '1:2:3:4' }
 error.request.method; // POST
 error.request.url; // https://api.github.com/foo
 error.request.body; // { bar: 'baz' }
 error.request.headers; // { authorization: 'token [REDACTED]' }
+error.response; // { url, status, headers, data }
 ```
 
 ## LICENSE

@@ -195,7 +195,7 @@ Specify `NUL` in `stdoutPath` or `stderrPath` to dispose of the corresponding st
 
 Gives the service more time to stop when the system is being shut down.
 
-The system default preshutdown timeout is there minutes.
+The system default preshutdown timeout is three minutes.
 
 ### stoptimeout
 
@@ -225,6 +225,17 @@ This optional element can be specified one time to specify a file to load enviro
 
 ```xml
 <envFile>%BASE%/env.txt</env-file>
+```
+
+### hidewindow
+
+**Optional**
+When set to `true`, WinSW starts the service process with `CreateNoWindow=true`, which prevents a console window from being created.
+This is mainly useful for console applications and for avoiding a briefly visible window during startup.
+The default value is `false`.
+
+```xml
+<hidewindow>true</hidewindow>
 ```
 
 ### interactive
@@ -420,7 +431,7 @@ Optional. Prompts for a user name and a password.
 ```xml
 <serviceaccount>
   <prompt>dialog|console</prompt>
-<serviceaccount>
+</serviceaccount>
 ```
 
 - `dialog`

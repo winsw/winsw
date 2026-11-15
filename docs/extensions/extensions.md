@@ -5,7 +5,7 @@ These extensions allow to alter the behavior of the Windows service in order to 
 
 ## Available extensions
 
-* [Shared Directory Mapper](shared-directory-mapper.md) - Allows mapping shared drives before starting the executable
+* [Shared Directory Mapper](../xml-config-file.md#shareddirectorymapping) - Allows mapping shared drives before starting the executable
 
 ## Developer guide
 

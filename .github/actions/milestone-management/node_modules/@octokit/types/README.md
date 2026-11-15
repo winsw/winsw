@@ -27,7 +27,8 @@ See all exported types at https://octokit.github.io/types.ts
 ```ts
 import { Endpoints } from "@octokit/types";
 
-type listUserReposParameters = Endpoints["GET /repos/{owner}/{repo}"]["parameters"];
+type listUserReposParameters =
+  Endpoints["GET /repos/{owner}/{repo}"]["parameters"];
 type listUserReposResponse = Endpoints["GET /repos/{owner}/{repo}"]["response"];
 
 async function listRepos(

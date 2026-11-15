@@ -17,13 +17,18 @@ namespace WinSW.Tasks
         {
             using var module = ModuleDefinition.ReadModule(this.Path, new() { ReadWrite = true, ReadSymbols = true });
 
+            foreach (var t in module.CustomAttributeTypes())
+            {
+                this.WalkType(t);
+            }
+
             this.WalkType(module.EntryPoint.DeclaringType);
 
             var types = module.Types;
             for (int i = types.Count - 1; i >= 0; i--)
             {
                 var type = types[i];
-                if (type.FullName.Contains("WinSW.Plugins"))
+                if (type.FullName.StartsWith("WinSW.Plugins"))
                 {
                     this.WalkType(type);
                 }
@@ -63,6 +68,10 @@ namespace WinSW.Tasks
                     {
                         this.WalkType(genericArg);
                     }
+                }
+                else if (typeRef is IModifierType modifierType)
+                {
+                    this.WalkType(modifierType.ModifierType);
                 }
 
                 return;

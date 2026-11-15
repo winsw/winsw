@@ -32,16 +32,23 @@ namespace WinSW.Tests.Extensions
         }
 
         [ElevatedFact]
-        public void TestMap_PathEndsWithSlash_Throws()
+        public void TestMap_PathEndsWithSlash()
         {
             using var data = TestData.Create();
 
             const string label = "W:";
             var mapper = CreateMapper(label, $@"\\{Environment.MachineName}\{data.name}\");
 
-            _ = Assert.ThrowsAny<Exception>(() => mapper.Map());
+            mapper.Map();
+            try
+            {
+                Assert.True(Directory.Exists($@"{label}\"));
+            }
+            finally
+            {
+                mapper.Unmap();
+            }
             Assert.False(Directory.Exists($@"{label}\"));
-            _ = Assert.ThrowsAny<Exception>(() => mapper.Unmap());
         }
 
         [ElevatedFact]

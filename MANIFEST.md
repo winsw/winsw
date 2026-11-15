@@ -1,6 +1,6 @@
-# Project manifest
+# Project manifesto
 
-Here is a cite from [Kohsuke Kawaguchi](https://github.com/kohsuke/), who is the original author of this project:
+Here is a quote from [Kohsuke Kawaguchi](https://github.com/kohsuke/), who is the original author of this project:
 
 > Now, I think the first question that people would ask is, why another, when there's [Java Service Wrapper project](http://wrapper.tanukisoftware.org/doc/english/download.jsp) already available.
 > The main reason for writing my own was the license — Java Service Wrapper project is in GPL (so that they can sell their commercial version in a different license), and that made it difficult for [Jenkins](http://jenkins-ci.org/) (which is under the MIT license) to use it.

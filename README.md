@@ -10,7 +10,11 @@
 
 WinSW wraps and manages any application as a Windows service.
 
-**We are actively developing WinSW 3. Please refer to the [v2](https://github.com/winsw/winsw/tree/master) branch for previous version documentation.**
+## Project status
+
+- Development of WinSW 3.x happens on the default branch [`v3`](https://github.com/winsw/winsw/tree/v3).
+- GitHub Releases contains stable 2.x releases and 3.x pre-releases. NuGet and Maven packages currently correspond to 2.x.
+- For WinSW 2.x documentation, refer to the [`v2`](https://github.com/winsw/winsw/tree/v2) branch.
 
 ## Why?
 
@@ -19,7 +23,7 @@ See the [project manifest](MANIFEST.md).
 ## Supported platforms
 
 WinSW 3 can run on Windows platforms with .NET Framework 4.6.1 or later versions installed.
-For systems without .NET Framework, the project provides native 64-bit and 32-bit executables based on .NET Core.
+For systems without .NET Framework, the project provides native 64-bit and 32-bit executables based on .NET 7.
 
 More executables can be added upon request.
 
@@ -27,8 +31,8 @@ More executables can be added upon request.
 Preinstalled since Windows 10, version 1511 and Windows Server 2016.\
 Installable since Windows 7 SP1 and Windows Server 2008 R2 SP1.
 
-[.NET 5 system requirements](https://github.com/dotnet/core/blob/master/release-notes/5.0/5.0-supported-os.md)\
-Supported since Windows 7 SP1, Windows Server (Core) 2012 R2 and Nano Server, version 1809.
+[.NET 7 system requirements](https://github.com/dotnet/core/blob/main/release-notes/7.0/supported-os.md)\
+Supported since Windows 10, version 1607, Windows Server (Core) 2012 R2 and Nano Server, version 1809.
 
 ## Download
 
@@ -117,6 +121,7 @@ Most commands require Administrator privileges to execute. WinSW will prompt for
 * Use cases:
   * [Self-restarting services](docs/self-restarting-service.md)
   * [Deferred file operations](docs/deferred-file-operations.md)
+  * [Troubleshooting](docs/troubleshooting.md)
 
 ## Contributing
 
@@ -126,3 +131,12 @@ See the [contributing guidelines](CONTRIBUTING.md) for more information.
 ## License
 
 WinSW is licensed under the [MIT](LICENSE.txt) license.
+
+## Similar projects
+
+* [srvany.exe](https://learn.microsoft.com/en-us/troubleshoot/windows-client/setup-upgrade-and-drivers/create-user-defined-service)
+* [nssm](https://git.nssm.cc/nssm/nssm.git)
+* [srvany-ng](https://github.com/birkett/srvany-ng)
+* [shawl](https://github.com/mtkennerly/shawl)
+
+

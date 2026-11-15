@@ -21,6 +21,8 @@ namespace WinSW.Tests.Util
 
         public string XmlComment { get; set; }
 
+        public string XmlEncoding { get; set; }
+
         public List<string> ExtensionXmls { get; } = new List<string>();
 
         private readonly List<string> configEntries = new();
@@ -59,8 +61,14 @@ namespace WinSW.Tests.Util
             var str = new StringBuilder();
             if (this.PrintXmlVersion)
             {
-                // TODO: The encoding is generally wrong
-                str.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+                if (string.IsNullOrEmpty(this.XmlEncoding))
+                {
+                    str.Append("<?xml version=\"1.0\"?>\n");
+                }
+                else
+                {
+                    str.AppendFormat("<?xml version=\"1.0\" encoding=\"{0}\"?>\n", this.XmlEncoding);
+                }
             }
 
             if (this.XmlComment != null)

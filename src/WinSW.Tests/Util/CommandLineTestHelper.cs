@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Xml;
 using Xunit;
 
@@ -113,7 +115,7 @@ $@"<service>
                     string path = this.FullPath = Path.Combine(directory, "config.xml");
                     using (var file = File.CreateText(path))
                     {
-                        file.Write(SeedXml);
+                        file.Write(this.dom.OuterXml);
                     }
 
                     this.BaseName = name;
@@ -140,7 +142,31 @@ $@"<service>
             {
                 var document = new XmlDocument();
                 document.LoadXml(xml);
-                return new TestXmlServiceConfig(document, name);
+
+                string suffix = Guid.NewGuid().ToString("N").Substring(0, 8);
+                string serviceId = $"{CommandLineTestHelper.Name}-{suffix}";
+
+                var serviceNode = document.SelectSingleNode("/service");
+                if (serviceNode is null)
+                {
+                    throw new InvalidDataException("<service> is missing in configuration XML");
+                }
+
+                var idNode = serviceNode.SelectSingleNode("id");
+                if (idNode is null)
+                {
+                    idNode = document.CreateElement("id");
+                    _ = serviceNode.PrependChild(idNode);
+                }
+                idNode.InnerText = serviceId;
+
+                var displayNameNode = serviceNode.SelectSingleNode("name");
+                if (displayNameNode is not null)
+                {
+                    displayNameNode.InnerText = $"{CommandLineTestHelper.DisplayName} ({suffix})";
+                }
+
+                return new TestXmlServiceConfig(document, $"{name}-{suffix}");
             }
 
             public void Dispose()
@@ -153,8 +179,25 @@ $@"<service>
             {
                 if (!disposed)
                 {
-                    Directory.Delete(this.directory, true);
                     disposed = true;
+                    DeleteDirectoryWithRetry(this.directory, TimeSpan.FromSeconds(5));
+                }
+            }
+
+            private static void DeleteDirectoryWithRetry(string directory, TimeSpan timeout)
+            {
+                var start = Stopwatch.StartNew();
+                while (true)
+                {
+                    try
+                    {
+                        Directory.Delete(directory, true);
+                        return;
+                    }
+                    catch (Exception) when (start.Elapsed < timeout)
+                    {
+                        Thread.Sleep(200);
+                    }
                 }
             }
         }
