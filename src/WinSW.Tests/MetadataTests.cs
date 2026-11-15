@@ -13,7 +13,7 @@ namespace WinSW.Tests
         [Fact]
         public void Extern()
         {
-            var version = new Version(4, 0, 0, 0);
+            var version = new Version(4, 0, 2, 0);
 
             using var peReader = new PEReader(File.OpenRead(Layout.NET461Exe));
             var metadataReader = peReader.GetMetadataReader();
