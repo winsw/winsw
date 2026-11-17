@@ -83,6 +83,16 @@ namespace WinSW
             this.Password = XmlHelper.SingleAttribute<string>(n, "password", null);
             this.UnsecureAuth = XmlHelper.SingleAttribute(n, "unsecureAuth", false);
 
+            this.Validate();
+        }
+
+        /// <summary>
+        /// Rejects Basic authentication settings that are incomplete or would send the credentials in clear text.
+        /// Every configuration format calls this after reading a download entry.
+        /// </summary>
+        /// <exception cref="InvalidDataException">The configuration is invalid.</exception>
+        internal void Validate()
+        {
             if (this.Auth == AuthType.Basic)
             {
                 // Allow it only for HTTPS or for UnsecureAuth

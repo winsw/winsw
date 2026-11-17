@@ -397,7 +397,15 @@ namespace WinSW.Configuration
 
             internal YamlDownload(RawYamlDownload raw) => this.raw = raw;
 
-            public Download Download => new(this.From, this.To, this.FailOnError, this.Auth, this.Username, this.Password, this.UnsecureAuth, this.Proxy);
+            public Download Download
+            {
+                get
+                {
+                    var download = new Download(this.From, this.To, this.FailOnError, this.Auth, this.Username, this.Password, this.UnsecureAuth, this.Proxy);
+                    download.Validate();
+                    return download;
+                }
+            }
 
             public string From => Expand(this.raw.From)!;
 
