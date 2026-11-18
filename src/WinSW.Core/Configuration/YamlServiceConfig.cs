@@ -397,6 +397,10 @@ namespace WinSW.Configuration
 
             internal YamlDownload(RawYamlDownload raw) => this.raw = raw;
 
+            /// <summary>
+            /// Gets the download entry. It is checked like an XML download entry.
+            /// </summary>
+            /// <exception cref="InvalidDataException">Basic authentication is enabled without a username or password, or for a URL that is not HTTPS while <c>unsecureAuth</c> is not set.</exception>
             public Download Download
             {
                 get
