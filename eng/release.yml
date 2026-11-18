@@ -1,0 +1,37 @@
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline: winsw
+    source: winsw.winsw
+
+pool:
+  vmImage: windows-latest
+steps:
+- download: winsw
+  artifact: WinSW-net461.exe_Release
+- download: winsw
+  artifact: WinSW-x64.zip_Release
+- download: winsw
+  artifact: WinSW-x86.zip_Release
+- download: winsw
+  artifact: WinSW-x64.exe_Release
+- download: winsw
+  artifact: WinSW-x86.exe_Release
+- ${{ if ne(variables['Build.RequestedForEmail'], '') }}:
+  - task: GitHubRelease@1
+    inputs:
+      gitHubConnection: GitHub $(Build.RequestedForEmail)
+      repositoryName: $(Build.Repository.Name)
+      action: create
+      target: $(Build.SourceVersion)
+      tagSource: userSpecifiedTag
+      tag: v3.0.0
+      title: WinSW v3.0.0
+      assets: |
+        $(Pipeline.Workspace)/**/*.xml
+        $(Pipeline.Workspace)/**/*.exe
+        $(Pipeline.Workspace)/**/*.zip
+      isDraft: true
+      isPreRelease: true
+      addChangeLog: false
