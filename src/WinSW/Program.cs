@@ -438,7 +438,9 @@ namespace WinSW
 
             void Restart()
             {
-                if (!elevated)
+                // A non-interactive caller, such as the child process started by restart!, cannot show
+                // an elevation prompt. Let the SCM check the service DACL instead.
+                if (!elevated && Environment.UserInteractive)
                 {
                     Elevate();
                     return;
@@ -514,11 +516,6 @@ namespace WinSW
 
             void RestartSelf()
             {
-                if (!elevated)
-                {
-                    Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
-                }
-
                 Log.Info("Restarting the service with id '" + config.Name + "'");
 
                 // run restart from another process group. see README.md for why this is useful.
