@@ -53,6 +53,7 @@ jobs:
         dotnet build WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=$env:VERSION
         dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained WinSW\WinSW.csproj -p:Version=$env:VERSION
         dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained WinSW\WinSW.csproj -p:Version=$env:VERSION
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-arm64 --self-contained WinSW\WinSW.csproj -p:Version=$env:VERSION
 
 
     # Execute all unit tests in the solution
@@ -70,7 +71,7 @@ jobs:
         # Release binaries keep the plain names used by earlier releases (for example WinSW-x64.exe),
         # Debug binaries get a ".Debug" suffix before the extension.
         $suffix = if ('${{ matrix.configuration }}' -eq 'Release') { '' } else { '.${{ matrix.configuration }}' }
-        foreach ($name in 'WinSW.NET462', 'WinSW-x64', 'WinSW-x86') {
+        foreach ($name in 'WinSW.NET462', 'WinSW-x64', 'WinSW-x86', 'WinSW-arm64') {
           Copy-Item "artifacts/publish/$name.exe" "release-assets/$name$suffix.exe"
         }
         if ('${{ matrix.configuration }}' -eq 'Release') {
