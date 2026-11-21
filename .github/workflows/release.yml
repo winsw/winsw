@@ -67,9 +67,12 @@ jobs:
       shell: pwsh
       run: |
         New-Item -ItemType Directory -Force release-assets | Out-Null
-        Copy-Item artifacts/publish/WinSW.NET462.exe "release-assets/WinSW.NET462.exe_${{ matrix.configuration }}"
-        Copy-Item artifacts/publish/WinSW-x64.exe "release-assets/WinSW-x64.exe_${{ matrix.configuration }}"
-        Copy-Item artifacts/publish/WinSW-x86.exe "release-assets/WinSW-x86.exe_${{ matrix.configuration }}"
+        # Release binaries keep the plain names used by earlier releases (for example WinSW-x64.exe),
+        # Debug binaries get a ".Debug" suffix before the extension.
+        $suffix = if ('${{ matrix.configuration }}' -eq 'Release') { '' } else { '.${{ matrix.configuration }}' }
+        foreach ($name in 'WinSW.NET462', 'WinSW-x64', 'WinSW-x86') {
+          Copy-Item "artifacts/publish/$name.exe" "release-assets/$name$suffix.exe"
+        }
         if ('${{ matrix.configuration }}' -eq 'Release') {
           Copy-Item examples/sample-allOptions.xml release-assets/
           Copy-Item examples/sample-minimal.xml release-assets/
