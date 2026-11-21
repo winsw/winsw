@@ -47,6 +47,7 @@ jobs:
         dotnet build WinSW.sln --configuration ${{ matrix.configuration }} -p:Version=${{ env.BuildVersion }}
         dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x64 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
         dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-x86 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
+        dotnet publish -c ${{ matrix.configuration }} -f net8.0-windows -r win-arm64 --self-contained WinSW\WinSW.csproj -p:Version=${{ env.BuildVersion }}
 
 
     # Execute all unit tests in the solution
@@ -79,6 +80,12 @@ jobs:
       with:
         name: WinSW-x86.exe_${{ matrix.configuration }}
         path: artifacts/publish/WinSW-x86.exe
+
+    - name: Publish .NET Arm64
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinSW-arm64.exe_${{ matrix.configuration }}
+        path: artifacts/publish/WinSW-arm64.exe
 
     - name: Publish NuGet
       uses: actions/upload-artifact@v4
