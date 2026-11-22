@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.ServiceProcess;
 using NUnit.Framework;
 using WinSW;
@@ -12,6 +13,7 @@ namespace winswTests
         private IServiceConfig _extendedServiceDescriptor;
 
         private const string ExpectedWorkingDirectory = @"Z:\Path\SubPath";
+        private const string ExpectedLogDirectory = @"c:\logs";
         private const string Username = "User";
         private const string Password = "Password";
         private const string Domain = "Domain";
@@ -29,7 +31,7 @@ executable: node.exe
 arguments: My Arguments
 log:
     mode: roll
-    logpath: c:\logs
+    logPath: {ExpectedLogDirectory}
 serviceAccount:
     domain: {Domain}
     user: {Username}
@@ -80,6 +82,13 @@ startMode: manual";
         public void VerifyWorkingDirectory()
         {
             Assert.That(this._extendedServiceDescriptor.WorkingDirectory, Is.EqualTo(ExpectedWorkingDirectory));
+        }
+
+        [Test]
+        public void VerifyLogPath()
+        {
+            Assert.That(this._extendedServiceDescriptor.Log.Directory, Is.EqualTo(ExpectedLogDirectory));
+            Assert.That(this._extendedServiceDescriptor.LogDirectory, Is.EqualTo(ExpectedLogDirectory));
         }
 
         [Test]
@@ -265,7 +274,7 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: 'c:\\'
+    logPath: 'c:\\'
     mode: roll-by-size
     sizeThreshold: 112
     keepFiles: 113";
@@ -289,7 +298,7 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: c:\\
+    logPath: c:\\
     mode: roll-by-time
     period: 7
     pattern: log pattern";
@@ -313,7 +322,7 @@ name: Service
 description: The Service.
 executable: node.exe
 log:
-    logpath: c:\\
+    logPath: c:\\
     mode: roll-by-size-time
     sizeThreshold: 10240
     pattern: yyyy-MM-dd
@@ -441,5 +450,78 @@ description: This is test winsw";
             }, Throws.TypeOf<InvalidOperationException>());
         }
 
+        private static IServiceConfig YamlWithDownload(string downloadFields) => YamlServiceConfig.FromYaml($@"
+id: service.exe
+name: Service
+description: The Service.
+executable: node.exe
+download:
+  - to: 'C:\temp\file.txt'
+{downloadFields}");
+
+        [TestCase("http://")]
+        [TestCase("ftp://")]
+        [TestCase("file://")]
+        [TestCase("\\\\")] // UNC
+        public void Download_RejectBasicAuth_With_UnsecureProtocol(string protocolPrefix)
+        {
+            var sd = YamlWithDownload($@"    from: '{protocolPrefix}myServer.com:8080/file.txt'
+    auth: basic
+    username: aUser
+    password: aPassword");
+
+            Assert.That(
+                () => sd.Downloads,
+                Throws.TypeOf<InvalidDataException>().With.Message.StartsWith("Warning: you're sending your credentials in clear text to the server"));
+        }
+
+        [Test]
+        public void Download_AllowBasicAuth_With_UnsecureAuth()
+        {
+            var sd = YamlWithDownload(@"    from: 'http://myServer.com:8080/file.txt'
+    auth: basic
+    username: aUser
+    password: aPassword
+    unsecureAuth: true");
+
+            var download = sd.Downloads[0];
+            Assert.That(download.Auth, Is.EqualTo(Download.AuthType.Basic));
+            Assert.That(download.UnsecureAuth, Is.True);
+        }
+
+        [Test]
+        public void Download_AllowBasicAuth_With_Https()
+        {
+            var sd = YamlWithDownload(@"    from: 'https://myServer.com:8080/file.txt'
+    auth: basic
+    username: aUser
+    password: aPassword");
+
+            Assert.That(sd.Downloads[0].Auth, Is.EqualTo(Download.AuthType.Basic));
+        }
+
+        [Test]
+        public void Download_RejectBasicAuth_Without_Username()
+        {
+            var sd = YamlWithDownload(@"    from: 'https://myServer.com:8080/file.txt'
+    auth: basic
+    password: aPassword");
+
+            Assert.That(
+                () => sd.Downloads,
+                Throws.TypeOf<InvalidDataException>().With.Message.StartsWith("Basic Auth is enabled, but username is not specified"));
+        }
+
+        [Test]
+        public void Download_RejectBasicAuth_Without_Password()
+        {
+            var sd = YamlWithDownload(@"    from: 'https://myServer.com:8080/file.txt'
+    auth: basic
+    username: aUser");
+
+            Assert.That(
+                () => sd.Downloads,
+                Throws.TypeOf<InvalidDataException>().With.Message.StartsWith("Basic Auth is enabled, but password is not specified"));
+        }
     }
 }

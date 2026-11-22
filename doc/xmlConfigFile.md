@@ -149,7 +149,17 @@ This optional element can be specified multiple time within element "env". The s
 <rule regex="\\" value="\/"
 ```
 
-With the help of a rule replacements in a environment variable can be done after expansion. That is helpful e.g. when working with Linux tools on Windows and Windows environment variables are used in "env" for paths to change back slashes to forward slashes and mask white spaces.
+With the help of a rule replacements in a environment variable can be done after expansion. 
+That is helpful e.g. when working with Linux tools on Windows and Windows environment variables are used in "env" for paths
+to change back slashes to forward slashes and mask white spaces.
+
+### Environment File
+
+This optional element can be specified one time to specify a file to load environment variables from. Each variable definition must be on a separate line and in the format "key=value". Empty lines and lines starting with "#" are ignored. The syntax is:
+
+```xml
+<envFile>%BASE%/env.txt</env-file>
+```
 
 ### interactive
 

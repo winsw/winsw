@@ -66,6 +66,8 @@ namespace WinSW
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.EnvVarNameServiceId, this.Name);
 
+            this.LoadEnvironmentVariablesFromFile();
+
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
 
@@ -530,6 +532,11 @@ namespace WinSW
         public Dictionary<string, string> EnvironmentVariables => new(this.environmentVariables);
 
         /// <summary>
+        /// File from which environment variables are loaded.
+        /// </summary>
+        public string? EnvironmentVariablesFile => this.SingleElement("envFile", optional: true);
+
+        /// <summary>
         /// List of downloads to be performed by the wrapper before starting
         /// a service.
         /// </summary>
@@ -708,6 +715,18 @@ namespace WinSW
             }
 
             return environment;
+        }
+
+        private void LoadEnvironmentVariablesFromFile()
+        {
+            var envFile = this.SingleElement("envFile", optional: true);
+
+            if (envFile is null)
+            {
+                return;
+            }
+
+            ConfigHelper.LoadEnvironmentVariablesFile(envFile);
         }
 
         public List<YamlExtensionConfig>? YamlExtensions => Defaults.YamlExtensions;
