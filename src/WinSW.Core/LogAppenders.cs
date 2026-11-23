@@ -183,7 +183,7 @@ namespace WinSW
 
         public int? FilesToKeep { get; private set; }
 
-        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period, int? filesToKeep)
+        public TimeBasedRollingLogAppender(string logDirectory, string baseName, bool outFileDisabled, bool errFileDisabled, string outFilePattern, string errFilePattern, string pattern, int period, int? filesToKeep = null)
             : base(logDirectory, baseName, outFileDisabled, errFileDisabled, outFilePattern, errFilePattern)
         {
             this.Pattern = pattern;
