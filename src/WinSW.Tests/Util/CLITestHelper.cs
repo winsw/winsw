@@ -10,8 +10,15 @@ namespace winswTests.Util
     /// </summary>
     public static class CLITestHelper
     {
-        public const string Id = "WinSW.Tests";
-        public const string Name = "WinSW Test Service";
+        // dotnet test runs the net462 and net8.0-windows tests in parallel (default since the .NET 9 SDK),
+        // and TestInstall installs a real service, so each target framework needs its own service.
+#if NET
+        public const string Id = "WinSW.Tests.NET";
+        public const string Name = "WinSW Test Service (.NET)";
+#else
+        public const string Id = "WinSW.Tests.NETFramework";
+        public const string Name = "WinSW Test Service (.NET Framework)";
+#endif
 
         private static readonly string SeedXml =
 $@"<service>
