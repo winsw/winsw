@@ -419,10 +419,9 @@ namespace WinSW
                 {
                     this.LogEvent("WaitForExit " + ioe.Message);
                 }
-                finally
-                {
-                    proc.Dispose();
-                }
+
+                // Do not dispose the process here. DoStop may still be using it on another thread,
+                // for example in StopProcessTree or WaitForProcessToExit.
             }
 
             // Invoke process and exit
