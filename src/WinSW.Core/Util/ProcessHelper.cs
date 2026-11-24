@@ -233,8 +233,9 @@ namespace WinSW.Util
 
             bool succeeded = SetConsoleCtrlHandler(null, false); // inherited
             Debug.Assert(succeeded);
-            succeeded = SetConsoleOutputCP(CP_UTF8);
-            Debug.Assert(succeeded);
+
+            // Fails when no console is attached, for example in service mode.
+            _ = SetConsoleOutputCP(CP_UTF8);
 
             try
             {
