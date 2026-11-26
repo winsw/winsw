@@ -17,8 +17,6 @@ namespace WinSW.Util
 
         public static void StopTree(this Process process, int millisecondsTimeout)
         {
-            StopPrivate(process, millisecondsTimeout);
-
             foreach (var child in GetChildren(process))
             {
                 using (child.Process)
@@ -27,6 +25,8 @@ namespace WinSW.Util
                     StopTree(child.Process, millisecondsTimeout);
                 }
             }
+
+            StopPrivate(process, millisecondsTimeout);
         }
 
         internal static void StopDescendants(this Process process, int millisecondsTimeout)
