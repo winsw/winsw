@@ -659,7 +659,9 @@ namespace WinSW
             {
                 var config = LoadConfigAndInitLoggers(pathToConfig, true);
 
-                if (!elevated)
+                // A non-interactive caller, such as the child process started by restart!, cannot show
+                // an elevation prompt. Let the SCM check the service DACL instead.
+                if (!elevated && Environment.UserInteractive)
                 {
                     Elevate(noElevate);
                     return;
@@ -737,11 +739,6 @@ namespace WinSW
             void RestartSelf(string? pathToConfig)
             {
                 var config = LoadConfigAndInitLoggers(pathToConfig, true);
-
-                if (!elevated)
-                {
-                    Throw.Command.Win32Exception(Errors.ERROR_ACCESS_DENIED);
-                }
 
                 AutoRefresh(config);
 
