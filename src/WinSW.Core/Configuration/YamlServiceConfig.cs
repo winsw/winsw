@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.ServiceProcess;
+using System.Text.RegularExpressions;
 using System.Xml;
 using WinSW.Native;
 using WinSW.Util;
@@ -213,6 +214,17 @@ namespace WinSW.Configuration
 
                 string key = item.Name;
                 string value = Environment.ExpandEnvironmentVariables(item.Value);
+
+                foreach (var ruleItem in item.Rule!)
+                {
+                    string regularExpression = ruleItem.Regex!;
+                    string replacement = ruleItem.Replace!;
+
+                    if (!string.IsNullOrEmpty(regularExpression) && !string.IsNullOrEmpty(replacement))
+                    {
+                        value = Regex.Replace(value, regularExpression, replacement);
+                    }
+                }
 
                 this.EnvironmentVariables[key] = value;
                 Environment.SetEnvironmentVariable(key, value);
@@ -444,6 +456,13 @@ namespace WinSW.Configuration
         {
             public string? Name;
             public string? Value;
+            public List<RawYamlRule>? Rule;
+        }
+
+        internal sealed class RawYamlRule
+        {
+            public string? Regex;
+            public string? Replace;
         }
 
         internal sealed class YamlFailureAction
